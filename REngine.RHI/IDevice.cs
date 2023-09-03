@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace REngine.RHI.DiligentDriver
+namespace REngine.RHI
 {
-	internal class DiligentGraphicsDriverImpl
+	public interface IDevice : IDisposable
 	{
 	}
 }

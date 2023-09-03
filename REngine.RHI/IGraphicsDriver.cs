@@ -20,5 +20,8 @@ namespace REngine.RHI
 	{
 		public GraphicsBackend Backend { get; }
 		public string DriverName { get; }
+		public IReadOnlyList<ICommandBuffer> Commands { get; }
+		public ICommandBuffer ImmediateCommand { get; }
+		public IDevice Device { get; }
 	}
 }
