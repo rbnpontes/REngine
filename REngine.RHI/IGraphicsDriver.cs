@@ -16,7 +16,22 @@ namespace REngine.RHI
 		OpenGL,
 		Software
 	}
-	public interface IGraphicsDriver
+	public enum AdapterType
+	{
+		Unknow=0,
+		Software,
+		Integrated,
+		Dedicated,
+		Discrete
+	}
+	public class GraphicsAdapter
+	{
+		public uint Id { get; set; }
+		public uint VendorId { get; set; }
+		public string Name { get; set; } = string.Empty;
+		public AdapterType AdapterType { get; set; }
+	}
+	public interface IGraphicsDriver : IDisposable
 	{
 		public GraphicsBackend Backend { get; }
 		public string DriverName { get; }

@@ -37,5 +37,12 @@ namespace REngine.RHI.DiligentDriver
 			}
 			set { pDevice = value; }
 		}
+
+		public void Dispose()
+		{
+			foreach (var cmd in Commands)
+				cmd.Dispose();
+			Device.Dispose();
+		}
 	}
 }
