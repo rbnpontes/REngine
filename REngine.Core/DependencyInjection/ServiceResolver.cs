@@ -54,8 +54,8 @@ namespace REngine.Core.DependencyInjection
 			{
 				var ctorInfo = FindSuitableConstructor(instances, ctor.TargetType.GetConstructors());
 				dependencies = ctorInfo
-					.GetGenericArguments()
-					.Select(dep => ResolveDependency(instances, dep))
+					.GetParameters()
+					.Select(dep => ResolveDependency(instances, dep.ParameterType))
 					.ToArray();
 
 			}
@@ -97,12 +97,12 @@ namespace REngine.Core.DependencyInjection
 		{
 			var ctor = ctors.Where(ctor =>
 			{
-				var args = ctor.GetGenericArguments();
+				var args = ctor.GetParameters();
 				foreach (var arg in args)
 				{
-					if (instances.ContainsKey(arg))
+					if (instances.ContainsKey(arg.ParameterType))
 						continue;
-					if (!pCtors.ContainsKey(arg))
+					if (!pCtors.ContainsKey(arg.ParameterType))
 						continue;
 				}
 

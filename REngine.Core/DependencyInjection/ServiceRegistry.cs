@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.DependencyInjection
 {
+	public delegate Interface NoDepsActivationCall<Interface>();
 	public delegate Interface ActivationCall<Interface>(object[] dependencies);
 
 	public interface IServiceRegistry
@@ -13,7 +14,7 @@ namespace REngine.Core.DependencyInjection
 		IServiceRegistry Add<Interface, Target>();
 		IServiceRegistry Add<Target>();
 
-		IServiceRegistry Add<Interface>(ActivationCall<Interface> call);
+		IServiceRegistry Add<Interface>(NoDepsActivationCall<Interface> call);
 		IServiceRegistry Add<Interface>(ActivationCall<Interface> call, IEnumerable<Type> dependencies);
 		
 		IServiceProvider Build();
@@ -51,12 +52,12 @@ namespace REngine.Core.DependencyInjection
 			return this;
 		}
 
-		public IServiceRegistry Add<Interface>(ActivationCall<Interface> call)
+		public IServiceRegistry Add<Interface>(NoDepsActivationCall<Interface> call)
 		{
 			ServiceConstructor constructor = new ServiceConstructor(typeof(Interface), ServiceConstructorType.Lambda);
-			constructor.ActivationCall = (deps) =>
+			constructor.ActivationCall = (_) =>
 			{
-				var result = call(deps);
+				var result = call();
 				if (result is null)
 					throw new NullReferenceException($"ActivationCall has retrivied null at service {typeof(Interface).Name}.");
 				return result;
@@ -96,7 +97,7 @@ namespace REngine.Core.DependencyInjection
 		}
 	}
 
-	public static class ServiceRegistry
+	public static class ServiceRegistryFactory
 	{
 		public static IServiceRegistry Build()
 		{
