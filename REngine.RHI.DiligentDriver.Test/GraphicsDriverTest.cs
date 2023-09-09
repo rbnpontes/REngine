@@ -4,11 +4,8 @@ using System.Windows.Forms;
 namespace REngine.RHI.DiligentDriver.Tests
 {
 	[TestFixture]
-	public class GraphicsDriverTest
+	public class GraphicsDriverTest : BaseTest
 	{
-		private Form? pMainWindow;
-		private List<IDisposable> pDisposables = new List<IDisposable>();
-
 		public GraphicsDriverTest()
 		{
 			GraphicsFactory.OnMessage += LogMessages;
@@ -17,20 +14,12 @@ namespace REngine.RHI.DiligentDriver.Tests
 		[SetUp]
 		public void Setup()
 		{
-			pMainWindow = new Form
-			{
-				Text = "Test Window",
-				Name = "TestWindow",
-				FormBorderStyle = FormBorderStyle.Sizable,
-				ClientSize = new Size(500, 500),
-				StartPosition = FormStartPosition.CenterScreen,
-			};
+			CreateWindow();
 		}
 		[TearDown]
 		public void Cleanup()
 		{
-			pDisposables.ForEach(x => x.Dispose());
-			pDisposables.Clear();
+			CleanDisposables();
 		}
 
 		[Test, Sequential]
@@ -44,33 +33,15 @@ namespace REngine.RHI.DiligentDriver.Tests
 				GraphicsBackend.OpenGL
 			)] GraphicsBackend backend)
 		{
-			pMainWindow?.Show();
-
-			ISwapChain swapChain;
-			IGraphicsDriver driver = GraphicsFactory.Create(new GraphicsFactoryCreateInfo
-			{
-				Settings = new GraphicsSettings
-				{
-					EnableValidation = true,
-					Backend = backend,
-				},
-				WindowHandle = pMainWindow?.Handle ?? IntPtr.Zero,
-			}, new SwapChainDesc
-			{
-				Size = new SwapChainSize(500, 500),
-			}, out swapChain);
+			(IGraphicsDriver driver, ISwapChain swapChain) = CreateGraphics(backend);
 
 			swapChain.Present(true);
 
-			pMainWindow?.Invalidate(new Rectangle(0, 0, 0, 1));
+			MainWindow?.Invalidate(new Rectangle(0, 0, 0, 1));
 
 			Thread.Sleep(500);
-			pMainWindow?.Close();
+			MainWindow?.Close();
 			Assert.Pass();
-
-			pDisposables.Add(swapChain);
-			pDisposables.Add(driver);
-			pDisposables.Add(pMainWindow);
 		}
 
 		[Test, Sequential]
