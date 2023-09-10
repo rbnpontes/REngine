@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Base.Tests;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,15 @@ namespace REngine.RHI.DiligentDriver.Tests
 	{
 		protected Form? MainWindow;
 		protected List<IDisposable> Disposables = new List<IDisposable>();
+		protected MockServiceProvider ServiceProvider;
+		protected GraphicsFactory Factory;
+
+		public BaseTest()
+		{
+			ServiceProvider = new MockServiceProvider();
+			ServiceProvider.AddService(new GraphicsSettings());
+			Factory = new GraphicsFactory(ServiceProvider);
+		}
 
 		protected void CreateWindow()
 		{
@@ -37,9 +47,9 @@ namespace REngine.RHI.DiligentDriver.Tests
 			var size = MainWindow?.Size ?? new Size(500, 500);
 
 			ISwapChain swapChain;
-			IGraphicsDriver driver = GraphicsFactory.Create(new GraphicsFactoryCreateInfo
+			IGraphicsDriver driver = Factory.Create(new GraphicsFactoryCreateInfo
 			{
-				Settings = new GraphicsSettings
+				Settings = new GraphicsDriverSettings
 				{
 					EnableValidation = true,
 					Backend = backend,
@@ -54,6 +64,21 @@ namespace REngine.RHI.DiligentDriver.Tests
 			Disposables.Add(swapChain);
 
 			return (driver, swapChain);
+		}
+
+		protected void HandleLogMessages(object sender, MessageEventArgs args)
+		{
+			switch (args.Severity)
+			{
+				case DbgMsgSeverity.Warning:
+				case DbgMsgSeverity.Error:
+				case DbgMsgSeverity.FatalError:
+					Console.WriteLine($"Diligent Engine: {args.Severity} in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
+					break;
+				case DbgMsgSeverity.Info:
+					Console.WriteLine($"Diligent Engine: {args.Severity} {args.Message}");
+					break;
+			}
 		}
 	}
 }

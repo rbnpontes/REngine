@@ -27,6 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\REngine.Base.Tests\REngine.Base.Tests.csproj" />
 	  <ProjectReference Include="..\REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj" />
 	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>

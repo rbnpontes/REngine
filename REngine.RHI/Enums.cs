@@ -6,6 +6,86 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
+	public enum PrimitiveType
+	{
+		TriangleList = 0,
+		LineLine,
+		PointList,
+		TriangleStrip,
+		LineStrip
+	}
+	public enum BlendMode
+	{
+		Replace =0,
+		Add,
+		Multiply,
+		Alpha,
+		AddAlpha,
+		PreMulAlpha,
+		InvDestAlpha,
+		Subtract,
+		SubtractAlpha,
+		DeferredDecal
+	}
+	public enum CompareMode
+	{
+		Always,
+		Equal,
+		NotEqual,
+		Less,
+		LessEqual,
+		Greater,
+		GreaterEqual
+	}
+	public enum CullMode
+	{
+		Both,
+		Back,
+		Front,
+	}
+	public enum FillMode
+	{
+		Solid,
+		WireFrame,
+	}
+	public enum StencilOp
+	{
+		Keep,
+		Zero,
+		Ref,
+		Incr,
+		Decr
+	}
+	public enum PipelineType
+	{
+		Graphics=0,
+		Compute,
+		Mesh,
+		RayTracing,
+		Tile
+	}
+	public enum ElementType
+	{
+		Int,
+		Float,
+		Vector2,
+		Vector3,
+		Vector4,
+		UByte4,
+		UByte4Norm
+	}
+	public enum ElementSemantic
+	{
+		Position,
+		Normal,
+		BiNormal,
+		Tangent,
+		Texcoord,
+		Color,
+		BlendWeights,
+		BlendIndices,
+		ObjectIndex
+	}
 	public enum TextureFormat
 	{
 		Unknown,
@@ -108,5 +188,36 @@ namespace REngine.RHI
 		BC7Typeless,
 		BC7UNorm,
 		BC7UNormSRGB,
+	}
+	public enum TextureFilterMode
+	{
+		Nearest,
+		Bilinear,
+		Trilinear,
+		Anisotropic,
+		NearestAnisotropic,
+		Default
+	}
+	public enum TextureAddressMode
+	{
+		Wrap,
+		Mirror,
+		Clamp
+	}
+	public enum ShaderType
+	{
+		Vertex,
+		Pixel,
+		Compute,
+		Geometry,
+		Hull,
+		Domain
+	}
+	[Flags]
+	public enum ClearDepthStencil
+	{
+		None = 0x0,
+		Depth = 0x1,
+		Stencil = 0x2
 	}
 }

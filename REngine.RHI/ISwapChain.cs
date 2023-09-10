@@ -50,27 +50,21 @@ namespace REngine.RHI
 		public TextureFormat Color;
 		public TextureFormat Depth;
 
+		public SwapChainFormats()
+		{
+			Color = Depth = TextureFormat.Unknown;
+		}
+		public SwapChainFormats(TextureFormat color, TextureFormat depth = TextureFormat.D32Float)
+		{
+			Color = color;
+			Depth = depth;
+		}
+
 		public static readonly SwapChainFormats None = new SwapChainFormats();
-		public static readonly SwapChainFormats RGBA = new SwapChainFormats
-		{
-			Color = TextureFormat.RGBA8UNorm,
-			Depth = TextureFormat.D32Float,
-		};
-		public static readonly SwapChainFormats RGBASrgb = new SwapChainFormats
-		{
-			Color = TextureFormat.RGBA8UNormSRGB,
-			Depth = TextureFormat.D32Float
-		};
-		public static readonly SwapChainFormats BGRA = new SwapChainFormats
-		{
-			Color = TextureFormat.BGRA8UNorm,
-			Depth = TextureFormat.D32Float
-		};
-		public static readonly SwapChainFormats BGRASrgb = new SwapChainFormats
-		{
-			Color = TextureFormat.BGRA8UNormSRGB,
-			Depth = TextureFormat.D32Float
-		};
+		public static readonly SwapChainFormats RGBA = new SwapChainFormats(TextureFormat.RGBA8UNorm);
+		public static readonly SwapChainFormats RGBASrgb = new SwapChainFormats(TextureFormat.RGBA8UNormSRGB);
+		public static readonly SwapChainFormats BGRA = new SwapChainFormats(TextureFormat.BGRA8UNorm);
+		public static readonly SwapChainFormats BGRASrgb = new SwapChainFormats(TextureFormat.BGRA8UNormSRGB);
 	}
 
 	public struct SwapChainDesc
@@ -104,9 +98,16 @@ namespace REngine.RHI
 		}
 	}
 	
-	public interface ISwapChain : IGPUObject
+	public interface ISwapChain : IDisposable
 	{
 		public SwapChainDesc Desc { get; }
+		public SwapChainSize Size { get; set; }
+		public SwapChainTransform Transform { get; set; }
+		public ITextureView ColorBuffer { get; }
+		public ITextureView? DepthBuffer { get; }
+		public uint BufferCount { get; }
+
 		public void Present(bool vsync);
+		public void Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal);
 	}
 }

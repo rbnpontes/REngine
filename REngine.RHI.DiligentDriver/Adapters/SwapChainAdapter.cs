@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver.Adapters
 {
-	internal static class SwapChainAdapter
+	internal class SwapChainAdapter
 	{
-		public static void ConvertFromDiligent(ref Diligent.SwapChainDesc desc, out RHI.SwapChainDesc outDesc)
+		public SwapChainAdapter() { }
+
+		public void Fill(ref Diligent.SwapChainDesc desc, out RHI.SwapChainDesc outDesc)
 		{
 			outDesc = new RHI.SwapChainDesc
 			{
@@ -22,7 +24,7 @@ namespace REngine.RHI.DiligentDriver.Adapters
 				IsPrimary = desc.IsPrimary,
 			};
 		}
-		public static void ConvertToDiligent(ref RHI.SwapChainDesc desc, out Diligent.SwapChainDesc outDesc)
+		public void Fill(ref RHI.SwapChainDesc desc, out Diligent.SwapChainDesc outDesc)
 		{
 			outDesc = new Diligent.SwapChainDesc
 			{

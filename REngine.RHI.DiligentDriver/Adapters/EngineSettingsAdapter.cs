@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver.Adapters
 {
-	internal static class EngineSettingsAdapter
+	internal class EngineSettingsAdapter
 	{
-		public static void FillDefault(GraphicsSettings settings, ref Diligent.EngineCreateInfo ci)
+		public void FillDefault(GraphicsDriverSettings settings, ref Diligent.EngineCreateInfo ci)
 		{
 
 		}
-		public static void Fill(GraphicsSettings settings, ref Diligent.EngineD3D12CreateInfo ci)
+		public void Fill(GraphicsDriverSettings settings, ref Diligent.EngineD3D12CreateInfo ci)
 		{
 			ci.CPUDescriptorHeapAllocationSize = settings.D3D12.CPUDescriptorHeapAllocationSize;
 			ci.GPUDescriptorHeapSize = settings.D3D12.GPUDescriptorHeapSize;
@@ -24,7 +24,7 @@ namespace REngine.RHI.DiligentDriver.Adapters
 			ci.NumDynamicHeapPagesToReserve = settings.D3D12.NumDynamicHeapPagesToReserve;
 			ci.QueryPoolSizes = settings.D3D12.QueryPoolSizes;
 		}
-		public static void Fill(GraphicsSettings settings, ref Diligent.EngineVkCreateInfo ci)
+		public void Fill(GraphicsDriverSettings settings, ref Diligent.EngineVkCreateInfo ci)
 		{
 
 		}

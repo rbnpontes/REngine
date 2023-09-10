@@ -155,7 +155,7 @@ namespace REngine.RHI.DiligentDriver
 		}
 	}
 
-	public class GraphicsSettings
+	public class GraphicsDriverSettings
 	{
 #if WINDOWS
 		public D3D12Settings D3D12 { get; set; } = new D3D12Settings();

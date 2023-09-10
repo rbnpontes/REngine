@@ -1,38 +1,38 @@
 ﻿using Diligent;
 using REngine.RHI.DiligentDriver.Adapters;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Diligent.IEngineFactory;
 
 namespace REngine.RHI.DiligentDriver
 {
 	public class GraphicsFactoryCreateInfo
 	{
-		public GraphicsSettings Settings { get; set; } = new GraphicsSettings();
+		public GraphicsDriverSettings Settings { get; set; } = new GraphicsDriverSettings();
 		/// <summary>
 		/// Required on GraphicsBackend.OpenGL
 		/// </summary>
 		public IntPtr WindowHandle { get; set; } = IntPtr.Zero;
 	}
 
-	public static class GraphicsFactory
+	public class GraphicsFactory
 	{
-		public static event MessageEvent OnMessage = new MessageEvent((obj, e) => { });
+		public event MessageEvent OnMessage = new MessageEvent((obj, e) => { });
+
+		private IServiceProvider pProvider;
+		public GraphicsFactory(IServiceProvider provider)
+		{
+			pProvider = provider;
+		}
+
 		/// <summary>
 		/// Validate CreateInfo
 		/// </summary>
 		/// <param name="createInfo"></param>
-		public static void Validate(GraphicsFactoryCreateInfo createInfo)
+		public void Validate(GraphicsFactoryCreateInfo createInfo)
 		{
 			if (createInfo.Settings.Backend == GraphicsBackend.OpenGL && createInfo.WindowHandle == IntPtr.Zero)
 				throw new ArgumentException("createInfo.WindowHandle is zero. OpenGL requires WindowHandle to create SwapChain.");
 		}
 		
-		public static GraphicsAdapter[] GetAvailableAdapters(GraphicsBackend backend)
+		public GraphicsAdapter[] GetAvailableAdapters(GraphicsBackend backend)
 		{
 			Diligent.Version graphicsVersion = new Diligent.Version();
 			
@@ -56,6 +56,8 @@ namespace REngine.RHI.DiligentDriver
 			SetupMessageEvent(factory);
 
 			var adapters = factory.EnumerateAdapters(graphicsVersion);
+			factory.Dispose();
+
 			return adapters.Select(adapter =>
 			{
 				return new GraphicsAdapter
@@ -68,7 +70,7 @@ namespace REngine.RHI.DiligentDriver
 			}).ToArray();
 		}
 		
-		public static IGraphicsDriver Create(GraphicsFactoryCreateInfo createInfo)
+		public IGraphicsDriver Create(GraphicsFactoryCreateInfo createInfo)
 		{
 			if (createInfo.Settings.Backend == GraphicsBackend.OpenGL)
 				throw new NotSupportedException("This call does not support OpenGL backend, you must call Create(createInfo, out swapChain) instead.");
@@ -76,7 +78,7 @@ namespace REngine.RHI.DiligentDriver
 			return driver;
 		}
 		
-		public static IGraphicsDriver Create(GraphicsFactoryCreateInfo createInfo, RHI.SwapChainDesc swapChainDesc, out RHI.ISwapChain swapChain)
+		public IGraphicsDriver Create(GraphicsFactoryCreateInfo createInfo, RHI.SwapChainDesc swapChainDesc, out RHI.ISwapChain swapChain)
 		{
 			Validate(createInfo);
 			(IGraphicsDriver driver, Diligent.ISwapChain? nativeSwapChain) = CreateWithSwapChain(createInfo, swapChainDesc);
@@ -86,9 +88,9 @@ namespace REngine.RHI.DiligentDriver
 			return driver;
 		}
 
-		private static (IGraphicsDriver, Diligent.ISwapChain?) CreateWithSwapChain(GraphicsFactoryCreateInfo createInfo, RHI.SwapChainDesc? swapChainDesc)
+		private (IGraphicsDriver, Diligent.ISwapChain?) CreateWithSwapChain(GraphicsFactoryCreateInfo createInfo, RHI.SwapChainDesc? swapChainDesc)
 		{
-			GraphicsDriverImpl impl = new GraphicsDriverImpl();
+			GraphicsDriverImpl impl = new GraphicsDriverImpl(pProvider);
 			impl.Backend = createInfo.Settings.Backend;
 
 			Diligent.SwapChainDesc nativeSwapChainDesc = new Diligent.SwapChainDesc();
@@ -99,7 +101,8 @@ namespace REngine.RHI.DiligentDriver
 			if (swapChainDesc.HasValue)
 			{
 				var desc = swapChainDesc.Value;
-				SwapChainAdapter.ConvertToDiligent(ref desc, out nativeSwapChainDesc);
+				var adapter = new SwapChainAdapter();
+				adapter.Fill(ref desc, out nativeSwapChainDesc);
 			}
 
 			uint deferredCtxCount = Math.Max((uint)Environment.ProcessorCount, 2);
@@ -199,13 +202,20 @@ namespace REngine.RHI.DiligentDriver
 					throw new NotSupportedException($"Not supported this backend type {createInfo.Settings.Backend}");
 			}
 
-			impl.Device = new DeviceImpl(renderDevice);
-			impl.Commands = deviceContexts.Select(x => new CommandBufferImpl(x)).ToList().AsReadOnly();
+			impl.Device = new DeviceImpl(impl, renderDevice);
+
+			bool isImmediate = true;
+			impl.Commands = deviceContexts.Select(x => {
+				var cmd = new CommandBufferImpl(x, !isImmediate);
+				if (isImmediate)
+					isImmediate = false;
+				return cmd;
+			}).ToList().AsReadOnly();
 
 			return (impl, swapChain);
 		}
 		
-		private static void SetupMessageEvent(IEngineFactory engineFactory)
+		private void SetupMessageEvent(IEngineFactory engineFactory)
 		{
 			engineFactory.SetMessageCallback((severity, msg, func, file, line) =>
 			{

@@ -6,20 +6,17 @@ namespace REngine.RHI.DiligentDriver.Tests
 	[TestFixture]
 	public class GraphicsDriverTest : BaseTest
 	{
-		public GraphicsDriverTest()
-		{
-			GraphicsFactory.OnMessage += LogMessages;
-		}
-
 		[SetUp]
 		public void Setup()
 		{
 			CreateWindow();
+			Factory.OnMessage += HandleLogMessages;
 		}
 		[TearDown]
 		public void Cleanup()
 		{
 			CleanDisposables();
+			Factory.OnMessage -= HandleLogMessages;
 		}
 
 		[Test, Sequential]
@@ -55,7 +52,7 @@ namespace REngine.RHI.DiligentDriver.Tests
 				GraphicsBackend.OpenGL
 			)] GraphicsBackend backend)
 		{
-			var adapters = GraphicsFactory.GetAvailableAdapters(backend);
+			var adapters = Factory.GetAvailableAdapters(backend);
 			Assert.IsNotNull(adapters);
 
 			Console.WriteLine($"Adapters({backend}):");
@@ -64,21 +61,6 @@ namespace REngine.RHI.DiligentDriver.Tests
 				Console.WriteLine($"- {adapter.Id}, {adapter.Name}, {adapter.VendorId}");
 
 			Assert.Pass();
-		}
-
-		private void LogMessages(object sender, MessageEventArgs args)
-		{
-			switch (args.Severity) 
-			{
-				case DbgMsgSeverity.Warning:
-				case DbgMsgSeverity.Error:
-				case DbgMsgSeverity.FatalError:
-					Console.WriteLine($"Diligent Engine: {args.Severity} in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
-					break;
-				case DbgMsgSeverity.Info:
-					Console.WriteLine($"Diligent Engine: {args.Severity} {args.Message}");
-					break;
-			}
 		}
 	}
 }

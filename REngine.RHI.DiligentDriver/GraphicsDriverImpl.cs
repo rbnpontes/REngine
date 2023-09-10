@@ -38,6 +38,13 @@ namespace REngine.RHI.DiligentDriver
 			set { pDevice = value; }
 		}
 
+		public IServiceProvider ServiceProvider { get; private set; }
+
+		public GraphicsDriverImpl(IServiceProvider provider)
+		{
+			ServiceProvider = provider;
+		}
+
 		public void Dispose()
 		{
 			foreach (var cmd in Commands)

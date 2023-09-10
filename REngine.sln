@@ -3,17 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Player", "REngine.Player\REngine.Player.csproj", "{7A5BA793-FC32-4ECA-8363-ACCD2D830FE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Core", "REngine.Core\REngine.Core.csproj", "{72C4FF7A-ACD1-487F-9636-8781FD9F756A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Core", "REngine.Core\REngine.Core.csproj", "{72C4FF7A-ACD1-487F-9636-8781FD9F756A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI", "REngine.RHI\REngine.RHI.csproj", "{6D35A31F-37A4-4D6B-A712-A0E0547CC049}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI", "REngine.RHI\REngine.RHI.csproj", "{6D35A31F-37A4-4D6B-A712-A0E0547CC049}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.DiligentDriver", "REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj", "{B45115EB-7D28-440F-B195-425E175AF34E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.DiligentDriver", "REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj", "{B45115EB-7D28-440F-B195-425E175AF34E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C6A5B02E-558C-4594-95DB-C12B2694EE1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.DiligentDriver.Tests", "REngine.RHI.DiligentDriver.Test\REngine.RHI.DiligentDriver.Tests.csproj", "{770570B9-19BA-496A-9BD1-899F0370C07B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.DiligentDriver.Tests", "REngine.RHI.DiligentDriver.Test\REngine.RHI.DiligentDriver.Tests.csproj", "{770570B9-19BA-496A-9BD1-899F0370C07B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Core.Tests", "REngine.Core.Tests\REngine.Core.Tests.csproj", "{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Base.Tests", "REngine.Base.Tests\REngine.Base.Tests.csproj", "{1BBE06B2-7073-446E-9256-1413474572C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox", "REngine.Sandbox\REngine.Sandbox.csproj", "{A04F8C05-4464-4531-A666-B392F43D8D14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{851691E9-98BE-43A0-B175-9B21A36FCDDC}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +30,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7A5BA793-FC32-4ECA-8363-ACCD2D830FE9}.Debug|x64.ActiveCfg = Debug|x64
-		{7A5BA793-FC32-4ECA-8363-ACCD2D830FE9}.Debug|x64.Build.0 = Debug|x64
-		{7A5BA793-FC32-4ECA-8363-ACCD2D830FE9}.Release|x64.ActiveCfg = Release|x64
-		{7A5BA793-FC32-4ECA-8363-ACCD2D830FE9}.Release|x64.Build.0 = Release|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug|x64.ActiveCfg = Debug|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug|x64.Build.0 = Debug|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Release|x64.ActiveCfg = Release|x64
@@ -41,12 +46,26 @@ Global
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Debug|x64.Build.0 = Debug|Any CPU
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Release|x64.ActiveCfg = Release|Any CPU
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Release|x64.Build.0 = Release|Any CPU
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Release|x64.Build.0 = Release|Any CPU
+		{1BBE06B2-7073-446E-9256-1413474572C9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1BBE06B2-7073-446E-9256-1413474572C9}.Debug|x64.Build.0 = Debug|Any CPU
+		{1BBE06B2-7073-446E-9256-1413474572C9}.Release|x64.ActiveCfg = Release|Any CPU
+		{1BBE06B2-7073-446E-9256-1413474572C9}.Release|x64.Build.0 = Release|Any CPU
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.ActiveCfg = Debug|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.Build.0 = Debug|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.ActiveCfg = Release|Any CPU
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{770570B9-19BA-496A-9BD1-899F0370C07B} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{1BBE06B2-7073-446E-9256-1413474572C9} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}
