@@ -67,5 +67,24 @@ namespace REngine.RHI.DiligentDriver.Adapters
 					throw new NotImplementedException($"Not implemented this shader type {shaderType}");
 			}
 		}
+		public void Fill(ShaderTypeFlags shaderTypeFlags, out Diligent.ShaderType outShaderTypes)
+		{
+			Diligent.ShaderType shaderTypes = Diligent.ShaderType.Unknown;
+
+			if ((shaderTypeFlags & ShaderTypeFlags.Vertex) != 0)
+				shaderTypes = Diligent.ShaderType.Vertex;
+			if ((shaderTypeFlags & ShaderTypeFlags.Pixel) != 0)
+				shaderTypes |= Diligent.ShaderType.Pixel;
+			if ((shaderTypeFlags & ShaderTypeFlags.Compute) != 0)
+				shaderTypes |= Diligent.ShaderType.Compute;
+			if ((shaderTypeFlags & ShaderTypeFlags.Geometry) != 0)
+				shaderTypes |= Diligent.ShaderType.Geometry;
+			if ((shaderTypeFlags & ShaderTypeFlags.Hull) != 0)
+				shaderTypes |= Diligent.ShaderType.Hull;
+			if ((shaderTypeFlags & ShaderTypeFlags.Domain) != 0)
+				shaderTypes |= Diligent.ShaderType.Domain;
+
+			outShaderTypes = shaderTypes;
+		}
 	}
 }

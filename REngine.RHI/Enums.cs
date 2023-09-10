@@ -213,11 +213,99 @@ namespace REngine.RHI
 		Hull,
 		Domain
 	}
+
+	public enum ShaderTypeFlags
+	{
+		None = 0,
+		Vertex = 1 << 0,
+		Pixel = 1 << 1,
+		Compute = 1 << 2,
+		Geometry = 1 << 3,
+		Hull = 1 << 4,
+		Domain = 1 << 5,
+		VertexAndPixel = Vertex | Pixel,
+		All = Vertex | Pixel | Compute | Geometry | Hull | Domain
+	}
+
 	[Flags]
 	public enum ClearDepthStencil
 	{
 		None = 0x0,
 		Depth = 0x1,
 		Stencil = 0x2
+	}
+
+	[Flags]
+	public enum BindFlags
+	{
+		None = 0,
+		VertexBuffer = 1 << 0,
+		IndexBuffer = 1 << 1,
+		UniformBuffer = 1 << 2,
+		ShaderResource = 1 << 3,
+		StreamOutput = 1 << 4,
+		RenderTarget = 1 << 5,
+		DepthStencil = 1 << 6,
+		UnorderedAccess = 1 << 7,
+		IndirectDrawArgs = 1 << 8,
+		InputAttachment = 1 << 9,
+		RayTracing = 1 << 10,
+		ShadingRate = 1 << 11
+	}
+
+	[Flags]
+	public enum CpuAccessFlags
+	{
+		None =0,
+		Read = 1 << 0,
+		Write = 1 << 1
+	}
+
+	public enum BufferMode
+	{
+		Undefined,
+		Formatted,
+		Structured,
+		Raw
+	}
+
+	public enum Usage
+	{
+		Immutable =0,
+		Default,
+		Dynamic,
+		Staging,
+		Unified,
+		Sparse
+	}
+
+	public enum MapType
+	{
+		Read = 1,
+		Write,
+		ReadWrite
+	}
+	[Flags]
+	public enum MapFlags
+	{
+		None = 0x0,
+		DontWait = 0x1,
+		Discard = 0x2,
+		NoOverwrite = 0x4
+	}
+
+	public enum ValueType : byte
+	{
+		Undefined,
+		Int8,
+		Int16,
+		Int32,
+		UInt8,
+		UInt16,
+		UInt32,
+		Float16,
+		Float32,
+		Float64,
+		NumTypes
 	}
 }

@@ -22,6 +22,22 @@ namespace REngine.RHI
 			FirstInstanceLocation = 0;
 		}
 	}
+	public struct DrawIndexedArgs
+	{
+		public uint NumIndices;
+		public ValueType IndexType;
+		public uint NumInstances;
+		public uint FirstIndexLocation;
+		public uint BaseVertex;
+		public uint FirstInstanceLocation;
+
+		public DrawIndexedArgs()
+		{
+			this = default(DrawIndexedArgs);
+			IndexType = ValueType.UInt32;
+			NumInstances = 1;
+		}
+	}
 
 	public interface ICommandBuffer : IDisposable
 	{
@@ -31,6 +47,17 @@ namespace REngine.RHI
 		public ICommandBuffer SetPipeline(IPipelineState pipelineState);
 		public ICommandBuffer SetPipeline(IComputePipelineState pipelineState);
 
+		public ICommandBuffer SetVertexBuffer(IBuffer buffer);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets);
+		public ICommandBuffer SetIndexBuffer(IBuffer buffer, ulong byteOffset = 0);
+
+		public ICommandBuffer CommitBindings(IPipelineStateResourceBinding resourceBinding);
 		public ICommandBuffer Draw(DrawArgs args);
+		public ICommandBuffer Draw(DrawIndexedArgs args);
+
+		public Span<T> Map<T>(IBuffer buffer, MapType mapType, MapFlags mapFlags) where T : unmanaged;
+		public IntPtr Map(IBuffer buffer, MapType mapType, MapFlags mapFlags);
+		public ICommandBuffer Unmap(IBuffer buffer, MapType mapType);
 	}
 }

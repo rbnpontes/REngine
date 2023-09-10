@@ -7,19 +7,20 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public struct VertexElementSemantic
-	{
-		public ElementType Type;
-		public ElementSemantic Semantic;
-		public uint Index;
-	}
 	public struct InputLayoutElementDesc
 	{
 		public uint BufferIndex;
 		public uint BufferStride;
 		public uint ElementOffset;
 		public uint InstanceStepRate;
-		public VertexElementSemantic Semantic;
+		public ElementType ElementType;
+
+		public InputLayoutElementDesc()
+		{
+			this = default(InputLayoutElementDesc);
+			BufferStride = uint.MaxValue;
+			ElementOffset = uint.MaxValue;
+		}
 	}
 
 	public struct TextureAddressModes

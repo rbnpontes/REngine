@@ -20,6 +20,53 @@ namespace REngine.RHI.DiligentDriver
 			pDriver = driver;
 		}
 
+		public IBuffer CreateBuffer(in BufferDesc desc)
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+			Diligent.BufferDesc nativeDesc;
+			BufferAdapter adapter = new BufferAdapter();
+			adapter.Fill(desc, out nativeDesc);
+
+			return new BufferImpl(pDevice.CreateBuffer(nativeDesc));
+		}
+
+		public IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+			Diligent.BufferDesc nativeDesc;
+			BufferAdapter adapter = new BufferAdapter();
+			adapter.Fill(desc, out nativeDesc);
+
+			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, values.ToArray()));
+		}
+
+		public IBuffer CreateBuffer<T>(in BufferDesc desc, ReadOnlySpan<T> values) where T : unmanaged
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+			Diligent.BufferDesc nativeDesc;
+			BufferAdapter adapter = new BufferAdapter();
+			adapter.Fill(desc, out nativeDesc);
+
+			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, values));
+		}
+
+		public unsafe IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+			Diligent.BufferDesc nativeDesc;
+			BufferAdapter adapter = new BufferAdapter();
+			adapter.Fill(desc, out nativeDesc);
+			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, new Diligent.BufferData
+			{
+				Data = data,
+				DataSize = size
+			}));
+		}
+
 		public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc)
 		{
 			throw new NotImplementedException();
@@ -39,7 +86,7 @@ namespace REngine.RHI.DiligentDriver
 			adapter.Fill(desc, out ci);
 
 			var pipeline = pDevice.CreateGraphicsPipelineState(ci);
-			return new PipelineStateImpl(pipeline, desc);
+			return new GraphicsPipelineStateImpl(desc, pipeline);
 		}
 
 		public IShader CreateShader(in ShaderCreateInfo createInfo)
@@ -49,7 +96,6 @@ namespace REngine.RHI.DiligentDriver
 			Diligent.ShaderCreateInfo shaderCI;
 			var adapter = new ShaderAdapter();
 			adapter.Fill(in createInfo, out shaderCI);
-
 			Diligent.IShader shader = pDevice.CreateShader(shaderCI, out _);
 			return new ShaderImpl(shader);
 		}

@@ -7,6 +7,7 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>

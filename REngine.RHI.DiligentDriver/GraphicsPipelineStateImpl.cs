@@ -9,6 +9,8 @@ namespace REngine.RHI.DiligentDriver
 	internal class GraphicsPipelineStateImpl : IPipelineState, INativeObject
 	{
 		private Diligent.IPipelineState? pHandle;
+		private IPipelineStateResourceBinding? pResourceBinding;
+
 		public object? Handle { get => pHandle; }
 		public bool IsDisposed { get => pHandle == null; }
 
@@ -23,8 +25,19 @@ namespace REngine.RHI.DiligentDriver
 
 		public void Dispose()
 		{
+			pResourceBinding?.Dispose();
 			pHandle?.Dispose();
 			pHandle = null;
+		}
+
+		public IPipelineStateResourceBinding GetResourceBinding()
+		{
+			if (pHandle is null)
+				throw new ObjectDisposedException("Can´t return resource binding. IPipelineState has been already disposed");
+
+			if (pResourceBinding is null)
+				pResourceBinding = new PipelineResourceBindingImpl(pHandle.CreateShaderResourceBinding(false));
+			return pResourceBinding;
 		}
 	}
 }

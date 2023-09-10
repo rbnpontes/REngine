@@ -25,11 +25,19 @@ namespace REngine.RHI.DiligentDriver
 			pIsDeferred = isDeferred;
 		}
 
+		private string SetDisposeMsgError(string resource)
+		{
+			return $"Can´t set {resource}. ICommandBuffer has been disposed.";
+		}
+		private string ExecDisposeMsgError(string resource)
+		{
+			return $"Can´t execute {resource}. ICommandBuffer has been disposed.";
+		}
 
 		public ICommandBuffer ClearDepth(ITextureView depthStencil, ClearDepthStencil clearFlags, float depth, byte stencil)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t clear depth, command buffer has been already disposed.");
+				throw new ObjectDisposedException(ExecDisposeMsgError("ClearDepth"));
 
 			pCtx.ClearDepthStencil(
 				NativeObjectUtils.Get<Diligent.ITextureView>(depthStencil),
@@ -44,7 +52,7 @@ namespace REngine.RHI.DiligentDriver
 		public ICommandBuffer ClearRT(ITextureView renderTarget, in Color clearColor)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t clear rt, command buffer has been already disposed.");
+				throw new ObjectDisposedException(ExecDisposeMsgError("ClearRT"));
 
 			pCtx.ClearRenderTarget(
 				NativeObjectUtils.Get<Diligent.ITextureView>(renderTarget),
@@ -68,7 +76,7 @@ namespace REngine.RHI.DiligentDriver
 		public ICommandBuffer Draw(DrawArgs args)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t execute draw, command buffer has been already disposed.");
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Draw)));
 
 			DrawAttribs drawAttrs;
 			pDrawAdapter.Fill(ref args, out drawAttrs);
@@ -76,11 +84,22 @@ namespace REngine.RHI.DiligentDriver
 			pCtx.Draw(drawAttrs);
 			return this;
 		}
+		public ICommandBuffer Draw(DrawIndexedArgs args)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Draw)));
+
+			DrawIndexedAttribs drawAttrs;
+			pDrawAdapter.Fill(ref args, out drawAttrs);
+
+			pCtx.DrawIndexed(drawAttrs);
+			return this;
+		}
 
 		public ICommandBuffer SetPipeline(IPipelineState pipelineState)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t set pipeline state, command buffer has been already disposed.");
+				throw new ObjectDisposedException(SetDisposeMsgError("pipeline"));
 
 			pCtx.SetPipelineState(NativeObjectUtils.Get<Diligent.IPipelineState>(pipelineState));
 			return this;
@@ -89,7 +108,7 @@ namespace REngine.RHI.DiligentDriver
 		public ICommandBuffer SetPipeline(IComputePipelineState pipelineState)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t set pipeline state, command buffer has been already disposed.");
+				throw new ObjectDisposedException(SetDisposeMsgError("pipeline"));
 			pCtx.SetPipelineState(NativeObjectUtils.Get<Diligent.IPipelineState>(pipelineState));
 			return this;
 		}
@@ -97,7 +116,7 @@ namespace REngine.RHI.DiligentDriver
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil)
 		{
 			if (pCtx is null)
-				throw new NullReferenceException("Can´t set render targets, command buffer has been already disposed.");
+				throw new ObjectDisposedException(SetDisposeMsgError("render targets"));
 			// TODO: optimize
 			Diligent.ITextureView[] textures = new Diligent.ITextureView[rts.Length];
 			Parallel.For(0, rts.Length, i =>
@@ -105,6 +124,81 @@ namespace REngine.RHI.DiligentDriver
 				textures[i] = NativeObjectUtils.Get<Diligent.ITextureView>(rts[i]);
 			});
 			pCtx.SetRenderTargets(textures, NativeObjectUtils.Get<Diligent.ITextureView>(depthStencil), pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition);
+			return this;
+		}
+
+		public Span<T> Map<T>(IBuffer buffer, MapType mapType, MapFlags mapFlags) where T : unmanaged
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Map)));
+			return pCtx.MapBuffer<T>(NativeObjectUtils.Get<Diligent.IBuffer>(buffer), (Diligent.MapType)mapType, (Diligent.MapFlags)mapFlags);
+		}
+
+		public IntPtr Map(IBuffer buffer, MapType mapType, MapFlags mapFlags)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Map)));
+			return pCtx.MapBuffer(NativeObjectUtils.Get<Diligent.IBuffer>(buffer), (Diligent.MapType)mapType, (Diligent.MapFlags)mapFlags);
+		}
+
+		public ICommandBuffer Unmap(IBuffer buffer, MapType mapType)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Unmap)));
+			pCtx.UnmapBuffer(NativeObjectUtils.Get<Diligent.IBuffer>(buffer), (Diligent.MapType)mapType);
+			return this;
+		}
+
+		public ICommandBuffer CommitBindings(IPipelineStateResourceBinding resourceBinding)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(CommitBindings)));
+			pCtx.CommitShaderResources(
+				NativeObjectUtils.Get<Diligent.IShaderResourceBinding>(resourceBinding),
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
+			return this;
+		}
+
+		public ICommandBuffer SetVertexBuffer(IBuffer buffer)
+		{
+			return SetVertexBuffers(0, new IBuffer[] { buffer });
+		}
+
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers)
+		{
+			return SetVertexBuffers(startSlot, buffers, new ulong[] { 0 });
+		}
+
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(SetVertexBuffers)));
+			Diligent.IBuffer[] nativeBuffers = new Diligent.IBuffer[buffers.Count()];
+			Parallel.For(0, buffers.Count(), idx =>
+			{
+				nativeBuffers[idx] = NativeObjectUtils.Get<Diligent.IBuffer>(buffers.ElementAt(idx));
+			});
+
+			pCtx.SetVertexBuffers(
+				0,
+				nativeBuffers,
+				offsets,
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
+			return this;
+		}
+
+		public ICommandBuffer SetIndexBuffer(IBuffer buffer, ulong byteOffset = 0)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(SetIndexBuffer)));
+
+			pCtx.SetIndexBuffer(
+				NativeObjectUtils.Get<Diligent.IBuffer>(buffer),
+				byteOffset,
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
 			return this;
 		}
 	}

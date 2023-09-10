@@ -297,9 +297,9 @@ namespace REngine.RHI.DiligentDriver.Adapters
 				{
 					InputIndex = pipelineInput.InputIndex,
 					RelativeOffset = pipelineInput.Input.ElementOffset,
-					NumComponents = pNumComponents[(int)pipelineInput.Input.Semantic.Type],
-					ValueType = pValueTypes[(int)pipelineInput.Input.Semantic.Type],
-					IsNormalized = pIsNormalized[(int)pipelineInput.Input.Semantic.Type],
+					NumComponents = pNumComponents[(int)pipelineInput.Input.ElementType],
+					ValueType = pValueTypes[(int)pipelineInput.Input.ElementType],
+					IsNormalized = pIsNormalized[(int)pipelineInput.Input.ElementType],
 					BufferSlot = pipelineInput.Input.BufferIndex,
 					Stride = pipelineInput.Input.BufferStride,
 					Frequency = pipelineInput.Input.InstanceStepRate != 0 

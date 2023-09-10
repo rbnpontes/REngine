@@ -6,13 +6,6 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public struct VertexShaderAttribute
-	{
-		public VertexElementSemantic Semantic;
-		public string Name;
-		public string InputIndex;
-	}
-
 	public struct ShaderCreateInfo 
 	{
 		public string Name;

@@ -1,0 +1,43 @@
+﻿using REngine.RHI.DiligentDriver.Adapters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace REngine.RHI.DiligentDriver
+{
+	internal class BufferImpl : IBuffer, INativeObject
+	{
+		private Diligent.IBuffer? pBuffer;
+		public BufferDesc Desc
+		{
+			get
+			{
+				if (pBuffer is null)
+					throw new ObjectDisposedException("Buffer is already disposed.");
+				var adapter = new BufferAdapter();
+				BufferDesc desc;
+				adapter.Fill(pBuffer.GetDesc(), out desc);
+				return desc;
+			}
+		}
+
+		public string Name => pBuffer?.GetDesc().Name ?? string.Empty;
+
+		public object? Handle => pBuffer;
+
+		public bool IsDisposed => pBuffer == null;
+
+		public BufferImpl(Diligent.IBuffer buffer)
+		{
+			pBuffer = buffer;
+		}
+
+		public void Dispose()
+		{
+			pBuffer?.Dispose();
+			pBuffer = null;
+		}
+	}
+}
