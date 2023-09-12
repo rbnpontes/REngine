@@ -11,6 +11,8 @@ namespace REngine.RHI.DiligentDriver
 		private Diligent.IPipelineState? pHandle;
 		private IPipelineStateResourceBinding? pResourceBinding;
 
+		public event GPUObjectEvent OnDispose = new GPUObjectEvent((obj, e) => { });
+
 		public object? Handle { get => pHandle; }
 		public bool IsDisposed { get => pHandle == null; }
 
@@ -21,12 +23,17 @@ namespace REngine.RHI.DiligentDriver
 		{
 			pHandle = pipeline;
 			Desc = desc;
+			pipeline.SetUserData(new ObjectWrapper(this));
 		}
 
 		public void Dispose()
 		{
-			pResourceBinding?.Dispose();
-			pHandle?.Dispose();
+			if(pHandle != null)
+			{
+				pResourceBinding?.Dispose();
+				pHandle?.Dispose();
+				OnDispose(this, new EventArgs());
+			}
 			pHandle = null;
 		}
 

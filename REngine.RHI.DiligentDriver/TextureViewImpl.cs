@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.RHI.DiligentDriver.Adapters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,24 +7,35 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver
 {
-	internal class TextureViewImpl : ITextureView, INativeObject
+	internal class TextureViewImpl : GPUObjectImpl, ITextureView
 	{
-		private Diligent.ITextureView? pTexture;
-		public string Name { get => pTexture?.GetDesc().Name ?? string.Empty; }
+		public override string Name => GetHandle<Diligent.ITextureView>().GetDesc().Name;
 
-		public object? Handle => pTexture;
-
-		public bool IsDisposed => pTexture == null;
-
-		public TextureViewImpl(Diligent.ITextureView texture)
+		public TextureViewDesc Desc
 		{
-			pTexture = texture;
+			get
+			{
+				var adapter = new TextureAdapter();
+				TextureViewDesc desc;
+				adapter.Fill(GetHandle<Diligent.ITextureView>().GetDesc(), out desc);
+				return desc;
+			}
 		}
 
-		public void Dispose()
+		public TextureViewType ViewType
 		{
-			pTexture?.Dispose();
-			pTexture = null;
+			get => (TextureViewType)GetHandle<Diligent.ITextureView>().GetDesc().ViewType;
+		}
+
+		public ITexture Parent { get; private set; }
+
+		public TextureViewImpl(Diligent.ITextureView textureView) : base(textureView)
+		{
+			var texture = textureView.GetTexture();
+			if (texture.GetUserData() == null)
+				Parent = new TextureImpl(texture);
+			else
+				Parent = ObjectWrapper.Unwrap(texture).Get<ITexture>();
 		}
 	}
 }

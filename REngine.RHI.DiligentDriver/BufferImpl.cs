@@ -10,6 +10,9 @@ namespace REngine.RHI.DiligentDriver
 	internal class BufferImpl : IBuffer, INativeObject
 	{
 		private Diligent.IBuffer? pBuffer;
+
+		public event GPUObjectEvent OnDispose = new GPUObjectEvent((obj, e)=> { });
+
 		public BufferDesc Desc
 		{
 			get
@@ -32,12 +35,22 @@ namespace REngine.RHI.DiligentDriver
 		public BufferImpl(Diligent.IBuffer buffer)
 		{
 			pBuffer = buffer;
+			buffer.SetUserData(new ObjectWrapper(this));
 		}
 
 		public void Dispose()
 		{
-			pBuffer?.Dispose();
+			if(pBuffer != null)
+			{
+				pBuffer.Dispose();
+				OnDispose(this, new EventArgs());
+			}
 			pBuffer = null;
+		}
+
+		public IntPtr GetHandlePtr()
+		{
+			return pBuffer?.NativePointer ?? IntPtr.Zero;
 		}
 	}
 }

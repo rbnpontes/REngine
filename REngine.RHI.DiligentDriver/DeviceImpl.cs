@@ -23,7 +23,7 @@ namespace REngine.RHI.DiligentDriver
 		public IBuffer CreateBuffer(in BufferDesc desc)
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
 			adapter.Fill(desc, out nativeDesc);
@@ -34,7 +34,7 @@ namespace REngine.RHI.DiligentDriver
 		public IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
 			adapter.Fill(desc, out nativeDesc);
@@ -45,7 +45,7 @@ namespace REngine.RHI.DiligentDriver
 		public IBuffer CreateBuffer<T>(in BufferDesc desc, ReadOnlySpan<T> values) where T : unmanaged
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
 			adapter.Fill(desc, out nativeDesc);
@@ -56,7 +56,7 @@ namespace REngine.RHI.DiligentDriver
 		public unsafe IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Buffer. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
 			adapter.Fill(desc, out nativeDesc);
@@ -75,7 +75,7 @@ namespace REngine.RHI.DiligentDriver
 		public IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc)
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Graphics Pipeline. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateGraphicsPipeline)));
 
 			var adapter = new PipelineStateAdapter(
 				pDriver.ServiceProvider.Get<GraphicsSettings>(),
@@ -92,7 +92,7 @@ namespace REngine.RHI.DiligentDriver
 		public IShader CreateShader(in ShaderCreateInfo createInfo)
 		{
 			if (pDevice is null)
-				throw new ObjectDisposedException("Can´t create Shader. Device has been already disposed.");
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateShader)));
 			Diligent.ShaderCreateInfo shaderCI;
 			var adapter = new ShaderAdapter();
 			adapter.Fill(in createInfo, out shaderCI);
@@ -100,10 +100,36 @@ namespace REngine.RHI.DiligentDriver
 			return new ShaderImpl(shader);
 		}
 
+		public ITexture CreateTexture(in TextureDesc desc)
+		{
+			return CreateTexture(desc, new ITextureData[0]);
+		}
+
+		public ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateTexture)));
+
+			Diligent.TextureDesc nativeDesc;
+			Diligent.TextureData textureData;
+			var adapter = new TextureAdapter();
+			adapter.Fill(desc, out nativeDesc);
+			adapter.Fill(subresources, out textureData);
+
+			return new TextureImpl(
+				pDevice.CreateTexture(nativeDesc, subresources.Count() > 0 ? textureData : null)
+			);
+		}
+
 		public void Dispose()
 		{
 			pDevice?.Dispose();
 			pDevice = null;
+		}
+
+		private string GetExecDisposedError(string resource)
+		{
+			return $"Can´t execute {resource}. Device has been disposed.";
 		}
 	}
 }

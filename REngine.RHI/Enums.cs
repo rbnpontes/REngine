@@ -204,6 +204,26 @@ namespace REngine.RHI
 		Mirror,
 		Clamp
 	}
+	public enum TextureViewType 
+	{ 
+		Undefined=0,
+		ShaderResource,
+		RenderTarget,
+		DepthStencil,
+		ReadOnlyDepthStencil,
+		Uav,
+		ShadingRate
+	}
+	[Flags]
+	public enum TextureFlags
+	{
+		None=0,
+		GenerateMip = 1 << 0,
+		Memoryless = 1 << 1,
+		SparseAliasing = 1 << 2,
+		Subsampled = 1 << 3
+	}
+
 	public enum ShaderType
 	{
 		Vertex,
@@ -307,5 +327,26 @@ namespace REngine.RHI
 		Float32,
 		Float64,
 		NumTypes
+	}
+
+	public enum TextureDimension 
+	{ 
+		Undefined=0,
+		Buffer,
+		Tex1D,
+		Tex1DArray,
+		Tex2D,
+		Tex2DArray,
+		Tex3D,
+		Tex3DArray
+	}
+
+	[Flags]
+	public enum UavAccessFlags
+	{
+		None=0,
+		Read = 0x01,
+		Write = 0x02,
+		ReadAndWrite = Read | Write
 	}
 }

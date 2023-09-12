@@ -10,7 +10,13 @@ namespace REngine.RHI
 	public struct InputLayoutElementDesc
 	{
 		public uint BufferIndex;
+		/// <summary>
+		/// To calculate auto stride, use uint.MaxValue.
+		/// </summary>
 		public uint BufferStride;
+		/// <summary>
+		/// To calculate auto element offset, use uint.MaxValue.
+		/// </summary>
 		public uint ElementOffset;
 		public uint InstanceStepRate;
 		public ElementType ElementType;

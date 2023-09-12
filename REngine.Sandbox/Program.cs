@@ -2,6 +2,7 @@ using REngine.Core.DependencyInjection;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,18 +14,18 @@ namespace REngine.Sandbox
 		struct Vertex
 		{
 			public Vector3 Position;
-			public Vector4 Color;
+			public Vector2 UV;
 
 			public Vertex()
 			{
 				Position = new Vector3();
-				Color = new Vector4();
+				UV = new Vector2();
 			}
 
-			public Vertex(Vector3 position, Vector4 color)
+			public Vertex(Vector3 position, Vector2 uv)
 			{
 				Position = position;
-				Color = color;
+				UV = uv;
 			}
 		}
 		/// <summary>
@@ -67,6 +68,8 @@ namespace REngine.Sandbox
 			IPipelineState pipeline = CreatePSO(driver, swapChain);
 
 			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, "Constants", cbuffer);
+
+			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Pixel, "g_MainTexture", CreateTexture(driver.Device));
 
 			(IBuffer vbuffer, IBuffer ibuffer) = LoadBuffers(driver.Device);
 
@@ -144,15 +147,15 @@ namespace REngine.Sandbox
 		{
 			Vertex[] vertices = new Vertex[]
 			{
-				new Vertex(new Vector3(-1, -1, -1), new Vector4(1, 0, 0, 1)),
-				new Vertex(new Vector3(-1, +1, -1), new Vector4(0, 1, 0, 1)),
-				new Vertex(new Vector3(+1, +1, -1), new Vector4(0, 0, 1, 1)),
-				new Vertex(new Vector3(+1, -1, -1), new Vector4(1, 1, 1, 1)),
+				new Vertex(new Vector3(-1, -1, -1), new Vector2(0, 1)),
+				new Vertex(new Vector3(-1, +1, -1), new Vector2(0, 0)),
+				new Vertex(new Vector3(+1, +1, -1), new Vector2(1, 0)),
+				new Vertex(new Vector3(+1, -1, -1), new Vector2(1, 1)),
 
-				new Vertex(new Vector3(-1, -1, +1), new Vector4(1, 1, 0, 1)),
-				new Vertex(new Vector3(-1, +1, +1), new Vector4(0, 1, 1, 1)),
-				new Vertex(new Vector3(+1, +1, +1), new Vector4(1, 0, 1, 1)),
-				new Vertex(new Vector3(+1, -1, +1), new Vector4(0.2f, 0.2f, 0.2f, 1))
+				new Vertex(new Vector3(-1, -1, +1), new Vector2(0, 1)),
+				new Vertex(new Vector3(-1, +1, +1), new Vector2(0, 0)),
+				new Vertex(new Vector3(+1, +1, +1), new Vector2(1, 0)),
+				new Vertex(new Vector3(+1, -1, +1), new Vector2(1, 1))
 			};
 			uint[] indices = new uint[]
 			{
@@ -227,7 +230,7 @@ namespace REngine.Sandbox
 					InputIndex = 1,
 					Input = new InputLayoutElementDesc
 					{
-						ElementType = ElementType.Vector4
+						ElementType = ElementType.Vector2
 					}
 				}
 			};
@@ -240,6 +243,36 @@ namespace REngine.Sandbox
 			return pipeline;
 		}
 	
+		private static ITextureView CreateTexture(IDevice device)
+		{
+			var bitmap = new Bitmap(
+				Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg")
+			);
+			var bitmapData = bitmap.LockBits(
+				new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+				ImageLockMode.ReadOnly,
+				PixelFormat.Format32bppArgb
+			);
+
+			var pixelData = new byte[bitmapData.Stride * bitmap.Height];
+			Marshal.Copy(bitmapData.Scan0, pixelData, 0, bitmapData.Stride * bitmapData.Height);
+			bitmap.UnlockBits(bitmapData);
+
+			for (var pixelIdx = 0; pixelIdx < bitmap.Width * bitmap.Height; pixelIdx++)
+				(pixelData[4 * pixelIdx + 0], pixelData[4 * pixelIdx + 2]) = (pixelData[4 * pixelIdx + 2], pixelData[4 * pixelIdx + 0]);
+
+			return device.CreateTexture(new TextureDesc
+			{
+				Name = "Doge Texture",
+				Size = new TextureSize((uint)bitmap.Width, (uint)bitmap.Height),
+				Format = TextureFormat.RGBA8UNormSRGB,
+				BindFlags = BindFlags.ShaderResource,
+				Usage = Usage.Immutable
+			}, new ITextureData[] { 
+				new ByteTextureData(pixelData, (ulong)bitmapData.Stride) 
+			}).GetDefaultView(TextureViewType.ShaderResource);
+		}
+
 		private static Matrix4x4 GetTransform(long elapsedMilleseconds, SwapChainSize size)
 		{
 			var worldMatrix = Matrix4x4.CreateRotationY(elapsedMilleseconds / 1000.0f) * Matrix4x4.CreateRotationX(-MathF.PI * 0.1f);
@@ -294,10 +327,10 @@ namespace REngine.Sandbox
 				case DbgMsgSeverity.Warning:
 				case DbgMsgSeverity.Error:
 				case DbgMsgSeverity.FatalError:
-					Console.WriteLine($"Diligent Engine: {args.Severity} in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
+					Debug.WriteLine($"Diligent Engine: {args.Severity} in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
 					break;
 				case DbgMsgSeverity.Info:
-					Console.WriteLine($"Diligent Engine: {args.Severity} {args.Message}");
+					Debug.WriteLine($"Diligent Engine: {args.Severity} {args.Message}");
 					break;
 			}
 		}

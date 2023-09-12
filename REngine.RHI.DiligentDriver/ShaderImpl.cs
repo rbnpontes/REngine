@@ -7,32 +7,21 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver
 {
-	internal class ShaderImpl : IShader, INativeObject
+	internal class ShaderImpl : GPUObjectImpl, IShader
 	{
-		private Diligent.IShader? pHandle;
-		private ShaderAdapter pAdapter;
-
-		public object? Handle => pHandle;
-		public bool IsDisposed => pHandle == null;
-
-		public string Name => pHandle?.GetDesc().Name ?? string.Empty;
+		public override string Name => GetHandle<Diligent.IShader>().GetDesc().Name;
 
 		public ShaderType Type { get; private set; }
 
-		public ShaderImpl(Diligent.IShader handle)
+		public ShaderImpl(Diligent.IShader handle) : base(handle)
 		{
-			pAdapter = new ShaderAdapter();
-			pHandle = handle;
+			var adapter = new ShaderAdapter();
 
 			ShaderType shaderType;
-			pAdapter.Fill(handle.GetDesc().ShaderType, out shaderType);
+			adapter.Fill(handle.GetDesc().ShaderType, out shaderType);
 			Type = shaderType;
-		}
 
-		public void Dispose()
-		{
-			pHandle?.Dispose();
-			pHandle = null;
+			handle.SetUserData(new ObjectWrapper(this));
 		}
 	}
 }

@@ -20,6 +20,9 @@
 		<None Remove="bin\**" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="Assets\Textures\doge.jpg">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="cube_ps.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
