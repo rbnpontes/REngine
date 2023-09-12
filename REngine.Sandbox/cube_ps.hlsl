@@ -1,5 +1,5 @@
 ﻿Texture2D    g_MainTexture;
-SamplerState g_MainTexture_sampler; // By convention, texture samplers must use the '_sampler' suffix
+SamplerState g_MainTexture_sampler;
 
 
 struct PSInput
@@ -13,7 +13,12 @@ struct PSOutput
 	float4 color	 : SV_TARGET;
 };
 
+float4 BgraToRgba(float4 pixel) {
+	return float4(pixel.b, pixel.g, pixel.r, pixel.a);
+}
+
 void main(in PSInput input, out PSOutput output)
 {
-	output.color = g_MainTexture.Sample(g_MainTexture_sampler, input.uv);
+	// .NET reads image as BGRA format, then we need to change to RGBA
+	output.color = BgraToRgba(g_MainTexture.Sample(g_MainTexture_sampler, input.uv));
 }

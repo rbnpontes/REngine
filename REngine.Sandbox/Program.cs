@@ -235,6 +235,12 @@ namespace REngine.Sandbox
 				}
 			};
 
+			desc.Samplers.Add(new ImmutableSamplerDesc
+			{
+				Name = "g_MainTexture",
+				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Mirror)
+			});
+
 			var pipeline = driver.Device.CreateGraphicsPipeline(desc);
 
 			vsShader.Dispose();
@@ -258,8 +264,8 @@ namespace REngine.Sandbox
 			Marshal.Copy(bitmapData.Scan0, pixelData, 0, bitmapData.Stride * bitmapData.Height);
 			bitmap.UnlockBits(bitmapData);
 
-			for (var pixelIdx = 0; pixelIdx < bitmap.Width * bitmap.Height; pixelIdx++)
-				(pixelData[4 * pixelIdx + 0], pixelData[4 * pixelIdx + 2]) = (pixelData[4 * pixelIdx + 2], pixelData[4 * pixelIdx + 0]);
+			//for (var pixelIdx = 0; pixelIdx < bitmap.Width * bitmap.Height; pixelIdx++)
+			//	(pixelData[4 * pixelIdx + 0], pixelData[4 * pixelIdx + 2]) = (pixelData[4 * pixelIdx + 2], pixelData[4 * pixelIdx + 0]);
 
 			return device.CreateTexture(new TextureDesc
 			{

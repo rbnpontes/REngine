@@ -206,7 +206,7 @@ namespace REngine.RHI.DiligentDriver.Adapters
 			List<Diligent.ImmutableSamplerDesc> immutableSamplers = new List<Diligent.ImmutableSamplerDesc>();
 
 			Fill(desc.InputLayouts, layoutElements);
-			Fill(desc.Samplers, immutableSamplers);
+			Fill(desc.Samplers, immutableSamplers, Diligent.ShaderType.AllGraphics);
 
 			output.GraphicsPipeline.InputLayout.LayoutElements = layoutElements.ToArray();
 			output.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers.ToArray();
@@ -285,7 +285,7 @@ namespace REngine.RHI.DiligentDriver.Adapters
 			output.GraphicsPipeline.RasterizerDesc.ScissorEnable = desc.RasterizerState.ScissorTestEnabled;
 			output.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = !pIsOpenGL && desc.RasterizerState.LineAntiAlias;
 
-			output.PSODesc.ResourceLayout.DefaultVariableType = ShaderResourceVariableType.Dynamic;
+			output.PSODesc.ResourceLayout.DefaultVariableType = ShaderResourceVariableType.Mutable;
 		}
 		public void Fill(IList<PipelineInputLayoutElementDesc> inputLayouts, IList<Diligent.LayoutElement> outputElements)
 		{
