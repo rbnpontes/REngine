@@ -13,6 +13,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj" />
+		<ProjectReference Include="..\REngine.Windows\REngine.Windows.csproj" />
+		<ProjectReference Include="..\REngine\REngine.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="bin\**" />
@@ -24,9 +26,6 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="cube_ps.hlsl">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="cube_vs.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

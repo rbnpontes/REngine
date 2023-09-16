@@ -2,6 +2,7 @@
 using REngine.RHI.DiligentDriver.Adapters;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,10 @@ namespace REngine.RHI.DiligentDriver
 		private RHI.SwapChainDesc pDesc = new RHI.SwapChainDesc();
 		private Dictionary<Diligent.ITextureView, ITextureView> pColorBuffers;
 		private SwapChainAdapter pAdapter = new SwapChainAdapter();
+
+		public event EventHandler<SwapChainResizeEventArgs>? OnResize;
+		public event EventHandler? OnPresent;
+		public event EventHandler? OnDispose;
 
 		public SwapChainDesc Desc
 		{
@@ -74,17 +79,30 @@ namespace REngine.RHI.DiligentDriver
 
 		public void Dispose()
 		{
-			pSwapChain?.Dispose();
+			if(pSwapChain != null)
+			{
+				pSwapChain.Dispose();
+				OnDispose?.Invoke(this, EventArgs.Empty);
+			}
+
 			pSwapChain = null;
 		}
 
-		public void Present(bool vsync)
+		public ISwapChain Present(bool vsync)
 		{
 			pSwapChain?.Present(vsync ? 1u : 0u);
 			ColorBuffer = AcquireNextBuffer();
+
+			OnPresent?.Invoke(this, EventArgs.Empty);
+			
+			return this;
 		}
 
-		public void Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal)
+		public ISwapChain Resize(Size size, SwapChainTransform transform = SwapChainTransform.Optimal)
+		{
+			return Resize((uint)size.Width, (uint)size.Height, transform);
+		}
+		public ISwapChain Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal)
 		{
 			pSwapChain?.Resize(width, height, (Diligent.SurfaceTransform)transform);
 			pColorBuffers.Clear();
@@ -94,6 +112,15 @@ namespace REngine.RHI.DiligentDriver
 			var newDepth = pSwapChain?.GetDepthBufferDSV();
 			if (newDepth != null)
 				DepthBuffer = new TextureViewImpl(newDepth);
+
+			OnResize?.Invoke(this, 
+				new SwapChainResizeEventArgs(
+					new SwapChainSize(width, height),
+					transform
+					)
+			);
+
+			return this;
 		}
 
 		private ITextureView AcquireNextBuffer()

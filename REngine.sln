@@ -13,16 +13,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C6A5B02E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.DiligentDriver.Tests", "REngine.RHI.DiligentDriver.Test\REngine.RHI.DiligentDriver.Tests.csproj", "{770570B9-19BA-496A-9BD1-899F0370C07B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Core.Tests", "REngine.Core.Tests\REngine.Core.Tests.csproj", "{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Core.Tests", "REngine.Core.Tests\REngine.Core.Tests.csproj", "{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Base.Tests", "REngine.Base.Tests\REngine.Base.Tests.csproj", "{1BBE06B2-7073-446E-9256-1413474572C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Base.Tests", "REngine.Base.Tests\REngine.Base.Tests.csproj", "{1BBE06B2-7073-446E-9256-1413474572C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox", "REngine.Sandbox\REngine.Sandbox.csproj", "{A04F8C05-4464-4531-A666-B392F43D8D14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Sandbox", "REngine.Sandbox\REngine.Sandbox.csproj", "{A04F8C05-4464-4531-A666-B392F43D8D14}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{851691E9-98BE-43A0-B175-9B21A36FCDDC}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Windows", "REngine.Windows\REngine.Windows.csproj", "{E73286E1-0549-4F74-BCCE-629488A2F068}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine", "REngine\REngine.csproj", "{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RPI", "REngine.RPI\REngine.RPI.csproj", "{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,8 +62,20 @@ Global
 		{1BBE06B2-7073-446E-9256-1413474572C9}.Release|x64.Build.0 = Release|Any CPU
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.ActiveCfg = Debug|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.Build.0 = Debug|x64
-		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.ActiveCfg = Release|Any CPU
-		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.Build.0 = Release|Any CPU
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.ActiveCfg = Release|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.Build.0 = Release|x64
+		{E73286E1-0549-4F74-BCCE-629488A2F068}.Debug|x64.ActiveCfg = Debug|x64
+		{E73286E1-0549-4F74-BCCE-629488A2F068}.Debug|x64.Build.0 = Debug|x64
+		{E73286E1-0549-4F74-BCCE-629488A2F068}.Release|x64.ActiveCfg = Release|x64
+		{E73286E1-0549-4F74-BCCE-629488A2F068}.Release|x64.Build.0 = Release|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.ActiveCfg = Debug|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.Build.0 = Debug|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Release|x64.ActiveCfg = Release|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Release|x64.Build.0 = Release|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|x64.ActiveCfg = Debug|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|x64.Build.0 = Debug|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release|x64.ActiveCfg = Release|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

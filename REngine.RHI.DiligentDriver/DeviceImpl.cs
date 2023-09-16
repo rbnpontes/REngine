@@ -4,6 +4,7 @@ using REngine.RHI.DiligentDriver.Adapters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -51,6 +52,18 @@ namespace REngine.RHI.DiligentDriver
 			adapter.Fill(desc, out nativeDesc);
 
 			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, values));
+		}
+		
+		public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : struct
+		{
+			if (pDevice is null)
+				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
+
+			var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			IBuffer buffer = CreateBuffer(desc, handle.AddrOfPinnedObject(), (ulong)Marshal.SizeOf<T>());
+			handle.Free();
+
+			return buffer;
 		}
 
 		public unsafe IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)

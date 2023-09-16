@@ -18,14 +18,14 @@
 		<DefineConstants>OSX</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Remove="bin\**" />
-	  <EmbeddedResource Remove="bin\**" />
-	  <None Remove="bin\**" />
+	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="..\.editorconfig" Link=".editorconfig" />
-	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <None Update="Assets\Shaders\cube_feat_ps.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Assets\Shaders\cube_feat_vs.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 </Project>

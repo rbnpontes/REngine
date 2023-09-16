@@ -8,23 +8,27 @@ namespace REngine.Core.DependencyInjection
 {
 	public delegate Interface NoDepsActivationCall<Interface>();
 	public delegate Interface ActivationCall<Interface>(object[] dependencies);
+	public delegate Interface PostActivationCall<Interface>(IServiceProvider provider);
+	public delegate void ModuleCall(IServiceRegistry registry);
 
 	public interface IServiceRegistry
 	{
-		IServiceRegistry Add<Interface, Target>();
-		IServiceRegistry Add<Target>();
+		IServiceRegistry Add<Interface, Target>() where Target : class;
+		IServiceRegistry Add<Target>() where Target : class;
 
 		IServiceRegistry Add<Interface>(NoDepsActivationCall<Interface> call);
 		IServiceRegistry Add<Interface>(ActivationCall<Interface> call, IEnumerable<Type> dependencies);
-		
+		IServiceRegistry Add<Interface>(PostActivationCall<Interface> call);
+
 		IServiceProvider Build();
 	}
 
 	internal class ServiceRegistryImpl : IServiceRegistry
 	{
 		private Dictionary<Type, ServiceConstructor> pConstructors = new Dictionary<Type, ServiceConstructor>();
+		private Dictionary<Type, PostActivationCall<object>> pPostDependencies = new Dictionary<Type, PostActivationCall<object>>();
 
-		public IServiceRegistry Add<Interface, Target>()
+		public IServiceRegistry Add<Interface, Target>() where Target: class
 		{
 			ServiceConstructor constructor = new ServiceConstructor(typeof(Interface), typeof(Target));
 			constructor.ActivationCall = deps =>
@@ -38,7 +42,7 @@ namespace REngine.Core.DependencyInjection
 			return this;
 		}
 
-		public IServiceRegistry Add<Target>()
+		public IServiceRegistry Add<Target>() where Target : class
 		{
 			ServiceConstructor constructor = new ServiceConstructor(typeof(Target));
 			constructor.ActivationCall = deps =>
@@ -83,6 +87,18 @@ namespace REngine.Core.DependencyInjection
 			return this;
 		}
 
+		public IServiceRegistry Add<Interface>(PostActivationCall<Interface> call)
+		{
+			pPostDependencies.Add(typeof(Interface), (provider) =>
+			{
+				var result = call(provider);
+				if (result is null)
+					throw new NullReferenceException($"ActivationCall has retrieved null at service {typeof(Interface).Name}.");
+				return result;
+			});
+			return this;
+		}
+
 		public IServiceProvider Build()
 		{
 			Dictionary<Type, object> services = new Dictionary<Type, object>();
@@ -93,6 +109,10 @@ namespace REngine.Core.DependencyInjection
 			ServiceResolver resolver = new ServiceResolver(pConstructors);
 			resolver.Resolve(services);
 
+			// execute post dependencies. this dependencies requires IServiceProvider created
+			foreach(var pair in pPostDependencies)
+				services.Add(pair.Key, pair.Value(provider));
+			
 			return provider;
 		}
 	}

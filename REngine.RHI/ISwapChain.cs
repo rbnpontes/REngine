@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,6 +44,11 @@ namespace REngine.RHI
 			Width = width;
 			Height = height;
 		}
+		public SwapChainSize(Size size)
+		{
+			Width = (uint)size.Width;
+			Height = (uint)size.Height;
+		}
 	}
 	
 	public struct SwapChainFormats
@@ -58,6 +64,11 @@ namespace REngine.RHI
 		{
 			Color = color;
 			Depth = depth;
+		}
+		public SwapChainFormats(GraphicsSettings settings)
+		{
+			Color = settings.DefaultColorFormat;
+			Depth = settings.DefaultDepthFormat;
 		}
 
 		public static readonly SwapChainFormats None = new SwapChainFormats();
@@ -96,10 +107,34 @@ namespace REngine.RHI
 			DefaultStencilValue = 0;
 			IsPrimary = true;
 		}
+
+		public SwapChainDesc(GraphicsSettings settings)
+		{
+			Size = new SwapChainSize();
+			Formats = new SwapChainFormats(settings);
+			BufferCount = settings.DefaultSwapChainBufferCount;
+			Usage = SwapChainUsage.RenderTarget | SwapChainUsage.ShaderResource | SwapChainUsage.ShaderResource;
+			Transform = SwapChainTransform.Optimal;
+			DefaultDepthValue = 1f;
+			DefaultStencilValue = 0;
+			IsPrimary = true;
+		}
 	}
 	
+	public class SwapChainResizeEventArgs : EventArgs
+	{
+		public SwapChainSize Size { get; private set; }
+		public SwapChainTransform Transform { get; private set; }
+		public SwapChainResizeEventArgs(SwapChainSize size, SwapChainTransform transform)
+		{
+		}
+	}
 	public interface ISwapChain : IDisposable
 	{
+		public event EventHandler<SwapChainResizeEventArgs>? OnResize;
+		public event EventHandler? OnPresent;
+		public event EventHandler? OnDispose;
+
 		public SwapChainDesc Desc { get; }
 		public SwapChainSize Size { get; set; }
 		public SwapChainTransform Transform { get; set; }
@@ -107,7 +142,8 @@ namespace REngine.RHI
 		public ITextureView? DepthBuffer { get; }
 		public uint BufferCount { get; }
 
-		public void Present(bool vsync);
-		public void Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal);
+		public ISwapChain Present(bool vsync);
+		public ISwapChain Resize(Size size, SwapChainTransform transform = SwapChainTransform.Optimal);
+		public ISwapChain Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal);
 	}
 }
