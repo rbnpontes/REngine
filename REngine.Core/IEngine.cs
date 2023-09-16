@@ -11,6 +11,7 @@ namespace REngine.Core
 	{
 		public bool IsStopped { get; }
 		public double DeltaTime { get; }
+		public double ElapsedTime { get; }
 
 		public IEngine ExecuteFrame();
 		public IEngine Stop();

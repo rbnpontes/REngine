@@ -119,10 +119,8 @@ namespace REngine.RHI.DiligentDriver
 				throw new ObjectDisposedException(SetDisposeMsgError("render targets"));
 			// TODO: optimize
 			Diligent.ITextureView[] textures = new Diligent.ITextureView[rts.Length];
-			Parallel.For(0, rts.Length, i =>
-			{
+			for (int i = 0; i < rts.Length; ++i)
 				textures[i] = NativeObjectUtils.Get<Diligent.ITextureView>(rts[i]);
-			});
 			pCtx.SetRenderTargets(textures, NativeObjectUtils.Get<Diligent.ITextureView>(depthStencil), pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition);
 			return this;
 		}
@@ -175,10 +173,8 @@ namespace REngine.RHI.DiligentDriver
 			if (pCtx is null)
 				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(SetVertexBuffers)));
 			Diligent.IBuffer[] nativeBuffers = new Diligent.IBuffer[buffers.Count()];
-			Parallel.For(0, buffers.Count(), idx =>
-			{
-				nativeBuffers[idx] = NativeObjectUtils.Get<Diligent.IBuffer>(buffers.ElementAt(idx));
-			});
+			for (int i = 0; i < buffers.Count(); ++i)
+				nativeBuffers[i] = NativeObjectUtils.Get<Diligent.IBuffer>(buffers.ElementAt(i));
 
 			pCtx.SetVertexBuffers(
 				0,

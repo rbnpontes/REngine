@@ -30,6 +30,7 @@ namespace REngine.RPI
 		private ILogger<IRenderer> pLogger;
 		private RenderSettings pSetttings;
 		private RendererEvents pRendererEvents;
+		private RenderState pRenderState;
 
 		private ISwapChain? pSwapChain;
 		private IBuffer[] pBuffers = new IBuffer[(int)BufferGroupType.Object];
@@ -59,12 +60,14 @@ namespace REngine.RPI
 			ILogger<IRenderer> logger,
 			EngineEvents events,
 			RendererEvents rendererEvts,
-			RenderSettings settings)
+			RenderSettings settings,
+			RenderState renderState)
 		{
 			pProvider = provider;
 			pLogger = logger;
 			pRendererEvents = rendererEvts;
 			pSetttings = settings;
+			pRenderState = renderState;
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeginRender += HandleBeginRender;
@@ -127,7 +130,7 @@ namespace REngine.RPI
 					continue;
 				}
 
-				if (feature.IsDirty)
+				if (!feature.IsDirty)
 				{
 					featNode = featNode.Next;
 					continue;
@@ -148,6 +151,16 @@ namespace REngine.RPI
 			if (pDisposed || pDriver is null)
 				return this;
 			
+			// if swap chain has been setted, then we must clear
+			if(pSwapChain != null)
+			{
+				pDriver.ImmediateCommand
+					.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
+					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
+					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
+
+			}
+
 			var featNode = pFeatures.First;
 			while (featNode != null)
 			{
@@ -158,6 +171,7 @@ namespace REngine.RPI
 				}
 
 				featNode.Value.Execute(pDriver.ImmediateCommand);
+				featNode = featNode.Next;
 			}
 			return this;
 		}
@@ -166,7 +180,7 @@ namespace REngine.RPI
 		{
 			AssertDispose();
 
-			IBuffer? buffer = pBuffers[(int)bufferType];
+			IBuffer? buffer = pBuffers[GetBufferGroupIndex(bufferType)];
 			if (buffer is null)
 				throw new NullReferenceException("Buffer has not yet initialized.");
 
@@ -188,7 +202,16 @@ namespace REngine.RPI
 				pSwapChain.OnResize -= HandleSwapChainResize;
 
 			if((pSwapChain = swapChain) != null)
+			{
 				pSwapChain.OnResize += HandleSwapChainResize;
+
+				var swapChainSize = pSwapChain.Size;
+				pRenderState.FixedData = new RendererFixedData
+				{
+					ViewWidth = swapChainSize.Width,
+					ViewHeight = swapChainSize.Height
+				};
+			}
 
 			pLogger.Info("SwapChain has been changed.");
 			pRendererEvents.ExecuteChangeSwapChain(this);
@@ -221,18 +244,14 @@ namespace REngine.RPI
 				bufferDesc.Name = "Fixed UBO";
 				bufferDesc.Size = (ulong)Marshal.SizeOf<RendererFixedData>();
 
-				var swapChainSize = pSwapChain?.Size ?? new SwapChainSize();
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Fixed)] = pDriver.Device.CreateBuffer(bufferDesc, new RendererFixedData
-				{
-					ViewWidth = swapChainSize.Width,
-					ViewHeight = swapChainSize.Height
-				});
+				pBuffers[GetBufferGroupIndex(BufferGroupType.Fixed)] = pDriver.Device.CreateBuffer(bufferDesc, pRenderState.FixedData);
 
 				pLogger.Info("Fixed buffer has been changed");
 			}
 
 			bufferDesc.Usage = Usage.Dynamic;
 			bufferDesc.AccessFlags = CpuAccessFlags.Write;
+			bufferDesc.Mode = BufferMode.Raw;
 
 			if((flags & BufferUpdateFlags.Frame) != 0)
 			{

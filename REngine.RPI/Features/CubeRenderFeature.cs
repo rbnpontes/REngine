@@ -14,9 +14,6 @@ namespace REngine.RPI.Features
 	public interface ICubeRenderFeature : IRenderFeature 
 	{ 
 		public Matrix4x4 Transform { get; set; }
-		public Vector3[] Vertices { get; set; }
-		public uint[] Indices { get; set; }
-		public Vector4[] Colors { get; set; }
 	}
 
 	internal class CubeRenderFeature : ICubeRenderFeature
@@ -26,7 +23,7 @@ namespace REngine.RPI.Features
 		protected BufferDesc pVertexBufferDesc = new BufferDesc { 
 			Name = "VBuffer",
 			Usage = Usage.Immutable,
-			BindFlags = BindFlags.VertexBuffer
+			BindFlags = BindFlags.VertexBuffer,
 		};
 		protected BufferDesc pIndexBufferDesc = new BufferDesc { 
 			Name = "IBuffer",
@@ -41,43 +38,46 @@ namespace REngine.RPI.Features
 		protected ISwapChain? pSwapChain;
 
 
-		protected Vector3[] pVertices = new Vector3[0];
-		protected uint[] pIndices = new uint[0];
-		protected Vector4[] pColors = new Vector4[0];
+		protected readonly static Vector3[] pVertices = new Vector3[]
+		{
+			new Vector3(-1, -1, -1),
+			new Vector3(-1, +1, -1),
+			new Vector3(+1, +1, -1),
+			new Vector3(+1, -1, -1),
+
+			new Vector3(-1, -1, +1),
+			new Vector3(-1, +1, +1),
+			new Vector3(+1, +1, +1),
+			new Vector3(+1, -1, +1),
+		};
+
+		protected readonly static uint[] pIndices = new uint[]
+		{
+			2,0,1, 2,3,0,
+			4,6,5, 4,7,6,
+			0,7,4, 0,3,7,
+			1,0,4, 1,4,5,
+			1,5,2, 5,6,2,
+			3,6,7, 3,2,6
+		};
+
+		protected readonly static Vector4[] pColors = new Vector4[]
+		{
+			new Vector4(1, 0, 0, 1),
+			new Vector4(0, 1, 0, 1),
+			new Vector4(0, 0, 1, 1),
+			new Vector4(1, 1, 1, 1),
+			
+			new Vector4(1, 1, 0, 1),
+			new Vector4(0, 1, 1, 1),
+			new Vector4(1, 0, 1, 1),
+			new Vector4(0.2f, 0.2f, 0.2f, 0.2f)
+		};
 
 		public bool IsDirty { get; private set; } = true;
 		public bool IsDisposed { get; private set; } = false;
 
-		public Matrix4x4 Transform { get; set; }
-		public Vector3[] Vertices
-		{
-			get
-			{
-				return pVertices;
-			}
-			set
-			{
-				pVertices = value;
-				MarkAsDirty();
-			}
-		}
-		public uint[] Indices { 
-			get => pIndices;
-			set
-			{
-				pIndices = value;
-				MarkAsDirty();
-			}
-		}
-		public Vector4[] Colors
-		{
-			get => pColors;
-			set
-			{
-				pColors = value;
-				MarkAsDirty();
-			}
-		}
+		public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
 
 		public CubeRenderFeature(GraphicsSettings settings)
 		{
@@ -118,6 +118,7 @@ namespace REngine.RPI.Features
 			pSwapChain = renderer.SwapChain;
 			pCBuffer = renderer.GetBuffer(BufferGroupType.Object);
 
+			IsDirty = false;
 			return this;
 		}
 
@@ -133,6 +134,7 @@ namespace REngine.RPI.Features
 
 			var mappedData = command.Map<Matrix4x4>(pCBuffer, MapType.Write, MapFlags.Discard);
 			mappedData[0] = Transform;
+			command.Unmap(pCBuffer, MapType.Write);
 
 			command
 				.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
@@ -215,20 +217,22 @@ namespace REngine.RPI.Features
 					InputIndex = 0,
 					Input = new InputLayoutElementDesc
 					{
-						BufferStride = (uint)Marshal.SizeOf<Vector3>(),
+						BufferStride = (uint)(Marshal.SizeOf<Vector3>()),
+						ElementOffset = 0,
 						ElementType = ElementType.Vector3
 					}
 				}
 			);
-			inputLayout.Add(new PipelineInputLayoutElementDesc
-			{
-				InputIndex = 1,
-				Input = new InputLayoutElementDesc
-				{
-					BufferStride = (uint)Marshal.SizeOf<Vector4>(),
-					ElementType = ElementType.Vector4,	
-				}
-			});
+			//inputLayout.Add(new PipelineInputLayoutElementDesc
+			//{
+			//	InputIndex = 1,
+			//	Input = new InputLayoutElementDesc
+			//	{
+			//		ElementType = ElementType.Vector4,
+			//		ElementOffset = (uint)(Marshal.SizeOf<Vector4>()),
+			//		BufferStride = (uint)(Marshal.SizeOf<Vector3>() * pVertices.Length)
+			//	}
+			//});
 		}
 	
 		protected virtual IBuffer CreateVertexBuffer(IDevice device)

@@ -18,6 +18,7 @@ namespace REngine.Core
 		private bool pStopped = false;
 
 		public double DeltaTime { get => pDeltaTime; }
+		public double ElapsedTime { get => pStopwatch?.Elapsed.TotalMilliseconds ?? 0.0; }
 		public bool IsStopped { get => pStopped; }
 
 		public EngineImpl(IServiceProvider provider, EngineEvents events) 

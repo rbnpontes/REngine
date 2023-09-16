@@ -11,7 +11,7 @@ namespace REngine.Windows
 	{
 		public IWindow Build(Control? control = null)
 		{
-			return new ControlWrapper(control != null ? control : new Form());
+			return new ControlWrapper(control != null ? control : new Form() { StartPosition = FormStartPosition.CenterScreen });
 		}
 	}
 }
