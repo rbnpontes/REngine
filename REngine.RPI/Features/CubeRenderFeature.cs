@@ -138,7 +138,7 @@ namespace REngine.RPI.Features
 
 			command
 				.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
-				.SetVertexBuffer(pVertexBuffer)
+				.SetVertexBuffers(0, new IBuffer[] { pVertexBuffer, pVertexBuffer }, new ulong[] { 0, (ulong)(Marshal.SizeOf<Vector3>() * pVertices.Length)})
 				.SetIndexBuffer(pIndexBuffer)
 				.SetPipeline(pPipeline)
 				.CommitBindings(pPipeline.GetResourceBinding())
@@ -217,22 +217,20 @@ namespace REngine.RPI.Features
 					InputIndex = 0,
 					Input = new InputLayoutElementDesc
 					{
-						BufferStride = (uint)(Marshal.SizeOf<Vector3>()),
-						ElementOffset = 0,
+						BufferIndex = 0,
 						ElementType = ElementType.Vector3
 					}
 				}
 			);
-			//inputLayout.Add(new PipelineInputLayoutElementDesc
-			//{
-			//	InputIndex = 1,
-			//	Input = new InputLayoutElementDesc
-			//	{
-			//		ElementType = ElementType.Vector4,
-			//		ElementOffset = (uint)(Marshal.SizeOf<Vector4>()),
-			//		BufferStride = (uint)(Marshal.SizeOf<Vector3>() * pVertices.Length)
-			//	}
-			//});
+			inputLayout.Add(new PipelineInputLayoutElementDesc
+			{
+				InputIndex = 1,
+				Input = new InputLayoutElementDesc
+				{
+					ElementType = ElementType.Vector4,
+					BufferIndex = 1
+				}
+			});
 		}
 	
 		protected virtual IBuffer CreateVertexBuffer(IDevice device)

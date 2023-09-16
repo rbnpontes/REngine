@@ -5,7 +5,7 @@
 struct PSInput
 {
 	float4 pos		: SV_POSITION;
-	//float4 color	: COLOR;
+	float4 color	: COLOR;
 	//float2 uv		: TEXCOORD;
 };
 
@@ -20,8 +20,7 @@ float4 BgraToRgba(float4 pixel) {
 
 void main(in PSInput input, out PSOutput output)
 {
-	output.color = float4(1, 1, 1, 1);
-	//output.color = input.color;
+	output.color = input.color;
 	// .NET reads image as BGRA format, then we need to change to RGBA
 	//output.color = BgraToRgba(g_MainTexture.Sample(g_MainTexture_sampler, input.uv));
 }

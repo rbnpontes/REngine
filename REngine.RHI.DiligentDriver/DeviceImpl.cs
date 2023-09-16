@@ -110,6 +110,8 @@ namespace REngine.RHI.DiligentDriver
 			var adapter = new ShaderAdapter();
 			adapter.Fill(in createInfo, out shaderCI);
 			Diligent.IShader shader = pDevice.CreateShader(shaderCI, out _);
+			if (shader is null)
+				throw new NullReferenceException("Shader was not created.");
 			return new ShaderImpl(shader);
 		}
 
