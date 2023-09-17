@@ -30,6 +30,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine", "REngine\REngine.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RPI", "REngine.RPI\REngine.RPI.csproj", "{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Assets", "REngine.Assets\REngine.Assets.csproj", "{03092AC2-1D1B-4872-A057-0D25B4A68875}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -52,8 +54,8 @@ Global
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Debug|x64.Build.0 = Debug|Any CPU
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Release|x64.ActiveCfg = Release|Any CPU
 		{770570B9-19BA-496A-9BD1-899F0370C07B}.Release|x64.Build.0 = Release|Any CPU
-		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.ActiveCfg = Debug|x64
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.Build.0 = Debug|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Release|x64.ActiveCfg = Release|Any CPU
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Release|x64.Build.0 = Release|Any CPU
 		{1BBE06B2-7073-446E-9256-1413474572C9}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -76,6 +78,10 @@ Global
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|x64.Build.0 = Debug|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release|x64.ActiveCfg = Release|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release|x64.Build.0 = Release|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.ActiveCfg = Debug|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.Build.0 = Debug|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Release|x64.ActiveCfg = Release|Any CPU
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
