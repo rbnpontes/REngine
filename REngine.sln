@@ -32,6 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RPI", "REngine.RPI\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Assets", "REngine.Assets\REngine.Assets.csproj", "{03092AC2-1D1B-4872-A057-0D25B4A68875}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Asset.Tests", "REngine.Asset.Tests\REngine.Asset.Tests.csproj", "{5960716B-CC01-40B6-B13C-2DCD9920F8E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -82,6 +84,10 @@ Global
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.Build.0 = Debug|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Release|x64.ActiveCfg = Release|Any CPU
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Release|x64.Build.0 = Release|Any CPU
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.ActiveCfg = Debug|x64
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.Build.0 = Debug|x64
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Release|x64.ActiveCfg = Release|Any CPU
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{770570B9-19BA-496A-9BD1-899F0370C07B} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{1BBE06B2-7073-446E-9256-1413474572C9} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}
