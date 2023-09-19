@@ -22,6 +22,8 @@ namespace REngine.RPI
 					new Type[] { typeof(ILoggerFactory) }
 				)
 				.Add<IRenderer, RendererImpl>()
+				.Add<SpriteBatcher>()
+				.Add<ISpriteBatch, SpriteBatchImpl>()
 				.Add<BasicFeaturesFactory>();
 		}
 	}

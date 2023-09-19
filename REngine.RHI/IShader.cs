@@ -12,6 +12,16 @@ namespace REngine.RHI
 		public ShaderType Type;
 		public string SourceCode;
 		public byte[] ByteCode;
+		public IDictionary<string, string> Macros;
+
+		public ShaderCreateInfo()
+		{
+			Name = string.Empty;
+			Type = ShaderType.Vertex;
+			SourceCode = string.Empty;
+			ByteCode = new byte[0];
+			Macros = new Dictionary<string, string>();
+		}
 	}
 
 	public interface IShader : IGPUObject

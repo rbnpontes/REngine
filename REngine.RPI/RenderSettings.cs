@@ -21,10 +21,13 @@ namespace REngine.RPI
 		/// </summary>
 		public uint ObjectBufferSize { get; set; } = 1024 * 2;
 
+		public uint SpriteBatchInitialSize { get; set; } = 8;
+
 		public void Merge(RenderSettings settings)
 		{
 			FrameBufferSize = settings.FrameBufferSize;
 			ObjectBufferSize = settings.ObjectBufferSize;
+			SpriteBatchInitialSize = settings.SpriteBatchInitialSize;
 		}
 	}
 }

@@ -21,7 +21,11 @@ namespace REngine.RHI.DiligentDriver.Adapters
 		public void Fill(in ShaderCreateInfo createInfo, out Diligent.ShaderCreateInfo output)
 		{
 			Diligent.ShaderType shaderType;
+			Diligent.ShaderMacroArray macros;
+
 			Fill(createInfo.Type, out shaderType);
+			
+			
 			output = new Diligent.ShaderCreateInfo
 			{
 				EntryPoint = "main",
@@ -33,7 +37,8 @@ namespace REngine.RHI.DiligentDriver.Adapters
 				},
 				ByteCode = createInfo.ByteCode,
 				Source = createInfo.SourceCode,
-				SourceLanguage = Diligent.ShaderSourceLanguage.Hlsl
+				SourceLanguage = Diligent.ShaderSourceLanguage.Hlsl,
+				Macros = macros
 			};
 		}
 
@@ -85,6 +90,13 @@ namespace REngine.RHI.DiligentDriver.Adapters
 				shaderTypes |= Diligent.ShaderType.Domain;
 
 			outShaderTypes = shaderTypes;
+		}
+		public void Fill(IDictionary<string, string> macros, out Diligent.ShaderMacroArray output)
+		{
+			output = new Diligent.ShaderMacroArray
+			{
+				Elements = macros.Select(pair => new Diligent.ShaderMacro(pair.Key, pair.Value)).ToArray()
+			};
 		}
 	}
 }
