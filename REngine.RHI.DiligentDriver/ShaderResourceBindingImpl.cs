@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver
 {
-	internal class PipelineResourceBindingImpl : IDisposable, IPipelineStateResourceBinding, INativeObject
+	internal class ShaderResourceBindingImpl : IDisposable, IShaderResourceBinding, INativeObject
 	{
 		private Diligent.IShaderResourceBinding? pBinding;
 		public object? Handle => pBinding;
 		public bool IsDisposed => pBinding == null;
 		
-		public PipelineResourceBindingImpl(Diligent.IShaderResourceBinding binding)
+		public ShaderResourceBindingImpl(Diligent.IShaderResourceBinding binding)
 		{
 			pBinding = binding;
 		}

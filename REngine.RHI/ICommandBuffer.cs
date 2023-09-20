@@ -39,6 +39,29 @@ namespace REngine.RHI
 		}
 	}
 
+	public class CopyTextureInfo
+	{
+		public ITexture? SrcTexture { get; set; }
+		public uint SrcMipLevel { get; set; }
+		public uint SrcSlice { get; set; }
+		public Box? SrcBox { get; set; }
+		public ITexture? DstTexture { get; set; }
+		public uint DstMipLevel { get; set; }
+		public uint DstSlice { get; set; }
+		public uint DstX { get; set; }
+		public uint DstY { get; set; }
+		public uint DstZ { get; set; }
+
+		public CopyTextureInfo()
+		{
+		}
+		public CopyTextureInfo(ITexture srcTex, ITexture dstTex)
+		{
+			SrcTexture = srcTex;
+			DstTexture = dstTex;
+		}
+	}
+
 	public interface ICommandBuffer : IDisposable
 	{
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil);
@@ -52,12 +75,14 @@ namespace REngine.RHI
 		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets);
 		public ICommandBuffer SetIndexBuffer(IBuffer buffer, ulong byteOffset = 0);
 
-		public ICommandBuffer CommitBindings(IPipelineStateResourceBinding resourceBinding);
+		public ICommandBuffer CommitBindings(IShaderResourceBinding resourceBinding);
 		public ICommandBuffer Draw(DrawArgs args);
 		public ICommandBuffer Draw(DrawIndexedArgs args);
 
 		public Span<T> Map<T>(IBuffer buffer, MapType mapType, MapFlags mapFlags) where T : unmanaged;
 		public IntPtr Map(IBuffer buffer, MapType mapType, MapFlags mapFlags);
 		public ICommandBuffer Unmap(IBuffer buffer, MapType mapType);
+
+		public ICommandBuffer Copy(CopyTextureInfo copyInfo);
 	}
 }

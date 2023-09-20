@@ -11,8 +11,10 @@ namespace REngine.RPI
 {
 	internal class SpriteBatchItem
 	{
-		public Image? Image { get; set; }
+		public byte TextureIndex { get; set; } = byte.MaxValue;
 		public Vector2 Position { get; set; } = Vector2.Zero;
+		public Vector2 Offset { get; set; } = Vector2.Zero;
+		public float Angle { get; set; } = 0f;
 		public Vector2 Size { get; set; } = Vector2.One;
 	}
 
@@ -22,6 +24,7 @@ namespace REngine.RPI
 		private object pSync = new object();
 
 		public SpriteBatchItem[] Items { get; set; }
+		public uint BatchCount { get => NextItemIdx; }
 
 		public SpriteBatcher(RenderSettings settings)
 		{
@@ -55,6 +58,11 @@ namespace REngine.RPI
 			var oldItems = Items;
 			Items = new SpriteBatchItem[Items.Length * 2];
 			Array.Copy(Items, 0, oldItems, 0, oldItems.Length);
+			for(int i = 0; i < Items.Length; ++i)
+			{
+				if (Items[i] is null)
+					Items[i] = new SpriteBatchItem();
+			}
 		}
 	}
 }

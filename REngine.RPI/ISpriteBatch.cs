@@ -1,4 +1,5 @@
 ﻿using REngine.Core.Resources;
+using REngine.RHI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,21 +13,24 @@ namespace REngine.RPI
 	public struct SpriteBatchInfo
 	{
 		public Vector2 Position;
+		public Vector2 Offset;
 		public Vector2 Size;
-		public Image? Image;
+		public float Angle;
 
 		public SpriteBatchInfo()
 		{
 			Position = Vector2.Zero;
+			Offset = Vector2.Zero;
 			Size = Vector2.One;
-			Image = null;
+			Angle = 0;
 		}
 	}
+
 	public interface ISpriteBatch
 	{
 		public IRenderFeature Feature { get; }
-		public ISpriteBatch Begin();
+		public ISpriteBatch SetTexture(byte slot, ITexture texture);
+		public ISpriteBatch SetTexture(byte slot, Image image);
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
-		public ISpriteBatch End();
 	}
 }

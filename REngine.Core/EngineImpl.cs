@@ -12,14 +12,32 @@ namespace REngine.Core
 		private Stopwatch? pStopwatch;
 		private IServiceProvider pProvider;
 		private EngineEvents pEvents;
+		private object pStepSync = new object();
+		private EngineExecutionStep pStep = EngineExecutionStep.BeginFrame;
 
 		private double pLastElapsed;
 		private double pDeltaTime;
 		private bool pStopped = false;
 
+		private TaskCompletionSource pNextFrameSrc = new TaskCompletionSource();
+		private TaskCompletionSource pRenderSrc = new TaskCompletionSource();
+
 		public double DeltaTime { get => pDeltaTime; }
 		public double ElapsedTime { get => pStopwatch?.Elapsed.TotalMilliseconds ?? 0.0; }
 		public bool IsStopped { get => pStopped; }
+
+		public EngineExecutionStep Step
+		{
+			get
+			{
+				EngineExecutionStep step;
+				lock (pStepSync)
+				{
+					step = pStep;
+				}
+				return step;
+			}
+		}
 
 		public EngineImpl(IServiceProvider provider, EngineEvents events) 
 		{
@@ -39,17 +57,25 @@ namespace REngine.Core
 
 			UpdateEventArgs args = new UpdateEventArgs(pProvider, this, pDeltaTime, curr);
 
-			pEvents
-				.ExecuteBeginUpdate(args)
-				.ExecuteUpdate(args);
+			pNextFrameSrc.SetResult();
+			pNextFrameSrc = new TaskCompletionSource();
+
+			AdvanceStep();
+			pEvents.ExecuteBeginUpdate(args);
+			AdvanceStep();
+			pEvents.ExecuteUpdate(args);
 			// Execute Works Here
+
+			AdvanceStep();
 			pEvents
 				.ExecuteBeginRender(args)
 				.ExecuteRender(args)
 				.ExecuteEndRender(args);
+
+			pRenderSrc.SetResult();
+			pRenderSrc = new TaskCompletionSource();
 			// Execute Post Works Here
-			pEvents
-				.ExecuteEndUpdate(args);
+			pEvents.ExecuteEndUpdate(args);
 			return this;
 		}
 
@@ -63,6 +89,32 @@ namespace REngine.Core
 			pStopped = true;
 
 			return this;
+		}
+
+		public Task WaitRender()
+		{
+			return pRenderSrc.Task;
+		}
+		public Task WaitNextFrame()
+		{
+			return pNextFrameSrc.Task;
+		}
+
+		private void AdvanceStep()
+		{
+			lock (pStepSync)
+			{
+				var step = pStep;
+				if(step == EngineExecutionStep.Finish)
+				{
+					step = EngineExecutionStep.BeginFrame;
+				}
+				else
+				{
+					step++;
+				}
+				pStep = step;
+			} 
 		}
 	}
 }

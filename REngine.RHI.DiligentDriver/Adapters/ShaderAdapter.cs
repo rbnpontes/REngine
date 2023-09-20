@@ -24,6 +24,7 @@ namespace REngine.RHI.DiligentDriver.Adapters
 			Diligent.ShaderMacroArray macros;
 
 			Fill(createInfo.Type, out shaderType);
+			Fill(createInfo.Macros, out macros);
 			
 			
 			output = new Diligent.ShaderCreateInfo

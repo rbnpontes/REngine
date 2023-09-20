@@ -1,4 +1,6 @@
-﻿using REngine.Core.Resources;
+﻿using REngine.Core;
+using REngine.Core.Resources;
+using REngine.RHI;
 using REngine.RPI.Features;
 using System;
 using System.Collections.Generic;
@@ -12,18 +14,36 @@ namespace REngine.RPI
 	internal class SpriteBatchImpl : ISpriteBatch
 	{
 		private SpriteBatcher pBatcher;
-		public IRenderFeature Feature { get; private set; }
+		private SpriteBatchFeature pFeature;
+		private SpriteTextureManager pTextureManager;
 
-		public SpriteBatchImpl(SpriteBatcher batcher)
+		public IRenderFeature Feature { get => pFeature; }
+
+		public SpriteBatchImpl(
+			SpriteTextureManager texManager,
+			SpriteBatcher batcher, 
+			GraphicsSettings settings, 
+			RenderSettings renderSettings,
+			EngineEvents engineEvents,
+			RendererEvents renderEvents
+		)
 		{
+			pTextureManager = texManager;
 			pBatcher = batcher;
-			Feature = new SpriteBatchFeature(batcher);
+			pFeature = new SpriteBatchFeature(
+				batcher, 
+				texManager,
+				settings, 
+				renderSettings,
+				renderEvents
+			);
+			engineEvents.OnBeginUpdate += HandleBeginUpdate;
 		}
 
-		public ISpriteBatch Begin()
+		private void HandleBeginUpdate(object sender, UpdateEventArgs args)
 		{
 			pBatcher.Reset();
-			return this;
+			pTextureManager.Update();
 		}
 
 		public ISpriteBatch Draw(SpriteBatchInfo batchInfo)
@@ -31,12 +51,19 @@ namespace REngine.RPI
 			var item = pBatcher.Next();
 			item.Position = batchInfo.Position;
 			item.Size = batchInfo.Size;
-			item.Image = batchInfo.Image;
+			item.Angle = batchInfo.Angle;
 			return this;
 		}
 
-		public ISpriteBatch End()
+		public ISpriteBatch SetTexture(byte slot, ITexture texture)
 		{
+			pTextureManager.SetTexture(slot, texture);
+			return this;
+		}
+
+		public ISpriteBatch SetTexture(byte slot, Image image)
+		{
+			pTextureManager.SetTexture(slot, image);
 			return this;
 		}
 	}
