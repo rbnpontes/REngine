@@ -59,6 +59,7 @@ namespace REngine.Core
 		public Size MinSize { get; set; }
 		public Size MaxSize { get; set; }
 		public bool Focused { get; }
+		public bool IsClosed { get; }
 
 		public IWindow Close();
 		public IWindow Show();

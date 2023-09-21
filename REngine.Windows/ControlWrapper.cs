@@ -81,6 +81,7 @@ namespace REngine.Windows
 		}
 
 		public bool Focused { get => pControl?.Focused ?? false; }
+		public bool IsClosed { get => pControl?.IsDisposed ?? true; }
 
 		public ControlWrapper(Control control)
 		{
@@ -89,6 +90,13 @@ namespace REngine.Windows
 			pControl.KeyUp += HandleKeyUp;
 			pControl.Paint += HandlePaint;
 			pControl.Resize += HandleResize;
+			if((control is Form))
+				((Form)control).FormClosed += HandleClose;
+		}
+
+		private void HandleClose(object? sender, FormClosedEventArgs e)
+		{
+			OnClose?.Invoke(this, new WindowEventArgs(sender, Handle));
 		}
 
 		private void HandleResize(object? sender, EventArgs e)

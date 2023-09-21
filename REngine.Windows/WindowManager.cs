@@ -11,11 +11,13 @@ namespace REngine.Windows
 	{
 		private WindowsBuilder pBuilder = new WindowsBuilder();
 		private List<IWindow> pWindows = new List<IWindow>();
+		private IEngine pEngine;
 
 		public IReadOnlyList<IWindow> Windows { get => pWindows.AsReadOnly(); }
 
-		public WindowManager(EngineEvents events)
+		public WindowManager(EngineEvents events, IEngine engine)
 		{
+			pEngine = engine;
 			events.OnEndUpdate += HandleEndUpdate;
 			events.OnEndRender += HandleEndRender;
 			events.OnStop += (s, e) => Dispose();
@@ -48,6 +50,15 @@ namespace REngine.Windows
 		public IWindowManager Update()
 		{
 			Application.DoEvents();
+			int closedWindows = 0;
+			foreach(var window in pWindows)
+			{
+				if (window.IsClosed)
+					closedWindows++;
+			}
+
+			if (closedWindows == pWindows.Count)
+				pEngine.Stop();
 			return this;
 		}
 
