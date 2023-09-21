@@ -37,7 +37,20 @@ namespace REngine.RPI
 				renderSettings,
 				renderEvents
 			);
+			engineEvents.OnStart += HandleStart;
 			engineEvents.OnBeginUpdate += HandleBeginUpdate;
+			engineEvents.OnStop += HandleStop;
+		}
+
+		private void HandleStart(object? sender, EventArgs e)
+		{
+			pTextureManager.Start();
+		}
+
+		private void HandleStop(object? sender, EventArgs e)
+		{
+			pBatcher.Reset();
+			pTextureManager.Dispose();
 		}
 
 		private void HandleBeginUpdate(object sender, UpdateEventArgs args)

@@ -44,17 +44,15 @@ namespace REngine.RPI
 		public SpriteTextureManager(
 			IServiceProvider serviceProvider,
 			RenderSettings renderSettings,
-			IEngine engine,
-			EngineEvents engineEvents)
+			IEngine engine)
 		{
 			pProvider = serviceProvider;
 			pRenderSettings = renderSettings;
 			pTextures = new ITexture?[renderSettings.SpriteBatchMaxTextures];
 			pEngine = engine;
-			engineEvents.OnStart += HandleStart;
 		}
 
-		private void HandleStart(object? sender, EventArgs e)
+		public void Start()
 		{
 			pDriver = pProvider.Get<IGraphicsDriver>();
 		}

@@ -20,8 +20,6 @@ namespace REngine.RPI
 		public SpriteBatcher(RenderSettings settings)
 		{
 			Items = new SpriteBatchInfo[settings.SpriteBatchInitialSize];
-			//for(int i =0; i < settings.SpriteBatchInitialSize; ++i)
-			//	Items[i] = new SpriteBatchInfo();
 		}
 
 		public void Next(ref SpriteBatchInfo next)

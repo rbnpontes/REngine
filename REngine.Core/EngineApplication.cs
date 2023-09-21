@@ -67,6 +67,7 @@ namespace REngine.Core
 				throw new NullReferenceException("IServiceProvider is null");
 
 			pServiceProvider.Get<EngineEvents>().ExecuteStart();
+
 			pApp.OnStart(pServiceProvider);
 			return this;
 		}

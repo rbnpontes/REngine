@@ -70,8 +70,14 @@ namespace REngine.RPI
 			pRenderState = renderState;
 
 			events.OnStart += HandleEngineStart;
+			events.OnBeforeStop += HandleEngineStop;
 			events.OnBeginRender += HandleBeginRender;
 			events.OnRender += HandleRender;
+		}
+
+		private void HandleEngineStop(object? sender, EventArgs e)
+		{
+			Dispose();
 		}
 
 		public void Dispose()
