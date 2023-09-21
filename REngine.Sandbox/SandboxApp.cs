@@ -59,6 +59,8 @@ namespace REngine.Sandbox
 		{
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			var wndSize = pWindow?.Size ?? new Size();
+			Vector2 halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);
+
 			var worldMatrix = Matrix4x4.CreateRotationY(elapsedTime) * Matrix4x4.CreateRotationX(-MathF.PI * 0.1f);
 			var viewMatrix = Matrix4x4.CreateTranslation(0.0f, 0.0f, 5.0f);
 			var projMatrix = CreateFoV(MathF.PI / 4.0f, wndSize.Width / (float)wndSize.Height, 0.01f, 100.0f, pBackend == GraphicsBackend.OpenGL);
@@ -77,14 +79,14 @@ namespace REngine.Sandbox
 				Size = new Vector2(300) * AnalogicTime(elapsedTime, 1f, 2),
 				Angle = elapsedTime,
 				Anchor = new Vector2(0.5f, 0.5f),
-				Position = new Vector2(250, 250) + (new Vector2(cosT, sineT) * 150)
+				Position = halfSize + (new Vector2(cosT, sineT) * 150)
 			});
 			pSpriteBatch?.Draw(new SpriteBatchInfo
 			{
 				TextureSlot = 0,
 				Angle = elapsedTime,
 				Anchor = new Vector2(0.5f, 0.5f),
-				Position = new Vector2(250, 250),
+				Position = halfSize,
 				Size = new Vector2(150),
 				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
 			});

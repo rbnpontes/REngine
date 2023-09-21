@@ -85,7 +85,15 @@ namespace REngine.Sandbox
 
 		public virtual void OnStart(IServiceProvider provider)
 		{
-			provider.Get<IWindow>().Show();
+			var window = provider.GetOrDefault<IWindow>();
+			var swapChain = provider.GetOrDefault<ISwapChain>();
+
+			if (window != null)
+				window.Show();
+			// If main window goes to resize, we must update swapchain too
+			// https://github.com/rbnpontes/REngine/issues/9
+			if (window != null && swapChain != null)
+				window.OnResize += (s, e) => swapChain.Resize(window.Size);
 		}
 
 		public virtual void OnUpdate(IServiceProvider provider)
