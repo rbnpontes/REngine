@@ -147,7 +147,7 @@ namespace REngine.RHI.DiligentDriver
 			return this;
 		}
 
-		public ICommandBuffer CommitBindings(IPipelineStateResourceBinding resourceBinding)
+		public ICommandBuffer CommitBindings(IShaderResourceBinding resourceBinding)
 		{
 			if (pCtx is null)
 				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(CommitBindings)));
@@ -195,6 +195,19 @@ namespace REngine.RHI.DiligentDriver
 				byteOffset,
 				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
 			);
+			return this;
+		}
+
+		public ICommandBuffer Copy(CopyTextureInfo copyInfo)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(Copy)));
+			Diligent.CopyTextureAttribs attribs;
+			new CopyAdapter().Fill(copyInfo, out attribs);
+			attribs.SrcTextureTransitionMode =
+				attribs.DstTextureTransitionMode = pIsDeferred ? ResourceStateTransitionMode.Transition : ResourceStateTransitionMode.Verify;
+
+			pCtx.CopyTexture(attribs);
 			return this;
 		}
 	}

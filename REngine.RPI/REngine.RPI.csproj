@@ -9,14 +9,17 @@
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<DefineConstants>WINDOWS</DefineConstants>
+		<DefineConstants>WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-		<DefineConstants>LINUX</DefineConstants>
+		<DefineConstants>LINUX;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-		<DefineConstants>OSX</DefineConstants>
+		<DefineConstants>OSX;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>
@@ -25,6 +28,12 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Assets\Shaders\cube_feat_vs.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Assets\Shaders\spritebatch_ps.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Assets\Shaders\spritebatch_vs.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

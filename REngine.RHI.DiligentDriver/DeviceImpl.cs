@@ -38,7 +38,10 @@ namespace REngine.RHI.DiligentDriver
 				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
+
 			adapter.Fill(desc, out nativeDesc);
+			if (desc.Size == 0)
+				nativeDesc.Size = (ulong)(Marshal.SizeOf<T>() * values.Count());
 
 			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, values.ToArray()));
 		}
@@ -131,9 +134,11 @@ namespace REngine.RHI.DiligentDriver
 			adapter.Fill(desc, out nativeDesc);
 			adapter.Fill(subresources, out textureData);
 
-			return new TextureImpl(
-				pDevice.CreateTexture(nativeDesc, subresources.Count() > 0 ? textureData : null)
-			);
+			var tex = pDevice.CreateTexture(nativeDesc, subresources.Count() > 0 ? textureData : null);
+			if (tex is null)
+				throw new NullReferenceException("Error at create texture");
+
+			return new TextureImpl(tex);
 		}
 
 		public void Dispose()

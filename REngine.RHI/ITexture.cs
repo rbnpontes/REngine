@@ -43,6 +43,7 @@ namespace REngine.RHI
 		public TextureDimension Dimension;
 		public TextureSize Size;
 		public uint ArraySizeOrDepth;
+		public uint Slices { get => ArraySizeOrDepth; }
 		public TextureFormat Format;
 		public uint MipLevels;
 		public uint SampleCount;

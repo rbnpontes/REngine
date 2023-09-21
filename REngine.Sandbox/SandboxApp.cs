@@ -1,7 +1,9 @@
 ﻿using Diligent;
 using Microsoft.VisualBasic.Devices;
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Mathematics;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Features;
@@ -20,32 +22,81 @@ namespace REngine.Sandbox
 		private GraphicsBackend pBackend;
 		private IWindow? pWindow;
 		private IEngine? pEngine;
+#if RENGINE_SPRITEBATCH
+		private ISpriteBatch? pSpriteBatch;
+#endif
 		public SandboxApp() : base(typeof(SandboxApp))
 		{
 		}
 
+
 		public override void OnStart(IServiceProvider provider)
 		{
 			base.OnStart(provider);
+#if RENGINE_SPRITEBATCH
+			pSpriteBatch = provider.Get<ISpriteBatch>();
+#endif
 			pCubeFeature = provider.Get<BasicFeaturesFactory>().CreateCubeFeature();
-			provider.Get<IRenderer>().AddFeature(pCubeFeature);
+			provider.Get<IRenderer>()
+				.AddFeature(pCubeFeature)
+#if RENGINE_SPRITEBATCH
+				.AddFeature(pSpriteBatch.Feature)
+#endif
+				;
 			pBackend = provider.Get<IGraphicsDriver>().Backend;
 			pWindow = provider.Get<IWindow>();
 			pEngine = provider.Get<IEngine>();
+
+			ImageAsset textureAsset = new ImageAsset("doge.png");
+			using(FileStream stream = new FileStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open)){
+				textureAsset.Load(stream).Wait();
+			}
+
+			pSpriteBatch.SetTexture(0, textureAsset.Image);
 		}
 
 		public override void OnUpdate(IServiceProvider provider)
 		{
+			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			var wndSize = pWindow?.Size ?? new Size();
-			var worldMatrix = Matrix4x4.CreateRotationY((float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f) * Matrix4x4.CreateRotationX(-MathF.PI * 0.1f);
+			var worldMatrix = Matrix4x4.CreateRotationY(elapsedTime) * Matrix4x4.CreateRotationX(-MathF.PI * 0.1f);
 			var viewMatrix = Matrix4x4.CreateTranslation(0.0f, 0.0f, 5.0f);
 			var projMatrix = CreateFoV(MathF.PI / 4.0f, wndSize.Width / (float)wndSize.Height, 0.01f, 100.0f, pBackend == GraphicsBackend.OpenGL);
 			var wvpMatrix = Matrix4x4.Transpose(worldMatrix * viewMatrix * projMatrix);
 
 			if(pCubeFeature != null)
 				pCubeFeature.Transform = wvpMatrix;
+
+
+			float stagger = AnalogicTime(elapsedTime + 0.5f, 2.5f, 3);
+			float sineT = stagger * (float)Math.Sin(elapsedTime);
+			float cosT = stagger * (float)Math.Cos(elapsedTime);
+			pSpriteBatch?.Draw(new SpriteBatchInfo
+			{
+				TextureSlot = 0,
+				Size = new Vector2(300) * AnalogicTime(elapsedTime, 1f, 2),
+				Angle = elapsedTime,
+				Anchor = new Vector2(0.5f, 0.5f),
+				Position = new Vector2(250, 250) + (new Vector2(cosT, sineT) * 150)
+			});
+			pSpriteBatch?.Draw(new SpriteBatchInfo
+			{
+				TextureSlot = 0,
+				Angle = elapsedTime,
+				Anchor = new Vector2(0.5f, 0.5f),
+				Position = new Vector2(250, 250),
+				Size = new Vector2(150),
+				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
+			});
 		}
 		
+		private float AnalogicTime(float t, float freq, float amplitude)
+		{
+			t = (float)(Math.Sin(t * freq) * amplitude);
+			t = Math.Clamp(t, -(float)Math.Round(freq), (float)Math.Round(freq));
+			return (float)Math.Floor(t);
+		}
+
 		private Matrix4x4 CreateFoV(float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance, bool isOpenGL)
 		{
 			if (fieldOfView <= 0.0f || fieldOfView >= MathF.PI)
