@@ -48,10 +48,7 @@ namespace REngine.RPI
 
 		public ISpriteBatch Draw(SpriteBatchInfo batchInfo)
 		{
-			var item = pBatcher.Next();
-			item.Position = batchInfo.Position;
-			item.Size = batchInfo.Size;
-			item.Angle = batchInfo.Angle;
+			pBatcher.Next(ref batchInfo);
 			return this;
 		}
 

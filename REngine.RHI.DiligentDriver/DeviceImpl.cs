@@ -38,7 +38,10 @@ namespace REngine.RHI.DiligentDriver
 				throw new ObjectDisposedException(GetExecDisposedError(nameof(CreateBuffer)));
 			Diligent.BufferDesc nativeDesc;
 			BufferAdapter adapter = new BufferAdapter();
+
 			adapter.Fill(desc, out nativeDesc);
+			if (desc.Size == 0)
+				nativeDesc.Size = (ulong)(Marshal.SizeOf<T>() * values.Count());
 
 			return new BufferImpl(pDevice.CreateBuffer(nativeDesc, values.ToArray()));
 		}

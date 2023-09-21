@@ -9,31 +9,22 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	internal class SpriteBatchItem
-	{
-		public byte TextureIndex { get; set; } = byte.MaxValue;
-		public Vector2 Position { get; set; } = Vector2.Zero;
-		public Vector2 Offset { get; set; } = Vector2.Zero;
-		public float Angle { get; set; } = 0f;
-		public Vector2 Size { get; set; } = Vector2.One;
-	}
-
 	internal class SpriteBatcher
 	{
 		private uint NextItemIdx = 0;
 		private object pSync = new object();
 
-		public SpriteBatchItem[] Items { get; set; }
+		public SpriteBatchInfo[] Items { get; set; }
 		public uint BatchCount { get => NextItemIdx; }
 
 		public SpriteBatcher(RenderSettings settings)
 		{
-			Items = new SpriteBatchItem[settings.SpriteBatchInitialSize];
-			for(int i =0; i < settings.SpriteBatchInitialSize; ++i)
-				Items[i] = new SpriteBatchItem();
+			Items = new SpriteBatchInfo[settings.SpriteBatchInitialSize];
+			//for(int i =0; i < settings.SpriteBatchInitialSize; ++i)
+			//	Items[i] = new SpriteBatchInfo();
 		}
 
-		public SpriteBatchItem Next()
+		public void Next(ref SpriteBatchInfo next)
 		{
 			uint nextItemIdx = 0;
 			
@@ -45,7 +36,7 @@ namespace REngine.RPI
 				++NextItemIdx;	
 			}
 
-			return Items[nextItemIdx];
+			Items[nextItemIdx] = next;
 		}
 
 		public void Reset()
@@ -56,13 +47,8 @@ namespace REngine.RPI
 		private void RefitBatches()
 		{
 			var oldItems = Items;
-			Items = new SpriteBatchItem[Items.Length * 2];
+			Items = new SpriteBatchInfo[Items.Length * 2];
 			Array.Copy(Items, 0, oldItems, 0, oldItems.Length);
-			for(int i = 0; i < Items.Length; ++i)
-			{
-				if (Items[i] is null)
-					Items[i] = new SpriteBatchItem();
-			}
 		}
 	}
 }

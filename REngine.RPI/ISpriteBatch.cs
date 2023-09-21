@@ -13,16 +13,22 @@ namespace REngine.RPI
 	public struct SpriteBatchInfo
 	{
 		public Vector2 Position;
+		public Vector2 Anchor;
 		public Vector2 Offset;
 		public Vector2 Size;
 		public float Angle;
+		public byte TextureSlot;
+		public Color Color;
 
 		public SpriteBatchInfo()
 		{
 			Position = Vector2.Zero;
+			Anchor = Vector2.Zero;
 			Offset = Vector2.Zero;
 			Size = Vector2.One;
 			Angle = 0;
+			TextureSlot = byte.MaxValue;
+			Color = Color.White;
 		}
 	}
 

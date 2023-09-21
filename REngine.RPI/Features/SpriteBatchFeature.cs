@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,9 +18,14 @@ namespace REngine.RPI.Features
 	{
 		struct BufferData
 		{
-			public Vector4 RotationAndScale;
-			public Vector4 Position;
+			public Matrix4x4 WorldViewProj;
 			public Vector4 Color;
+
+			public BufferData()
+			{
+				WorldViewProj = Matrix4x4.Identity;
+				Color = Vector4.One;
+			}
 		}
 		class TextureCache : IDisposable
 		{
@@ -37,7 +44,18 @@ namespace REngine.RPI.Features
 				ResourceBinding.Dispose();
 			}
 		}
-		
+
+		private static readonly Vector4[] sVertices = new Vector4[] 
+		{ 
+			new Vector4(0, 1, 0, 1),
+			new Vector4(1, 0, 1, 0),
+			new Vector4(0, 0, 0, 0),
+
+			new Vector4(0, 1, 0, 1),
+			new Vector4(1, 1, 1, 1),
+			new Vector4(1, 0, 1, 0)
+		};
+
 		private GraphicsSettings pSettings;
 		private RenderSettings pRenderSettings;
 
@@ -46,6 +64,8 @@ namespace REngine.RPI.Features
 		private IBuffer? pCBuffer;
 		private IRenderer? pRenderer;
 		private IGraphicsDriver? pDriver;
+
+		private IBuffer? pVBuffer;
 
 		private SpriteBatcher pBatcher;
 		private SpriteTextureManager pTextureManager;
@@ -75,6 +95,7 @@ namespace REngine.RPI.Features
 			IsDisposed = true;
 			pDefaultPipeline?.Dispose();
 			pTexturedPipeline?.Dispose();
+			pVBuffer?.Dispose();
 
 			pDefaultPipeline = pTexturedPipeline = null;
 			pTexturedPipeline = null;
@@ -86,6 +107,10 @@ namespace REngine.RPI.Features
 			pDriver = driver;
 			pCBuffer = renderer.GetBuffer(BufferGroupType.Object);
 
+			pDefaultPipeline?.Dispose();
+			pTexturedPipeline?.Dispose();
+			pVBuffer?.Dispose();
+
 			IShader vertexShader = LoadShader(driver.Device, ShaderType.Vertex, false);
 			IShader pixelShader = LoadShader(driver.Device, ShaderType.Pixel, false);
 			IShader texturePixelShader = LoadShader(driver.Device, ShaderType.Pixel, true);
@@ -93,6 +118,7 @@ namespace REngine.RPI.Features
 			IPipelineState defaultPipeline = CreatePipeline(driver.Device, renderer, vertexShader, pixelShader);
 			IPipelineState texturedPipeline = CreatePipeline(driver.Device, renderer, vertexShader, texturePixelShader);
 
+			pVBuffer = CreateVertexBuffer(driver.Device);
 			pDefaultPipeline = defaultPipeline;
 			pTexturedPipeline = texturedPipeline;
 
@@ -117,29 +143,38 @@ namespace REngine.RPI.Features
 			if (pRenderer?.SwapChain is null || pDriver is null)
 				return this;
 
-			if (pDefaultPipeline is null || pTexturedPipeline is null)
+			if (pDefaultPipeline is null || pTexturedPipeline is null || pVBuffer is null)
 				return this;
+
+			Matrix4x4 projection;
+			CalculateProjection(pRenderer.SwapChain.Size, out projection);
+
+			cbufferData.WorldViewProj = projection;
 
 			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
 			for(int i =0; i < pBatcher.BatchCount; ++i)
 			{
 				var item = items[i];
-				var pipeline = item.TextureIndex == byte.MaxValue ? pDefaultPipeline : pTexturedPipeline;
-				FillBufferData(item, ref cbufferData);
+				byte textureSlot = item.TextureSlot;
+				var pipeline = textureSlot == byte.MaxValue ? pDefaultPipeline : pTexturedPipeline;
+				FillBufferData(item, ref projection, ref cbufferData);
 
 				var mappedData = command.Map<BufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
 				mappedData[0] = cbufferData;
 				command.Unmap(pCBuffer, MapType.Write);
 
-				if (item.TextureIndex != byte.MaxValue && pTextureManager.Textures[item.TextureIndex] != null)
-					pipeline.GetResourceBinding().Set(ShaderTypeFlags.Pixel, "g_texture", pTextureManager.Textures[item.TextureIndex]);
+				if (textureSlot != byte.MaxValue && pTextureManager.Textures[textureSlot] != null)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+					pipeline.GetResourceBinding().Set(ShaderTypeFlags.Pixel, "g_texture", pTextureManager.Textures[textureSlot].GetDefaultView(TextureViewType.ShaderResource));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 				command
+					.SetVertexBuffer(pVBuffer)
 					.SetPipeline(pipeline)
 					.CommitBindings(pipeline.GetResourceBinding())
 					.Draw(new DrawArgs
 					{
-						NumVertices = 4
+						NumVertices = 6
 					});
 			}
 				
@@ -152,30 +187,25 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		private void FillBufferData(SpriteBatchItem item, ref BufferData data)
+		private void FillBufferData(SpriteBatchInfo item, ref Matrix4x4 projection, ref BufferData data)
 		{
-			float sinAngle = (float)Math.Sin(item.Angle);
-			float cosAngle = (float)Math.Cos(item.Angle);
+			var model = Matrix4x4.CreateScale(new Vector3(item.Size, 1.0f)) * Matrix4x4.CreateTranslation(new Vector3((item.Size * item.Anchor) * new Vector2(-1), 0));
+			model = model * Matrix4x4.CreateRotationZ(item.Angle) * Matrix4x4.CreateTranslation(new Vector3(item.Position, 0.0f));
+			data.WorldViewProj = model * projection;
 
-			var scaleMatrix = Matrix<float>.Build.Dense(2, 2);
-			var rotMatrix = Matrix<float>.Build.Dense(2, 2);
-			{
-				scaleMatrix[0, 0] = item.Size.X;
-				scaleMatrix[1, 1] = item.Size.Y;
-
-				rotMatrix[0, 0] = cosAngle;
-				rotMatrix[0, 1] = -sinAngle;
-				rotMatrix[1, 0] = sinAngle;
-				rotMatrix[1, 1] = cosAngle;
-			}
-
-			var matrix = scaleMatrix * rotMatrix;
-
-			data.RotationAndScale = new Vector4(matrix[0, 0], matrix[1, 0], matrix[0, 1], matrix[1, 1]);
-			data.Position = new Vector4(item.Position.X, item.Position.Y, item.Offset.X, item.Offset.Y);
-			data.Color = Vector4.One;
+			data.Color = new Vector4(
+				item.Color.R / 255.0f,
+				item.Color.G / 255.0f,
+				item.Color.B / 255.0f,
+				item.Color.A / 255.0f
+			);
 		}
 
+		private void CalculateProjection(in SwapChainSize size, out Matrix4x4 matrix)
+		{
+			matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
+			matrix.M33 = matrix.M43 = 0.5f;
+		}
 		private IPipelineState CreatePipeline(IDevice device, IRenderer renderer, IShader vshader, IShader pshader) 
 		{
 			GraphicsPipelineDesc desc = new GraphicsPipelineDesc();
@@ -184,12 +214,32 @@ namespace REngine.RPI.Features
 			desc.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
 			desc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
 			desc.BlendState.BlendMode = BlendMode.Replace;
-			desc.PrimitiveType = PrimitiveType.TriangleStrip;
+			desc.PrimitiveType = PrimitiveType.TriangleList;
 			desc.RasterizerState.CullMode = CullMode.Both;
-			desc.DepthStencilState.EnableDepth = true;
+			desc.DepthStencilState.EnableDepth = false;
 
 			desc.Shaders.VertexShader = vshader;
 			desc.Shaders.PixelShader = pshader;
+
+			desc.InputLayouts.Add(
+				new PipelineInputLayoutElementDesc
+				{
+					InputIndex =0,
+					Input = new InputLayoutElementDesc {
+						ElementType = ElementType.Vector2
+					}
+				}
+			);
+			desc.InputLayouts.Add(
+				new PipelineInputLayoutElementDesc
+				{
+					InputIndex = 1,
+					Input = new InputLayoutElementDesc
+					{
+						ElementType = ElementType.Vector2
+					}
+				}
+			);
 
 			desc.Samplers.Add(new ImmutableSamplerDesc
 			{
@@ -236,6 +286,16 @@ namespace REngine.RPI.Features
 			}
 
 			return device.CreateShader(shaderCI);
+		}
+	
+		private IBuffer CreateVertexBuffer(IDevice device)
+		{
+			return device.CreateBuffer(new BufferDesc
+			{
+				Name = "Spritebatch VBuffer",
+				Usage = Usage.Immutable,
+				BindFlags = BindFlags.VertexBuffer,
+			}, sVertices);
 		}
 	}
 }
