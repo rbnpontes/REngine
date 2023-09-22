@@ -23,7 +23,8 @@ namespace REngine.RPI.Features
 			Pipeline=1,
 			BindingInvalid = 2,
 			Bindings = 4,
-			All = Pipeline | BindingInvalid | Bindings
+			CBuffer = 8,
+			All = Pipeline | BindingInvalid | Bindings | CBuffer
 		}
 
 		struct BufferData
@@ -129,6 +130,12 @@ namespace REngine.RPI.Features
 			pTexturedPipeline = null;
 		}
 
+		public void CheckCBufferSizes(ulong cbufferSize)
+		{
+			if (cbufferSize != pCBuffer?.Desc.Size)
+				MarkAsDirty(DirtyFlags.CBuffer);
+		}
+
 		public IRenderFeature Setup(IGraphicsDriver driver, IRenderer renderer)
 		{
 			pRenderer = renderer;
@@ -165,7 +172,6 @@ namespace REngine.RPI.Features
 
 					binding?.Dispose();
 					binding = pTexturedPipeline?.CreateResourceBinding();
-					binding?.Set(ShaderTypeFlags.Vertex, "Constants", pCBuffer);
 					pBindings[i] = binding;
 
 					SetBinding(i);
@@ -178,6 +184,13 @@ namespace REngine.RPI.Features
 			{
 				for(byte i =0; i< pBindings.Length; ++i)
 					SetBinding(i);
+			}
+
+			if((pDirtyFlags & DirtyFlags.CBuffer) != 0)
+			{
+				SetCBufferBinding(pDefaultPipeline?.GetResourceBinding());
+				for (byte i = 0; i < pBindings.Length; ++i)
+					SetCBufferBinding(pBindings[i]);
 			}
 
 			pDirtyFlags = DirtyFlags.None;
@@ -303,9 +316,7 @@ namespace REngine.RPI.Features
 				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Clamp)
 			});
 
-			var pipeline = device.CreateGraphicsPipeline(desc);
-			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, "Constants", renderer.GetBuffer(BufferGroupType.Object));
-			return pipeline;
+			return device.CreateGraphicsPipeline(desc);
 		}
 
 		private IShader LoadShader(IDevice device, ShaderType type, bool hasTexture)
@@ -359,6 +370,13 @@ namespace REngine.RPI.Features
 			ITextureView? tex = pTextureManager.Textures[slot]?.GetDefaultView(TextureViewType.ShaderResource);
 			if(tex != null)
 				pBindings[slot]?.Set(ShaderTypeFlags.Pixel, "g_texture", tex);
+		}
+		private void SetCBufferBinding(IShaderResourceBinding? binding)
+		{
+			if (binding is null || pCBuffer is null)
+				return;
+
+			binding.Set(ShaderTypeFlags.Vertex, "Constants", pCBuffer);
 		}
 	}
 }

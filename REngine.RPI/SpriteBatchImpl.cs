@@ -23,8 +23,8 @@ namespace REngine.RPI
 			SpriteTextureManager texManager,
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
-			RenderSettings renderSettings,
-			EngineEvents engineEvents
+			EngineEvents engineEvents,
+			RendererEvents rendererEvents
 		)
 		{
 			pTextureManager = texManager;
@@ -34,9 +34,16 @@ namespace REngine.RPI
 				texManager,
 				settings
 			);
+
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnBeginUpdate += HandleBeginUpdate;
 			engineEvents.OnStop += HandleStop;
+			rendererEvents.OnUpdateSettings += HandleUpdateSettings;
+		}
+
+		private void HandleUpdateSettings(object? sender, RendererUpdateSettingsEventArgs e)
+		{
+			pFeature.CheckCBufferSizes(e.Settings.ObjectBufferSize);
 		}
 
 		private void HandleStart(object? sender, EventArgs e)
