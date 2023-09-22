@@ -29,12 +29,13 @@ namespace REngine.RPI.Features
 
 		struct BufferData
 		{
-			public Matrix4x4 WorldViewProj;
+			public Matrix4x4 Transform;
+			public Matrix4x4 Projection;
 			public Vector4 Color;
 
 			public BufferData()
 			{
-				WorldViewProj = Matrix4x4.Identity;
+				Transform = Projection = Matrix4x4.Identity;
 				Color = Vector4.One;
 			}
 		}
@@ -215,8 +216,7 @@ namespace REngine.RPI.Features
 
 			Matrix4x4 projection;
 			CalculateProjection(pRenderer.SwapChain.Size, out projection);
-
-			cbufferData.WorldViewProj = projection;
+			cbufferData.Projection = projection;
 
 			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
 			for(int i =0; i < pBatcher.BatchCount; ++i)
@@ -224,7 +224,7 @@ namespace REngine.RPI.Features
 				var item = items[i];
 				byte textureSlot = item.TextureSlot;
 				var pipeline = textureSlot == byte.MaxValue ? pDefaultPipeline : pTexturedPipeline;
-				FillBufferData(item, ref projection, ref cbufferData);
+				FillBufferData(item, ref cbufferData);
 
 				var mappedData = command.Map<BufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
 				mappedData[0] = cbufferData;
@@ -256,11 +256,11 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		private void FillBufferData(SpriteBatchInfo item, ref Matrix4x4 projection, ref BufferData data)
+		private void FillBufferData(SpriteBatchInfo item, ref BufferData data)
 		{
 			var model = Matrix4x4.CreateScale(new Vector3(item.Size, 1.0f)) * Matrix4x4.CreateTranslation(new Vector3((item.Size * item.Anchor) * new Vector2(-1), 0));
 			model = model * Matrix4x4.CreateRotationZ(item.Angle) * Matrix4x4.CreateTranslation(new Vector3(item.Position, 0.0f));
-			data.WorldViewProj = model * projection;
+			data.Transform = model;
 
 			data.Color = new Vector4(
 				item.Color.R / 255.0f,
@@ -275,6 +275,7 @@ namespace REngine.RPI.Features
 			matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
 			matrix.M33 = matrix.M43 = 0.5f;
 		}
+
 		private IPipelineState CreatePipeline(IDevice device, IRenderer renderer, IShader vshader, IShader pshader) 
 		{
 			GraphicsPipelineDesc desc = new GraphicsPipelineDesc();

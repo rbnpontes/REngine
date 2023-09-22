@@ -1,5 +1,6 @@
 ﻿cbuffer Constants {
-	float4x4 g_worldViewProj;
+	float4x4 g_transform;
+	float4x4 g_projection;
 	float4 g_color;
 };
 
@@ -14,7 +15,7 @@ struct PSOutput {
 };
 void main(in PSInput input, out PSOutput output) 
 {
-	output.pos = mul(g_worldViewProj, float4(input.pos, 0.0, 1.0));
+	output.pos = mul(mul(g_projection, g_transform), float4(input.pos, 0.0, 1.0));
 	output.uv = input.uv;
 	output.color = g_color;
 }
