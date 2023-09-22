@@ -46,7 +46,6 @@ namespace REngine.Sandbox
 			pBackend = provider.Get<IGraphicsDriver>().Backend;
 			pWindow = provider.Get<IWindow>();
 			pEngine = provider.Get<IEngine>();
-
 			ImageAsset textureAsset = new ImageAsset("doge.png");
 			using(FileStream stream = new FileStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open)){
 				textureAsset.Load(stream).Wait();

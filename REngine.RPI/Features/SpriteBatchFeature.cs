@@ -16,6 +16,16 @@ namespace REngine.RPI.Features
 {
 	internal class SpriteBatchFeature : IRenderFeature
 	{
+		[Flags]
+		public enum DirtyFlags
+		{
+			None =0,
+			Pipeline=1,
+			BindingInvalid = 2,
+			Bindings = 4,
+			All = Pipeline | BindingInvalid | Bindings
+		}
+
 		struct BufferData
 		{
 			public Matrix4x4 WorldViewProj;
@@ -57,7 +67,8 @@ namespace REngine.RPI.Features
 		};
 
 		private GraphicsSettings pSettings;
-		private RenderSettings pRenderSettings;
+
+		private IShaderResourceBinding?[] pBindings;
 
 		private IPipelineState? pDefaultPipeline;
 		private IPipelineState? pTexturedPipeline;
@@ -66,25 +77,36 @@ namespace REngine.RPI.Features
 		private IGraphicsDriver? pDriver;
 
 		private IBuffer? pVBuffer;
-
 		private SpriteBatcher pBatcher;
 		private SpriteTextureManager pTextureManager;
 
-		public bool IsDirty { get; private set; } = true;
+		private DirtyFlags pDirtyFlags = DirtyFlags.All;
+		public bool IsDirty { get => pDirtyFlags != DirtyFlags.None; }
 		public bool IsDisposed { get; private set; } = false;
 
 		public SpriteBatchFeature(
 			SpriteBatcher batcher, 
 			SpriteTextureManager texManager, 
-			GraphicsSettings settings, 
-			RenderSettings renderSettings,
-			RendererEvents renderEvents
+			GraphicsSettings settings
 		)
 		{
 			pBatcher = batcher;
 			pTextureManager = texManager;
 			pSettings = settings;
-			pRenderSettings = renderSettings;
+			texManager.OnUpdateTextures += HandleTextureUpdate;
+			pBindings = new IShaderResourceBinding[texManager.Textures.Length];
+		}
+
+		private void HandleTextureUpdate(object? sender, EventArgs e)
+		{
+			DirtyFlags dirtyFlags = DirtyFlags.Bindings;
+			if(pTextureManager.Textures.Length != pBindings.Length)
+			{
+				pBindings = new IShaderResourceBinding[pTextureManager.Textures.Length];
+				dirtyFlags |= DirtyFlags.BindingInvalid;
+			}
+
+			MarkAsDirty(dirtyFlags);
 		}
 
 		public void Dispose()
@@ -93,9 +115,15 @@ namespace REngine.RPI.Features
 				return;
 
 			IsDisposed = true;
+			for(int i = 0; i < pBindings.Length; ++i)
+			{
+				pBindings[i]?.Dispose();
+				pBindings[i] = null;
+			}
 			pDefaultPipeline?.Dispose();
 			pTexturedPipeline?.Dispose();
 			pVBuffer?.Dispose();
+
 
 			pDefaultPipeline = pTexturedPipeline = null;
 			pTexturedPipeline = null;
@@ -107,26 +135,52 @@ namespace REngine.RPI.Features
 			pDriver = driver;
 			pCBuffer = renderer.GetBuffer(BufferGroupType.Object);
 
-			pDefaultPipeline?.Dispose();
-			pTexturedPipeline?.Dispose();
-			pVBuffer?.Dispose();
+			if((pDirtyFlags & DirtyFlags.Pipeline) != 0)
+			{
+				pDefaultPipeline?.Dispose();
+				pTexturedPipeline?.Dispose();
+				pVBuffer?.Dispose();
 
-			IShader vertexShader = LoadShader(driver.Device, ShaderType.Vertex, false);
-			IShader pixelShader = LoadShader(driver.Device, ShaderType.Pixel, false);
-			IShader texturePixelShader = LoadShader(driver.Device, ShaderType.Pixel, true);
+				IShader vertexShader = LoadShader(driver.Device, ShaderType.Vertex, false);
+				IShader pixelShader = LoadShader(driver.Device, ShaderType.Pixel, false);
+				IShader texturePixelShader = LoadShader(driver.Device, ShaderType.Pixel, true);
 
-			IPipelineState defaultPipeline = CreatePipeline(driver.Device, renderer, vertexShader, pixelShader);
-			IPipelineState texturedPipeline = CreatePipeline(driver.Device, renderer, vertexShader, texturePixelShader);
+				IPipelineState defaultPipeline = CreatePipeline(driver.Device, renderer, vertexShader, pixelShader);
+				IPipelineState texturedPipeline = CreatePipeline(driver.Device, renderer, vertexShader, texturePixelShader);
 
-			pVBuffer = CreateVertexBuffer(driver.Device);
-			pDefaultPipeline = defaultPipeline;
-			pTexturedPipeline = texturedPipeline;
+				pVBuffer = CreateVertexBuffer(driver.Device);
+				pDefaultPipeline = defaultPipeline;
+				pTexturedPipeline = texturedPipeline;
 
-			vertexShader.Dispose();
-			pixelShader.Dispose();
-			texturePixelShader.Dispose();
+				vertexShader.Dispose();
+				pixelShader.Dispose();
+				texturePixelShader.Dispose();
+			}
 
-			IsDirty = false;
+			if((pDirtyFlags & DirtyFlags.BindingInvalid) != 0)
+			{
+				for(byte i =0; i < pBindings.Length; ++i)
+				{
+					var binding = pBindings[i];
+
+					binding?.Dispose();
+					binding = pTexturedPipeline?.CreateResourceBinding();
+					binding?.Set(ShaderTypeFlags.Vertex, "Constants", pCBuffer);
+					pBindings[i] = binding;
+
+					SetBinding(i);
+				}
+				// remove bindings flag because we already this step while is creating binding
+				pDirtyFlags ^= DirtyFlags.Bindings;
+			}
+
+			if((pDirtyFlags & DirtyFlags.Bindings) != 0)
+			{
+				for(byte i =0; i< pBindings.Length; ++i)
+					SetBinding(i);
+			}
+
+			pDirtyFlags = DirtyFlags.None;
 			return this;
 		}
 
@@ -163,19 +217,16 @@ namespace REngine.RPI.Features
 				mappedData[0] = cbufferData;
 				command.Unmap(pCBuffer, MapType.Write);
 
-				if (textureSlot != byte.MaxValue && pTextureManager.Textures[textureSlot] != null)
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-					pipeline.GetResourceBinding().Set(ShaderTypeFlags.Pixel, "g_texture", pTextureManager.Textures[textureSlot].GetDefaultView(TextureViewType.ShaderResource));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-
 				command
 					.SetVertexBuffer(pVBuffer)
-					.SetPipeline(pipeline)
-					.CommitBindings(pipeline.GetResourceBinding())
-					.Draw(new DrawArgs
-					{
-						NumVertices = 6
-					});
+					.SetPipeline(pipeline);
+
+				if (textureSlot != byte.MaxValue && pBindings[i] != null)
+					command.CommitBindings(pBindings[textureSlot]);
+				else
+					command.CommitBindings(pDefaultPipeline.GetResourceBinding());
+
+				command.Draw(new DrawArgs { NumVertices = 6 });
 			}
 				
 			return this;
@@ -183,7 +234,12 @@ namespace REngine.RPI.Features
 
 		public IRenderFeature MarkAsDirty()
 		{
-			IsDirty = true;
+			pDirtyFlags = DirtyFlags.All;
+			return this;
+		}
+		public IRenderFeature MarkAsDirty(DirtyFlags flags)
+		{
+			pDirtyFlags |= flags;
 			return this;
 		}
 
@@ -296,6 +352,13 @@ namespace REngine.RPI.Features
 				Usage = Usage.Immutable,
 				BindFlags = BindFlags.VertexBuffer,
 			}, sVertices);
+		}
+
+		private void SetBinding(byte slot)
+		{
+			ITextureView? tex = pTextureManager.Textures[slot]?.GetDefaultView(TextureViewType.ShaderResource);
+			if(tex != null)
+				pBindings[slot]?.Set(ShaderTypeFlags.Pixel, "g_texture", tex);
 		}
 	}
 }

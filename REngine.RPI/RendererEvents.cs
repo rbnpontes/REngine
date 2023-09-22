@@ -15,6 +15,14 @@ namespace REngine.RPI
 			Renderer = renderer;
 		}
 	}
+	public class RendererUpdateSettingsEventArgs : RendererEventArgs
+	{
+		public RenderSettings Settings { get; private set; }
+		public RendererUpdateSettingsEventArgs(IRenderer renderer, RenderSettings settings) : base(renderer)
+		{
+			Settings = settings;
+		}
+	}
 
 	public class RendererEvents
 	{
@@ -23,7 +31,7 @@ namespace REngine.RPI
 		public event EventHandler<RendererEventArgs>? OnEndRender;
 		public event EventHandler<RendererEventArgs>? OnChangeSwapChain;
 		public event EventHandler<RendererEventArgs>? OnChangeBuffers;
-		public event EventHandler<RendererEventArgs>? OnUpdateSettings;
+		public event EventHandler<RendererUpdateSettingsEventArgs>? OnUpdateSettings;
 
 		public event EventHandler<RendererEventArgs>? OnBeginDispose;
 		public event EventHandler<RendererEventArgs>? OnEndDispose;
@@ -40,32 +48,32 @@ namespace REngine.RPI
 		}
 		public RendererEvents ExecuteEndRender(IRenderer renderer)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnEndRender?.Invoke(this, new RendererEventArgs(renderer));
 			return this;
 		}
 		public RendererEvents ExecuteChangeSwapChain(IRenderer renderer)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnChangeSwapChain?.Invoke(this, new RendererEventArgs(renderer));
 			return this;
 		}
 		public RendererEvents ExecuteChangeBuffers(IRenderer renderer)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnChangeBuffers?.Invoke(this, new RendererEventArgs(renderer));
 			return this;
 		}
-		public RendererEvents ExecuteUpdateSettings(IRenderer renderer)
+		public RendererEvents ExecuteUpdateSettings(IRenderer renderer, RenderSettings settings)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnUpdateSettings?.Invoke(this, new RendererUpdateSettingsEventArgs(renderer, settings));
 			return this;
 		}
 		public RendererEvents ExecuteBeginDispose(IRenderer renderer)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnBeginDispose?.Invoke(this, new RendererEventArgs(renderer));
 			return this;
 		}
 		public RendererEvents ExecuteEndDispose(IRenderer renderer)
 		{
-			OnBeginRender?.Invoke(this, new RendererEventArgs(renderer));
+			OnEndDispose?.Invoke(this, new RendererEventArgs(renderer));
 			return this;
 		}
 	}

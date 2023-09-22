@@ -33,23 +33,48 @@ namespace REngine.RPI
 		private LinkedList<Task<BuildResult>> pBuildTasks = new LinkedList<Task<BuildResult>>();
 
 		private CancellationTokenSource pDisposeToken = new CancellationTokenSource();
-		private bool pDirty = false;
 		private bool pDisposed = false;
 
+		private Queue<(byte, ITexture)> pTextures2Insert = new Queue<(byte, ITexture)>();
 		private Stopwatch pStopwatch = Stopwatch.StartNew();
 
 		public ITexture?[] Textures { get => pTextures; }
+
 		public event EventHandler? OnUpdateTextures;
 		
 		public SpriteTextureManager(
 			IServiceProvider serviceProvider,
 			RenderSettings renderSettings,
-			IEngine engine)
+			IEngine engine,
+			RendererEvents renderEvents)
 		{
 			pProvider = serviceProvider;
 			pRenderSettings = renderSettings;
 			pTextures = new ITexture?[renderSettings.SpriteBatchMaxTextures];
 			pEngine = engine;
+
+			renderEvents.OnUpdateSettings += HandleUpdateSettings;
+		}
+
+		private void HandleUpdateSettings(object? sender, RendererUpdateSettingsEventArgs e)
+		{
+			if (e.Settings.SpriteBatchMaxTextures == pTextures.Length)
+				return;
+
+			// Resize textures and move current
+			var currTextures = pTextures;
+			pTextures = new ITexture[e.Settings.SpriteBatchMaxTextures];
+			Array.Copy(currTextures, pTextures, Math.Min(pTextures.Length, currTextures.Length));
+
+			if(currTextures.Length > 0)
+			{
+				// Dispose textures that has not being added to the new array
+				var diff = currTextures.Length - pTextures.Length;
+				for(int i =0; i < diff; ++i)
+					currTextures[diff + i]?.Dispose();
+			}
+
+			OnUpdateTextures?.Invoke(this, EventArgs.Empty);
 		}
 
 		public void Start()
@@ -59,28 +84,39 @@ namespace REngine.RPI
 
 		public void Update()
 		{
-			ProcessTasks();
+			bool changed = false;
 
-			if (pDirty)
-			{
+			ProcessTasks(ref changed);
+			ProcessTextures2Insert(ref changed);
+
+			if (changed)
 				OnUpdateTextures?.Invoke(this, EventArgs.Empty);
-				pDirty = false;
-			}
 		}
 
-		private void ProcessTasks()
+		private void ProcessTasks(ref bool changed)
 		{
 			pStopwatch.Restart();
-
 			var nextTask = pBuildTasks.First;
+
 			while(nextTask != null && pStopwatch.ElapsedMilliseconds < pRenderSettings.SpriteBatchTexturesBuildTimeMs)
 			{
 				nextTask.Value.Wait();
 				BuildResult result = nextTask.Value.Result;
-				SetTexture(result.Slot, result.Texture);
+				CheckAndSetTexture(result.Slot, result.Texture);
 
 				pBuildTasks.RemoveFirst();
 				nextTask = pBuildTasks.First;
+				changed = true;
+			}
+		}
+		private void ProcessTextures2Insert(ref bool changed)
+		{
+			(byte, ITexture) item;
+			while(pTextures2Insert.TryDequeue(out item))
+			{
+				(byte slot, ITexture texture) = item;
+				CheckAndSetTexture(slot, texture);
+				changed = true;
 			}
 		}
 
@@ -116,12 +152,7 @@ namespace REngine.RPI
 		
 		public void SetTexture(byte slot, ITexture texture)
 		{
-			if (pTextures[slot] == texture || slot == byte.MaxValue || pDisposed)
-				return;
-
-			pTextures[slot]?.Dispose();
-			pTextures[slot] = texture;
-			pDirty = true;
+			pTextures2Insert.Enqueue((slot, texture));
 		}
 
 		public void SetTexture(byte slot, Image image)
@@ -139,8 +170,19 @@ namespace REngine.RPI
 			pBuildTasks.AddLast(task);
 		}
 
+		private void CheckAndSetTexture(byte slot, ITexture texture)
+		{
+			if (pTextures[slot] == texture || slot == byte.MaxValue || pDisposed)
+				return;
+
+			pTextures[slot]?.Dispose();
+			pTextures[slot] = texture;
+		}
+
 		private async Task<ITexture> BuildTexture(Image image)
 		{
+			if (pDriver is null)
+				throw new NullReferenceException("Can´t build texture. Driver is required!");
 			pDisposeToken.Token.ThrowIfCancellationRequested();
 			// Wait render finish before continue
 			if (pEngine.Step == EngineExecutionStep.Render)

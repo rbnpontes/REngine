@@ -24,8 +24,7 @@ namespace REngine.RPI
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
 			RenderSettings renderSettings,
-			EngineEvents engineEvents,
-			RendererEvents renderEvents
+			EngineEvents engineEvents
 		)
 		{
 			pTextureManager = texManager;
@@ -33,9 +32,7 @@ namespace REngine.RPI
 			pFeature = new SpriteBatchFeature(
 				batcher, 
 				texManager,
-				settings, 
-				renderSettings,
-				renderEvents
+				settings
 			);
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnBeginUpdate += HandleBeginUpdate;
