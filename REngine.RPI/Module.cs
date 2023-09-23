@@ -15,7 +15,7 @@ namespace REngine.RPI
 		{
 			registry
 				.Add<RenderSettings>()
-				.Add<RendererEvents>()
+				.Add<RenderEvents>()
 				.Add<RenderState>()
 				.Add(
 					(deps) => ((ILoggerFactory)deps[0]).Build<IRenderer>(),

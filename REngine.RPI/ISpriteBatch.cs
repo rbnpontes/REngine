@@ -31,6 +31,21 @@ namespace REngine.RPI
 			Color = Color.White;
 		}
 	}
+	public struct SpriteInstancedBatchInfo
+	{
+		public Vector2 Position;
+		public Vector2 Size;
+		public Color Color;
+		public float Angle;
+
+		public SpriteInstancedBatchInfo()
+		{
+			Position = new Vector2();
+			Size = new Vector2();
+			Color = new Color();
+			Angle = byte.MaxValue;
+		}
+	}
 
 	public interface ISpriteBatch
 	{
@@ -38,5 +53,6 @@ namespace REngine.RPI
 		public ISpriteBatch SetTexture(byte slot, ITexture texture);
 		public ISpriteBatch SetTexture(byte slot, Image image);
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
+		public ISpriteBatch Draw(byte textureSlot, SpriteInstancedBatchInfo spriteInstancedInfo);
 	}
 }

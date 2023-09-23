@@ -46,7 +46,7 @@ namespace REngine.RPI
 			IServiceProvider serviceProvider,
 			RenderSettings renderSettings,
 			IEngine engine,
-			RendererEvents renderEvents)
+			RenderEvents renderEvents)
 		{
 			pProvider = serviceProvider;
 			pRenderSettings = renderSettings;
@@ -56,7 +56,7 @@ namespace REngine.RPI
 			renderEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		private void HandleUpdateSettings(object? sender, RendererUpdateSettingsEventArgs e)
+		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
 			if (e.Settings.SpriteBatchMaxTextures == pTextures.Length)
 				return;

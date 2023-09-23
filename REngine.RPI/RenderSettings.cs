@@ -23,6 +23,7 @@ namespace REngine.RPI
 
 #if RENGINE_SPRITEBATCH
 		public uint SpriteBatchInitialSize { get; set; } = 8;
+		public uint SpriteBatchGrowth { get; set; } = 8;
 		/// <summary>
 		/// Max used textures on SpriteBatch. SpriteBatch uses a TextureArray while is rendering
 		/// </summary>
@@ -43,6 +44,7 @@ namespace REngine.RPI
 			ObjectBufferSize = settings.ObjectBufferSize;
 #if RENGINE_SPRITEBATCH
 			SpriteBatchInitialSize = settings.SpriteBatchInitialSize;
+			SpriteBatchGrowth = settings.SpriteBatchGrowth;
 			SpriteBatchMaxTextures = settings.SpriteBatchMaxTextures;
 			SpriteBatchTexturesBuildTimeMs = settings.SpriteBatchTexturesBuildTimeMs;
 #endif

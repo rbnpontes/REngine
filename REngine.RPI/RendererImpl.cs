@@ -29,7 +29,7 @@ namespace REngine.RPI
 		private IGraphicsDriver? pDriver;
 		private ILogger<IRenderer> pLogger;
 		private RenderSettings pSetttings;
-		private RendererEvents pRendererEvents;
+		private RenderEvents pRendererEvents;
 		private RenderState pRenderState;
 
 		private ISwapChain? pSwapChain;
@@ -59,7 +59,7 @@ namespace REngine.RPI
 			IServiceProvider provider, 
 			ILogger<IRenderer> logger,
 			EngineEvents events,
-			RendererEvents rendererEvts,
+			RenderEvents rendererEvts,
 			RenderSettings settings,
 			RenderState renderState)
 		{

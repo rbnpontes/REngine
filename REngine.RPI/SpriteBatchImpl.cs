@@ -24,7 +24,7 @@ namespace REngine.RPI
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
 			EngineEvents engineEvents,
-			RendererEvents rendererEvents
+			RenderEvents rendererEvents
 		)
 		{
 			pTextureManager = texManager;
@@ -41,7 +41,7 @@ namespace REngine.RPI
 			rendererEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		private void HandleUpdateSettings(object? sender, RendererUpdateSettingsEventArgs e)
+		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
 			pFeature.CheckCBufferSizes(e.Settings.ObjectBufferSize);
 		}
@@ -65,7 +65,13 @@ namespace REngine.RPI
 
 		public ISpriteBatch Draw(SpriteBatchInfo batchInfo)
 		{
-			pBatcher.Next(ref batchInfo);
+			pBatcher.Add(batchInfo);
+			return this;
+		}
+
+		public ISpriteBatch Draw(byte textureSlot, SpriteInstancedBatchInfo bachInfo)
+		{
+			
 			return this;
 		}
 

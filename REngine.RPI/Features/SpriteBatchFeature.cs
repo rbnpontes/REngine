@@ -206,6 +206,7 @@ namespace REngine.RPI.Features
 		public IRenderFeature Execute(ICommandBuffer command)
 		{
 			var items = pBatcher.Items;
+			var instancedItems = pBatcher.InstancedItems;
 			BufferData cbufferData = new BufferData();
 
 			if (pRenderer?.SwapChain is null || pDriver is null)
@@ -219,7 +220,8 @@ namespace REngine.RPI.Features
 			cbufferData.Projection = projection;
 
 			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
-			for(int i =0; i < pBatcher.BatchCount; ++i)
+
+			for(int i =0; i < items.Count; ++i)
 			{
 				var item = items[i];
 				byte textureSlot = item.TextureSlot;
@@ -286,7 +288,7 @@ namespace REngine.RPI.Features
 			desc.BlendState.BlendMode = BlendMode.Replace;
 			desc.PrimitiveType = PrimitiveType.TriangleList;
 			desc.RasterizerState.CullMode = CullMode.Both;
-			desc.DepthStencilState.EnableDepth = false;
+			desc.DepthStencilState.EnableDepth = true;
 
 			desc.Shaders.VertexShader = vshader;
 			desc.Shaders.PixelShader = pshader;
