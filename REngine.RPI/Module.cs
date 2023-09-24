@@ -15,12 +15,17 @@ namespace REngine.RPI
 		{
 			registry
 				.Add<RenderSettings>()
-				.Add<RendererEvents>()
+				.Add<RPIEvents>()
 				.Add<RenderState>()
 				.Add(
 					(deps) => ((ILoggerFactory)deps[0]).Build<IRenderer>(),
 					new Type[] { typeof(ILoggerFactory) }
 				)
+				.Add(
+					(deps) => ((ILoggerFactory)deps[0]).Build<IBufferProvider>(),
+					new Type[] { typeof(ILoggerFactory) }
+				)
+				.Add<IBufferProvider, BufferProvider>()
 				.Add<IRenderer, RendererImpl>()
 #if RENGINE_SPRITEBATCH
 				.Add<SpriteBatcher>()

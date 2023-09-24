@@ -1,4 +1,5 @@
-﻿using REngine.Core.Resources;
+﻿using REngine.Core.Collections;
+using REngine.Core.Resources;
 using REngine.RHI;
 using System;
 using System.Collections.Generic;
@@ -11,42 +12,35 @@ namespace REngine.RPI
 {
 	internal class SpriteBatcher
 	{
-		private uint NextItemIdx = 0;
-		private object pSync = new object();
+		public BatchList<SpriteBatchInfo> Items { get; private set; }
+		public BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)> InstancedItems { get; set; }
 
-		public SpriteBatchInfo[] Items { get; set; }
-		public uint BatchCount { get => NextItemIdx; }
-
-		public SpriteBatcher(RenderSettings settings)
+		public SpriteBatcher(RenderSettings settings, RPIEvents renderEvents)
 		{
-			Items = new SpriteBatchInfo[settings.SpriteBatchInitialSize];
+			Items = new BatchList<SpriteBatchInfo>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);
+			InstancedItems = new BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);
+			renderEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		public void Next(ref SpriteBatchInfo next)
+		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
-			uint nextItemIdx = 0;
-			
-			lock (pSync)
-			{
-				if (NextItemIdx >= Items.Length)
-					RefitBatches();
-				nextItemIdx = NextItemIdx;
-				++NextItemIdx;	
-			}
+			Items.GrowthSize = e.Settings.SpriteBatchGrowth;
+			InstancedItems.GrowthSize = e.Settings.SpriteBatchGrowth;
+		}
 
-			Items[nextItemIdx] = next;
+		public void Add(in SpriteBatchInfo next)
+		{
+			Items.Add(next);
+		}
+		public void Add(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
+		{
+			InstancedItems.Add((textureSlot, instances));
 		}
 
 		public void Reset()
 		{
-			NextItemIdx = 0;
-		}
-
-		private void RefitBatches()
-		{
-			var oldItems = Items;
-			Items = new SpriteBatchInfo[Items.Length * 2];
-			Array.Copy(Items, 0, oldItems, 0, oldItems.Length);
+			Items.Clear();
+			InstancedItems.Clear();
 		}
 	}
 }

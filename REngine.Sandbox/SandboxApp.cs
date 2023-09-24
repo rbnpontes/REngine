@@ -25,6 +25,7 @@ namespace REngine.Sandbox
 #if RENGINE_SPRITEBATCH
 		private ISpriteBatch? pSpriteBatch;
 #endif
+		private SpriteInstancedBatchInfo[] pSpriteInstances = new SpriteInstancedBatchInfo[20 * 20];
 		public SandboxApp() : base(typeof(SandboxApp))
 		{
 		}
@@ -46,17 +47,18 @@ namespace REngine.Sandbox
 			pBackend = provider.Get<IGraphicsDriver>().Backend;
 			pWindow = provider.Get<IWindow>();
 			pEngine = provider.Get<IEngine>();
-
 			ImageAsset textureAsset = new ImageAsset("doge.png");
 			using(FileStream stream = new FileStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open)){
 				textureAsset.Load(stream).Wait();
 			}
 
+			// Setup Texture on Spritebatch
 			pSpriteBatch.SetTexture(0, textureAsset.Image);
 		}
 
 		public override void OnUpdate(IServiceProvider provider)
 		{
+			// Lets draw Doge Kaleidoscope 
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			var wndSize = pWindow?.Size ?? new Size();
 			Vector2 halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);
@@ -73,14 +75,18 @@ namespace REngine.Sandbox
 			float stagger = AnalogicTime(elapsedTime + 0.5f, 2.5f, 3);
 			float sineT = stagger * (float)Math.Sin(elapsedTime);
 			float cosT = stagger * (float)Math.Cos(elapsedTime);
+
+			// Draw Flickering Doge
 			pSpriteBatch?.Draw(new SpriteBatchInfo
 			{
+				/*Batch texture slot*/
 				TextureSlot = 0,
 				Size = new Vector2(300) * AnalogicTime(elapsedTime, 1f, 2),
 				Angle = elapsedTime,
 				Anchor = new Vector2(0.5f, 0.5f),
 				Position = halfSize + (new Vector2(cosT, sineT) * 150)
 			});
+			// Draw Colored Doge
 			pSpriteBatch?.Draw(new SpriteBatchInfo
 			{
 				TextureSlot = 0,
@@ -90,6 +96,8 @@ namespace REngine.Sandbox
 				Size = new Vector2(150),
 				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
 			});
+			// Draw Instanced Doges
+			pSpriteBatch?.Draw(0, UpdateSpriteInstances(elapsedTime, wndSize));
 		}
 		
 		private float AnalogicTime(float t, float freq, float amplitude)
@@ -136,6 +144,30 @@ namespace REngine.Sandbox
 			}
 
 			return result;
+		}
+		
+
+		private IEnumerable<SpriteInstancedBatchInfo> UpdateSpriteInstances(float elapsed, Size wndSize)
+		{
+			Vector2 size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
+			Vector2 anchor = new Vector2(0.5f, 0.5f);
+			return pSpriteInstances
+					.AsParallel()
+					.Select((sprite, i) =>
+					{
+						int x = i % 20;
+						int y = i / 20;
+						return new SpriteInstancedBatchInfo
+						{
+							Size = size,
+							Angle = (x - y) + elapsed,
+							Anchor = anchor,
+							Position = new Vector2(
+								(x / 20.0f) * wndSize.Width,
+								(y / 20.0f) * wndSize.Height
+							)
+						};
+					});
 		}
 	}
 }

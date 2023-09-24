@@ -104,7 +104,7 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		public IRenderFeature Setup(IGraphicsDriver driver, IRenderer renderer)
+		public IRenderFeature Setup(RenderFeatureSetupInfo setupInfo)
 		{
 			if (IsDisposed)
 				return this;
@@ -112,11 +112,11 @@ namespace REngine.RPI.Features
 			Dispose();
 			IsDisposed = false;
 
-			pVertexBuffer = CreateVertexBuffer(driver.Device);
-			pIndexBuffer = CreateIndexBuffer(driver.Device);
-			pPipeline = CreatePipeline(driver.Device, renderer);
-			pSwapChain = renderer.SwapChain;
-			pCBuffer = renderer.GetBuffer(BufferGroupType.Object);
+			pVertexBuffer = CreateVertexBuffer(setupInfo.Driver.Device);
+			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
+			pPipeline = CreatePipeline(setupInfo.Driver.Device, setupInfo.BufferProvider);
+			pSwapChain = setupInfo.Renderer.SwapChain;
+			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
 
 			IsDirty = false;
 			return this;
@@ -180,7 +180,7 @@ namespace REngine.RPI.Features
 			return device.CreateShader(shaderCI);
 		}
 
-		protected virtual IPipelineState CreatePipeline(IDevice device, IRenderer renderer)
+		protected virtual IPipelineState CreatePipeline(IDevice device, IBufferProvider bufferProvider)
 		{
 			IShader vsShader = LoadShader(device, ShaderType.Vertex);
 			IShader psShader = LoadShader(device, ShaderType.Pixel);
@@ -199,7 +199,7 @@ namespace REngine.RPI.Features
 
 			var pipeline = device.CreateGraphicsPipeline(pPipelineDesc);
 
-			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, "Constants", renderer.GetBuffer(BufferGroupType.Object));
+			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, "Constants", bufferProvider.GetBuffer(BufferGroupType.Object));
 
 			vsShader.Dispose();
 			psShader.Dispose();
