@@ -43,12 +43,16 @@ namespace REngine.RPI.Features
 		{
 			public Matrix4x4 Projection;
 			public Vector4 Color;
-
 			public InstancedBufferData()
 			{
 				Projection = Matrix4x4.Identity;
 				Color = Vector4.One;
 			}
+		}
+		struct InstancedVertexData
+		{
+			public Vector4 PositionAndScale;
+			public Vector4 RotationAndAnchor;
 		}
 
 		class TextureCache : IDisposable
@@ -96,6 +100,7 @@ namespace REngine.RPI.Features
 
 		private IBuffer? pVBuffer;
 		private IBuffer? pInstanceBuffer;
+		private InstancedVertexData[] pCachedInstancedVertexData = new InstancedVertexData[0];
 		private SpriteBatcher pBatcher;
 		private SpriteTextureManager pTextureManager;
 		private IBufferProvider? pBufferProvider;
@@ -141,10 +146,15 @@ namespace REngine.RPI.Features
 				pBindings[i]?.Dispose();
 				pBindings[i] = null;
 			}
+
 			pDefaultPipeline?.Dispose();
 			pTexturedPipeline?.Dispose();
+			pInstancedPipeline?.Dispose();
+			pTexturedInstancedPipeline?.Dispose();
 			pVBuffer?.Dispose();
+			pInstanceBuffer?.Dispose();
 
+			pCachedInstancedVertexData = new InstancedVertexData[0];
 
 			pDefaultPipeline = pTexturedPipeline = null;
 			pTexturedPipeline = null;
@@ -324,9 +334,11 @@ namespace REngine.RPI.Features
 			if (batches.Count == 0)
 				return;
 
-			var mappedData = cmd.Map<InstancedBufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = bufferData;
-			cmd.Unmap(pCBuffer, MapType.Write);
+			{
+				var mappedData = cmd.Map<InstancedBufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
+				mappedData[0] = bufferData;
+				cmd.Unmap(pCBuffer, MapType.Write);
+			}
 
 			ulong requiredInstanceBufferSize = 0;
 			int transformSize = Marshal.SizeOf<Matrix4x4>();
@@ -339,7 +351,11 @@ namespace REngine.RPI.Features
 			// this prevents to reexecute buffer provider to get a new one at every frame
 			// So we only change get new instance buffer if required data is greater than buffer.
 			if(pInstanceBuffer?.Size < requiredInstanceBufferSize || pInstanceBuffer is null)
-				pInstanceBuffer = pBufferProvider.GetInstancingBuffer(requiredInstanceBufferSize);
+			{
+				pInstanceBuffer?.Dispose();
+				pInstanceBuffer = pBufferProvider.GetInstancingBuffer(requiredInstanceBufferSize, true);
+				pCachedInstancedVertexData = new InstancedVertexData[requiredInstanceBufferSize]; // resize cache array
+			}
 
 
 			IBuffer[] vbuffers = new IBuffer[] { vertexBuffer, pInstanceBuffer };
@@ -348,25 +364,36 @@ namespace REngine.RPI.Features
 			{
 				(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> items) = batches[i];
 
-				ReadOnlySpan<Matrix4x4> transforms = new ReadOnlySpan<Matrix4x4>(items.Select(x =>
+				var count = items.Count();
+				items.AsParallel().Select((x, idx) =>
 				{
-					// apply transform
-					return Matrix4x4.Transpose(GetTransform(x.Position, x.Anchor, x.Angle, x.Size));
-				}).ToArray());
+					return (GetInstancedVertexData(x), idx);
+				})
+				.ForAll(parallelItem =>
+				{
+					var (data, idx) = parallelItem;
+					pCachedInstancedVertexData[idx] = data;
+				});
+
+				{
+					Span<InstancedVertexData> vertexData = new Span<InstancedVertexData>(pCachedInstancedVertexData, 0, count);
+					Span<InstancedVertexData> mappedData = cmd.Map<InstancedVertexData>(pInstanceBuffer, MapType.Write, MapFlags.Discard);
+					vertexData.CopyTo(mappedData);
+					cmd.Unmap(pInstanceBuffer, MapType.Write);
+				}
 
 				IShaderResourceBinding? binding = textureSlot != byte.MaxValue ? pInstancedBindings[textureSlot] : defaultPipeline.GetResourceBinding();
 				if (binding is null)
 					binding = defaultPipeline.GetResourceBinding();
 
 				cmd
-					.UpdateBuffer(pInstanceBuffer, 0, transforms)
 					.SetVertexBuffers(0, vbuffers)
 					.SetPipeline(textureSlot != byte.MaxValue ? texturePipeline : defaultPipeline)
 					.CommitBindings(binding)
 					.Draw(new DrawArgs
 					{
 						NumVertices = 6,
-						NumInstances = (uint)transforms.Length
+						NumInstances = (uint)count
 					});
 			}
 		}
@@ -382,7 +409,7 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		private void FillBufferData(SpriteBatchInfo item, ref BufferData data)
+		private void FillBufferData(in SpriteBatchInfo item, ref BufferData data)
 		{	
 			data.Transform = GetTransform(item.Position, item.Anchor, item.Angle, item.Size);
 			data.Color = new Vector4(
@@ -392,6 +419,15 @@ namespace REngine.RPI.Features
 				item.Color.A / 255.0f
 			);
 		}
+		private InstancedVertexData GetInstancedVertexData(in SpriteInstancedBatchInfo item)
+		{
+			return new InstancedVertexData
+			{
+				PositionAndScale = new Vector4(item.Position.X, item.Position.Y, item.Size.X, item.Size.Y),
+				RotationAndAnchor = new Vector4(item.Anchor.X, item.Anchor.Y, item.Angle, 0)
+			};
+		}
+
 		private Matrix4x4 GetTransform(in Vector2 position, in Vector2 anchor, float rotation, in Vector2 scale)
 		{
 			Matrix4x4 transform = Matrix4x4.CreateScale(new Vector3(scale, 1.0f)) * Matrix4x4.CreateTranslation(new Vector3((scale * anchor) * new Vector2(-1), 0));
@@ -440,6 +476,7 @@ namespace REngine.RPI.Features
 					}
 				}
 			);
+
 			if(instanced)
 			{
 				desc.InputLayouts.Add(
@@ -456,30 +493,6 @@ namespace REngine.RPI.Features
 					new PipelineInputLayoutElementDesc
 					{
 						InputIndex = 3,
-						Input = new InputLayoutElementDesc
-						{
-							BufferIndex = 1,
-							ElementType = ElementType.Vector4,
-							InstanceStepRate = 1
-						}
-					}
-				);
-				desc.InputLayouts.Add(
-					new PipelineInputLayoutElementDesc
-					{
-						InputIndex = 4,
-						Input = new InputLayoutElementDesc
-						{
-							BufferIndex = 1,
-							ElementType = ElementType.Vector4,
-							InstanceStepRate = 1
-						}
-					}
-				);
-				desc.InputLayouts.Add(
-					new PipelineInputLayoutElementDesc
-					{
-						InputIndex = 5,
 						Input = new InputLayoutElementDesc
 						{
 							BufferIndex = 1,

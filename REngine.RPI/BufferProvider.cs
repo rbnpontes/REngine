@@ -4,6 +4,7 @@ using REngine.RHI;
 using REngine.RPI.Structs;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,7 +22,6 @@ namespace REngine.RPI
 		private RPIEvents pRPIEvents;
 
 		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object + 1];
-		private List<IBuffer> pInstancingBuffers = new List<IBuffer>();
 
 		public BufferProvider(
 			EngineEvents engineEvents, 
@@ -67,8 +67,6 @@ namespace REngine.RPI
 				cbuffer?.Dispose();
 			}
 
-			DisposeInstancingBuffers();
-
 			pDisposed = true;
 		}
 
@@ -83,39 +81,21 @@ namespace REngine.RPI
 			return buffer;
 		}
 
-		public IBuffer GetInstancingBuffer(ulong bufferSize)
+		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic)
 		{
 			if (pDisposed)
 				throw new ObjectDisposedException(nameof(IBufferProvider));
-
-			IBuffer? result = null;
-			foreach(var buffer in pInstancingBuffers)
+			if (pDriver is null)
+				throw new NullReferenceException("Driver is required.");
+			
+			return pDriver.Device.CreateBuffer(new BufferDesc
 			{
-				if(buffer.Size >= bufferSize)
-				{
-					result = buffer;
-					break;
-				}
-			}
-
-			if (result is null)
-			{
-				result = CreateInstancingBuffer(bufferSize);
-				pInstancingBuffers.Add(result);
-				pInstancingBuffers = pInstancingBuffers.OrderBy(x => x.Size).ToList();
-			}
-
-			return result;
-		}
-
-		public IBufferProvider DisposeInstancingBuffers()
-		{
-			pLogger.Info("Disposing Instancing Buffers");
-			foreach (var buffer in pInstancingBuffers)
-				buffer.Dispose();
-
-			pInstancingBuffers.Clear();
-			return this;
+				Name = "Instancing Buffer",
+				Size = bufferSize,
+				BindFlags = BindFlags.VertexBuffer,
+				Usage = dynamic ? Usage.Dynamic : Usage.Default,
+				AccessFlags = CpuAccessFlags.Write
+			});
 		}
 
 		private int GetBufferGroupIndex(BufferGroupType grpType)
@@ -201,19 +181,6 @@ namespace REngine.RPI
 
 			if (changed)
 				pRPIEvents.ExecuteChangeBuffers(this);
-		}
-	
-		private IBuffer CreateInstancingBuffer(ulong size)
-		{
-			if (pDriver is null)
-				throw new NullReferenceException("Driver is required.");
-			return pDriver.Device.CreateBuffer(new BufferDesc
-			{
-				Name = "Instancing Buffer",
-				Size = size,
-				BindFlags = BindFlags.VertexBuffer,
-				Usage = Usage.Default
-			});
 		}
 	}
 }
