@@ -46,7 +46,7 @@ namespace REngine.RPI
 			IServiceProvider serviceProvider,
 			RenderSettings renderSettings,
 			IEngine engine,
-			RenderEvents renderEvents)
+			RPIEvents renderEvents)
 		{
 			pProvider = serviceProvider;
 			pRenderSettings = renderSettings;

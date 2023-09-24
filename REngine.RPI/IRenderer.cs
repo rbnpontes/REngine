@@ -42,11 +42,5 @@ namespace REngine.RPI
 		/// </summary>
 		/// <returns></returns>
 		public IRenderer Render();
-		/// <summary>
-		/// Get Uniform Buffer from Group Type
-		/// </summary>
-		/// <param name="bufferType">Uniform Buffer Group Type</param>
-		/// <returns></returns>
-		public IBuffer GetBuffer(BufferGroupType bufferType);
 	}
 }

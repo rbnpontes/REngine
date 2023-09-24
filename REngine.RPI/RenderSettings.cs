@@ -9,6 +9,7 @@ namespace REngine.RPI
 {
 	public class RenderSettings : IMergeable<RenderSettings>
 	{
+		public string PipelineCacheFilename { get; set; } = "psocache.bin";
 		/// <summary>
 		/// Size of Frame Uniform Buffer
 		/// The buffer will be used to transfer mutable values like time, delta time and
@@ -20,7 +21,6 @@ namespace REngine.RPI
 		/// The buffer will be used to transfer transforms, lights or any other mutable values
 		/// </summary>
 		public uint ObjectBufferSize { get; set; } = 1024 * 2;
-
 #if RENGINE_SPRITEBATCH
 		public uint SpriteBatchInitialSize { get; set; } = 8;
 		public uint SpriteBatchGrowth { get; set; } = 8;
@@ -40,6 +40,7 @@ namespace REngine.RPI
 #endif
 		public void Merge(RenderSettings settings)
 		{
+			PipelineCacheFilename = settings.PipelineCacheFilename;
 			FrameBufferSize = settings.FrameBufferSize;
 			ObjectBufferSize = settings.ObjectBufferSize;
 #if RENGINE_SPRITEBATCH

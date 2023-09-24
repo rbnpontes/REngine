@@ -15,7 +15,7 @@ namespace REngine.RPI
 		public BatchList<SpriteBatchInfo> Items { get; private set; }
 		public BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)> InstancedItems { get; set; }
 
-		public SpriteBatcher(RenderSettings settings, RenderEvents renderEvents)
+		public SpriteBatcher(RenderSettings settings, RPIEvents renderEvents)
 		{
 			Items = new BatchList<SpriteBatchInfo>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);
 			InstancedItems = new BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);

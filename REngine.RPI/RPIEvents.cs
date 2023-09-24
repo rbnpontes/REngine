@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.RHI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,14 @@ namespace REngine.RPI
 			Renderer = renderer;
 		}
 	}
+	public class RenderReadyEventArgs : RenderEventArgs 
+	{
+		public IGraphicsDriver Driver { get; private set; }
+		public RenderReadyEventArgs(IRenderer renderer, IGraphicsDriver driver) : base(renderer)
+		{
+			Driver = driver;
+		}
+	}
 	public class RenderUpdateSettingsEventArgs : RenderEventArgs
 	{
 		public RenderSettings Settings { get; private set; }
@@ -24,54 +33,54 @@ namespace REngine.RPI
 		}
 	}
 
-	public class RenderEvents
+	public class RPIEvents
 	{
-		public event EventHandler<RenderEventArgs>? OnStart;
+		public event EventHandler<RenderReadyEventArgs>? OnReady;
 		public event EventHandler<RenderEventArgs>? OnBeginRender;
 		public event EventHandler<RenderEventArgs>? OnEndRender;
 		public event EventHandler<RenderEventArgs>? OnChangeSwapChain;
-		public event EventHandler<RenderEventArgs>? OnChangeBuffers;
+		public event EventHandler<EventArgs>? OnChangeBuffers;
 		public event EventHandler<RenderUpdateSettingsEventArgs>? OnUpdateSettings;
 
 		public event EventHandler<RenderEventArgs>? OnBeginDispose;
 		public event EventHandler<RenderEventArgs>? OnEndDispose;
 
-		public RenderEvents ExecuteStart(IRenderer renderer)
+		public RPIEvents ExecuteReady(IRenderer renderer, IGraphicsDriver driver)
 		{
-			OnStart?.Invoke(this, new RenderEventArgs(renderer));
+			OnReady?.Invoke(this, new RenderReadyEventArgs(renderer, driver));
 			return this;
 		}
-		public RenderEvents ExecuteBeginRender(IRenderer renderer)
+		public RPIEvents ExecuteBeginRender(IRenderer renderer)
 		{
 			OnBeginRender?.Invoke(this, new RenderEventArgs(renderer));
 			return this;
 		}
-		public RenderEvents ExecuteEndRender(IRenderer renderer)
+		public RPIEvents ExecuteEndRender(IRenderer renderer)
 		{
 			OnEndRender?.Invoke(this, new RenderEventArgs(renderer));
 			return this;
 		}
-		public RenderEvents ExecuteChangeSwapChain(IRenderer renderer)
+		public RPIEvents ExecuteChangeSwapChain(IRenderer renderer)
 		{
 			OnChangeSwapChain?.Invoke(this, new RenderEventArgs(renderer));
 			return this;
 		}
-		public RenderEvents ExecuteChangeBuffers(IRenderer renderer)
+		public RPIEvents ExecuteChangeBuffers(IBufferProvider provider)
 		{
-			OnChangeBuffers?.Invoke(this, new RenderEventArgs(renderer));
+			OnChangeBuffers?.Invoke(provider, EventArgs.Empty);
 			return this;
 		}
-		public RenderEvents ExecuteUpdateSettings(IRenderer renderer, RenderSettings settings)
+		public RPIEvents ExecuteUpdateSettings(IRenderer renderer, RenderSettings settings)
 		{
 			OnUpdateSettings?.Invoke(this, new RenderUpdateSettingsEventArgs(renderer, settings));
 			return this;
 		}
-		public RenderEvents ExecuteBeginDispose(IRenderer renderer)
+		public RPIEvents ExecuteBeginDispose(IRenderer renderer)
 		{
 			OnBeginDispose?.Invoke(this, new RenderEventArgs(renderer));
 			return this;
 		}
-		public RenderEvents ExecuteEndDispose(IRenderer renderer)
+		public RPIEvents ExecuteEndDispose(IRenderer renderer)
 		{
 			OnEndDispose?.Invoke(this, new RenderEventArgs(renderer));
 			return this;

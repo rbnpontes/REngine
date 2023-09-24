@@ -31,5 +31,6 @@ namespace REngine.RHI
 	public interface IBuffer : IGPUObject
 	{
 		public BufferDesc Desc { get; }
+		public ulong Size { get; }
 	}
 }

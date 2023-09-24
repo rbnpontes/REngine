@@ -28,9 +28,9 @@ namespace REngine.RPI
 		private IServiceProvider pProvider;
 		private IGraphicsDriver? pDriver;
 		private ILogger<IRenderer> pLogger;
-		private RenderSettings pSetttings;
-		private RenderEvents pRendererEvents;
+		private RPIEvents pRenderEvents;
 		private RenderState pRenderState;
+		private IBufferProvider pBufferProvider;
 
 		private ISwapChain? pSwapChain;
 		private IBuffer[] pBuffers = new IBuffer[(int)BufferGroupType.Object];
@@ -59,20 +59,20 @@ namespace REngine.RPI
 			IServiceProvider provider, 
 			ILogger<IRenderer> logger,
 			EngineEvents events,
-			RenderEvents rendererEvts,
-			RenderSettings settings,
-			RenderState renderState)
+			RPIEvents rendererEvts,
+			RenderState renderState,
+			IBufferProvider bufferProvider)
 		{
 			pProvider = provider;
 			pLogger = logger;
-			pRendererEvents = rendererEvts;
-			pSetttings = settings;
+			pRenderEvents = rendererEvts;
 			pRenderState = renderState;
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeforeStop += HandleEngineStop;
 			events.OnBeginRender += HandleBeginRender;
 			events.OnRender += HandleRender;
+			pBufferProvider = bufferProvider;
 		}
 
 		private void HandleEngineStop(object? sender, EventArgs e)
@@ -85,7 +85,7 @@ namespace REngine.RPI
 			if(pDisposed) return;
 			pDisposed = true;
 
-			pRendererEvents.ExecuteBeginDispose(this);
+			pRenderEvents.ExecuteBeginDispose(this);
 
 			var feat = pFeatures.First;
 			while(feat != null)
@@ -96,7 +96,7 @@ namespace REngine.RPI
 			pFeatures.Clear();
 			
 			SwapChain?.Dispose();
-			pRendererEvents.ExecuteEndDispose(this);
+			pRenderEvents.ExecuteEndDispose(this);
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature)
@@ -126,6 +126,11 @@ namespace REngine.RPI
 			if (pDisposed || pDriver is null)
 				return this;
 			var featNode = pFeatures.First;
+			RenderFeatureSetupInfo setupInfo = new RenderFeatureSetupInfo(
+				pDriver,
+				this,
+				pBufferProvider
+			);
 			while(featNode != null)
 			{
 				var feature = featNode.Value;
@@ -142,7 +147,7 @@ namespace REngine.RPI
 					continue;
 				}
 				
-				feature.Setup(pDriver, this);
+				feature.Setup(setupInfo);
 				feature.Compile(pDriver.ImmediateCommand);
 
 				featNode = featNode.Next;
@@ -182,24 +187,13 @@ namespace REngine.RPI
 			return this;
 		}
 
-		public IBuffer GetBuffer(BufferGroupType bufferType)
-		{
-			AssertDispose();
-
-			IBuffer? buffer = pBuffers[GetBufferGroupIndex(bufferType)];
-			if (buffer is null)
-				throw new NullReferenceException("Buffer has not yet initialized.");
-
-			return buffer;
-		}
-
 		private void AssertDispose()
 		{
 			if (pDisposed)
 				throw new ObjectDisposedException("IRenderer has been disposed.");
 		}
 
-		private void UpdateSwapChain(ISwapChain? swapChain, bool updateBuffers = true)
+		private void UpdateSwapChain(ISwapChain? swapChain)
 		{
 			if (swapChain == pSwapChain)
 				return;
@@ -220,71 +214,29 @@ namespace REngine.RPI
 			}
 
 			pLogger.Info("SwapChain has been changed.");
-			pRendererEvents.ExecuteChangeSwapChain(this);
+			pRenderEvents.ExecuteChangeSwapChain(this);
 
-			if(updateBuffers)
-				UpdateBuffers(BufferUpdateFlags.Fixed);
+			UpdateFixedFrameBuffer(pSwapChain?.Size ?? new SwapChainSize());
+		}
+
+		private void UpdateFixedFrameBuffer(SwapChainSize size)
+		{
+			if (pDriver is null)
+				return;
+
+			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Fixed);
+			pDriver.ImmediateCommand.UpdateBuffer(buffer, 0, new RendererFixedData
+			{
+				ViewWidth = size.Width,
+				ViewHeight = size.Height,
+			});
+
+			pLogger.Info("Updated Fixed Buffer");
 		}
 
 		private int GetBufferGroupIndex(BufferGroupType grp)
 		{
 			return ((int)grp) - 1;
-		}
-		private void UpdateBuffers(BufferUpdateFlags flags)
-		{
-			if (pDriver is null)
-				throw new NullReferenceException("Driver has not been setted");
-			bool executeEvent = flags != BufferUpdateFlags.None && pBuffers.Length > 0;
-
-			BufferDesc bufferDesc = new BufferDesc
-			{
-				BindFlags = BindFlags.UniformBuffer,
-				Usage = Usage.Immutable,
-				AccessFlags = CpuAccessFlags.None
-			};
-
-			if((flags & BufferUpdateFlags.Fixed) != 0)
-			{
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Fixed)]?.Dispose();
-
-				bufferDesc.Name = "Fixed UBO";
-				bufferDesc.Size = (ulong)Marshal.SizeOf<RendererFixedData>();
-
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Fixed)] = pDriver.Device.CreateBuffer(bufferDesc, pRenderState.FixedData);
-
-				pLogger.Info("Fixed buffer has been changed");
-			}
-
-			bufferDesc.Usage = Usage.Dynamic;
-			bufferDesc.AccessFlags = CpuAccessFlags.Write;
-			bufferDesc.Mode = BufferMode.Raw;
-
-			if((flags & BufferUpdateFlags.Frame) != 0)
-			{
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Frame)]?.Dispose();
-
-				bufferDesc.Name = "Frame UBO";
-				bufferDesc.Size = pSetttings.FrameBufferSize;
-
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Frame)] = pDriver.Device.CreateBuffer(bufferDesc);
-
-				pLogger.Info("Frame buffer has been changed");
-			}
-
-			if ((flags & BufferUpdateFlags.Object) != 0)
-			{
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Object)]?.Dispose();
-
-				bufferDesc.Name = "Object UBO";
-				bufferDesc.Size = pSetttings.ObjectBufferSize;
-
-				pBuffers[GetBufferGroupIndex(BufferGroupType.Object)] = pDriver.Device.CreateBuffer(bufferDesc);
-
-				pLogger.Info("Object buffer has been changed");
-			}
-
-			if (executeEvent)
-				pRendererEvents.ExecuteChangeBuffers(this);
 		}
 
 		private void HandleBeginRender(object sender, UpdateEventArgs args)
@@ -297,12 +249,12 @@ namespace REngine.RPI
 			if (pSwapChain is null)
 				return;
 
-			pRendererEvents.ExecuteBeginRender(this);
+			pRenderEvents.ExecuteBeginRender(this);
 
 			Render();
 			pSwapChain.Present(true);
 			
-			pRendererEvents.ExecuteEndRender(this);
+			pRenderEvents.ExecuteEndRender(this);
 
 			RemoveDisposedFeatures();
 		}
@@ -323,18 +275,18 @@ namespace REngine.RPI
 		{
 			pDriver = pProvider.GetOrDefault<IGraphicsDriver>();
 			ISwapChain? swapChain = pProvider.GetOrDefault<ISwapChain>();
+			
+			pRenderEvents.ExecuteReady(this, pDriver);
 
 			if (swapChain is null)
 				pLogger.Warning("ISwapChain has not been setted on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
-				UpdateSwapChain(swapChain, false);
-
-			UpdateBuffers(BufferUpdateFlags.All);
+				UpdateSwapChain(swapChain);
 		}
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)
 		{
-			UpdateBuffers(BufferUpdateFlags.Fixed);
+			UpdateFixedFrameBuffer(e.Size);
 		}
 	}
 }

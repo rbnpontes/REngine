@@ -25,6 +25,7 @@ namespace REngine.Sandbox
 #if RENGINE_SPRITEBATCH
 		private ISpriteBatch? pSpriteBatch;
 #endif
+		private SpriteInstancedBatchInfo[] pSpriteInstances = new SpriteInstancedBatchInfo[20 * 20];
 		public SandboxApp() : base(typeof(SandboxApp))
 		{
 		}
@@ -89,6 +90,8 @@ namespace REngine.Sandbox
 				Size = new Vector2(150),
 				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
 			});
+
+			pSpriteBatch?.Draw(0, UpdateSpriteInstances(elapsedTime, wndSize));
 		}
 		
 		private float AnalogicTime(float t, float freq, float amplitude)
@@ -138,9 +141,27 @@ namespace REngine.Sandbox
 		}
 		
 
-		private void TestParallel()
+		private IEnumerable<SpriteInstancedBatchInfo> UpdateSpriteInstances(float elapsed, Size wndSize)
 		{
-
+			Vector2 size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
+			Vector2 anchor = new Vector2(0.5f, 0.5f);
+			return pSpriteInstances
+					.AsParallel()
+					.Select((sprite, i) =>
+					{
+						int x = i % 20;
+						int y = i / 20;
+						return new SpriteInstancedBatchInfo
+						{
+							Size = size,
+							Angle = elapsed,
+							Anchor = anchor,
+							Position = new Vector2(
+								(x / 20.0f) * wndSize.Width,
+								(y / 20.0f) * wndSize.Height
+							)
+						};
+					});
 		}
 	}
 }

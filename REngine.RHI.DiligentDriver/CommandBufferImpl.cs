@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -165,7 +166,9 @@ namespace REngine.RHI.DiligentDriver
 
 		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers)
 		{
-			return SetVertexBuffers(startSlot, buffers, new ulong[] { 0 });
+			ulong[] offsets = new ulong[buffers.Count()];
+			Array.Fill<ulong>(offsets, 0);
+			return SetVertexBuffers(startSlot, buffers, offsets);
 		}
 
 		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets)
@@ -177,7 +180,7 @@ namespace REngine.RHI.DiligentDriver
 				nativeBuffers[i] = NativeObjectUtils.Get<Diligent.IBuffer>(buffers.ElementAt(i));
 
 			pCtx.SetVertexBuffers(
-				0,
+				startSlot,
 				nativeBuffers,
 				offsets,
 				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
@@ -205,9 +208,70 @@ namespace REngine.RHI.DiligentDriver
 			Diligent.CopyTextureAttribs attribs;
 			new CopyAdapter().Fill(copyInfo, out attribs);
 			attribs.SrcTextureTransitionMode =
-				attribs.DstTextureTransitionMode = pIsDeferred ? ResourceStateTransitionMode.Transition : ResourceStateTransitionMode.Verify;
+				attribs.DstTextureTransitionMode = pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition;
 
 			pCtx.CopyTexture(attribs);
+			return this;
+		}
+
+		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, T data) where T : unmanaged
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(UpdateBuffer)));
+
+			GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			pCtx.UpdateBuffer(
+				NativeObjectUtils.Get<Diligent.IBuffer>(buffer),
+				offset,
+				(ulong)Marshal.SizeOf<T>(),
+				handle.AddrOfPinnedObject(),
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
+			return this;
+		}
+
+		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, byte[] data)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(UpdateBuffer)));
+
+			GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			pCtx.UpdateBuffer(
+				NativeObjectUtils.Get<Diligent.IBuffer>(buffer),
+				offset,
+				(ulong)(Marshal.SizeOf<byte>() * data.Length),
+				handle.AddrOfPinnedObject(),
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
+			handle.Free();
+			return this;
+		}
+
+		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, ReadOnlySpan<T> data) where T : unmanaged
+		{
+			if(pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(UpdateBuffer)));
+
+			pCtx.UpdateBuffer(
+				NativeObjectUtils.Get<Diligent.IBuffer>(buffer), 
+				offset, 
+				data, 
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition);
+			return this;
+		}
+
+		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, ulong size, IntPtr data)
+		{
+			if (pCtx is null)
+				throw new ObjectDisposedException(ExecDisposeMsgError(nameof(UpdateBuffer)));
+
+			pCtx.UpdateBuffer(
+				NativeObjectUtils.Get<Diligent.IBuffer>(buffer),
+				offset,
+				size,
+				data,
+				pIsDeferred ? ResourceStateTransitionMode.Verify : ResourceStateTransitionMode.Transition
+			);
 			return this;
 		}
 	}

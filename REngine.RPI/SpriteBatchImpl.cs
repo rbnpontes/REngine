@@ -24,7 +24,7 @@ namespace REngine.RPI
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
 			EngineEvents engineEvents,
-			RenderEvents rendererEvents
+			RPIEvents rendererEvents
 		)
 		{
 			pTextureManager = texManager;
@@ -69,9 +69,9 @@ namespace REngine.RPI
 			return this;
 		}
 
-		public ISpriteBatch Draw(byte textureSlot, SpriteInstancedBatchInfo bachInfo)
+		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
 		{
-			
+			pBatcher.Add(textureSlot, instances);
 			return this;
 		}
 

@@ -84,5 +84,10 @@ namespace REngine.RHI
 		public ICommandBuffer Unmap(IBuffer buffer, MapType mapType);
 
 		public ICommandBuffer Copy(CopyTextureInfo copyInfo);
+
+		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, T data) where T : unmanaged;
+		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, byte[] data);
+		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, ReadOnlySpan<T> data) where T : unmanaged;
+		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, ulong size, IntPtr data);
 	}
 }

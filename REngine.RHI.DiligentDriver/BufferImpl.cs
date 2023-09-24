@@ -28,6 +28,11 @@ namespace REngine.RHI.DiligentDriver
 
 		public string Name => pBuffer?.GetDesc().Name ?? string.Empty;
 
+		public ulong Size
+		{
+			get => pBuffer?.GetDesc().Size ?? 0;
+		}
+
 		public object? Handle => pBuffer;
 
 		public bool IsDisposed => pBuffer == null;
