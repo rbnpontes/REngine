@@ -22,6 +22,7 @@ namespace REngine.Core
 
 		public EngineExecutionStep Step { get; }
 
+		public IEngine Start();
 		public IEngine ExecuteFrame();
 		public IEngine Stop();
 		public Task WaitRender();

@@ -11,17 +11,23 @@ namespace REngine.Core
 	{
 		private readonly Stopwatch pStopwatch;
 		private readonly EngineEvents pEvents;
-		private readonly object pStepSync = new object();
+		private readonly object pStepSync = new();
+		private readonly object pRenderSync = new();
+		private readonly UpdateEventArgs pUpdateEvtArgs;
+
 		private EngineExecutionStep pStep = EngineExecutionStep.BeginFrame;
 
 		private double pLastElapsed;
 		private double pDeltaTime;
 		private bool pStopped = false;
+		private bool pExecuteRenderTask = false;
 
-		private TaskCompletionSource pNextFrameSrc = new TaskCompletionSource();
-		private TaskCompletionSource pRenderSrc = new TaskCompletionSource();
+		private TaskCompletionSource pNextFrameSrc = new();
+		private TaskCompletionSource pRenderSrc = new();
 
-		private readonly UpdateEventArgs pUpdateEvtArgs;
+		private readonly CancellationTokenSource pStopToken = new();
+
+		private Task? pPostRenderTask;
 
 		public double DeltaTime { get => pDeltaTime; }
 		public double ElapsedTime { get => pStopwatch?.Elapsed.TotalMilliseconds ?? 0.0; }
@@ -47,6 +53,17 @@ namespace REngine.Core
 			pStopwatch = Stopwatch.StartNew();
 		}
 
+		public IEngine Start()
+		{
+			pPostRenderTask = Task.Factory.StartNew(
+				HandlePostRenderTask, 
+				pStopToken.Token, 
+				TaskCreationOptions.LongRunning, 
+				TaskScheduler.Default);
+			pStopwatch.Restart();
+			return this;
+		}
+
 		public IEngine ExecuteFrame()
 		{
 			if (pStopped)
@@ -69,13 +86,19 @@ namespace REngine.Core
 			// Execute Works Here
 
 			AdvanceStep();
-			pEvents
-				.ExecuteBeginRender(pUpdateEvtArgs)
-				.ExecuteRender(pUpdateEvtArgs)
-				.ExecuteEndRender(pUpdateEvtArgs);
+
+			lock (pRenderSync)
+			{
+				pExecuteRenderTask = true;
+				pEvents
+					.ExecuteBeginRender(pUpdateEvtArgs)
+					.ExecuteRender(pUpdateEvtArgs)
+					.ExecuteEndRender(pUpdateEvtArgs);
+			}
 
 			pRenderSrc.SetResult();
 			pRenderSrc = new TaskCompletionSource();
+
 			// Execute Post Works Here
 			pEvents.ExecuteEndUpdate(pUpdateEvtArgs);
 			return this;
@@ -83,11 +106,17 @@ namespace REngine.Core
 
 		public IEngine Stop()
 		{
-			if (!pStopped)
+			if (pStopped)
+				return this;
+
+			pStopToken.Cancel();
+			try
 			{
-				pEvents.ExecuteBeforeStop();
-				pEvents.ExecuteStop();
+				pPostRenderTask?.Wait();
 			}
+			catch { }
+			pEvents.ExecuteBeforeStop();
+			pEvents.ExecuteStop();
 			pStopped = true;
 
 			return this;
@@ -100,6 +129,22 @@ namespace REngine.Core
 		public Task WaitNextFrame()
 		{
 			return pNextFrameSrc.Task;
+		}
+
+		protected void HandlePostRenderTask()
+		{
+			while (true)
+			{
+				pStopToken.Token.ThrowIfCancellationRequested();
+				lock (pRenderSync)
+				{
+					if (!pExecuteRenderTask)
+						continue;
+					pEvents.ExecuteAsyncRender(this);
+					pExecuteRenderTask = false;
+				}
+				pStopToken.Token.ThrowIfCancellationRequested();
+			}
 		}
 
 		private void AdvanceStep()

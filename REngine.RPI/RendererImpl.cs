@@ -25,18 +25,20 @@ namespace REngine.RPI
 		}
 
 		private bool pDisposed = false;
-		private IServiceProvider pProvider;
+		private readonly IServiceProvider pProvider;
+		private readonly ILogger<IRenderer> pLogger;
+		private readonly RPIEvents pRenderEvents;
+		private readonly RenderState pRenderState;
+		private readonly IBufferProvider pBufferProvider;
+		private readonly EngineEvents pEngineEvents;
+
+		private readonly LinkedList<IRenderFeature> pFeatures = new();
+		private readonly LinkedList<IRenderFeature> pFeaturesToRemove = new();
+
 		private IGraphicsDriver? pDriver;
-		private ILogger<IRenderer> pLogger;
-		private RPIEvents pRenderEvents;
-		private RenderState pRenderState;
-		private IBufferProvider pBufferProvider;
 
 		private ISwapChain? pSwapChain;
-		private IBuffer[] pBuffers = new IBuffer[(int)BufferGroupType.Object];
 
-		private LinkedList<IRenderFeature> pFeatures = new LinkedList<IRenderFeature>();
-		private LinkedList<IRenderFeature> pFeaturesToRemove = new LinkedList<IRenderFeature>();
 
 		public bool IsDisposed { get => pDisposed; }
 
@@ -72,6 +74,9 @@ namespace REngine.RPI
 			events.OnBeforeStop += HandleEngineStop;
 			events.OnBeginRender += HandleBeginRender;
 			events.OnRender += HandleRender;
+			events.OnAsyncRender += HandleAsyncRender;
+
+			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
 		}
 
@@ -97,6 +102,12 @@ namespace REngine.RPI
 			
 			SwapChain?.Dispose();
 			pRenderEvents.ExecuteEndDispose(this);
+
+			pEngineEvents.OnStart -= HandleEngineStart;
+			pEngineEvents.OnBeforeStop -= HandleEngineStop;
+			pEngineEvents.OnBeginRender -= HandleBeginRender;
+			pEngineEvents.OnRender -= HandleRender;
+			pEngineEvents.OnAsyncRender -= HandleAsyncRender;
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature)
@@ -241,17 +252,18 @@ namespace REngine.RPI
 
 		private void HandleRender(object? sender, UpdateEventArgs args)
 		{
-			if (pSwapChain is null)
-				return;
-
 			pRenderEvents.ExecuteBeginRender(this);
 
 			Render();
-			pSwapChain.Present(true);
 			
 			pRenderEvents.ExecuteEndRender(this);
 
 			RemoveDisposedFeatures();
+		}
+
+		private void HandleAsyncRender(object? sender, EventArgs e)
+		{
+			pSwapChain?.Present(true);
 		}
 
 		private void RemoveDisposedFeatures()

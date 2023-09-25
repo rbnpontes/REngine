@@ -12,30 +12,58 @@ namespace REngine.Windows
 		private WindowsBuilder pBuilder = new WindowsBuilder();
 		private List<IWindow> pWindows = new List<IWindow>();
 		private IEngine pEngine;
+		private EngineEvents pEngineEvents;
 
 		public IReadOnlyList<IWindow> Windows { get => pWindows.AsReadOnly(); }
 
 		public WindowManager(EngineEvents events, IEngine engine)
 		{
 			pEngine = engine;
-			events.OnEndUpdate += HandleEndUpdate;
-			events.OnEndRender += HandleEndRender;
-			events.OnStop += (s, e) => Dispose();
+			pEngineEvents = events;
+
+			events.OnStart += HandleStart;
+			events.OnStop += HandleStop;
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.SetHighDpiMode(HighDpiMode.SystemAware);
 		}
 
-		private void HandleEndUpdate(object sender, UpdateEventArgs args)
+		public void Dispose()
 		{
-			Update();
+			CloseAllWindows();
+			foreach (var window in Windows)
+				window.Dispose();
+			pWindows.Clear();
+
+			pEngineEvents.OnStart -= HandleStart;
+			pEngineEvents.OnStop -= HandleStop;
+
+			GC.SuppressFinalize(this);
 		}
 
-		private void HandleEndRender(object sender, UpdateEventArgs args)
+		private void HandleStop(object? sender, EventArgs e)
+		{
+			Dispose();
+		}
+
+		private void HandleStart(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnEndRender += HandleEndRender;
+			pEngineEvents.OnBeginUpdate += (s, e) =>
+			{
+				Update();
+			};
+		}
+
+		private void HandleEndRender(object? sender, UpdateEventArgs e)
 		{
 			foreach (var wnd in Windows)
 				wnd.Update();
+		}
+
+		private void HandleAsyncRender(object? sender, EventArgs e)
+		{
 		}
 
 		public IWindowManager CloseAllWindows()
@@ -60,14 +88,6 @@ namespace REngine.Windows
 			if (closedWindows == pWindows.Count)
 				pEngine.Stop();
 			return this;
-		}
-
-		public void Dispose()
-		{
-			CloseAllWindows();
-			foreach(var window in Windows)
-				window.Dispose();
-			pWindows.Clear();
 		}
 
 		public IWindow Create(WindowCreationInfo createInfo)

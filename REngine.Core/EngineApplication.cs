@@ -24,7 +24,7 @@ namespace REngine.Core
 
 	internal class EngineStartupImpl : IEngineStartup
 	{
-		private IEngineApplication pApp;
+		private readonly IEngineApplication pApp;
 		private IServiceProvider? pServiceProvider;
 
 		public EngineStartupImpl(IEngineApplication app)
@@ -38,12 +38,13 @@ namespace REngine.Core
 			EngineEvents events = pServiceProvider.Get<EngineEvents>();
 			events.OnUpdate += HandleUpdate;
 
+			engine.Start();
 			while (!engine.IsStopped)
 				engine.ExecuteFrame();
 			return this;
 		}
 
-		private void HandleUpdate(object sender, UpdateEventArgs args)
+		private void HandleUpdate(object? sender, UpdateEventArgs args)
 		{
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");

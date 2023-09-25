@@ -33,6 +33,11 @@ namespace REngine.Core
 		public event EventHandler<UpdateEventArgs>? OnRender;
 		public event EventHandler<UpdateEventArgs>? OnEndRender;
 		public event EventHandler<UpdateEventArgs>? OnEndUpdate;
+		/// <summary>
+		/// This event is called inside Task
+		/// And task is completed before render
+		/// </summary>
+		public event EventHandler<EventArgs>? OnAsyncRender;
 
 		public event EventHandler? OnBeforeStop;
 		public event EventHandler? OnStop;
@@ -76,6 +81,11 @@ namespace REngine.Core
 		public EngineEvents ExecuteBeforeStop()
 		{
 			OnBeforeStop?.Invoke(this, EventArgs.Empty);
+			return this;
+		}
+		public EngineEvents ExecuteAsyncRender(IEngine engine)
+		{
+			OnAsyncRender?.Invoke(engine, EventArgs.Empty);
 			return this;
 		}
 		public EngineEvents ExecuteStop()
