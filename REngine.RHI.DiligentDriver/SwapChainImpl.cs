@@ -12,9 +12,9 @@ namespace REngine.RHI.DiligentDriver
 	internal class SwapChainImpl : ISwapChain
 	{
 		private Diligent.ISwapChain? pSwapChain;
-		private RHI.SwapChainDesc pDesc = new RHI.SwapChainDesc();
-		private Dictionary<Diligent.ITextureView, ITextureView> pColorBuffers;
-		private SwapChainAdapter pAdapter = new SwapChainAdapter();
+		private RHI.SwapChainDesc pDesc = new();
+		private readonly Dictionary<Diligent.ITextureView, ITextureView> pColorBuffers;
+		private readonly SwapChainAdapter pAdapter = new();
 
 		public event EventHandler<SwapChainResizeEventArgs>? OnResize;
 		public event EventHandler? OnPresent;
@@ -104,7 +104,7 @@ namespace REngine.RHI.DiligentDriver
 		}
 		public ISwapChain Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal)
 		{
-			pSwapChain?.Resize(width, height, (Diligent.SurfaceTransform)transform);
+			pSwapChain?.Resize(width, height, (SurfaceTransform)transform);
 			pColorBuffers.Clear();
 
 			ColorBuffer = AcquireNextBuffer();

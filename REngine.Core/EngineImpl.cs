@@ -9,10 +9,9 @@ namespace REngine.Core
 {
 	internal class EngineImpl : IEngine
 	{
-		private Stopwatch? pStopwatch;
-		private IServiceProvider pProvider;
-		private EngineEvents pEvents;
-		private object pStepSync = new object();
+		private readonly Stopwatch pStopwatch;
+		private readonly EngineEvents pEvents;
+		private readonly object pStepSync = new object();
 		private EngineExecutionStep pStep = EngineExecutionStep.BeginFrame;
 
 		private double pLastElapsed;
@@ -21,6 +20,8 @@ namespace REngine.Core
 
 		private TaskCompletionSource pNextFrameSrc = new TaskCompletionSource();
 		private TaskCompletionSource pRenderSrc = new TaskCompletionSource();
+
+		private readonly UpdateEventArgs pUpdateEvtArgs;
 
 		public double DeltaTime { get => pDeltaTime; }
 		public double ElapsedTime { get => pStopwatch?.Elapsed.TotalMilliseconds ?? 0.0; }
@@ -41,41 +42,42 @@ namespace REngine.Core
 
 		public EngineImpl(IServiceProvider provider, EngineEvents events) 
 		{
-			pProvider = provider;
 			pEvents	= events;
+			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
+			pStopwatch = Stopwatch.StartNew();
 		}
 
 		public IEngine ExecuteFrame()
 		{
 			if (pStopped)
 				return this;
-			if (pStopwatch is null)
-				pStopwatch = Stopwatch.StartNew();
+
 			double curr = pStopwatch.Elapsed.TotalMilliseconds;
 			pDeltaTime = curr - pLastElapsed;
 			pLastElapsed = curr;
 
-			UpdateEventArgs args = new UpdateEventArgs(pProvider, this, pDeltaTime, curr);
+			pUpdateEvtArgs.DeltaTime = pDeltaTime;
+			pUpdateEvtArgs.Elapsed = curr;
 
 			pNextFrameSrc.SetResult();
 			pNextFrameSrc = new TaskCompletionSource();
-
+			
 			AdvanceStep();
-			pEvents.ExecuteBeginUpdate(args);
+			pEvents.ExecuteBeginUpdate(pUpdateEvtArgs);
 			AdvanceStep();
-			pEvents.ExecuteUpdate(args);
+			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			// Execute Works Here
 
 			AdvanceStep();
 			pEvents
-				.ExecuteBeginRender(args)
-				.ExecuteRender(args)
-				.ExecuteEndRender(args);
+				.ExecuteBeginRender(pUpdateEvtArgs)
+				.ExecuteRender(pUpdateEvtArgs)
+				.ExecuteEndRender(pUpdateEvtArgs);
 
 			pRenderSrc.SetResult();
 			pRenderSrc = new TaskCompletionSource();
 			// Execute Post Works Here
-			pEvents.ExecuteEndUpdate(args);
+			pEvents.ExecuteEndUpdate(pUpdateEvtArgs);
 			return this;
 		}
 

@@ -37,5 +37,9 @@ namespace REngine.RHI.DiligentDriver
 			else
 				Parent = ObjectWrapper.Unwrap(texture).Get<ITexture>();
 		}
+		public TextureViewImpl(ITexture parent, Diligent.ITextureView textureView) : base(textureView)
+		{
+			Parent = parent;
+		}
 	}
 }

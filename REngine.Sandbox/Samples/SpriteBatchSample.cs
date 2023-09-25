@@ -26,6 +26,7 @@ namespace REngine.Sandbox.Samples
 		{
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
+			pSpriteFeature?.Dispose();
 		}
 
 		public void Load(IServiceProvider provider)

@@ -9,16 +9,15 @@ namespace REngine.RHI.DiligentDriver
 {
 	internal class TextureImpl : GPUObjectImpl, ITexture
 	{
-		private ITextureView?[] pTextureViews = new ITextureView[(int)TextureViewType.ShadingRate + 1];
+		private readonly ITextureView?[] pTextureViews = new ITextureView[(int)TextureViewType.ShadingRate + 1];
 		public TextureDesc Desc
 		{
 			get
 			{
 				var texture = GetHandle<Diligent.ITexture>();
 				var adapter = new TextureAdapter();
-				TextureDesc desc;
 
-				adapter.Fill(texture.GetDesc(), out desc);
+				adapter.Fill(texture.GetDesc(), out TextureDesc desc);
 				return desc;
 			}
 		}
@@ -35,7 +34,7 @@ namespace REngine.RHI.DiligentDriver
 			var result = pTextureViews[(int)view];
 			if (result == null)
 			{
-				pTextureViews[(int)view] = result = new TextureViewImpl(GetHandle<Diligent.ITexture>().GetDefaultView((Diligent.TextureViewType)view));
+				pTextureViews[(int)view] = result = new TextureViewImpl(this, GetHandle<Diligent.ITexture>().GetDefaultView((Diligent.TextureViewType)view));
 				result.OnDispose += HandleTextureViewDispose;
 			}
 
@@ -44,10 +43,11 @@ namespace REngine.RHI.DiligentDriver
 
 		private void HandleTextureViewDispose(object sender, EventArgs e)
 		{
-			var tex = sender as ITextureView;
+			ITextureView? tex = sender as ITextureView;
 			if (tex == null)
 				return;
 
+			tex.OnDispose -= HandleTextureViewDispose;
 			pTextureViews[(int)tex.ViewType] = null;
 		}
 	}

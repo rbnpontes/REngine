@@ -22,7 +22,9 @@ namespace REngine.RHI.DiligentDriver
 		public GraphicsPipelineStateImpl(GraphicsPipelineDesc desc, Diligent.IPipelineState pipeline)
 		{
 			pHandle = pipeline;
+			desc.Shaders = new GraphicsPipelineShaders();
 			Desc = desc;
+			// Don't store Shaders, this can lead to unexpected behaviours
 			pipeline.SetUserData(new ObjectWrapper(this));
 		}
 

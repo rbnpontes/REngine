@@ -13,12 +13,25 @@ namespace REngine.RPI
 {
 	internal class SpriteBatchImpl : ISpriteBatch
 	{
-		private SpriteBatcher pBatcher;
-		private SpriteBatchFeature pFeature;
-		private SpriteTextureManager pTextureManager;
-		private RenderSettings pRenderSettings;
+		private readonly SpriteBatcher pBatcher;
+		private readonly SpriteTextureManager pTextureManager;
+		private readonly RenderSettings pRenderSettings;
+		private readonly GraphicsSettings pGraphicsSettings;
 
-		public IRenderFeature Feature { get => pFeature; }
+		private SpriteBatchFeature? pFeature;
+
+		public IRenderFeature Feature 
+		{ 
+			get
+			{
+				var feature = pFeature;
+				if(feature is null || feature?.IsDisposed == true)
+					pFeature = feature = new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
+#pragma warning disable CS8603 // Possible null reference return.
+				return feature;
+#pragma warning restore CS8603 // Possible null reference return.
+			}
+		}
 
 		public SpriteBatchImpl(
 			SpriteTextureManager texManager,
@@ -31,22 +44,24 @@ namespace REngine.RPI
 		{
 			pTextureManager = texManager;
 			pBatcher = batcher;
-			pFeature = new SpriteBatchFeature(
-				batcher, 
-				texManager,
-				settings
-			);
 			pRenderSettings = renderSettings;
+			pGraphicsSettings = settings;
 
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnBeginUpdate += HandleBeginUpdate;
 			engineEvents.OnStop += HandleStop;
 			rendererEvents.OnUpdateSettings += HandleUpdateSettings;
+			pTextureManager.OnUpdateTextures += HandleUpdateTextures;
+		}
+
+		private void HandleUpdateTextures(object? sender, EventArgs e)
+		{
+			pFeature?.UpdateTextures();
 		}
 
 		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
-			pFeature.CheckCBufferSizes(e.Settings.ObjectBufferSize);
+			pFeature?.CheckCBufferSizes(e.Settings.ObjectBufferSize);
 		}
 
 		private void HandleStart(object? sender, EventArgs e)
@@ -58,11 +73,14 @@ namespace REngine.RPI
 		{
 			pBatcher.Reset();
 			pTextureManager.Dispose();
-			pFeature.Dispose();
+			pFeature?.Dispose();
+			pFeature = null;
 		}
 
-		private void HandleBeginUpdate(object sender, UpdateEventArgs args)
+		private void HandleBeginUpdate(object? sender, UpdateEventArgs args)
 		{
+			if (pFeature?.IsDisposed == true)
+				pFeature = null;
 			pBatcher.Reset();
 			pTextureManager.Update();
 		}
@@ -109,10 +127,7 @@ namespace REngine.RPI
 
 		public ISpriteBatch ClearTextures()
 		{
-			for(byte slot = 0; slot < pRenderSettings.SpriteBatchMaxTextures; ++slot)
-			{
-				ClearTexture(slot);
-			}
+			pTextureManager.ClearTextures();
 			return this;
 		}
 

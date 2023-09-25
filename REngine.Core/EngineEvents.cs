@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace REngine.Core
 {
-	public class UpdateEventArgs
+	public class UpdateEventArgs : EventArgs
 	{
-		public double DeltaTime { get; private set; }
-		public double Elapsed { get; private set; }
+		public double DeltaTime { get; set; }
+		public double Elapsed { get; set; }
 		public IServiceProvider Provider { get; private set; }
 		public IEngine Engine { get; private set; }
 
@@ -23,18 +23,16 @@ namespace REngine.Core
 		}
 	}
 
-	public delegate void EngineUpdateEvent(object sender, UpdateEventArgs args);
-
 	public sealed class EngineEvents
 	{
 		public event EventHandler? OnStart;
 		
-		public event EngineUpdateEvent? OnBeginUpdate;
-		public event EngineUpdateEvent? OnUpdate;
-		public event EngineUpdateEvent? OnBeginRender;
-		public event EngineUpdateEvent? OnRender;
-		public event EngineUpdateEvent? OnEndRender;
-		public event EngineUpdateEvent? OnEndUpdate;
+		public event EventHandler<UpdateEventArgs>? OnBeginUpdate;
+		public event EventHandler<UpdateEventArgs>? OnUpdate;
+		public event EventHandler<UpdateEventArgs>? OnBeginRender;
+		public event EventHandler<UpdateEventArgs>? OnRender;
+		public event EventHandler<UpdateEventArgs>? OnEndRender;
+		public event EventHandler<UpdateEventArgs>? OnEndUpdate;
 
 		public event EventHandler? OnBeforeStop;
 		public event EventHandler? OnStop;

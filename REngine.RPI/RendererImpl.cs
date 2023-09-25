@@ -234,12 +234,12 @@ namespace REngine.RPI
 			pLogger.Info("Updated Fixed Buffer");
 		}
 
-		private void HandleBeginRender(object sender, UpdateEventArgs args)
+		private void HandleBeginRender(object? sender, UpdateEventArgs args)
 		{
 			Compile();
 		}
 
-		private void HandleRender(object sender, UpdateEventArgs args)
+		private void HandleRender(object? sender, UpdateEventArgs args)
 		{
 			if (pSwapChain is null)
 				return;

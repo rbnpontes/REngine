@@ -42,31 +42,5 @@ namespace REngine.Sandbox
 				.Start()
 				.Run();
 		}
-		private static ITextureView CreateTexture(IDevice device)
-		{
-			var bitmap = new Bitmap(
-				Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg")
-			);
-			var bitmapData = bitmap.LockBits(
-				new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-				ImageLockMode.ReadOnly,
-				PixelFormat.Format32bppArgb
-			);
-
-			var pixelData = new byte[bitmapData.Stride * bitmap.Height];
-			Marshal.Copy(bitmapData.Scan0, pixelData, 0, bitmapData.Stride * bitmapData.Height);
-			bitmap.UnlockBits(bitmapData);
-
-			return device.CreateTexture(new TextureDesc
-			{
-				Name = "Doge Texture",
-				Size = new TextureSize((uint)bitmap.Width, (uint)bitmap.Height),
-				Format = TextureFormat.RGBA8UNormSRGB,
-				BindFlags = BindFlags.ShaderResource,
-				Usage = Usage.Immutable
-			}, new ITextureData[] { 
-				new ByteTextureData(pixelData, (ulong)bitmapData.Stride) 
-			}).GetDefaultView(TextureViewType.ShaderResource);
-		}
 	}
 }

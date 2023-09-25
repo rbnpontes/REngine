@@ -36,6 +36,7 @@ namespace REngine.Sandbox.Samples
 			pSpriteInstances = new SpriteInstancedBatchInfo[0];
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
+			pSpriteFeature?.Dispose();
 		}
 
 		public void Load(IServiceProvider provider)

@@ -26,19 +26,20 @@ namespace REngine.RPI
 			}
 		}
 
-		private IServiceProvider pProvider;
-		private ITexture?[] pTextures;
-		private RenderSettings pRenderSettings;
-		private IGraphicsDriver? pDriver;
-		private IEngine pEngine;
-		private LinkedList<Task<BuildResult>> pBuildTasks = new LinkedList<Task<BuildResult>>();
+		private readonly IServiceProvider pProvider;
+		private readonly IEngine pEngine;
+		private readonly RenderSettings pRenderSettings;
+		private readonly ILogger<SpriteTextureManager> pLogger;
 
-		private CancellationTokenSource pDisposeToken = new CancellationTokenSource();
+		private ITexture?[] pTextures;
+		private IGraphicsDriver? pDriver;
+		private LinkedList<Task<BuildResult>> pBuildTasks = new();
+
+		private CancellationTokenSource pStopTasks = new CancellationTokenSource();
 		private bool pDisposed = false;
 
 		private Queue<(byte, ITexture?)> pTextures2Insert = new Queue<(byte, ITexture?)>();
 		private Stopwatch pStopwatch = Stopwatch.StartNew();
-		private ILogger<SpriteTextureManager> pLogger;
 
 		public ITexture?[] Textures { get => pTextures; }
 
@@ -138,7 +139,7 @@ namespace REngine.RPI
 			if (pDisposed)
 				return;
 
-			pDisposeToken.Cancel();
+			pStopTasks.Cancel();
 			// Wait tasks and dispose created textures
 			var nextTask = pBuildTasks.First;
 			while(nextTask != null)
@@ -156,11 +157,11 @@ namespace REngine.RPI
 			foreach(var tex in pTextures)
 				tex?.Dispose();
 
-			pTextures = new ITexture?[0];
+			pTextures = Array.Empty<ITexture?>();
 			pBuildTasks.Clear();
 
 			pDisposed = true;
-			pDisposeToken.Dispose();
+			pStopTasks.Dispose();
 		}
 		
 		public void SetTexture(byte slot, ITexture texture)
@@ -189,6 +190,42 @@ namespace REngine.RPI
 			pTextures2Insert.Enqueue((slot, tex));
 		}
 
+		public void ClearTasks()
+		{
+			// we must wait for tasks and dispose created textures
+			var tasks = pBuildTasks;
+			pBuildTasks = new LinkedList<Task<BuildResult>>();
+
+			pStopTasks.Cancel();
+			pStopTasks = new CancellationTokenSource();
+
+			Task.Run(() =>
+			{
+				var next = pBuildTasks.First;
+				while(next != null)
+				{
+					try
+					{
+						next.Value.Wait();
+						next.Value?.Result.Texture.Dispose();
+					}
+					catch { }
+					next = next.Next;
+				}
+			});
+		}
+
+		public void ClearTextures()
+		{
+			for (byte i = 0; i < pTextures.Length; i++)
+			{
+				pTextures[i]?.Dispose();
+				pTextures[i] = null;
+			}
+			ClearTasks();
+			pTextures2Insert.Clear();
+		}
+
 		private void CheckAndSetTexture(byte slot, ITexture texture)
 		{
 			if (pTextures[slot] == texture || slot == byte.MaxValue || pDisposed)
@@ -202,14 +239,14 @@ namespace REngine.RPI
 		{
 			if (pDriver is null)
 				throw new NullReferenceException("Can´t build texture. Driver is required!");
-			pDisposeToken.Token.ThrowIfCancellationRequested();
+			pStopTasks.Token.ThrowIfCancellationRequested();
 			// Wait render finish before continue
 			if (pEngine.Step == EngineExecutionStep.Render)
 			{
 				pLogger.Info("Waiting Render");
 				await pEngine.WaitRender();
 			}
-			pDisposeToken.Token.ThrowIfCancellationRequested();
+			pStopTasks.Token.ThrowIfCancellationRequested();
 			pLogger.Info("Building Texture");
 			return pDriver.Device.CreateTexture(new TextureDesc
 			{
