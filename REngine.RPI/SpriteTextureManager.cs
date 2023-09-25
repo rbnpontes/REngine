@@ -1,5 +1,6 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.RHI;
 using System;
@@ -35,19 +36,22 @@ namespace REngine.RPI
 		private CancellationTokenSource pDisposeToken = new CancellationTokenSource();
 		private bool pDisposed = false;
 
-		private Queue<(byte, ITexture)> pTextures2Insert = new Queue<(byte, ITexture)>();
+		private Queue<(byte, ITexture?)> pTextures2Insert = new Queue<(byte, ITexture?)>();
 		private Stopwatch pStopwatch = Stopwatch.StartNew();
+		private ILogger<SpriteTextureManager> pLogger;
 
 		public ITexture?[] Textures { get => pTextures; }
 
 		public event EventHandler? OnUpdateTextures;
 		
 		public SpriteTextureManager(
+			ILoggerFactory factory,
 			IServiceProvider serviceProvider,
 			RenderSettings renderSettings,
 			IEngine engine,
 			RPIEvents renderEvents)
 		{
+			pLogger = factory.Build<SpriteTextureManager>();
 			pProvider = serviceProvider;
 			pRenderSettings = renderSettings;
 			pTextures = new ITexture?[renderSettings.SpriteBatchMaxTextures];
@@ -100,21 +104,30 @@ namespace REngine.RPI
 
 			while(nextTask != null && pStopwatch.ElapsedMilliseconds < pRenderSettings.SpriteBatchTexturesBuildTimeMs)
 			{
-				nextTask.Value.Wait();
+				var currTask = nextTask;
+				if(!nextTask.Value.IsCompleted)
+				{
+					pLogger.Info("Task is not ready. Skipping!");
+					nextTask = nextTask.Next;
+					continue;
+				}
+
 				BuildResult result = nextTask.Value.Result;
+				pLogger.Info($"Set Task Texture on Slot {result.Slot}");
 				CheckAndSetTexture(result.Slot, result.Texture);
 
-				pBuildTasks.RemoveFirst();
-				nextTask = pBuildTasks.First;
+				nextTask = currTask.Next;
+				pBuildTasks.Remove(currTask);
+
 				changed = true;
 			}
 		}
 		private void ProcessTextures2Insert(ref bool changed)
 		{
-			(byte, ITexture) item;
+			(byte, ITexture?) item;
 			while(pTextures2Insert.TryDequeue(out item))
 			{
-				(byte slot, ITexture texture) = item;
+				(byte slot, ITexture? texture) = item;
 				CheckAndSetTexture(slot, texture);
 				changed = true;
 			}
@@ -170,6 +183,12 @@ namespace REngine.RPI
 			pBuildTasks.AddLast(task);
 		}
 
+		public void SetTextureNull(byte slot)
+		{
+			ITexture? tex = null;
+			pTextures2Insert.Enqueue((slot, tex));
+		}
+
 		private void CheckAndSetTexture(byte slot, ITexture texture)
 		{
 			if (pTextures[slot] == texture || slot == byte.MaxValue || pDisposed)
@@ -186,8 +205,12 @@ namespace REngine.RPI
 			pDisposeToken.Token.ThrowIfCancellationRequested();
 			// Wait render finish before continue
 			if (pEngine.Step == EngineExecutionStep.Render)
+			{
+				pLogger.Info("Waiting Render");
 				await pEngine.WaitRender();
+			}
 			pDisposeToken.Token.ThrowIfCancellationRequested();
+			pLogger.Info("Building Texture");
 			return pDriver.Device.CreateTexture(new TextureDesc
 			{
 				Name = $"SpriteBatch Texture #{image.GetHashCode()}",

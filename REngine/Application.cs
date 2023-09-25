@@ -38,11 +38,7 @@ namespace REngine.Sandbox
 
 			registry
 				.Add(
-					(deps) => ((IWindowManager)deps[0]).Create(new WindowCreationInfo
-					{
-						Title = "REngine Sandbox",
-						Size = new Size(500, 500)
-					}),
+					(deps) => OnSetupWindow((IWindowManager)deps[0]),
 					new Type[] { typeof(IWindowManager) }
 				)
 				.Add((IServiceProvider provider) =>
@@ -67,6 +63,15 @@ namespace REngine.Sandbox
 					return swapChain;
 				});
 		}
+
+		protected virtual IWindow OnSetupWindow(IWindowManager windowManager)
+		{
+			return windowManager.Create(new WindowCreationInfo
+			{
+				Title = "REngine",
+				Size = new Size(500, 500)
+			});
+		} 
 
 		private void HandleGraphicsMessage(object sender, MessageEventArgs args)
 		{

@@ -83,13 +83,14 @@ namespace REngine.Windows
 			else
 			{
 				window = pBuilder.Build();
+				
+				window.Title = createInfo.Title;
+				window.Size = createInfo.Size;
+
+				if (createInfo.Position != null)
+					window.Position = createInfo.Position.Value;
 			}
 
-			window.Title = createInfo.Title;
-			window.Size = createInfo.Size;
-
-			if (createInfo.Position != null)
-				window.Position = createInfo.Position.Value;
 
 			pWindows.Add(window);
 			return window;

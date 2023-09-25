@@ -224,7 +224,7 @@ namespace REngine.RPI.Features
 						else if(j == 1)
 							binding = pTexturedInstancedPipeline?.CreateResourceBinding();
 
-						pBindings[i] = binding;
+						bindings[i] = binding;
 
 						SetBinding(binding, i);
 					}

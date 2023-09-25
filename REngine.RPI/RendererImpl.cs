@@ -234,11 +234,6 @@ namespace REngine.RPI
 			pLogger.Info("Updated Fixed Buffer");
 		}
 
-		private int GetBufferGroupIndex(BufferGroupType grp)
-		{
-			return ((int)grp) - 1;
-		}
-
 		private void HandleBeginRender(object sender, UpdateEventArgs args)
 		{
 			Compile();

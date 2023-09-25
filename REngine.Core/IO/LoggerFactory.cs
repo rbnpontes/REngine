@@ -200,6 +200,9 @@ namespace REngine.Core.IO
 			}
 			log.Append("[");
 			log.Append(DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss:f"));
+			log.Append("]");
+			log.Append("[");
+			log.Append(tag);
 			log.Append("]: ");
 
 			for(int i = 0;i < args.Length; ++i)

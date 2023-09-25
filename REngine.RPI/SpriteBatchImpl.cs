@@ -16,6 +16,7 @@ namespace REngine.RPI
 		private SpriteBatcher pBatcher;
 		private SpriteBatchFeature pFeature;
 		private SpriteTextureManager pTextureManager;
+		private RenderSettings pRenderSettings;
 
 		public IRenderFeature Feature { get => pFeature; }
 
@@ -24,7 +25,8 @@ namespace REngine.RPI
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
 			EngineEvents engineEvents,
-			RPIEvents rendererEvents
+			RPIEvents rendererEvents,
+			RenderSettings renderSettings
 		)
 		{
 			pTextureManager = texManager;
@@ -34,6 +36,7 @@ namespace REngine.RPI
 				texManager,
 				settings
 			);
+			pRenderSettings = renderSettings;
 
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnBeginUpdate += HandleBeginUpdate;
@@ -55,6 +58,7 @@ namespace REngine.RPI
 		{
 			pBatcher.Reset();
 			pTextureManager.Dispose();
+			pFeature.Dispose();
 		}
 
 		private void HandleBeginUpdate(object sender, UpdateEventArgs args)
@@ -71,20 +75,46 @@ namespace REngine.RPI
 
 		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
 		{
+			AssertSlot(textureSlot);
 			pBatcher.Add(textureSlot, instances);
 			return this;
 		}
 
 		public ISpriteBatch SetTexture(byte slot, ITexture texture)
 		{
+			AssertSlot(slot);
 			pTextureManager.SetTexture(slot, texture);
 			return this;
 		}
 
 		public ISpriteBatch SetTexture(byte slot, Image image)
 		{
+			AssertSlot(slot);
 			pTextureManager.SetTexture(slot, image);
 			return this;
 		}
+
+		private void AssertSlot(byte slot)
+		{
+			if (slot >= pRenderSettings.SpriteBatchMaxTextures)
+				throw new ArgumentOutOfRangeException($"Slot is greater than max allowed sprite textures. Increase value on Render Settings. Max={pRenderSettings.SpriteBatchMaxTextures}");
+		}
+
+		public ISpriteBatch ClearTexture(byte slot)
+		{
+			AssertSlot(slot);
+			pTextureManager.SetTextureNull(slot);
+			return this;
+		}
+
+		public ISpriteBatch ClearTextures()
+		{
+			for(byte slot = 0; slot < pRenderSettings.SpriteBatchMaxTextures; ++slot)
+			{
+				ClearTexture(slot);
+			}
+			return this;
+		}
+
 	}
 }

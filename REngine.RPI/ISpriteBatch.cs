@@ -48,10 +48,16 @@ namespace REngine.RPI
 
 	public interface ISpriteBatch
 	{
+		/// <summary>
+		/// Returns SpriteBatch Render Feature
+		/// Don´t dispose this object, SpriteBatch handles for you
+		/// </summary>
 		public IRenderFeature Feature { get; }
 		public ISpriteBatch SetTexture(byte slot, ITexture texture);
 		public ISpriteBatch SetTexture(byte slot, Image image);
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
 		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> spriteInstancedInfo);
+		public ISpriteBatch ClearTexture(byte slot);
+		public ISpriteBatch ClearTextures();
 	}
 }
