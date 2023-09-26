@@ -13,6 +13,13 @@ namespace REngine.RPI
 {
 	internal class SpriteBatchImpl : ISpriteBatch
 	{
+		enum Step
+		{
+			Begin,
+			Draw,
+			End
+		}
+
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
 		private readonly RenderSettings pRenderSettings;
@@ -31,6 +38,11 @@ namespace REngine.RPI
 				return feature;
 #pragma warning restore CS8603 // Possible null reference return.
 			}
+		}
+
+		public bool IsReady
+		{
+			get => pTextureManager.IsReady;
 		}
 
 		public SpriteBatchImpl(
@@ -131,5 +143,12 @@ namespace REngine.RPI
 			return this;
 		}
 
+		public Task WaitTasks()
+		{
+			return Task.Run(() =>
+			{
+				pTextureManager.WaitTasks();
+			});
+		}
 	}
 }

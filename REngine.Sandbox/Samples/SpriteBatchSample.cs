@@ -48,6 +48,9 @@ namespace REngine.Sandbox.Samples
 
 		public void Update(IServiceProvider provider)
 		{
+			if (pSpriteBatch?.IsReady == false)
+				return;
+
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			Size wndSize = Window?.Size ?? new Size();
 			Vector2 halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);

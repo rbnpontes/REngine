@@ -49,6 +49,13 @@ namespace REngine.RPI
 	public interface ISpriteBatch
 	{
 		/// <summary>
+		/// Indicates if SpriteBatch has finished your jobs
+		/// This doest not affect performance, but if you want 
+		/// wait your contents to be renderer, you can check this value
+		/// in a update loop. Or you can use WaitTask method to wait in a Task
+		/// </summary>
+		public bool IsReady { get; }
+		/// <summary>
 		/// Returns SpriteBatch Render Feature
 		/// Don´t dispose this object, SpriteBatch handles for you
 		/// </summary>
@@ -59,5 +66,6 @@ namespace REngine.RPI
 		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> spriteInstancedInfo);
 		public ISpriteBatch ClearTexture(byte slot);
 		public ISpriteBatch ClearTextures();
+		public Task WaitTasks();
 	}
 }

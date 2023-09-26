@@ -43,6 +43,12 @@ namespace REngine.RPI
 
 		public ITexture?[] Textures { get => pTextures; }
 
+
+		public bool IsReady
+		{
+			get => pBuildTasks.Count == 0 && pTextures2Insert.Count == 0;
+		}
+
 		public event EventHandler? OnUpdateTextures;
 		
 		public SpriteTextureManager(
@@ -113,9 +119,7 @@ namespace REngine.RPI
 					continue;
 				}
 
-				BuildResult result = nextTask.Value.Result;
-				pLogger.Info($"Set Task Texture on Slot {result.Slot}");
-				CheckAndSetTexture(result.Slot, result.Texture);
+				ProcessTask(currTask.Value);
 
 				nextTask = currTask.Next;
 				pBuildTasks.Remove(currTask);
@@ -132,6 +136,13 @@ namespace REngine.RPI
 				CheckAndSetTexture(slot, texture);
 				changed = true;
 			}
+		}
+
+		private void ProcessTask(Task<BuildResult> task)
+		{
+			BuildResult result = task.Result;
+			pLogger.Info($"Set task texture on slot {result.Slot}");
+			CheckAndSetTexture(result.Slot, result.Texture);
 		}
 
 		public void Dispose()
@@ -164,6 +175,16 @@ namespace REngine.RPI
 			pStopTasks.Dispose();
 		}
 		
+		public void WaitTasks()
+		{
+			var nextTask = pBuildTasks.First;
+			while(nextTask != null)
+			{
+				nextTask.Value.Wait();
+				nextTask = nextTask.Next;
+			}
+		}
+
 		public void SetTexture(byte slot, ITexture texture)
 		{
 			pTextures2Insert.Enqueue((slot, texture));

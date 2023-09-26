@@ -289,7 +289,7 @@ namespace REngine.RPI.Features
 		public IRenderFeature Execute(ICommandBuffer command)
 		{
 			BufferData cbufferData = new BufferData();
-			InstancedBufferData instancedBufferData = new InstancedBufferData();
+			InstancedBufferData instancedBufferData = new();
 
 			if (pRenderer?.SwapChain is null || pDriver is null)
 				return this;
@@ -342,7 +342,7 @@ namespace REngine.RPI.Features
 			}
 		}
 
-		private void ExecuteInstanced(
+		private unsafe void ExecuteInstanced(
 			ICommandBuffer cmd,
 			IBuffer vertexBuffer,
 			IPipelineState defaultPipeline,
@@ -382,7 +382,7 @@ namespace REngine.RPI.Features
 
 
 			IBuffer[] vbuffers = new IBuffer[] { vertexBuffer, pInstanceBuffer };
-
+			
 			for(int i =0; i < batches.Count; ++i)
 			{
 				(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> items) = batches[i];
@@ -390,24 +390,21 @@ namespace REngine.RPI.Features
 				var count = items.Count();
 				items.AsParallel().Select((x, idx) =>
 				{
-					return (GetInstancedVertexData(x), idx);
+					GetInstancedVertexData(x, ref pCachedInstancedVertexData[idx]);
+					return x;
 				})
-				.ForAll(parallelItem =>
-				{
-					var (data, idx) = parallelItem;
-					pCachedInstancedVertexData[idx] = data;
-				});
+				.ForAll(idx => { });
 
+				fixed (InstancedVertexData* data = pCachedInstancedVertexData)
 				{
-					Span<InstancedVertexData> vertexData = new Span<InstancedVertexData>(pCachedInstancedVertexData, 0, count);
-					Span<InstancedVertexData> mappedData = cmd.Map<InstancedVertexData>(pInstanceBuffer, MapType.Write, MapFlags.Discard);
-					vertexData.CopyTo(mappedData);
+					ulong copyDataSize = (ulong)(count * Marshal.SizeOf<SpriteInstancedBatchInfo>());
+					IntPtr mappedData = cmd.Map(pInstanceBuffer, MapType.Write, MapFlags.Discard);
+					Buffer.MemoryCopy(data, mappedData.ToPointer(), copyDataSize, copyDataSize);
 					cmd.Unmap(pInstanceBuffer, MapType.Write);
 				}
 
 				IShaderResourceBinding? binding = textureSlot != byte.MaxValue ? pInstancedBindings[textureSlot] : defaultPipeline.GetResourceBinding();
-				if (binding is null)
-					binding = defaultPipeline.GetResourceBinding();
+				binding ??= defaultPipeline.GetResourceBinding();
 
 				cmd
 					.SetVertexBuffers(0, vbuffers)
@@ -432,7 +429,7 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		private void FillBufferData(in SpriteBatchInfo item, ref BufferData data)
+		private static void FillBufferData(in SpriteBatchInfo item, ref BufferData data)
 		{	
 			data.Transform = GetTransform(item.Position, item.Anchor, item.Angle, item.Size);
 			data.Color = new Vector4(
@@ -442,13 +439,10 @@ namespace REngine.RPI.Features
 				item.Color.A / 255.0f
 			);
 		}
-		private static InstancedVertexData GetInstancedVertexData(in SpriteInstancedBatchInfo item)
+		private static void GetInstancedVertexData(in SpriteInstancedBatchInfo item, ref InstancedVertexData output)
 		{
-			return new InstancedVertexData
-			{
-				PositionAndScale = new Vector4(item.Position.X, item.Position.Y, item.Size.X, item.Size.Y),
-				RotationAndAnchor = new Vector4(item.Anchor.X, item.Anchor.Y, item.Angle, 0)
-			};
+			output.PositionAndScale = new Vector4(item.Position.X, item.Position.Y, item.Size.X, item.Size.Y);
+			output.RotationAndAnchor = new Vector4(item.Anchor.X, item.Anchor.Y, item.Angle, 0);
 		}
 
 		private static Matrix4x4 GetTransform(in Vector2 position, in Vector2 anchor, float rotation, in Vector2 scale)
