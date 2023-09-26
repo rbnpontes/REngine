@@ -1,4 +1,5 @@
 ﻿using REngine.Core.DependencyInjection;
+using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,6 +69,8 @@ namespace REngine.Core
 				throw new NullReferenceException("IServiceProvider is null");
 
 			pServiceProvider.Get<EngineEvents>().ExecuteStart();
+			using (FileStream stream = new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/ExecutionPipeline.xml"), FileMode.Open))
+				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
 			pApp.OnStart(pServiceProvider);
 			return this;
 		}

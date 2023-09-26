@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<pipeline>
+	<step id="frame">
+		<step id="update_begin">
+			<task id="spritebatch_task" end="render_begin">
+				<step id="spritebatch_draw"/>
+				<step id="spritebatch_build_tex"/>
+			</task>
+			<task id="update_swapchain_wnd_task" end="render">
+				<step id="swapchain_present"/>
+				<step id="windows_update"/>
+			</task>
+		</step>
+		<step id="update"/>
+		<step id="render_begin"/>
+		<step id="render"/>
+		<step id="render_end">
+			<step id="windows_invalidate"/>
+		</step>
+	</step>
+</pipeline>
