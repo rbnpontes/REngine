@@ -14,7 +14,10 @@ namespace REngine.Core.Threading
 		protected readonly LinkedList<Action<IExecutionPipeline>> pEvents = new();
 
 		public int Id { get; set; } = 0;
-		
+#if DEBUG
+		public string IdName { get; set; } = string.Empty;
+#endif
+
 		public List<EPNode> Children { get; set; } = new List<EPNode>();
 		public EPNode? Parent { get; set; } = null;
 
@@ -44,11 +47,13 @@ namespace REngine.Core.Threading
 			}
 		}
 
-		public virtual void Execute(ExecutionPipelineImpl executionPipeline)
+		public virtual void Execute(ExecutionPipelineImpl pipeline)
 		{
 			var nextLinkedNode = LinkedNodes.First;
 			while(nextLinkedNode != null)
 			{
+				pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+
 				nextLinkedNode.Value.ExecuteLinkedNode(this);
 				nextLinkedNode = nextLinkedNode.Next;
 			}
@@ -69,6 +74,8 @@ namespace REngine.Core.Threading
 
 		protected void ExecuteEvents(ExecutionPipelineImpl pipeline)
 		{
+			pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+
 			LinkedListNode<Action<IExecutionPipeline>>? nextEvent;
 			lock (pSyncObj)
 			{
@@ -77,13 +84,18 @@ namespace REngine.Core.Threading
 
 			while(nextEvent != null)
 			{
+				pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+
 				Action<IExecutionPipeline> action = nextEvent.Value;
 				action(pipeline);
 				nextEvent = nextEvent.Next;
 			}
+
+			pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 		}
 		protected void ExecuteChildrens(ExecutionPipelineImpl pipeline)
 		{
+			pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			foreach (var child in Children)
 				child.Execute(pipeline);
 		}
@@ -98,6 +110,7 @@ namespace REngine.Core.Threading
 		{
 			base.Execute(executionPipeline);
 			ExecuteEvents(executionPipeline);
+			ExecuteChildrens(executionPipeline);
 		}
 
 		public static StepNode Resolve(XmlElement element)
@@ -109,6 +122,9 @@ namespace REngine.Core.Threading
 				throw new Exception($"Id attribute is required on <step/> element.\nCode: {element.OuterXml}");
 
 			StepNode node = new(hashCode);
+#if DEBUG
+			node.IdName = id;
+#endif
 			return node;
 		}
 
@@ -126,13 +142,15 @@ namespace REngine.Core.Threading
 		public TaskNode(int id = 0) : base(id) { }
 		public TaskNode(EPNode parent) : base(parent) { }
 
-		public override void Execute(ExecutionPipelineImpl executionPipeline)
+		public override void Execute(ExecutionPipelineImpl pipeline)
 		{
+			pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			lock (pSyncObject)
 			{
 				pIncomingTask = Task.Run(() =>
 				{
-					ExecuteEvents(executionPipeline);
+					ExecuteEvents(pipeline);
+					ExecuteChildrens(pipeline);
 				});
 
 				if (Target is null)
@@ -199,7 +217,6 @@ namespace REngine.Core.Threading
 				task = pIncomingTask;
 				pIncomingTask = null;
 			}
-
 			task?.Wait();
 		}
 
@@ -216,8 +233,11 @@ namespace REngine.Core.Threading
 
 			if (targetNodeId == hashCode)
 				throw new Exception("End attribute must not be equal to element id.");
-
-			return new TaskNode(hashCode);
+			TaskNode result = new(hashCode);
+#if DEBUG
+			result.IdName = id;
+#endif
+			return result;
 		}
 	}
 }

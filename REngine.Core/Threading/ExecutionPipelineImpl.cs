@@ -8,9 +8,29 @@ namespace REngine.Core.Threading
 {
     internal class ExecutionPipelineImpl : IExecutionPipeline
     {
+        private static readonly LinkedList<Action> EmptyScheduledCalls = new();
+        private readonly object pSyncObj = new();
+
+        public readonly CancellationTokenSource StopTokenSource = new ();
+
         private IList<EPNode> pNodes = new List<EPNode>();
         private IDictionary<int, EPNode> pNodesTable = new Dictionary<int, EPNode>();
         private EPNode? pLastNode;
+        private LinkedList<Action> pExecuteScheduledCalls = new();
+
+        public ExecutionPipelineImpl(
+            EngineEvents engineEvents)
+        {
+            engineEvents.OnBeforeStop += HandleStop;
+        }
+
+        private void HandleStop(object? sender, EventArgs e)
+        {
+			StopTokenSource.Cancel();
+            ClearAllEvents();
+            pNodes.Clear();
+            pNodesTable.Clear();
+        }
 
         public IExecutionPipeline Load(Stream stream)
         {
@@ -25,6 +45,32 @@ namespace REngine.Core.Threading
         
         public IExecutionPipeline Execute()
         {
+            if (StopTokenSource.IsCancellationRequested)
+            {
+                lock (pSyncObj)
+                    pExecuteScheduledCalls.Clear();
+                return this;
+            }
+
+            LinkedList<Action> calls;
+            lock (pSyncObj)
+            {
+                calls = pExecuteScheduledCalls;
+                // Only recreate calls if count is greater than 0
+                if (pExecuteScheduledCalls.Count == 0)
+                    calls = EmptyScheduledCalls;
+                else
+                    pExecuteScheduledCalls = new LinkedList<Action>();
+            }
+
+            // Execute Calls
+            LinkedListNode<Action>? nextCall = calls.First;
+            while(nextCall != null)
+            {
+                nextCall.Value();
+                nextCall = nextCall.Next;
+            }
+
             foreach (EPNode node in pNodes)
                 node.Execute(this);
             return this;
@@ -89,5 +135,12 @@ namespace REngine.Core.Threading
 			pLastNode?.ClearEvents();
 			return this;
 		}
+
+        public IExecutionPipeline Invoke(Action action)
+        {
+            lock (pSyncObj)
+                pExecuteScheduledCalls.AddLast(action);
+            return this;
+        }
     }
 }

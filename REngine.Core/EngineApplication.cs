@@ -60,6 +60,9 @@ namespace REngine.Core
 			pApp.OnSetup(registry);
 
 			pServiceProvider = registry.Build();
+			using (FileStream stream = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/ExecutionPipeline.xml"), FileMode.Open))
+				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
+
 			return this;
 		}
 
@@ -69,8 +72,6 @@ namespace REngine.Core
 				throw new NullReferenceException("IServiceProvider is null");
 
 			pServiceProvider.Get<EngineEvents>().ExecuteStart();
-			using (FileStream stream = new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/ExecutionPipeline.xml"), FileMode.Open))
-				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
 			pApp.OnStart(pServiceProvider);
 			return this;
 		}

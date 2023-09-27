@@ -2,13 +2,13 @@
 <pipeline>
 	<step id="frame">
 		<step id="update_begin">
+			<step id="windows_update"/>
 			<task id="spritebatch_task" end="render_begin">
 				<step id="spritebatch_draw"/>
 				<step id="spritebatch_build_tex"/>
 			</task>
 			<task id="update_swapchain_wnd_task" end="render">
 				<step id="swapchain_present"/>
-				<step id="windows_update"/>
 			</task>
 		</step>
 		<step id="update"/>

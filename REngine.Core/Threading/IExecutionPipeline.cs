@@ -24,5 +24,15 @@ namespace REngine.Core.Threading
         public IExecutionPipeline RemoveEvent(int eventHashCode, Action<IExecutionPipeline> callback);
         public IExecutionPipeline ClearEvents(string eventName);
         public IExecutionPipeline ClearEvents(int eventHashCode);
+
+        /// <summary>
+        /// Execute call into Begining of Execute call
+        /// In other words, this invoke will be scheduled to
+        /// Thread that is called Execute, in our case
+        /// Main Thread.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public IExecutionPipeline Invoke(Action action);
     }
 }

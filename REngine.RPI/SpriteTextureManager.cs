@@ -237,28 +237,29 @@ namespace REngine.RPI
 
 		private async Task<ITexture> BuildTexture(Image image)
 		{
-			if (pDriver is null)
-				throw new NullReferenceException("Can´t build texture. Driver is required!");
-			pStopTasks.Token.ThrowIfCancellationRequested();
-			// Wait render finish before continue
-			if (pEngine.Step == EngineExecutionStep.Render)
-			{
-				pLogger.Info("Waiting Render");
-				await pEngine.WaitRender();
-			}
-			pStopTasks.Token.ThrowIfCancellationRequested();
-			pLogger.Info("Building Texture");
-			return pDriver.Device.CreateTexture(new TextureDesc
-			{
-				Name = $"SpriteBatch Texture #{image.GetHashCode()}",
-				Size = new TextureSize(image.Size.Width, image.Size.Height),
-				Format = TextureFormat.RGBA8UNormSRGB,
-				BindFlags = BindFlags.ShaderResource,
-				Usage = Usage.Immutable
-			}, new ITextureData[]
-			{
-				new ByteTextureData(image.Data, (ulong)(image.Size.Width * image.Components))
-			});
+			throw new NotImplementedException("Method Broken");
+			//if (pDriver is null)
+			//	throw new NullReferenceException("Can´t build texture. Driver is required!");
+			//pStopTasks.Token.ThrowIfCancellationRequested();
+			//// Wait render finish before continue
+			//if (pEngine.Step == EngineExecutionStep.Render)
+			//{
+			//	pLogger.Info("Waiting Render");
+			//	await pEngine.WaitRender();
+			//}
+			//pStopTasks.Token.ThrowIfCancellationRequested();
+			//pLogger.Info("Building Texture");
+			//return pDriver.Device.CreateTexture(new TextureDesc
+			//{
+			//	Name = $"SpriteBatch Texture #{image.GetHashCode()}",
+			//	Size = new TextureSize(image.Size.Width, image.Size.Height),
+			//	Format = TextureFormat.RGBA8UNormSRGB,
+			//	BindFlags = BindFlags.ShaderResource,
+			//	Usage = Usage.Immutable
+			//}, new ITextureData[]
+			//{
+			//	new ByteTextureData(image.Data, (ulong)(image.Size.Width * image.Components))
+			//});
 		}
 	}
 #endif
