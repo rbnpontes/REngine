@@ -1,11 +1,5 @@
 ﻿using REngine.Core;
 using REngine.Core.Threading;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace REngine.Windows
 {
@@ -100,7 +94,6 @@ namespace REngine.Windows
 				return this;
 
 			PumpMessages(IntPtr.Zero);
-
 			int closedWindows = 0;
 			foreach(var window in pWindows)
 			{
@@ -110,11 +103,7 @@ namespace REngine.Windows
 
 
 			if (closedWindows == pWindows.Count)
-			{
 				pEngine.Stop();
-			}
-
-			PumpMessages(IntPtr.Zero);
 			return this;
 		}
 

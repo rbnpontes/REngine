@@ -2,13 +2,11 @@
 <pipeline>
 	<step id="frame">
 		<step id="update_begin">
+			<!-- Message Loop must be executed at Main Thread-->
 			<step id="windows_update"/>
 			<task id="spritebatch_task" end="render_begin">
 				<step id="spritebatch_draw"/>
 				<step id="spritebatch_build_tex"/>
-			</task>
-			<task id="update_swapchain_wnd_task" end="render">
-				<step id="swapchain_present"/>
 			</task>
 		</step>
 		<step id="update"/>
@@ -16,6 +14,12 @@
 		<step id="render"/>
 		<step id="render_end">
 			<step id="windows_invalidate"/>
+			<!-- 
+				SwapChain Present must be called at Main Thread
+				If you need this parallelized, you can do but
+				you will deal with unexpected issues on Windows
+			-->
+			<step id="swapchain_present"/>
 		</step>
 	</step>
 </pipeline>
