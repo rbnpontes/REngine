@@ -37,6 +37,11 @@ namespace REngine.Sandbox.Samples
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
 			pSpriteFeature?.Dispose();
+
+			if(pSpriteBatch != null)
+				pSpriteBatch.OnDraw -= OnDraw;
+
+			GC.SuppressFinalize(this);
 		}
 
 		public void Load(IServiceProvider provider)
@@ -54,14 +59,20 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
 			pEngine = provider.Get<IEngine>();
+
+			pSpriteBatch.OnDraw += OnDraw;
 		}
 
-		public void Update(IServiceProvider provider)
+		private void OnDraw(object? sender, EventArgs e)
 		{
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			Size wndSize = Window?.Size ?? new Size();
 
 			pSpriteBatch?.Draw(0, GetSpriteInstances(elapsedTime, wndSize));
+		}
+
+		public void Update(IServiceProvider provider)
+		{
 		}
 
 		private IEnumerable<SpriteInstancedBatchInfo> GetSpriteInstances(float elapsed, Size wndSize)

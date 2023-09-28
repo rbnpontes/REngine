@@ -27,6 +27,9 @@ namespace REngine.Sandbox.Samples
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
 			pSpriteFeature?.Dispose();
+
+			if (pSpriteBatch != null)
+				pSpriteBatch.OnDraw -= OnDraw;
 		}
 
 		public void Load(IServiceProvider provider)
@@ -44,9 +47,11 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
 			pEngine = provider.Get<IEngine>();
+
+			pSpriteBatch.OnDraw += OnDraw;
 		}
 
-		public void Update(IServiceProvider provider)
+		private void OnDraw(object? sender, EventArgs e)
 		{
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			Size wndSize = Window?.Size ?? new Size();
@@ -76,6 +81,10 @@ namespace REngine.Sandbox.Samples
 				Size = new Vector2(150),
 				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
 			});
+		}
+
+		public void Update(IServiceProvider provider)
+		{
 		}
 
 		private float AnalogicTime(float t, float freq, float amplitude)

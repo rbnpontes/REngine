@@ -48,6 +48,7 @@ namespace REngine.RPI
 
 	public interface ISpriteBatch
 	{
+		public event EventHandler? OnDraw;
 		/// <summary>
 		/// Returns SpriteBatch Render Feature
 		/// Don´t dispose this object, SpriteBatch handles for you

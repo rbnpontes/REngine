@@ -122,11 +122,12 @@ namespace REngine.RPI.Features
 
 		public void UpdateTextures()
 		{
-			DirtyFlags dirtyFlags = DirtyFlags.Bindings;
-			if(pTextureManager.Textures.Length != pBindings.Length)
-				dirtyFlags |= DirtyFlags.BindingInvalid;
+			MarkAsDirty(DirtyFlags.Bindings);
+		}
 
-			MarkAsDirty(dirtyFlags);
+		public void UpdateBindings()
+		{
+			MarkAsDirty(DirtyFlags.BindingInvalid);
 		}
 
 		public void Dispose()
@@ -217,51 +218,54 @@ namespace REngine.RPI.Features
 					pDirtyFlags |= DirtyFlags.BindingInvalid;
 			}
 
-			if((pDirtyFlags & DirtyFlags.BindingInvalid) != 0)
+			lock (pTextureManager.TextureSyncObj)
 			{
-				IPipelineState?[] pipelineArray = new IPipelineState?[]
+				if ((pDirtyFlags & DirtyFlags.BindingInvalid) != 0)
 				{
+					IPipelineState?[] pipelineArray = new IPipelineState?[]
+					{
 					pTexturedPipeline, pTexturedInstancedPipeline
-				};
+					};
 
-				for (var j =0; j < bindingArray.Length; ++j)
-				{
-					var bindings = bindingArray[j];
-					// If texture count has been changed
-					// we must recreate bindings array
-					if(bindings.Length != pTextureManager.Textures.Length)
+					for (var j = 0; j < bindingArray.Length; ++j)
 					{
-						// dispose previous data
-						foreach (var binding in bindings)
+						var bindings = bindingArray[j];
+						// If texture count has been changed
+						// we must recreate bindings array
+						if (bindings.Length != pTextureManager.Textures.Length)
+						{
+							// dispose previous data
+							foreach (var binding in bindings)
+								binding?.Dispose();
+							bindingArray[j] = bindings = new IShaderResourceBinding[pTextureManager.Textures.Length];
+						}
+
+
+						for (byte i = 0; i < bindings.Length; ++i)
+						{
+							var binding = bindings[i];
+
 							binding?.Dispose();
-						bindingArray[j] = bindings = new IShaderResourceBinding[pTextureManager.Textures.Length];
+							binding = pipelineArray[j]?.CreateResourceBinding();
+							bindings[i] = binding;
+
+							SetBinding(binding, i);
+						}
 					}
-
-
-					for (byte i = 0; i < bindings.Length; ++i)
-					{
-						var binding = bindings[i];
-
-						binding?.Dispose();
-						binding = pipelineArray[j]?.CreateResourceBinding();
-						bindings[i] = binding;
-
-						SetBinding(binding, i);
-					}
+					// remove bindings flag because we already this step while is creating binding
+					pDirtyFlags ^= DirtyFlags.Bindings;
 				}
-				// remove bindings flag because we already this step while is creating binding
-				pDirtyFlags ^= DirtyFlags.Bindings;
-			}
 
-			pBindings = bindingArray[0];
-			pInstancedBindings = bindingArray[1];
+				pBindings = bindingArray[0];
+				pInstancedBindings = bindingArray[1];
 
-			if((pDirtyFlags & DirtyFlags.Bindings) != 0)
-			{
-				foreach(var bindings in bindingArray)
+				if ((pDirtyFlags & DirtyFlags.Bindings) != 0)
 				{
-					for(byte i =0; i< bindings.Length; ++i)
-						SetBinding(bindings[i], i);
+					foreach (var bindings in bindingArray)
+					{
+						for (byte i = 0; i < bindings.Length; ++i)
+							SetBinding(bindings[i], i);
+					}
 				}
 			}
 
@@ -432,7 +436,7 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		private void FillBufferData(in SpriteBatchInfo item, ref BufferData data)
+		private static void FillBufferData(in SpriteBatchInfo item, ref BufferData data)
 		{	
 			data.Transform = GetTransform(item.Position, item.Anchor, item.Angle, item.Size);
 			data.Color = new Vector4(
@@ -465,7 +469,7 @@ namespace REngine.RPI.Features
 
 		private IPipelineState CreatePipeline(IDevice device, IShader vshader, IShader pshader, bool instanced) 
 		{
-			GraphicsPipelineDesc desc = new GraphicsPipelineDesc();
+			GraphicsPipelineDesc desc = new();
 			desc.Name = "Spritebatch PSO";
 			if (instanced)
 				desc.Name = desc.Name + "(Instanced)";
