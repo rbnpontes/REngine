@@ -1,4 +1,5 @@
 ﻿using REngine.Core.DependencyInjection;
+using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,6 +60,9 @@ namespace REngine.Core
 			pApp.OnSetup(registry);
 
 			pServiceProvider = registry.Build();
+			using (FileStream stream = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/ExecutionPipeline.xml"), FileMode.Open))
+				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
+
 			return this;
 		}
 

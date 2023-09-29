@@ -48,7 +48,6 @@ namespace REngine.RPI
 			pGraphicsSettings = settings;
 
 			engineEvents.OnStart += HandleStart;
-			engineEvents.OnBeginUpdate += HandleBeginUpdate;
 			engineEvents.OnStop += HandleStop;
 			rendererEvents.OnUpdateSettings += HandleUpdateSettings;
 			pTextureManager.OnUpdateTextures += HandleUpdateTextures;
