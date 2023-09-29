@@ -39,6 +39,11 @@ namespace REngine.Sandbox.Samples
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
 			pSpriteFeature?.Dispose();
+
+			if(pSpriteBatch != null)
+				pSpriteBatch.OnDraw -= OnDraw;
+
+			GC.SuppressFinalize(this);
 		}
 
 		public void Load(IServiceProvider provider)
@@ -59,9 +64,11 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
 			pEngine = provider.Get<IEngine>();
+
+			pSpriteBatch.OnDraw += OnDraw;
 		}
 
-		public void Update(IServiceProvider provider)
+		private void OnDraw(object? sender, EventArgs e)
 		{
 			if (pSpriteBatch?.IsReady == false || pInstancingObject is null)
 				return;
@@ -73,6 +80,10 @@ namespace REngine.Sandbox.Samples
 			pSpriteBatch?.Draw(0, pInstancingObject);
 		}
 
+		public void Update(IServiceProvider provider)
+		{
+		}
+		
 		private void UpdateInstances(ISpriteInstancing instancing, float elapsed, Size wndSize)
 		{
 			Vector2 size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));

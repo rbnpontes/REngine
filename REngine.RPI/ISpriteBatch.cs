@@ -63,6 +63,7 @@ namespace REngine.RPI
 
 	public interface ISpriteBatch
 	{
+		public event EventHandler? OnDraw;
 		/// <summary>
 		/// Indicates if SpriteBatch has finished your jobs
 		/// This doest not affect performance, but if you want 
@@ -83,6 +84,5 @@ namespace REngine.RPI
 		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem);
 		public ISpriteBatch ClearTexture(byte slot);
 		public ISpriteBatch ClearTextures();
-		public Task WaitTasks();
 	}
 }
