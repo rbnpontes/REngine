@@ -160,9 +160,9 @@ namespace REngine.RPI
 					nextTask.Value.Wait();
 					var result = nextTask.Value.Result;
 					result.Texture.Dispose();
-					nextTask = nextTask.Next;
 				}
 				catch { }
+				nextTask = nextTask.Next;
 			}
 
 			foreach(var tex in pTextures)

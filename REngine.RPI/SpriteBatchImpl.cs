@@ -73,6 +73,7 @@ namespace REngine.RPI
 		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
 			pFeature?.CheckCBufferSizes(e.Settings.ObjectBufferSize);
+			pBatcher.UpdateSettings();
 		}
 
 		private void HandleStart(object? sender, EventArgs e)
@@ -99,13 +100,6 @@ namespace REngine.RPI
 		public ISpriteBatch Draw(SpriteBatchInfo batchInfo)
 		{
 			pBatcher.Add(batchInfo);
-			return this;
-		}
-
-		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
-		{
-			AssertSlot(textureSlot);
-			pBatcher.Add(textureSlot, instances);
 			return this;
 		}
 
@@ -148,6 +142,18 @@ namespace REngine.RPI
 			{
 				pTextureManager.WaitTasks();
 			});
+		}
+
+		public ISpriteInstancing GetInstancing(int length)
+		{
+			return pBatcher.Allocate(length);
+		}
+
+		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem)
+		{
+			if(instancingItem is SpriteInstancing item)
+				pBatcher.Add(textureSlot, item);
+			return this;
 		}
 	}
 }

@@ -34,8 +34,8 @@ namespace REngine.Sandbox.Samples
 			pSpriteBatch = provider.Get<ISpriteBatch>();
 
 			// Load Sprite
-			ImageAsset sprite = new ImageAsset("doge.png");
-			using (FileStream stream = new FileStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
+			ImageAsset sprite = new("doge.png");
+			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
 				sprite.Load(stream).Wait();
 
 			// Set Sprite on Spritebatch

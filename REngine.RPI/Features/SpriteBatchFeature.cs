@@ -4,6 +4,7 @@ using REngine.Core.Resources;
 using REngine.RHI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -48,11 +49,6 @@ namespace REngine.RPI.Features
 				Projection = Matrix4x4.Identity;
 				Color = Vector4.One;
 			}
-		}
-		struct InstancedVertexData
-		{
-			public Vector4 PositionAndScale;
-			public Vector4 RotationAndAnchor;
 		}
 
 		class TextureCache : IDisposable
@@ -102,7 +98,6 @@ namespace REngine.RPI.Features
 
 		private IBuffer? pVBuffer;
 		private IBuffer? pInstanceBuffer;
-		private InstancedVertexData[] pCachedInstancedVertexData = Array.Empty<InstancedVertexData>();
 		private IBufferProvider? pBufferProvider;
 
 		private DirtyFlags pDirtyFlags = DirtyFlags.All;
@@ -153,8 +148,6 @@ namespace REngine.RPI.Features
 			pTexturedInstancedPipeline?.Dispose();
 			pVBuffer?.Dispose();
 			pInstanceBuffer?.Dispose();
-
-			pCachedInstancedVertexData = Array.Empty<InstancedVertexData>();
 
 			pVBuffer = null;
 			pDefaultPipeline = pTexturedPipeline = pInstancedPipeline = pTexturedInstancedPipeline = null;
@@ -352,54 +345,47 @@ namespace REngine.RPI.Features
 			if (pBufferProvider is null)
 				return;
 
-			var batches = pBatcher.InstancedItems;
+			var entries = pBatcher.InstanceEntries;
 
-			if (batches.Count == 0)
+			if (entries.Count == 0)
 				return;
 
-			{
+			{	// Write First CBuffer
 				var mappedData = cmd.Map<InstancedBufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
 				mappedData[0] = bufferData;
 				cmd.Unmap(pCBuffer, MapType.Write);
 			}
 
-			ulong requiredInstanceBufferSize = 0;
-			int transformSize = Marshal.SizeOf<Matrix4x4>();
-			// before render, we must know how big will be our data
-			// to transfer instance data into GPU
-			foreach(var batch in batches)
-				requiredInstanceBufferSize = Math.Max(requiredInstanceBufferSize, (ulong)(batch.Item2.Count() * transformSize));
-
 			// we also store instance buffer
 			// this prevents to reexecute buffer provider to get a new one at every frame
 			// So we only change get new instance buffer if required data is greater than buffer.
-			if(pInstanceBuffer?.Size < requiredInstanceBufferSize || pInstanceBuffer is null)
+			if(pInstanceBuffer?.Size < pBatcher.MaxAllocatedInstanceItems || pInstanceBuffer is null)
 			{
 				pInstanceBuffer?.Dispose();
-				pInstanceBuffer = pBufferProvider.GetInstancingBuffer(requiredInstanceBufferSize, true);
-				pCachedInstancedVertexData = new InstancedVertexData[requiredInstanceBufferSize]; // resize cache array
+				pInstanceBuffer = pBufferProvider.GetInstancingBuffer(pBatcher.MaxAllocatedInstanceItems, true);
 			}
 
 
 			IBuffer[] vbuffers = new IBuffer[] { vertexBuffer, pInstanceBuffer };
-			
-			for(int i =0; i < batches.Count; ++i)
+
+			byte textureSlot;
+			SpriteInstancing? entry;
+			ulong spriteInstancingSize = (ulong)Marshal.SizeOf<SpriteInstancing>();
+			foreach(var entryPair in entries)
 			{
-				(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> items) = batches[i];
+				textureSlot = entryPair.Value.TextureSlot;
+				// Only Renders Object that still exists
+				if (!entryPair.Value.Instancing.TryGetTarget(out entry))
+					continue;
 
-				var count = items.Count();
-				items.AsParallel().Select((x, idx) =>
+				// Copy data to GPU Buffer
+				fixed (SpriteInstanceItem* data = pBatcher.InstanceData)
 				{
-					GetInstancedVertexData(x, ref pCachedInstancedVertexData[idx]);
-					return x;
-				})
-				.ForAll(idx => { });
-
-				fixed (InstancedVertexData* data = pCachedInstancedVertexData)
-				{
-					ulong copyDataSize = (ulong)(count * Marshal.SizeOf<SpriteInstancedBatchInfo>());
+					ulong copyDataSize = (ulong)entry.Length * spriteInstancingSize;
 					IntPtr mappedData = cmd.Map(pInstanceBuffer, MapType.Write, MapFlags.Discard);
-					Buffer.MemoryCopy(data, mappedData.ToPointer(), copyDataSize, copyDataSize);
+
+					Buffer.MemoryCopy(data + entry.Offset, mappedData.ToPointer(), copyDataSize, copyDataSize);
+
 					cmd.Unmap(pInstanceBuffer, MapType.Write);
 				}
 
@@ -413,7 +399,7 @@ namespace REngine.RPI.Features
 					.Draw(new DrawArgs
 					{
 						NumVertices = 6,
-						NumInstances = (uint)count
+						NumInstances = (uint)entry.Length
 					});
 			}
 		}
@@ -438,11 +424,6 @@ namespace REngine.RPI.Features
 				item.Color.B / 255.0f,
 				item.Color.A / 255.0f
 			);
-		}
-		private static void GetInstancedVertexData(in SpriteInstancedBatchInfo item, ref InstancedVertexData output)
-		{
-			output.PositionAndScale = new Vector4(item.Position.X, item.Position.Y, item.Size.X, item.Size.Y);
-			output.RotationAndAnchor = new Vector4(item.Anchor.X, item.Anchor.Y, item.Angle, 0);
 		}
 
 		private static Matrix4x4 GetTransform(in Vector2 position, in Vector2 anchor, float rotation, in Vector2 scale)

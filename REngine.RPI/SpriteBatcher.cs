@@ -10,77 +10,192 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	//internal struct SpriteBatchInstancedData
-	//{
-	//	public Vector4 PositionAndScale;
-	//	public Vector4 RotationAndAnchor;
+	internal struct SpriteInstanceItem
+	{
+		public Vector4 PositionAndScale;
+		public Vector4 RotationAndAnchor;
+	}
 
-	//	public void Copy(ref SpriteInstancedBatchInfo batch)
-	//	{
-	//		PositionAndScale.X = batch.Position.X;
-	//		PositionAndScale.Y = batch.Position.Y;
-	//		PositionAndScale.Z = batch.Size.X;
-	//		PositionAndScale.W = batch.Size.Y;
+	class SpriteInstancing : ISpriteInstancing
+	{
+		private readonly SpriteBatcher pBatcher;
 
-	//		RotationAndAnchor.X = batch.Anchor.X;
-	//		RotationAndAnchor.Y = batch.Anchor.Y;
-	//		RotationAndAnchor.Z = batch.Angle;
-	//	}
-	//}
+		public int Offset { get; private set; }
+		public int Length { get; private set; }
+
+
+		public SpriteInstancing(SpriteBatcher batcher, int offset, int length)
+		{
+			pBatcher = batcher;
+			Offset = offset;
+			Length = length;
+		}
+		
+		private void ValidateIndex(int idx)
+		{
+			if (idx < 0 || idx >= Length)
+				throw new IndexOutOfRangeException(nameof(GetAnchor));
+		}
+
+		public Vector2 GetAnchor(int idx)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			return new Vector2(pBatcher.InstanceData[idx].RotationAndAnchor.X, pBatcher.InstanceData[idx].RotationAndAnchor.Y);
+		}
+
+		public float GetAngle(int idx)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			return pBatcher.InstanceData[idx].RotationAndAnchor.Z;
+		}
+
+		public Vector2 GetPosition(int idx)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			return new Vector2(pBatcher.InstanceData[idx].PositionAndScale.X, pBatcher.InstanceData[idx].PositionAndScale.Y);
+		}
+
+		public Vector2 GetSize(int idx)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			return new Vector2(pBatcher.InstanceData[idx].PositionAndScale.Z, pBatcher.InstanceData[idx].PositionAndScale.W);
+		}
+
+		public ISpriteInstancing SetAnchor(int idx, Vector2 anchor)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			var data = pBatcher.InstanceData[idx];
+			data.RotationAndAnchor.X = anchor.X;
+			data.RotationAndAnchor.Y = anchor.Y;
+			pBatcher.InstanceData[idx] = data;
+			return this;
+		}
+
+		public ISpriteInstancing SetAngle(int idx, float angle)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+			var data = pBatcher.InstanceData[idx];
+			data.RotationAndAnchor.Z = angle;
+			pBatcher.InstanceData[idx] = data;
+			return this;
+		}
+
+		public ISpriteInstancing SetPosition(int idx, Vector2 position)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+
+			var data = pBatcher.InstanceData[idx];
+			data.PositionAndScale.X = position.X;
+			data.PositionAndScale.Y = position.Y;
+
+			pBatcher.InstanceData[idx] = data;
+			return this;
+		}
+
+		public ISpriteInstancing SetSize(int idx, Vector2 size)
+		{
+			ValidateIndex(idx);
+			idx = Offset + idx;
+
+			var data = pBatcher.InstanceData[idx];
+			data.PositionAndScale.Z = size.X;
+			data.PositionAndScale.W = size.Y;
+
+			pBatcher.InstanceData[idx] = data;
+			return this;
+		}
+	}
+
+	internal class SpriteInstancingEntry
+	{
+		public WeakReference<SpriteInstancing> Instancing { get; set; }
+		public byte TextureSlot { get; set; }
+
+		public SpriteInstancingEntry(byte slot, SpriteInstancing instancing)
+		{
+			TextureSlot = slot;
+			Instancing = new WeakReference<SpriteInstancing>(instancing);
+		}
+	}
+
 	internal class SpriteBatcher
 	{
+		private readonly RenderSettings pSettings;
+
 		public BatchList<SpriteBatchInfo> Items { get; private set; }
-		public BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)> InstancedItems { get; set; }
 
-		//public SpriteBatchInstancedData[] InstancedData { get; set; } = Array.Empty<SpriteBatchInstancedData>();
-		//private int pMaxInstancedObjects = 0;
+		public SpriteInstanceItem[] InstanceData { get; private set; }
+		public int TotalInstanceItems { get; private set; }
+		public ulong MaxAllocatedInstanceItems { get; private set; }
 
-		public SpriteBatcher(RenderSettings settings, RPIEvents renderEvents)
+		public Dictionary<int, SpriteInstancingEntry> InstanceEntries { get; private set; } = new ();
+
+		public SpriteBatcher(RenderSettings settings)
 		{
-			Items = new BatchList<SpriteBatchInfo>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);
-			InstancedItems = new BatchList<(byte, IEnumerable<SpriteInstancedBatchInfo>)>(settings.SpriteBatchInitialSize, settings.SpriteBatchGrowth);
-			renderEvents.OnUpdateSettings += HandleUpdateSettings;
+			pSettings = settings;
+			Items = new BatchList<SpriteBatchInfo>(
+				settings.SpriteBatchInitialSize, 
+				(uint)Math.Floor((double)settings.SpriteBatchInitialSize * settings.SpriteBatchInitialSize)
+			);
+			InstanceData = new SpriteInstanceItem[settings.SpriteBatchInitialInstanceSize];
+			TotalInstanceItems = 0;
 		}
 
-		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
+		public void UpdateSettings()
 		{
-			Items.GrowthSize = e.Settings.SpriteBatchGrowth;
-			InstancedItems.GrowthSize = e.Settings.SpriteBatchGrowth;
+			Items.GrowthSize = (uint)Math.Floor(pSettings.SpriteBatchInitialSize * (double)pSettings.SpriteBatchInitialSize);
 		}
 
+		private void ResizeInstanceData(int newLength)
+		{
+			newLength += InstanceData.Length;
+			newLength += (int)Math.Floor(pSettings.SpriteBatchInitialInstanceSize * pSettings.SpriteBatchInstanceExpansionRatio);
+			var oldData = InstanceData;
+			InstanceData = new SpriteInstanceItem[newLength];
+
+			Array.Copy(oldData, InstanceData, oldData.Length);
+		}
+
+		public SpriteInstancing Allocate(int length)
+		{
+			if (length < 1)
+				throw new Exception("Length cannot be less than 1");
+
+			if (TotalInstanceItems + length > InstanceData.Length)
+				ResizeInstanceData(length);
+			var result = new SpriteInstancing(this, TotalInstanceItems, length);
+			TotalInstanceItems += length;
+			MaxAllocatedInstanceItems = Math.Max(MaxAllocatedInstanceItems, (ulong)length);
+			return result;
+		}
+		
 		public void Add(in SpriteBatchInfo next)
 		{
 			Items.Add(next);
 		}
-		public void Add(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
+		public void Add(byte textureSlot, SpriteInstancing instancing)
 		{
-			//pMaxInstancedObjects = Math.Max(pMaxInstancedObjects, instances.Count());
-			InstancedItems.Add((textureSlot, instances));
+			int key = instancing.GetHashCode();
+			if(InstanceEntries.TryGetValue(key, out var entry))
+			{
+				if (entry.TextureSlot != textureSlot)
+					entry.TextureSlot = textureSlot;
+				return;
+			}
+
+			InstanceEntries.Add(key, new SpriteInstancingEntry(textureSlot, instancing));
 		}
-
-		//public void Update()
-		//{
-		//	if (InstancedData.Length > pMaxInstancedObjects)
-		//		InstancedData = new SpriteBatchInstancedData[pMaxInstancedObjects];
-		//}
-
-		//public void CollectInstances(uint instanceId)
-		//{
-		//	if (instanceId >= InstancedItems.Count)
-		//		return;
-
-		//	var (_, instances) = InstancedItems[(int)instanceId];
-		//	for(int i =0; i < instances.Count(); ++i)
-		//	{
-		//		var instance = instances.ElementAt(i);
-		//		InstancedData[i].Copy(ref instance);
-		//	}
-		//}
 
 		public void Reset()
 		{
 			Items.Clear();
-			InstancedItems.Clear();
 		}
 	}
 }

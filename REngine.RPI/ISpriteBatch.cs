@@ -46,6 +46,21 @@ namespace REngine.RPI
 		}
 	}
 
+	public interface ISpriteInstancing
+	{ 
+		public int Length { get; }
+		
+		public Vector2 GetPosition(int idx);
+		public Vector2 GetAnchor(int idx);
+		public Vector2 GetSize(int idx);
+		public float GetAngle(int idx);
+
+		public ISpriteInstancing SetPosition(int idx, Vector2 position);
+		public ISpriteInstancing SetAnchor(int idx, Vector2 anchor);
+		public ISpriteInstancing SetSize(int idx, Vector2 size);
+		public ISpriteInstancing SetAngle(int idx, float angle);
+	}
+
 	public interface ISpriteBatch
 	{
 		/// <summary>
@@ -62,8 +77,10 @@ namespace REngine.RPI
 		public IRenderFeature Feature { get; }
 		public ISpriteBatch SetTexture(byte slot, ITexture texture);
 		public ISpriteBatch SetTexture(byte slot, Image image);
+		public ISpriteInstancing GetInstancing(int length);
+
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
-		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> spriteInstancedInfo);
+		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem);
 		public ISpriteBatch ClearTexture(byte slot);
 		public ISpriteBatch ClearTextures();
 		public Task WaitTasks();

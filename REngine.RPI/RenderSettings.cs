@@ -23,7 +23,17 @@ namespace REngine.RPI
 		public uint ObjectBufferSize { get; set; } = 1024 * 2;
 #if RENGINE_SPRITEBATCH
 		public uint SpriteBatchInitialSize { get; set; } = 8;
-		public uint SpriteBatchGrowth { get; set; } = 8;
+		public uint SpriteBatchInitialInstanceSize { get; set; } = 512;
+		/// <summary>
+		/// When batches goes to resize, the above calc will be applied on new Array length
+		/// NewLength = OldLength + (SpriteBatchInitialSize * SpriteBatchExpansionRatio)
+		/// </summary>
+		public float SpriteBatchExpansionRatio { get; set; } = 1.5f;
+		/// <summary>
+		/// When batches goes to resize, the above call will be applied on new Array length
+		/// NewLength = OldLength + (SpriteBatchInitialInstanceSize * SpriteBatchInstanceExpansionRatio)
+		/// </summary>
+		public float SpriteBatchInstanceExpansionRatio { get; set; } = 2;
 		/// <summary>
 		/// Max used textures on SpriteBatch. SpriteBatch uses a TextureArray while is rendering
 		/// </summary>
@@ -45,7 +55,9 @@ namespace REngine.RPI
 			ObjectBufferSize = settings.ObjectBufferSize;
 #if RENGINE_SPRITEBATCH
 			SpriteBatchInitialSize = settings.SpriteBatchInitialSize;
-			SpriteBatchGrowth = settings.SpriteBatchGrowth;
+			SpriteBatchInitialInstanceSize = settings.SpriteBatchInitialInstanceSize;
+			SpriteBatchExpansionRatio = settings.SpriteBatchExpansionRatio;
+			SpriteBatchInstanceExpansionRatio = settings.SpriteBatchInstanceExpansionRatio;
 			SpriteBatchMaxTextures = settings.SpriteBatchMaxTextures;
 			SpriteBatchTexturesBuildTimeMs = settings.SpriteBatchTexturesBuildTimeMs;
 #endif

@@ -10,7 +10,7 @@ namespace REngine.Core.Threading
 {
 	internal abstract class EPNode
 	{
-		private object pSyncObj = new();
+		private readonly object pSyncObj = new();
 		protected readonly LinkedList<Action<IExecutionPipeline>> pEvents = new();
 
 		public int Id { get; set; } = 0;
@@ -21,7 +21,7 @@ namespace REngine.Core.Threading
 		public List<EPNode> Children { get; set; } = new List<EPNode>();
 		public EPNode? Parent { get; set; } = null;
 
-		public LinkedList<EPNode> LinkedNodes { get; set; } = new LinkedList<EPNode>();
+		public List<EPNode> LinkedNodes { get; set; } = new List<EPNode>();
 
 		public EPNode(int id = 0) 
 		{
@@ -49,13 +49,10 @@ namespace REngine.Core.Threading
 
 		public virtual void Execute(ExecutionPipelineImpl pipeline)
 		{
-			var nextLinkedNode = LinkedNodes.First;
-			while(nextLinkedNode != null)
+			foreach(var item in LinkedNodes)
 			{
 				pipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
-
-				nextLinkedNode.Value.ExecuteLinkedNode(this);
-				nextLinkedNode = nextLinkedNode.Next;
+				item.ExecuteLinkedNode(this);
 			}
 		}
 
@@ -135,8 +132,24 @@ namespace REngine.Core.Threading
 		private readonly object pSyncObject = new();
 
 		private Task? pIncomingTask;
+		private EPNode? pTarget;
 
-		public EPNode? Target { get; set; }
+		public EPNode? Target
+		{
+			get
+			{
+				return pTarget;
+			}
+			set
+			{
+				if (pTarget == value || pTarget == this)
+					return;
+
+				pTarget?.LinkedNodes.Remove(this);
+				value?.LinkedNodes.Add(this);
+				pTarget = value;
+			}
+		}
 		
 
 		public TaskNode(int id = 0) : base(id) { }
@@ -152,16 +165,9 @@ namespace REngine.Core.Threading
 					ExecuteEvents(pipeline);
 					ExecuteChildrens(pipeline);
 				});
-
-				if (Target is null)
+				// Unset if there's not target
+				if (pTarget is null)
 					pIncomingTask = null;
-				else
-				{
-					// Add self task to target node
-					// So when node goes to be executed
-					// The task will be waited first
-					Target.LinkedNodes.AddLast(this);
-				}
 			}
 		}
 

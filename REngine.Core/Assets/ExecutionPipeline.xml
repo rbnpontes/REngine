@@ -13,6 +13,7 @@
 		<step id="render_begin"/>
 		<step id="render"/>
 		<step id="render_end">
+			<task id="spritebatch_organize_instance" end="spritebatch_draw"/>
 			<step id="windows_invalidate"/>
 			<!-- 
 				SwapChain Present must be called at Main Thread

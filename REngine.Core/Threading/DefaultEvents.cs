@@ -13,6 +13,7 @@ namespace REngine.Core.Threading
 		public const string SpriteBatchTaskId = "spritebatch_task";
 		public const string SpriteBatchDrawId = "spritebatch_draw";
 		public const string SpriteBatchBuildTexId = "spritebatch_build_tex";
+		public const string SpriteBatchOrganizeInstanceId = "spritebatch_organize_instance";
 		public const string UpdateSwapChainWndTaskId = "update_swapchain_wnd_task";
 		public const string SwapChainPresentId = "swapchain_present";
 		public const string WindowsUpdateId = "windows_update";
