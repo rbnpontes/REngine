@@ -1,6 +1,7 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.Threading;
 using REngine.RHI;
 using REngine.RPI.Structs;
 using System;
@@ -24,18 +25,19 @@ namespace REngine.RPI
 			All = Fixed | Frame | Object
 		}
 
-		private bool pDisposed = false;
 		private readonly IServiceProvider pProvider;
 		private readonly ILogger<IRenderer> pLogger;
 		private readonly RPIEvents pRenderEvents;
 		private readonly RenderState pRenderState;
 		private readonly IBufferProvider pBufferProvider;
 		private readonly EngineEvents pEngineEvents;
+		private readonly IExecutionPipeline pExecutionPipeline;
 
 		private readonly LinkedList<IRenderFeature> pFeatures = new();
 		private readonly LinkedList<IRenderFeature> pFeaturesToRemove = new();
 
 		private IGraphicsDriver? pDriver;
+		private bool pDisposed = false;
 
 		private ISwapChain? pSwapChain;
 
@@ -63,21 +65,19 @@ namespace REngine.RPI
 			EngineEvents events,
 			RPIEvents rendererEvts,
 			RenderState renderState,
-			IBufferProvider bufferProvider)
+			IBufferProvider bufferProvider,
+			IExecutionPipeline pipeline)
 		{
 			pProvider = provider;
 			pLogger = logger;
 			pRenderEvents = rendererEvts;
 			pRenderState = renderState;
+			pEngineEvents = events;
+			pBufferProvider = bufferProvider;
+			pExecutionPipeline = pipeline;
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeforeStop += HandleEngineStop;
-			events.OnBeginRender += HandleBeginRender;
-			events.OnRender += HandleRender;
-			events.OnAsyncRender += HandleAsyncRender;
-
-			pEngineEvents = events;
-			pBufferProvider = bufferProvider;
 		}
 
 		private void HandleEngineStop(object? sender, EventArgs e)
@@ -105,9 +105,6 @@ namespace REngine.RPI
 
 			pEngineEvents.OnStart -= HandleEngineStart;
 			pEngineEvents.OnBeforeStop -= HandleEngineStop;
-			pEngineEvents.OnBeginRender -= HandleBeginRender;
-			pEngineEvents.OnRender -= HandleRender;
-			pEngineEvents.OnAsyncRender -= HandleAsyncRender;
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature)
@@ -245,12 +242,12 @@ namespace REngine.RPI
 			pLogger.Info("Updated Fixed Buffer");
 		}
 
-		private void HandleBeginRender(object? sender, UpdateEventArgs args)
+		private void HandleBeginRender()
 		{
 			Compile();
 		}
 
-		private void HandleRender(object? sender, UpdateEventArgs args)
+		private void HandleRender()
 		{
 			pRenderEvents.ExecuteBeginRender(this);
 
@@ -261,7 +258,7 @@ namespace REngine.RPI
 			RemoveDisposedFeatures();
 		}
 
-		private void HandleAsyncRender(object? sender, EventArgs e)
+		private void HandlePresent()
 		{
 			pSwapChain?.Present(true);
 		}
@@ -289,6 +286,11 @@ namespace REngine.RPI
 				pLogger.Warning("ISwapChain has not been setted on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
 				UpdateSwapChain(swapChain);
+
+			pExecutionPipeline
+				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())
+				.AddEvent(DefaultEvents.RenderId, (_) => HandleRender())
+				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
 		}
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)

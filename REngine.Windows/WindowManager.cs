@@ -1,45 +1,51 @@
 ﻿using REngine.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using REngine.Core.Threading;
 
 namespace REngine.Windows
 {
 	public class WindowManager : IWindowManager, IDisposable
 	{
-		private WindowsBuilder pBuilder = new WindowsBuilder();
-		private List<IWindow> pWindows = new List<IWindow>();
-		private IEngine pEngine;
-		private EngineEvents pEngineEvents;
+		private readonly WindowsBuilder pBuilder = new();
+		private readonly List<IWindow> pWindows = new();
+		private readonly IEngine pEngine;
+		private readonly EngineEvents pEngineEvents;
+		private readonly IExecutionPipeline pPipeline;
 
+		private bool pDisposed = false;
 		public IReadOnlyList<IWindow> Windows { get => pWindows.AsReadOnly(); }
 
-		public WindowManager(EngineEvents events, IEngine engine)
+		public WindowManager(
+			EngineEvents events, 
+			IEngine engine,
+			IExecutionPipeline pipeline)
 		{
 			pEngine = engine;
 			pEngineEvents = events;
-
-			events.OnStart += HandleStart;
-			events.OnStop += HandleStop;
+			pPipeline = pipeline;
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.SetHighDpiMode(HighDpiMode.SystemAware);
+
+			events.OnStart += HandleStart;
+			events.OnStop += HandleStop;
 		}
 
 		public void Dispose()
 		{
+			if (pDisposed)
+				return;
+
 			CloseAllWindows();
 			foreach (var window in Windows)
 				window.Dispose();
 			pWindows.Clear();
 
-			pEngineEvents.OnStart -= HandleStart;
 			pEngineEvents.OnStop -= HandleStop;
 
 			GC.SuppressFinalize(this);
+
+			pDisposed = true;
 		}
 
 		private void HandleStop(object? sender, EventArgs e)
@@ -49,25 +55,32 @@ namespace REngine.Windows
 
 		private void HandleStart(object? sender, EventArgs e)
 		{
-			pEngineEvents.OnEndRender += HandleEndRender;
-			pEngineEvents.OnBeginUpdate += (s, e) =>
-			{
-				Update();
-			};
+			pEngineEvents.OnStart -= HandleStart;
+			pPipeline
+				.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update())
+				.AddEvent(DefaultEvents.WindowsInvalidateId, (_) => HandleInvalidateEvent());
 		}
 
-		private void HandleEndRender(object? sender, UpdateEventArgs e)
+		private void HandleInvalidateEvent()
 		{
 			foreach (var wnd in Windows)
 				wnd.Update();
 		}
 
-		private void HandleAsyncRender(object? sender, EventArgs e)
+		private static void PumpMessages(IntPtr wnd)
 		{
+			while (User32Api.PeekMessage(out User32Api.MSG msg, wnd, 0, 0, 0x0001))
+			{
+				User32Api.TranslateMessage(ref msg);
+				User32Api.DispatchMessage(ref msg);
+			}
 		}
 
 		public IWindowManager CloseAllWindows()
 		{
+			if (pDisposed)
+				return this;
+
 			foreach(var window in Windows)
 			{
 				window.Close();
@@ -77,13 +90,17 @@ namespace REngine.Windows
 
 		public IWindowManager Update()
 		{
-			Application.DoEvents();
+			if (pDisposed)
+				return this;
+
+			PumpMessages(IntPtr.Zero);
 			int closedWindows = 0;
 			foreach(var window in pWindows)
 			{
 				if (window.IsClosed)
 					closedWindows++;
 			}
+
 
 			if (closedWindows == pWindows.Count)
 				pEngine.Stop();
@@ -110,7 +127,6 @@ namespace REngine.Windows
 				if (createInfo.Position != null)
 					window.Position = createInfo.Position.Value;
 			}
-
 
 			pWindows.Add(window);
 			return window;

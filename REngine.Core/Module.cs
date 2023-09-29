@@ -1,5 +1,6 @@
 ﻿using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,8 @@ namespace REngine.Core
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, EngineImpl>()
-				.Add<EngineEvents>();
+				.Add<EngineEvents>()
+				.Add<IExecutionPipeline, ExecutionPipelineImpl>();
 		}
 	}
 }

@@ -31,7 +31,6 @@ namespace REngine.Core
 	public interface IWindowManager : IDisposable
 	{
 		public IReadOnlyList<IWindow> Windows { get; }
-		public IWindowManager Update();
 		public IWindowManager CloseAllWindows();
 		public IWindow Create(WindowCreationInfo createInfo);
 	}

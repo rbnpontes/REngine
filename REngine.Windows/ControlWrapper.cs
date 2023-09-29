@@ -137,6 +137,7 @@ namespace REngine.Windows
 		public IWindow Show()
 		{
 			pControl?.Show();
+			OnShow?.Invoke(this, new WindowEventArgs(pControl, Handle));
 			return this;
 		}
 
