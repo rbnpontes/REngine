@@ -1,5 +1,6 @@
 ﻿using REngine.Core;
 using REngine.Core.Resources;
+using REngine.Core.Threading;
 using REngine.RHI;
 using REngine.RPI.Features;
 using System;
@@ -11,12 +12,23 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
+#if RENGINE_SPRITEBATCH
 	internal class SpriteBatchImpl : ISpriteBatch
 	{
+		enum Step
+		{
+			Begin,
+			Draw,
+			End
+		}
+
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
 		private readonly RenderSettings pRenderSettings;
 		private readonly GraphicsSettings pGraphicsSettings;
+		private readonly IExecutionPipeline pExecutionPipeline;
+		private readonly EngineEvents pEngineEvents;
+		private readonly RPIEvents pRenderEvents;
 
 		private SpriteBatchFeature? pFeature;
 
@@ -24,13 +36,14 @@ namespace REngine.RPI
 		{ 
 			get
 			{
-				var feature = pFeature;
-				if(feature is null || feature?.IsDisposed == true)
-					pFeature = feature = new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
-#pragma warning disable CS8603 // Possible null reference return.
-				return feature;
-#pragma warning restore CS8603 // Possible null reference return.
+				return GetFeature();
 			}
+		}
+		public event EventHandler? OnDraw;
+
+		public bool IsReady
+		{
+			get => pTextureManager.IsReady;
 		}
 
 		public SpriteBatchImpl(
@@ -38,34 +51,47 @@ namespace REngine.RPI
 			SpriteBatcher batcher, 
 			GraphicsSettings settings, 
 			EngineEvents engineEvents,
-			RPIEvents rendererEvents,
-			RenderSettings renderSettings
+			RPIEvents rpiEvents,
+			RenderSettings renderSettings,
+			IExecutionPipeline execPipeline
 		)
 		{
 			pTextureManager = texManager;
 			pBatcher = batcher;
 			pRenderSettings = renderSettings;
 			pGraphicsSettings = settings;
+			pEngineEvents = engineEvents;
+			pRenderEvents = rpiEvents;
+			pExecutionPipeline = execPipeline;
 
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnStop += HandleStop;
-			rendererEvents.OnUpdateSettings += HandleUpdateSettings;
+			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
 			pTextureManager.OnUpdateTextures += HandleUpdateTextures;
+			pTextureManager.OnRebuildTextures += HandleRebuildTextures;
+		}
+
+		private void HandleRebuildTextures(object? sender, EventArgs e)
+		{
+			GetFeature().UpdateBindings();
 		}
 
 		private void HandleUpdateTextures(object? sender, EventArgs e)
 		{
-			pFeature?.UpdateTextures();
+			GetFeature().UpdateTextures();
 		}
 
 		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
-			pFeature?.CheckCBufferSizes(e.Settings.ObjectBufferSize);
+			pTextureManager.RecreateTextures();
+			GetFeature().CheckCBufferSizes(e.Settings.ObjectBufferSize);
+			pBatcher.UpdateSettings();
 		}
 
 		private void HandleStart(object? sender, EventArgs e)
 		{
 			pTextureManager.Start();
+			pExecutionPipeline.AddEvent(DefaultEvents.SpriteBatchDrawId, (_) => HandleDraw());
 		}
 
 		private void HandleStop(object? sender, EventArgs e)
@@ -74,26 +100,32 @@ namespace REngine.RPI
 			pTextureManager.Dispose();
 			pFeature?.Dispose();
 			pFeature = null;
+
+			pEngineEvents.OnStart -= HandleStart;
+			pEngineEvents.OnStop -= HandleStop;
+			pRenderEvents.OnUpdateSettings -= HandleUpdateSettings;
+			pTextureManager.OnUpdateTextures -= HandleUpdateTextures;
+			pTextureManager.OnRebuildTextures -= HandleRebuildTextures;
 		}
 
-		private void HandleBeginUpdate(object? sender, UpdateEventArgs args)
+		private void HandleDraw()
 		{
-			if (pFeature?.IsDisposed == true)
-				pFeature = null;
+			GetFeature();
 			pBatcher.Reset();
-			pTextureManager.Update();
+			OnDraw?.Invoke(this, EventArgs.Empty);
+		}
+
+		private SpriteBatchFeature GetFeature()
+		{
+			pFeature ??= new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
+			if (pFeature.IsDisposed)
+				pFeature = new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
+			return pFeature;
 		}
 
 		public ISpriteBatch Draw(SpriteBatchInfo batchInfo)
 		{
 			pBatcher.Add(batchInfo);
-			return this;
-		}
-
-		public ISpriteBatch Draw(byte textureSlot, IEnumerable<SpriteInstancedBatchInfo> instances)
-		{
-			AssertSlot(textureSlot);
-			pBatcher.Add(textureSlot, instances);
 			return this;
 		}
 
@@ -130,5 +162,17 @@ namespace REngine.RPI
 			return this;
 		}
 
+		public ISpriteInstancing GetInstancing(int length)
+		{
+			return pBatcher.Allocate(length);
+		}
+
+		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem)
+		{
+			if(instancingItem is SpriteInstancing item)
+				pBatcher.Add(textureSlot, item);
+			return this;
+		}
 	}
+#endif
 }

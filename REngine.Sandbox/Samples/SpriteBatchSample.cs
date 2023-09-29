@@ -27,6 +27,9 @@ namespace REngine.Sandbox.Samples
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
 			pSpriteFeature?.Dispose();
+
+			if (pSpriteBatch != null)
+				pSpriteBatch.OnDraw -= OnDraw;
 		}
 
 		public void Load(IServiceProvider provider)
@@ -34,8 +37,8 @@ namespace REngine.Sandbox.Samples
 			pSpriteBatch = provider.Get<ISpriteBatch>();
 
 			// Load Sprite
-			ImageAsset sprite = new ImageAsset("doge.png");
-			using (FileStream stream = new FileStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
+			ImageAsset sprite = new("doge.png");
+			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
 				sprite.Load(stream).Wait();
 
 			// Set Sprite on Spritebatch
@@ -44,10 +47,15 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
 			pEngine = provider.Get<IEngine>();
+
+			pSpriteBatch.OnDraw += OnDraw;
 		}
 
-		public void Update(IServiceProvider provider)
+		private void OnDraw(object? sender, EventArgs e)
 		{
+			if (pSpriteBatch?.IsReady == false)
+				return;
+
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
 			Size wndSize = Window?.Size ?? new Size();
 			Vector2 halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);
@@ -76,6 +84,10 @@ namespace REngine.Sandbox.Samples
 				Size = new Vector2(150),
 				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
 			});
+		}
+
+		public void Update(IServiceProvider provider)
+		{
 		}
 
 		private float AnalogicTime(float t, float freq, float amplitude)

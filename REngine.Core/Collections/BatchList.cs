@@ -9,16 +9,15 @@ namespace REngine.Core.Collections
 {
 	public class BatchList<T> : IList<T>
 	{
-		private T?[] pBuffer;
+		private T[] pBuffer;
 		private uint pNextItemIdx;
 
-		public T? this[int index] {
-#pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+		public T this[int index] 
+		{
 			get
-#pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
 			{
 				ValidateIndex(index);
-				T? item = pBuffer[index];
+				T item = pBuffer[index];
 				return item;
 			} 
 			set => pBuffer[index] = value;
@@ -36,7 +35,7 @@ namespace REngine.Core.Collections
 
 		public BatchList(uint initialSize, uint growthSize)
 		{
-			pBuffer = new T?[initialSize];
+			pBuffer = new T[initialSize];
 			GrowthSize = growthSize;
 			pNextItemIdx = 0;
 		}
@@ -54,7 +53,7 @@ namespace REngine.Core.Collections
 		}
 		public void Reset()
 		{
-			pBuffer = new T[0];
+			pBuffer = Array.Empty<T>();
 			pNextItemIdx = 0;
 		}
 
@@ -97,20 +96,11 @@ namespace REngine.Core.Collections
 
 		public bool Remove(T item)
 		{
-			int idx = IndexOf(item);
-			if (idx != -1)
-			{
-				pBuffer[idx] = default(T);
-				return true;
-			}
-
-			return false;
+			return true;
 		}
 
 		public void RemoveAt(int index)
 		{
-			ValidateIndex(index);
-			pBuffer[index] = default(T);
 		}
 
 		public void Resize(uint length)
@@ -135,6 +125,7 @@ namespace REngine.Core.Collections
 			if (index < 0)
 				throw new IndexOutOfRangeException("Index is less than 0");
 		}
+
 		private void RefitItems()
 		{
 			var oldBuffer = pBuffer;

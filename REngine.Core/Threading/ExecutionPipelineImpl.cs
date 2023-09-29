@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.IO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace REngine.Core.Threading
     {
         private static readonly LinkedList<Action> EmptyScheduledCalls = new();
         private readonly object pSyncObj = new();
+        private readonly ILogger<IExecutionPipeline> pLogger;
 
         public readonly CancellationTokenSource StopTokenSource = new ();
 
@@ -19,13 +21,17 @@ namespace REngine.Core.Threading
         private LinkedList<Action> pExecuteScheduledCalls = new();
 
         public ExecutionPipelineImpl(
-            EngineEvents engineEvents)
+            EngineEvents engineEvents,
+            ILoggerFactory factory)
         {
             engineEvents.OnBeforeStop += HandleStop;
+
+            pLogger = factory.Build<IExecutionPipeline>();
         }
 
         private void HandleStop(object? sender, EventArgs e)
         {
+            pLogger.Info("Stopping");
 			StopTokenSource.Cancel();
             ClearAllEvents();
             pNodes.Clear();
@@ -34,6 +40,7 @@ namespace REngine.Core.Threading
 
         public IExecutionPipeline Load(Stream stream)
         {
+            pLogger.Info("Loading Execution Pipeline Settings");
             EPResolver resolver = new();
             resolver.Load(stream);
 
@@ -71,8 +78,16 @@ namespace REngine.Core.Threading
                 nextCall = nextCall.Next;
             }
 
-            foreach (EPNode node in pNodes)
-                node.Execute(this);
+            try
+            {
+                foreach (EPNode node in pNodes)
+                    node.Execute(this);
+            }
+            catch (OperationCanceledException e)
+            {
+                pLogger.Info("Stop has been called. Stopping IExecutionPipeline", e.Message);
+                return this;
+            }
             return this;
         }
 
