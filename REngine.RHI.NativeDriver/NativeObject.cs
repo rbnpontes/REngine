@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,16 +16,16 @@ namespace REngine.RHI.NativeDriver
 		[DllImport(Constants.Lib)]
 		public static extern void rengine_object_set_release_callback(IntPtr obj, IntPtr releaseCallback);
 
-		private GCHandle pHandle;
+		static readonly NativeObjectReleaseCallback s_disposeCallback = OnRelease;
+
 		public IntPtr Handle { get; protected set; }
 
 		public NativeObject(IntPtr handle)
 		{
 			Handle = handle;
-			pHandle = GCHandle.Alloc(handle, GCHandleType.Pinned);
-			NativeObjectReleaseCallback releaseCallback = OnRelease;
+			ObjectRegistry.Lock(this);
 
-			rengine_object_set_release_callback(handle, Marshal.GetFunctionPointerForDelegate(releaseCallback));
+			rengine_object_set_release_callback(handle, Marshal.GetFunctionPointerForDelegate(s_disposeCallback));
 		}
 
 		public void Dispose()
@@ -43,9 +44,9 @@ namespace REngine.RHI.NativeDriver
 			if (disposing)
 			{
 				rengine_object_releaseref(Handle);
-				pHandle.Free();
 			}
 
+			ObjectRegistry.Unlock(this);
 			Handle = IntPtr.Zero;
 		}
 
@@ -53,9 +54,10 @@ namespace REngine.RHI.NativeDriver
 		{
 		}
 
-		protected virtual void OnRelease(IntPtr handle)
+		protected static void OnRelease(IntPtr handle)
 		{
-			Dispose(false);
+			NativeObject? obj = ObjectRegistry.Acquire(handle);
+			obj?.Dispose(false);
 		}
 	}
 }

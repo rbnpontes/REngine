@@ -24,6 +24,7 @@ namespace REngine.RHI
 		Dedicated,
 		Discrete
 	}
+
 	public class GraphicsAdapter
 	{
 		public uint Id { get; set; }
@@ -32,6 +33,7 @@ namespace REngine.RHI
 		public string Name { get; set; } = string.Empty;
 		public AdapterType AdapterType { get; set; }
 	}
+
 	public interface IGraphicsDriver : IDisposable
 	{
 		public GraphicsBackend Backend { get; }
@@ -39,5 +41,7 @@ namespace REngine.RHI
 		public IReadOnlyList<ICommandBuffer> Commands { get; }
 		public ICommandBuffer ImmediateCommand { get; }
 		public IDevice Device { get; }
+
+		public ISwapChain CreateSwapchain(in SwapChainDesc desc, ref NativeWindow window);
 	}
 }

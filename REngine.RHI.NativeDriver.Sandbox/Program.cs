@@ -1,12 +1,13 @@
 ﻿using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
+using System.Diagnostics;
 using System.Windows.Forms;
-using NativeWindow = REngine.RHI.NativeDriver.NativeWindow;
+using NativeWindow = REngine.RHI.NativeWindow;
 
 DriverFactory.OnDriverMessage += (s, e) =>
 {
-	Console.WriteLine($"[{e.Severity}]({e.File}:{e.Line}): {e.Message}");
+	Debug.WriteLine($"[{e.Severity}]({e.File}:{e.Line}): {e.Message}");
 };
 
 GraphicsBackend backend = GraphicsBackend.D3D11;
@@ -33,6 +34,10 @@ DriverFactory.Build(
 	out ISwapChain? swapChain
 );
 
+form.ResizeEnd += (s, e) =>
+{
+	swapChain?.Resize(form.Size);
+};
 form.Paint += (s, e) =>
 {
 	swapChain?.Present(true);
