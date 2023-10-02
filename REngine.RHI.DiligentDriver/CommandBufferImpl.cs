@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.DiligentDriver
 {
-	internal class CommandBufferImpl : ICommandBuffer, INativeObject
+	internal class CommandBufferImpl : ICommandBuffer
 	{
 		private IDeviceContext? pCtx;
 		private bool pIsDeferred;

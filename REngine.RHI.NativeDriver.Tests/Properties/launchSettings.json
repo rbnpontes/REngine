@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "REngine.RHI.NativeDriver.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

@@ -62,7 +62,7 @@ namespace REngine.RHI
 		}
 	}
 
-	public interface ICommandBuffer : IDisposable
+	public interface ICommandBuffer : IDisposable, INativeObject
 	{
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil);
 		public ICommandBuffer ClearRT(ITextureView renderTarget, in Color clearColor);

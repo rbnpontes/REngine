@@ -34,6 +34,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Assets", "REngine.A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Asset.Tests", "REngine.Asset.Tests\REngine.Asset.Tests.csproj", "{5960716B-CC01-40B6-B13C-2DCD9920F8E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.NativeDriver", "REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj", "{796A9BE6-5B6C-4329-A1D9-235787383DBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.NativeDriver.Tests", "REngine.RHI.NativeDriver.Tests\REngine.RHI.NativeDriver.Tests.csproj", "{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.NativeDriver.Sandbox", "REngine.RHI.NativeDriver.Sandbox\REngine.RHI.NativeDriver.Sandbox.csproj", "{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -84,6 +90,18 @@ Global
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.ActiveCfg = Debug|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.Build.0 = Debug|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Release|x64.ActiveCfg = Release|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug|x64.ActiveCfg = Debug|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug|x64.Build.0 = Debug|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Release|x64.ActiveCfg = Release|Any CPU
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Release|x64.Build.0 = Release|Any CPU
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug|x64.Build.0 = Debug|Any CPU
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Release|x64.ActiveCfg = Release|Any CPU
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Release|x64.Build.0 = Release|Any CPU
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +111,8 @@ Global
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{1BBE06B2-7073-446E-9256-1413474572C9} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

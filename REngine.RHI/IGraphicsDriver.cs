@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public enum GraphicsBackend
+	public enum GraphicsBackend : byte
 	{
 		Unknow,
 		D3D11,
@@ -27,6 +27,7 @@ namespace REngine.RHI
 	public class GraphicsAdapter
 	{
 		public uint Id { get; set; }
+		public uint DeviceId { get; set; }
 		public uint VendorId { get; set; }
 		public string Name { get; set; } = string.Empty;
 		public AdapterType AdapterType { get; set; }
