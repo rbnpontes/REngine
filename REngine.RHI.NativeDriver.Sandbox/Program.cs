@@ -20,7 +20,6 @@ Form form = new Form
 	Height = 500
 };
 
-ISwapChain? swapChain;
 DriverFactory.Build(
 	new DriverSettings { 
 		Backend = backend, 
@@ -31,7 +30,12 @@ DriverFactory.Build(
 	{
 		Size = new SwapChainSize(form.Size)
 	}, 
-	out swapChain
+	out ISwapChain? swapChain
 );
+
+form.Paint += (s, e) =>
+{
+	swapChain?.Present(true);
+};
 
 Application.Run(form);

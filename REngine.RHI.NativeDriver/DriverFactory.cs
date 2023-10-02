@@ -171,22 +171,22 @@ namespace REngine.RHI.NativeDriver
 			long driverNativeSize = Unsafe.SizeOf<DriverNative>();
 			Buffer.MemoryCopy(result.driver.ToPointer(), Unsafe.AsPointer(ref driverNative), driverNativeSize, driverNativeSize);
 
-			NativeUtils.Free(result.driver);
 			DeviceImpl device = new (driverNative.device);
 
 			ICommandBuffer[] commands = new ICommandBuffer[settings.numDeferredCtx];
-			int ptrSize = Marshal.SizeOf<IntPtr>();
-
-			for(int i =0; i < commands.Length; ++i)
 			{
-				IntPtr commandPtr = IntPtr.Add(driverNative.deferredCtx, ptrSize * i);
-				commands[i] = new CommandBufferImpl(commandPtr, true);
+				ReadOnlySpan<IntPtr> commandPointers = new(driverNative.deferredCtx.ToPointer(), commands.Length);
+
+				for(int i =0; i < commands.Length; ++i)
+					commands[i] = new CommandBufferImpl(commandPointers[i], true);
 			}
 
 			if (swapChainDesc != null)
 				swapChain = new SwapChainImpl(result.swapChain);
 			else
 				swapChain = null;
+
+			NativeUtils.Free(result.driver);
 
 			return new DriverImpl(
 				new CommandBufferImpl(driverNative.immediateCtx, false),

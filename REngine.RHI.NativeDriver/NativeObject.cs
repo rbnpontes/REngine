@@ -29,16 +29,33 @@ namespace REngine.RHI.NativeDriver
 
 		public void Dispose()
 		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing)
+		{
 			if (Handle == IntPtr.Zero)
 				return;
-			rengine_object_releaseref(Handle);
+
+			BeforeRelease();
+			
+			if (disposing)
+			{
+				rengine_object_releaseref(Handle);
+				pHandle.Free();
+			}
+
 			Handle = IntPtr.Zero;
+		}
+
+		protected virtual void BeforeRelease()
+		{
 		}
 
 		protected virtual void OnRelease(IntPtr handle)
 		{
-			Handle = IntPtr.Zero;
-			pHandle.Free();
+			Dispose(false);
 		}
 	}
 }
