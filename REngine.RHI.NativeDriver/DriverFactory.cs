@@ -46,7 +46,7 @@ namespace REngine.RHI.NativeDriver
 
 		public static unsafe GraphicsAdapter[] GetAdapters(GraphicsBackend backend)
 		{
-			ResultNative result = new ResultNative();
+			ResultNative result = new();
 			uint adaptersCount = 0;
 			rengine_get_available_adapter(
 				backend, 
@@ -64,7 +64,7 @@ namespace REngine.RHI.NativeDriver
 			GraphicsAdapter[] finalOutput = new GraphicsAdapter[adaptersCount];
 
 			{
-				Span<GraphicsAdapterNative> adapters = new Span<GraphicsAdapterNative>(result.value.ToPointer(), (int)adaptersCount);
+				Span<GraphicsAdapterNative> adapters = new (result.value.ToPointer(), (int)adaptersCount);
 				for(int i =0; i < adapters.Length; ++i)
 				{
 					GraphicsAdapterNative adapter = adapters[i];
@@ -78,7 +78,8 @@ namespace REngine.RHI.NativeDriver
 				}
 			}
 
-			NativeUtils.Free(result.value);
+			NativeUtils.rengine_free_block(result.value);
+			ObjectRegistry.ClearRegistry();
 			return finalOutput;
 		}
 		
@@ -91,6 +92,9 @@ namespace REngine.RHI.NativeDriver
 
 			settings.messageCallback = Marshal.GetFunctionPointerForDelegate(s_messageEventDelegate);
 			settings.numDeferredCtx = Math.Max((uint)Environment.ProcessorCount, 2);
+
+			if (driverSettings.Backend == GraphicsBackend.OpenGL)
+				settings.numDeferredCtx = 0;
 
 #if WINDOWS
 			D3D12SettingsNative d3d12Settings = new();
@@ -173,23 +177,28 @@ namespace REngine.RHI.NativeDriver
 
 			DeviceImpl device = new (driverNative.device);
 
-			ICommandBuffer[] commands = new ICommandBuffer[settings.numDeferredCtx];
+			ICommandBuffer[] commands = new ICommandBuffer[settings.numDeferredCtx + 1];
 			{
-				ReadOnlySpan<IntPtr> commandPointers = new(driverNative.deferredCtx.ToPointer(), commands.Length);
-
+				ReadOnlySpan<IntPtr> commandPointers = new(driverNative.contexts.ToPointer(), commands.Length);
 				for(int i =0; i < commands.Length; ++i)
-					commands[i] = new CommandBufferImpl(commandPointers[i], true);
+					commands[i] = new CommandBufferImpl(commandPointers[i], i > 0);
 			}
+
+			ICommandBuffer immediateCmd = commands[0];
+			ICommandBuffer[] deferredCmd = new ICommandBuffer[commands.Length - 1];
+
+			Array.Copy(commands, 1, deferredCmd, 0, commands.Length - 1);
 
 			if (swapChainDesc != null)
 				swapChain = new SwapChainImpl(result.swapChain);
 			else
 				swapChain = null;
 
-			NativeUtils.Free(result.driver);
+			NativeUtils.rengine_free(result.driver);
+			NativeUtils.rengine_free_block(driverNative.contexts);
 
 			return new DriverImpl(
-				new CommandBufferImpl(driverNative.immediateCtx, false),
+				immediateCmd,
 				commands,
 				device,
 				driverNative.factory

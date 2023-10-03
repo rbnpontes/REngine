@@ -10,11 +10,8 @@ namespace REngine.RHI.NativeDriver
 	internal class NativeUtils
 	{
 		[DllImport(Constants.Lib)]
-		static extern void rengine_free(IntPtr ptr);
-
-		public static void Free(IntPtr ptr)
-		{
-			rengine_free(ptr);
-		}
+		public static extern void rengine_free(IntPtr ptr);
+		[DllImport(Constants.Lib)]
+		public static extern void rengine_free_block(IntPtr ptr);
 	}
 }

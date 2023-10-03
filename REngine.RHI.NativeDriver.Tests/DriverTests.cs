@@ -1,11 +1,22 @@
 namespace REngine.RHI.NativeDriver.Tests
 {
 	[TestFixture]
-	public class DriverTests
+	public class DriverTests : BaseTest
 	{
+		public DriverTests() : base()
+		{
+		}
+
 		[SetUp]
 		public void Setup()
 		{
+			CreateWindow();
+		}
+
+		[TearDown]
+		public void Cleanup()
+		{
+			CleanDisposables();
 		}
 
 		[Test, Sequential]
@@ -30,6 +41,27 @@ namespace REngine.RHI.NativeDriver.Tests
 				Console.WriteLine($"- {adapter.Id}, {adapter.Name}, {adapter.VendorId}");
 			}
 
+			Assert.Pass();
+		}
+
+		[Test, Sequential]
+		public void MustBuild(
+			[Values(
+#if WINDOWS
+				GraphicsBackend.D3D11,
+				GraphicsBackend.D3D12,
+#endif
+				GraphicsBackend.Vulkan,
+				GraphicsBackend.OpenGL
+			)] GraphicsBackend backend)
+		{
+			(IGraphicsDriver driver, ISwapChain swapChain) = CreateDriver(backend);
+
+			swapChain.Present(true);
+
+			MainWindow?.Invalidate(new Rectangle(0, 0, 0, 1));
+			Application.DoEvents();
+			MainWindow?.Close();
 			Assert.Pass();
 		}
 	}

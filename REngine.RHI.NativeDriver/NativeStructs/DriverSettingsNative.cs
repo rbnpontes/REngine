@@ -50,13 +50,12 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 	internal struct DriverNative
 	{
 		public IntPtr device;
-		public IntPtr immediateCtx;
-		public IntPtr deferredCtx;
+		public IntPtr contexts;
 		public IntPtr factory;
 
 		public DriverNative()
 		{
-			device = immediateCtx = deferredCtx = factory = IntPtr.Zero;
+			device = contexts = factory = IntPtr.Zero;
 		}
 	}
 

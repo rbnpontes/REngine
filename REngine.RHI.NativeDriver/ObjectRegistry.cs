@@ -24,6 +24,11 @@ namespace REngine.RHI.NativeDriver
 			sTrackingObjects.Remove(ptr);
 		}
 
+		public static void ClearRegistry()
+		{
+			sTrackingObjects.Clear();
+		}
+
 		public static NativeObject? Acquire(IntPtr ptr)
 		{
 			NativeObject? obj = null;
