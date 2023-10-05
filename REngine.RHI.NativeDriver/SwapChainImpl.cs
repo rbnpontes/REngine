@@ -106,6 +106,9 @@ namespace REngine.RHI.NativeDriver
 			);
 			
 			DepthBuffer = AcquireDepthBuffer();
+			// before clear, we must clear registry entries
+			foreach (var buffer in pBuffers)
+				ObjectRegistry.Unlock(buffer.Value.Handle);
 			pBuffers.Clear();
 			pColorBuffer = null;
 			return this;

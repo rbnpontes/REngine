@@ -11,8 +11,6 @@ namespace REngine.RHI.DiligentDriver
 	{
 		private Diligent.IBuffer? pBuffer;
 
-		public event GPUObjectEvent OnDispose = new GPUObjectEvent((obj, e)=> { });
-
 		public BufferDesc Desc
 		{
 			get

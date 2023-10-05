@@ -27,14 +27,8 @@ namespace REngine.RHI.NativeDriver
 		public int Line { get; set; }
 	}
 
-	public sealed class DriverFactory
+	public sealed partial class DriverFactory
 	{
-		delegate void MessageEventCallback(DbgMsgSeverity severity, IntPtr msg, IntPtr func, IntPtr file, int line);
-		[DllImport(Constants.Lib)]
-		static extern void rengine_get_available_adapter(GraphicsBackend backend, IntPtr messageEvent, ref ResultNative result, ref uint length);
-		[DllImport(Constants.Lib)]
-		static extern void rengine_create_driver(ref DriverSettingsNative settings, IntPtr swapChainDesc, [In] in NativeWindow nativeWindow, ref DriverResult result);
-
 		static readonly MessageEventCallback s_messageEventDelegate = MessageEvent;
 
 		public static event EventHandler<MessageEventArgs>? OnDriverMessage;
@@ -175,13 +169,30 @@ namespace REngine.RHI.NativeDriver
 			long driverNativeSize = Unsafe.SizeOf<DriverNative>();
 			Buffer.MemoryCopy(result.driver.ToPointer(), Unsafe.AsPointer(ref driverNative), driverNativeSize, driverNativeSize);
 
-			DeviceImpl device = new (driverNative.device);
+			if(driverNative.device == IntPtr.Zero)
+			{
+				NativeUtils.rengine_free(result.driver);
+				NativeUtils.rengine_free_block(driverNative.contexts);
+
+				throw new NullReferenceException("Driver device is null.");
+			}
+
+			DeviceImpl device = new (settings.backend, driverNative.device);
 
 			ICommandBuffer[] commands = new ICommandBuffer[settings.numDeferredCtx + 1];
 			{
 				ReadOnlySpan<IntPtr> commandPointers = new(driverNative.contexts.ToPointer(), commands.Length);
 				for(int i =0; i < commands.Length; ++i)
+				{
+					IntPtr ptr = commandPointers[i];
+					if (ptr == IntPtr.Zero)
+					{
+						NativeUtils.rengine_free(result.driver);
+						NativeUtils.rengine_free_block(driverNative.contexts);
+						throw new NullReferenceException($"ICommandBuffer at index {i} is null.");
+					}
 					commands[i] = new CommandBufferImpl(commandPointers[i], i > 0);
+				}
 			}
 
 			ICommandBuffer immediateCmd = commands[0];

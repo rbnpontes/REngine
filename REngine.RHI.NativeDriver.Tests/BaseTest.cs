@@ -61,13 +61,13 @@ namespace REngine.RHI.NativeDriver.Tests
 			{
 				case DbgMsgSeverity.FatalError:
 					{
-						Console.WriteLine($"Diligent Engine: {args.Severity} in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
+						Console.WriteLine($"[Diligent Engine][{args.Severity}]: in {args.Function}() ({args.File}, {args.Line}): {args.Message}");
 						throw new Exception(args.Message);
 					}
 				case DbgMsgSeverity.Error:
 				case DbgMsgSeverity.Warning:
 				case DbgMsgSeverity.Info:
-					Console.WriteLine($"Diligent Engine: {args.Severity} {args.Message}");
+					Console.WriteLine($"[Diligent Engine][{args.Severity}]: {args.Message}");
 					break;
 			}
 		}

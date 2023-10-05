@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace REngine.RHI
+﻿namespace REngine.RHI
 {
 	public struct TextureSize
 	{
@@ -30,10 +24,15 @@ namespace REngine.RHI
 		public float B;
 		public float A;
 
+		public float Depth;
+		public byte Stencil;
+
 		public TextureClearValue()
 		{
 			Format = TextureFormat.Unknown;
 			R = G = B = A = 0;
+			Depth = 1;
+			Stencil = 0;
 		}
 	}
 

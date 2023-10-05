@@ -1,26 +1,58 @@
-﻿using System;
+﻿using REngine.RHI.NativeDriver.NativeStructs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace REngine.RHI.NativeDriver
 {
-	internal class TextureViewImpl : NativeObject, ITextureView
+	internal partial class TextureViewImpl : NativeObject, ITextureView
 	{
-		public ITexture Parent => throw new NotImplementedException();
+		private ITexture? pParent;
+		
+		public ITexture Parent
+		{
+			get
+			{
+				if (pParent != null)
+					return pParent;
 
-		public TextureViewDesc Desc => throw new NotImplementedException();
+				ResultNative result = new();
+				rengine_textureview_getparent(Handle, ref result);
 
-		public TextureViewType ViewType => throw new NotImplementedException();
+				if (result.error != IntPtr.Zero)
+					throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not get ITextureView parent.");
+				pParent = ObjectRegistry.Acquire(result.value) as ITexture;
+				pParent ??= new TextureImpl(Handle);
+				return pParent;
+			}
+		}
 
-		public string Name => throw new NotImplementedException();
+		public TextureViewDesc Desc
+		{
+			get
+			{
+				TextureViewDescDTO desc = new();
+				rengine_textureview_getdesc(Handle, ref desc);
+				TextureViewDescDTO.Fill(desc, out TextureViewDesc output);
+				return output;
+			}
+		}
 
-		public event GPUObjectEvent? OnDispose;
+		public TextureViewType ViewType => Desc.ViewType;
+
+		public string Name => Marshal.PtrToStringAnsi(rengine_object_getname(Handle)) ?? string.Empty;
 		
 		public TextureViewImpl(IntPtr handle) : base(handle)
 		{
 		}
 
+
+		protected override void BeforeRelease()
+		{
+			pParent = null;
+		}
 	}
 }

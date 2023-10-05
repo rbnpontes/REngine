@@ -13,20 +13,41 @@ namespace REngine.RHI.NativeDriver
 
 		public static void Lock(NativeObject obj)
 		{
-			sTrackingObjects.Add(obj.Handle, new WeakReference<NativeObject>(obj));
+			Lock(obj, obj.Handle);
+		}
+		public static void Lock(NativeObject obj, IntPtr handle)
+		{
+			if (handle == IntPtr.Zero)
+				throw new NullReferenceException("Can´t lock object with IntPtr.Zero handle");
+			lock (sTrackingObjects)
+			{
+				if(sTrackingObjects.TryGetValue(handle, out WeakReference<NativeObject>? output))
+				{
+					output.SetTarget(obj);
+					return;
+				}
+
+				sTrackingObjects.Add(handle, new WeakReference<NativeObject>(obj));
+			}
 		}
 		public static void Unlock(NativeObject obj)
 		{
-			sTrackingObjects.Remove(obj.Handle);
+			Unlock(obj.Handle);
 		}
 		public static void Unlock(IntPtr ptr)
 		{
-			sTrackingObjects.Remove(ptr);
+			lock (sTrackingObjects)
+			{
+				sTrackingObjects.Remove(ptr);
+			}
 		}
 
 		public static void ClearRegistry()
 		{
-			sTrackingObjects.Clear();
+			lock (sTrackingObjects)
+			{
+				sTrackingObjects.Clear();
+			}
 		}
 
 		public static NativeObject? Acquire(IntPtr ptr)

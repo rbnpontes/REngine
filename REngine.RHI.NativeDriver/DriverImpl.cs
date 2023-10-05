@@ -64,6 +64,7 @@ namespace REngine.RHI.NativeDriver
 				cmd.Dispose();
 			pImmediateCmd?.Dispose();
 			pDevice?.Dispose();
+			ObjectRegistry.ClearRegistry();
 
 			pImmediateCmd = null;
 			pDevice = null;
@@ -72,6 +73,7 @@ namespace REngine.RHI.NativeDriver
 			Commands = Array.Empty<ICommandBuffer>();
 
 			pDisposed = true;
+
 			GC.SuppressFinalize(this);
 		}
 

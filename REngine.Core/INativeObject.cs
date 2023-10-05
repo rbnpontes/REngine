@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace REngine.Core
 {
-	public interface INativeObject
+	public interface INativeObject : IDisposable
 	{
 		public IntPtr Handle { get; }
+		public bool IsDisposed { get; }
+		public event EventHandler? OnDispose;
 	}
 }

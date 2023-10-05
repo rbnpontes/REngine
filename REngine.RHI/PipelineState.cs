@@ -16,6 +16,7 @@ namespace REngine.RHI
 	public interface IComputePipelineState : IGPUObject
 	{
 		public ComputePipelineDesc Desc { get; }
+		public IShaderResourceBinding GetResourceBinding();
 		public IShaderResourceBinding CreateResourceBinding();
 	}
 }

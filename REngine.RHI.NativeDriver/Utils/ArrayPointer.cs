@@ -13,6 +13,11 @@ namespace REngine.RHI.NativeDriver
 		public IntPtr Handle { get; private set; }
 		public ArrayPointer(T[] values)
 		{
+			if (values.Length == 0)
+			{
+				Handle = IntPtr.Zero;
+				return;
+			}
 			pGCHandle = GCHandle.Alloc(values, GCHandleType.Pinned);
 			Handle = pGCHandle.AddrOfPinnedObject();
 		}
