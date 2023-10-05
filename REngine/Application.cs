@@ -3,6 +3,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
+using REngine.RHI.NativeDriver;
 using REngine.RPI;
 using REngine.Windows;
 using System;
@@ -45,16 +46,20 @@ namespace REngine.Sandbox
 				{
 					var graphicsSettings = provider.Get<GraphicsSettings>();
 					var window = provider.Get<IWindow>();
-					GraphicsFactory factory = new GraphicsFactory(provider);
-					factory.OnMessage += HandleGraphicsMessage;
 
-					return factory.Create(new GraphicsFactoryCreateInfo
-					{
-						WindowHandle = window.Handle,
-					}, new SwapChainDesc(graphicsSettings)
-					{
-						Size = new SwapChainSize(window.Size)
-					}, out swapChain);
+#if WINDOWS
+					NativeWindow nativeWindow = new() { Hwnd = window.Handle };
+#endif
+					DriverFactory.OnDriverMessage += HandleGraphicsMessage;
+					var driver = DriverFactory.Build(
+						new DriverSettings { },
+						nativeWindow,
+						new SwapChainDesc(graphicsSettings)
+						{
+							Size = new SwapChainSize(window.Size)
+						}, out swapChain);
+
+					return driver;
 				})
 				.Add((IServiceProvider provider) =>
 				{
@@ -73,7 +78,7 @@ namespace REngine.Sandbox
 			});
 		} 
 
-		private void HandleGraphicsMessage(object sender, MessageEventArgs args)
+		private void HandleGraphicsMessage(object? sender, MessageEventArgs args)
 		{
 			switch (args.Severity)
 			{

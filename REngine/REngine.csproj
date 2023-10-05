@@ -19,7 +19,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
-		<ProjectReference Include="..\REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj" />
+		<ProjectReference Include="..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI\REngine.RPI.csproj" />
 		<ProjectReference Include="..\REngine.Windows\REngine.Windows.csproj" />

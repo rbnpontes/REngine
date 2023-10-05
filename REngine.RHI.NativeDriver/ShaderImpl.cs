@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,9 +9,15 @@ namespace REngine.RHI.NativeDriver
 {
 	internal class ShaderImpl : NativeObject, IShader
 	{
-		public ShaderType Type => throw new NotImplementedException();
+		[DllImport(Constants.Lib)]
+		static extern byte rengine_shader_gettype(IntPtr shader);
 
-		public string Name => throw new NotImplementedException();
+		public ShaderType Type => (ShaderType)rengine_shader_gettype(Handle);
+
+		public string Name
+		{
+			get => Marshal.PtrToStringAnsi(rengine_object_getname(Handle)) ?? string.Empty;
+		}
 
 		public ShaderImpl(IntPtr handle) : base(handle)
 		{

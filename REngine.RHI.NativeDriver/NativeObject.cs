@@ -30,15 +30,8 @@ namespace REngine.RHI.NativeDriver
 			get
 			{
 				IntPtr result;
-				bool disposed = false;
 				lock (pSync)
-				{
 					result = pHandle;
-					disposed = pDisposed;
-				}
-
-				if (disposed)
-					throw new ObjectDisposedException("Native Object has been disposed");
 
 				return result;
 			}
@@ -82,7 +75,7 @@ namespace REngine.RHI.NativeDriver
 			BeforeRelease();
 
 			if (disposing)
-				rengine_object_releaseref(Handle);
+				rengine_object_releaseref(pHandle);
 
 			lock (pSync)
 			{

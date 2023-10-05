@@ -11,7 +11,9 @@ namespace REngine.RHI.NativeDriver
 {
 	internal partial class DeviceImpl : NativeObject, IDevice
 	{
-		private GraphicsBackend pBackend;
+		private readonly GraphicsBackend pBackend;
+		private readonly object pSync = new();
+
 		public DeviceImpl(GraphicsBackend backend, IntPtr handle) : base(handle)
 		{
 			pBackend = backend;
@@ -45,8 +47,11 @@ namespace REngine.RHI.NativeDriver
 			ResultNative result = new();
 
 			BufferDescDTO.Fill(desc, out BufferDescDTO output);
+			if (desc.Size == 0)
+				output.size = size;
 
-			rengine_device_create_buffer(Handle, ref output, size, data, ref result);
+			lock (pSync)
+				rengine_device_create_buffer(Handle, ref output, size, data, ref result);
 			
 			if(output.name != IntPtr.Zero)
 				Marshal.FreeHGlobal(output.name);
@@ -108,12 +113,15 @@ namespace REngine.RHI.NativeDriver
 			output.output_rtFormats = rtFormats.Handle;
 
 			ResultNative result = new();
-			rengine_device_create_graphicspipeline(
-				Handle,
-				ref output,
-				(byte)(pBackend == GraphicsBackend.OpenGL ? 1 : 0),
-				ref result
-			);
+			lock (pSync)
+			{
+				rengine_device_create_graphicspipeline(
+					Handle,
+					ref output,
+					(byte)(pBackend == GraphicsBackend.OpenGL ? 1 : 0),
+					ref result
+				);
+			}
 
 			strings2Dispose.ForEach(x => Marshal.FreeHGlobal(x));
 			disposables.ForEach(x => x.Dispose());
@@ -138,7 +146,8 @@ namespace REngine.RHI.NativeDriver
 			}
 
 			ResultNative result = new();
-			rengine_device_create_shader(Handle, ref output, ref result);
+			lock (pSync)
+				rengine_device_create_shader(Handle, ref output, ref result);
 
 			if (output.name != IntPtr.Zero)
 				Marshal.FreeHGlobal(output.name);
@@ -170,13 +179,18 @@ namespace REngine.RHI.NativeDriver
 			TextureDescDTO.Fill(desc, out TextureDescDTO output);
 
 			ResultNative result = new();
-			rengine_device_create_texture(
-				Handle,
-				ref output,
-				data.Handle,
-				(uint)subresources.Count(),
-				ref result
-			);
+
+			lock (pSync)
+			{
+				uint subresourcesCount = (uint)subresources.Count();
+				rengine_device_create_texture(
+					Handle,
+					ref output,
+					data.Handle,
+					subresourcesCount,
+					ref result
+				);
+			}
 
 			if (output.name != IntPtr.Zero)
 				Marshal.FreeHGlobal(output.name);

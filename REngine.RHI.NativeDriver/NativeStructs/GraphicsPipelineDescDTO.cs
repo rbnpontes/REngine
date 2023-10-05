@@ -91,10 +91,10 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 				numImmutableSamplers = (byte)desc.Samplers.Count,
 
 				shader_vs = desc.Shaders.VertexShader?.Handle ?? IntPtr.Zero,
-				shader_ps = desc.Shaders.VertexShader?.Handle ?? IntPtr.Zero,
-				shader_ds = desc.Shaders.VertexShader?.Handle ?? IntPtr.Zero,
-				shader_hs = desc.Shaders.VertexShader?.Handle ?? IntPtr.Zero,
-				shader_gs = desc.Shaders.VertexShader?.Handle ?? IntPtr.Zero,
+				shader_ps = desc.Shaders.PixelShader?.Handle ?? IntPtr.Zero,
+				shader_ds = desc.Shaders.DomainShader?.Handle ?? IntPtr.Zero,
+				shader_hs = desc.Shaders.HullShader?.Handle ?? IntPtr.Zero,
+				shader_gs = desc.Shaders.GeometryShader?.Handle ?? IntPtr.Zero,
 			};
 		}
 	}
