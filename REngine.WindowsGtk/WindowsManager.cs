@@ -9,21 +9,36 @@ namespace REngine.WindowsGtk
 {
 	public sealed class WindowsManager : IWindowManager
 	{
-		public IReadOnlyList<IWindow> Windows => throw new NotImplementedException();
+		private readonly List<WindowImpl> pWindows = new List<WindowImpl>();
+
+		public IReadOnlyList<IWindow> Windows => pWindows.AsReadOnly();
 
 		public IWindowManager CloseAllWindows()
 		{
-			throw new NotImplementedException();
+			pWindows.ForEach(x => x.Close());
+			return this;
 		}
 
 		public IWindow Create(WindowCreationInfo createInfo)
 		{
+			if(createInfo.WindowInstance != null)
+			{
+
+			}
 			throw new NotImplementedException();
 		}
 
 		public void Dispose()
 		{
 			throw new NotImplementedException();
+		}
+
+		public static Gtk.Widget GetWidget(IWindow window)
+		{
+			WidgetImpl? widgetImpl = window as WidgetImpl;
+			if (widgetImpl is null)
+				throw new InvalidCastException("IWindow was not created by this WindowsManager.");
+			return widgetImpl.GetWidget();
 		}
 	}
 }

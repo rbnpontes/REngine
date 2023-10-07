@@ -1,4 +1,5 @@
-﻿using REngine.Core;
+﻿using GLib;
+using REngine.Core;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,83 +10,142 @@ using System.Threading.Tasks;
 
 namespace REngine.WindowsGtk
 {
-	internal class WindowImpl : IWindow
+	internal class WindowImpl : WidgetImpl
 	{
-		private readonly Gtk.Window pWindow;
-
-		private bool pDisposed;
-
-		public string Title 
+		public override string Title 
 		{ 
 			get
 			{
 				if (pDisposed) 
 					return string.Empty;
-				return pWindow.Title;
+				return GetWindow().Title;
 			}
 			set
 			{
 				if (pDisposed)
 					return;
-				pWindow.Title = value;
+				GetWindow().Title = value;
 			}
 		}
 
-		public IntPtr Handle => pWindow.Handle;
-
-		public Rectangle Bounds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public Size Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public Vector2 Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public Size MinSize { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public Size MaxSize { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-		public bool Focused => pWindow.IsFocus;
-
-		public bool IsClosed => pWindow.Visible;
-
-		public event WindowEvent? OnUpdate;
-		public event WindowEvent? OnShow;
-		public event WindowEvent? OnClose;
-		public event WindowInputEvent? OnKeyDown;
-		public event WindowInputEvent? OnKeyUp;
-		public event WindowResizeEvent? OnResize;
-
-		public WindowImpl(Gtk.Window window)
-		{
-
+		public override Rectangle Bounds 
+		{ 
+			get
+			{
+				GetWindow().GetSize(out int width, out int height);
+				GetWindow().GetPosition(out int x, out int y);
+				return new Rectangle(x, y, width, height);
+			}
+			set
+			{
+				GetWindow().Move(value.X, value.Y);
+				GetWindow().Resize(value.Width, value.Height);
+			}
 		}
 
-		public IWindow Close()
+		public override Size Size 
+		{ 
+			get
+			{
+				GetWindow().GetSize(out int width, out int height);
+				return new Size(width, height);
+			}
+			set
+			{
+				GetWindow().Resize(value.Width, value.Height);
+			}
+		}
+
+		public override Point Position 
 		{
-			pWindow.Close();
+			get
+			{
+				GetWindow().GetPosition(out int x, out int y);
+				return new Point(x, y);
+			}
+			set
+			{
+				GetWindow().Move(value.X, value.Y);
+			}
+		}
+
+		private Size pMinSize = new();
+		private Size pMaxSize = new(int.MaxValue, int.MaxValue);
+
+		public override Size MinSize 
+		{
+			get => pMinSize;
+			set => pMinSize = value;
+		}
+		public override Size MaxSize 
+		{
+			get => pMaxSize;
+			set => pMaxSize = value;
+		}
+
+		public WindowImpl(Gtk.Window window) : base(window)
+		{
+			window.ConfigureEvent += HandleConfigure;
+		}
+
+		private void HandleConfigure(object o, Gtk.ConfigureEventArgs args)
+		{
+			if (HandleResize())
+				EmitResize(Size);
+		}
+
+		private Gtk.Window GetWindow()
+		{
+			Gtk.Window? window = pWidget as Gtk.Window;
+			if (window is null)
+				throw new NullReferenceException("pWidget does not inherit from Gtk.Window");
+			return window;
+		}
+
+		public override IWindow Close()
+		{
+			GetWindow().Close();
 			return this;
 		}
 
-		public void Dispose()
+		protected override void OnDispose()
+		{
+			GetWindow().Close();
+		}
+
+		public override IWindow Focus()
+		{
+			GetWindow().Present();
+			return this;
+		}
+
+		public override IWindow Fullscreen()
+		{
+			GetWindow().Fullscreen();
+			if (HandleResize())
+				EmitResize(Size);
+			return this;
+		}
+
+		private bool HandleResize()
 		{
 			if (pDisposed)
-				return;
+				return false;
+			GetWindow().GetSize(out int width, out int height);
 
-			pWindow.Close();
-			pWindow.Dispose();
+			int currWidth = width;
+			int currHeight = height;
 
-			pDisposed = true;
-			GC.SuppressFinalize(this);
-		}
+			width = Math.Clamp(currWidth, pMinSize.Width, pMinSize.Height);
+			height = Math.Clamp(currHeight, pMinSize.Height, pMaxSize.Height);
 
-		public IWindow Focus()
-		{
-			throw new NotImplementedException();
-		}
+			if(currWidth != width || currHeight != height)
+			{
+				GetWindow().Resize(width, height);
+				return true;
+			}
 
-		public IWindow Show()
-		{
-			throw new NotImplementedException();
-		}
-
-		public IWindow Update()
-		{
-			throw new NotImplementedException();
+			return false;
 		}
 	}
 }

@@ -29,7 +29,7 @@ namespace REngine.Sandbox
 			pSampleForm.Show();
 			var wnd = windowManager.Create(new WindowCreationInfo
 			{
-				Control = pSampleForm.GameContent
+				WindowInstance = pSampleForm.GameContent
 			});
 			pSampleForm.GameWindow = wnd;
 			return wnd;

@@ -10,15 +10,16 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 	</PropertyGroup>
-	<!--Windows Defs-->
-	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
-	<!--Linux Defs-->
-	<PropertyGroup Condition="'$(Configuration)'=='Debug-Linux'">
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
 	  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>

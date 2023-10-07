@@ -110,9 +110,9 @@ namespace REngine.Windows
 		public IWindow Create(WindowCreationInfo createInfo)
 		{
 			IWindow window;
-			if(createInfo.Control != null)
+			if(createInfo.WindowInstance != null)
 			{
-				Control? ctrl = createInfo.Control as Control;
+				Control? ctrl = createInfo.WindowInstance as Control;
 				if (ctrl is null)
 					throw new ArgumentException("Invalid control type at WindowCreationInfo. Control must inherit WinForms Control");
 				window = pBuilder.Build(ctrl);

@@ -14,17 +14,18 @@ namespace REngine.Core
 		public Size Size;
 		public Vector2? Position;
 		/// <summary>
-		/// Must be a Winforms control
+		/// Must be a Winforms control or Gtk Widget
+		/// WindowInstance must be compatible with Window System
 		/// otherwise, window manager will thrown an exception
 		/// </summary>
-		public object? Control;
+		public object? WindowInstance;
 
 		public WindowCreationInfo()
 		{
 			Title = string.Empty;
 			Size = new Size(100, 100);
 			Position = null;
-			Control = null;
+			WindowInstance = null;
 		}
 	}
 
