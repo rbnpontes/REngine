@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NativeWindow = REngine.Core.NativeWindow;
 namespace REngine.RHI.NativeDriver.Tests
 {
 	public class BaseTest

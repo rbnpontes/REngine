@@ -9,6 +9,7 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
+		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<DefineConstants>WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>

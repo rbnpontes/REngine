@@ -2,8 +2,7 @@
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
 using System.Diagnostics;
-using System.Windows.Forms;
-using NativeWindow = REngine.RHI.NativeWindow;
+using NativeWindow = REngine.Core.NativeWindow;
 
 DriverFactory.OnDriverMessage += (s, e) =>
 {

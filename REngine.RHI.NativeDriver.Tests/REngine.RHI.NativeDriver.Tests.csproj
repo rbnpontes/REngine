@@ -10,6 +10,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<OutputType>WinExe</OutputType>
+		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<DefineConstants>WINDOWS</DefineConstants>

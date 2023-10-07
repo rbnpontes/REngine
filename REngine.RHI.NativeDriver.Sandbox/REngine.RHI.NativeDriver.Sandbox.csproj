@@ -8,6 +8,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<UseWindowsForms>True</UseWindowsForms>
+		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>

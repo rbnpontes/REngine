@@ -1,4 +1,5 @@
-﻿using REngine.RHI.NativeDriver.NativeStructs;
+﻿using REngine.Core;
+using REngine.RHI.NativeDriver.NativeStructs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
