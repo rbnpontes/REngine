@@ -294,7 +294,7 @@ namespace REngine.Core.IO
 					Console.ForegroundColor = ConsoleColor.DarkGray;
 					break;
 				case LogSeverity.Info:
-					Console.ForegroundColor = ConsoleColor.DarkBlue;
+					Console.ForegroundColor = currColor;
 					break;
 				case LogSeverity.Success:
 					Console.ForegroundColor = ConsoleColor.DarkGreen;

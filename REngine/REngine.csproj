@@ -9,6 +9,19 @@
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<DefineConstants>$(DefineConstants);WINDOWS;DEBUG</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
+		<DefineConstants>$(DefineConstants);LINUX;DEBUG</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
 		<ProjectReference Include="..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />

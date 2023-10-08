@@ -46,7 +46,11 @@ namespace REngine.Sandbox
 		{
 			return new DriverSettings
 			{
-				Backend = GraphicsBackend.Vulkan
+#if WINDOWS
+				Backend = GraphicsBackend.D3D11,
+#else
+				Backend = GraphicsBackend.Vulkan,
+#endif
 			};
 		}
 	}
