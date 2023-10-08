@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "REngine.RHI.NativeDriver.Sandbox": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

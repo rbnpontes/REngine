@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "REngine.Sandbox": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

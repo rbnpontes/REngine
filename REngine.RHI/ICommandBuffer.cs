@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -62,17 +63,18 @@ namespace REngine.RHI
 		}
 	}
 
-	public interface ICommandBuffer : IDisposable
+	public interface ICommandBuffer : IDisposable, INativeObject
 	{
+		public ICommandBuffer SetRT(ITextureView rt, ITextureView depthStencil);
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil);
 		public ICommandBuffer ClearRT(ITextureView renderTarget, in Color clearColor);
 		public ICommandBuffer ClearDepth(ITextureView depthStencil, ClearDepthStencil clearFlags, float depth, byte stencil);
 		public ICommandBuffer SetPipeline(IPipelineState pipelineState);
 		public ICommandBuffer SetPipeline(IComputePipelineState pipelineState);
 
-		public ICommandBuffer SetVertexBuffer(IBuffer buffer);
-		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers);
-		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets);
+		public ICommandBuffer SetVertexBuffer(IBuffer buffer, bool reset = true);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, bool reset = true);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets, bool reset = true);
 		public ICommandBuffer SetIndexBuffer(IBuffer buffer, ulong byteOffset = 0);
 
 		public ICommandBuffer CommitBindings(IShaderResourceBinding resourceBinding);

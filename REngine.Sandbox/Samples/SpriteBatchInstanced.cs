@@ -4,6 +4,7 @@ using REngine.Core.DependencyInjection;
 using REngine.RPI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -25,17 +26,14 @@ namespace REngine.Sandbox.Samples
 		private ISpriteInstancing? pInstancingObject;
 
 		private Size pInstancingSpriteGridSize;
-		private SpriteInstancedBatchInfo[] pSpriteInstances;
 
 		public SpriteBatchInstanced()
 		{
 			pInstancingSpriteGridSize = new Size(20, 20);
-			pSpriteInstances = new SpriteInstancedBatchInfo[pInstancingSpriteGridSize.Width * pInstancingSpriteGridSize.Height];
 		}
 
 		public void Dispose()
 		{
-			pSpriteInstances = new SpriteInstancedBatchInfo[0];
 			pRenderer?.RemoveFeature(pSpriteFeature);
 			pSpriteBatch?.ClearTextures();
 			pSpriteFeature?.Dispose();
@@ -43,7 +41,12 @@ namespace REngine.Sandbox.Samples
 			if(pSpriteBatch != null)
 				pSpriteBatch.OnDraw -= OnDraw;
 
+			pInstancingObject = null;
+
 			GC.SuppressFinalize(this);
+
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
 		}
 
 		public void Load(IServiceProvider provider)

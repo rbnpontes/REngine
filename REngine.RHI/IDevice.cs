@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public interface IDevice : IDisposable
+	public interface IDevice : IDisposable, INativeObject
 	{
 		public IBuffer CreateBuffer(in BufferDesc desc);
 		public IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged;

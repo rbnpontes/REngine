@@ -55,7 +55,7 @@ namespace REngine.Core
 		public IntPtr Handle { get; }
 		public Rectangle Bounds { get; set; }
 		public Size Size { get; set; }
-		public Vector2 Position { get; set; }
+		public Point Position { get; set; }
 		public Size MinSize { get; set; }
 		public Size MaxSize { get; set; }
 		public bool Focused { get; }
@@ -66,5 +66,9 @@ namespace REngine.Core
 		public IWindow Focus();
 
 		public IWindow Update();
+
+		public IWindow Fullscreen();
+
+		public IWindow GetNativeWindow(out NativeWindow window);
 	}
 }

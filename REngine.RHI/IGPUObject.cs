@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public delegate void GPUObjectEvent(object sender, EventArgs args);
-
-	public interface IGPUObject : IDisposable
+	public interface IGPUObject : INativeObject
 	{
-		public event GPUObjectEvent OnDispose;
 		public string Name { get; }
 	}
 }

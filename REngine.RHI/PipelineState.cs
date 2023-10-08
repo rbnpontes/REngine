@@ -6,16 +6,19 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI
 {
-	public interface IPipelineState : IGPUObject
+
+	public interface IBasePipelineState : IGPUObject
 	{
-		public GraphicsPipelineDesc Desc { get; }
 		public IShaderResourceBinding GetResourceBinding();
 		public IShaderResourceBinding CreateResourceBinding();
 	}
+	public interface IPipelineState : IBasePipelineState
+	{
+		public GraphicsPipelineDesc Desc { get; }
+	}
 
-	public interface IComputePipelineState : IGPUObject
+	public interface IComputePipelineState : IBasePipelineState
 	{
 		public ComputePipelineDesc Desc { get; }
-		public IShaderResourceBinding CreateResourceBinding();
 	}
 }

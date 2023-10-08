@@ -49,9 +49,9 @@ namespace REngine.Windows
 					pControl.Size = value;
 			}
 		}
-		public Vector2 Position
+		public Point Position
 		{
-			get => new Vector2(pControl?.Left ?? 0, pControl?.Top ?? 0);
+			get => new Point(pControl?.Left ?? 0, pControl?.Top ?? 0);
 			set
 			{
 				if (pControl != null)
@@ -152,6 +152,16 @@ namespace REngine.Windows
 			// Vulkan has issues if invalidate is not called
 			pControl?.Invalidate(new Rectangle(0, 0, 1, 1));
 			return this;
+		}
+
+		public IWindow Fullscreen()
+		{
+			return this;
+		}
+
+		public IWindow GetNativeWindow(out Core.NativeWindow window)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

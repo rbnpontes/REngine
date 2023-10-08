@@ -101,6 +101,7 @@ namespace REngine.RPI.Features
 		private IBufferProvider? pBufferProvider;
 
 		private DirtyFlags pDirtyFlags = DirtyFlags.All;
+
 		public bool IsDirty { get => pDirtyFlags != DirtyFlags.None; }
 		public bool IsDisposed { get; private set; } = false;
 
@@ -331,7 +332,6 @@ namespace REngine.RPI.Features
 
 				var binding = textureSlot != byte.MaxValue ? pBindings[textureSlot] : defaultPipeline.GetResourceBinding();
 				binding ??= defaultPipeline.GetResourceBinding();
-
 
 				cmd.CommitBindings(binding);
 

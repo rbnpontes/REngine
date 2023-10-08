@@ -1,28 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-		<DefineConstants>LINUX</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-		<DefineConstants>OSX</DefineConstants>
+		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
-		<ProjectReference Include="..\REngine.RHI.DiligentDriver\REngine.RHI.DiligentDriver.csproj" />
+		<ProjectReference Include="..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI\REngine.RPI.csproj" />
-		<ProjectReference Include="..\REngine.Windows\REngine.Windows.csproj" />
+		<ProjectReference Include="..\REngine.WindowsGtk\REngine.WindowsGtk.csproj" />
 	</ItemGroup>
 
 </Project>

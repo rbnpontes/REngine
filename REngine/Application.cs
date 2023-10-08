@@ -3,8 +3,9 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
+using REngine.RHI.NativeDriver;
 using REngine.RPI;
-using REngine.Windows;
+using REngine.WindowsGtk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,16 +46,27 @@ namespace REngine.Sandbox
 				{
 					var graphicsSettings = provider.Get<GraphicsSettings>();
 					var window = provider.Get<IWindow>();
-					GraphicsFactory factory = new GraphicsFactory(provider);
-					factory.OnMessage += HandleGraphicsMessage;
+					window.GetNativeWindow(out NativeWindow nativeWindow);
 
-					return factory.Create(new GraphicsFactoryCreateInfo
+					DriverFactory.OnDriverMessage += HandleGraphicsMessage;
+					
+					var driver = DriverFactory.Build(
+						OnCreateDriverSettings(provider),
+						nativeWindow,
+						new SwapChainDesc(graphicsSettings)
+						{
+							Size = new SwapChainSize(window.Size)
+						}, out swapChain);
+
+					// When format is not supported by the driver
+					// Driver will search for a compatible format
+					// In this case we must update graphics settings
+					if(swapChain != null)
 					{
-						WindowHandle = window.Handle,
-					}, new SwapChainDesc(graphicsSettings)
-					{
-						Size = new SwapChainSize(window.Size)
-					}, out swapChain);
+						graphicsSettings.DefaultColorFormat = swapChain.Desc.Formats.Color;
+						graphicsSettings.DefaultDepthFormat = swapChain.Desc.Formats.Depth;
+					}
+					return driver;
 				})
 				.Add((IServiceProvider provider) =>
 				{
@@ -73,7 +85,9 @@ namespace REngine.Sandbox
 			});
 		} 
 
-		private void HandleGraphicsMessage(object sender, MessageEventArgs args)
+		protected virtual DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider) => new DriverSettings { };
+
+		private void HandleGraphicsMessage(object? sender, MessageEventArgs args)
 		{
 			switch (args.Severity)
 			{

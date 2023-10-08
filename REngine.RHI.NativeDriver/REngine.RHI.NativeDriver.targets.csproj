@@ -1,0 +1,10 @@
+<Project>
+	<Target Name="PlatformCheck" BeforeTargets="InjectReference" Condition="(('$(Platform)' != 'x86') AND  ('$(Platform)' != 'x64'))">
+		<Error  Text="$(MSBuildThisFileName) does not work correctly on '$(Platform)' platform. You need to specify platform x64." />
+	</Target>
+	<Target Name="InjectReference" BeforeTargets="ResolveAssemblyReferences">
+		<Message Text="Copy platform specific dll: $(MSBuildThisFileDirectory)/runtimes/$(Platform)/REngine-DiligentNativeDriver.dll" Importance="High" />
+		<Copy SourceFiles="$(MSBuildThisFileDirectory)/runtimes/$(Platform)/REngine-DiligentNativeDriver.dll"
+		      DestinationFolder="$(MSBuildThisFileDirectory)runtimes/" />
+	</Target>
+</Project>
