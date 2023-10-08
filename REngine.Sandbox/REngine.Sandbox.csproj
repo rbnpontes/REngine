@@ -22,15 +22,15 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH</DefineConstants>
+	  <DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />

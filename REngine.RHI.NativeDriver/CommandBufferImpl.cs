@@ -1,4 +1,5 @@
-﻿using REngine.RHI.NativeDriver.NativeStructs;
+﻿using REngine.Core.Mathematics;
+using REngine.RHI.NativeDriver.NativeStructs;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -223,5 +224,61 @@ namespace REngine.RHI.NativeDriver
 			);
 			return this;
 		}
+
+		public ICommandBuffer SetBlendFactors(in Color color)
+		{
+			rengine_cmdbuffer_setblendfactors(
+				Handle,
+				color.R / 255.0f,
+				color.G / 255.0f,
+				color.B / 255.0f,
+				color.A / 255.0f
+			);
+			return this;
+		}
+
+		public unsafe ICommandBuffer SetViewports(Viewport[] viewports, uint rtWidth, uint rtHeight)
+		{
+			fixed(Viewport* ptr = viewports)
+			{
+				IntPtr viewportPtr = new(ptr);
+				rengine_cmdbuffer_setviewports(
+					Handle,
+					viewportPtr,
+					(byte)viewports.Length,
+					rtWidth,
+					rtHeight
+				);
+			}
+			return this;
+		}
+
+		public ICommandBuffer SetViewport(Viewport viewport, uint rtWidth, uint rtHeight)
+		{
+			return SetViewports(new Viewport[] { viewport }, rtWidth, rtHeight);
+		}
+
+		public unsafe ICommandBuffer SetScissors(IntRect[] scissors, uint rtWidth, uint rtHeight)
+		{
+			fixed(IntRect* ptr = scissors)
+			{
+				IntPtr scissorsPtr = new(ptr);
+				rengine_cmdbuffer_setscissors(
+					Handle,
+					scissorsPtr, 
+					(byte)scissors.Length, 
+					rtWidth, 
+					rtHeight 
+				);
+			}
+
+			return this;
+		}
+
+		public ICommandBuffer SetScissor(IntRect scissor, uint rtWidth, uint rtHeight)
+		{
+			return SetScissors(new IntRect[] { scissor }, rtWidth, rtHeight);
+		}
 	}
+
 }

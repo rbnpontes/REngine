@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "REngine.RPI": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

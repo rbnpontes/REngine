@@ -8,6 +8,9 @@
 				<step id="spritebatch_draw"/>
 				<step id="spritebatch_build_tex"/>
 			</task>
+			<task id="imgui_task" end="render">
+				<step id="imgui_draw"/>
+			</task>
 		</step>
 		<step id="update"/>
 		<step id="render_begin"/>

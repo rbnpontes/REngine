@@ -1,4 +1,5 @@
 ﻿using REngine.Core;
+using REngine.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -80,6 +81,12 @@ namespace REngine.RHI
 		public ICommandBuffer CommitBindings(IShaderResourceBinding resourceBinding);
 		public ICommandBuffer Draw(DrawArgs args);
 		public ICommandBuffer Draw(DrawIndexedArgs args);
+
+		public ICommandBuffer SetBlendFactors(in Color color);
+		public ICommandBuffer SetViewports(Viewport[] viewports, uint rtWidth, uint rtHeight);
+		public ICommandBuffer SetViewport(Viewport viewports, uint rtWidth, uint rtHeight);
+		public ICommandBuffer SetScissors(IntRect[] scissors, uint rtWidth, uint rtHeight);
+		public ICommandBuffer SetScissor(IntRect scissor, uint rtWidth, uint rtHeight);
 
 		public Span<T> Map<T>(IBuffer buffer, MapType mapType, MapFlags mapFlags) where T : unmanaged;
 		public IntPtr Map(IBuffer buffer, MapType mapType, MapFlags mapFlags);

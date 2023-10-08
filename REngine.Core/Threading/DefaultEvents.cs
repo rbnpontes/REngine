@@ -22,5 +22,6 @@ namespace REngine.Core.Threading
 		public const string RenderId = "render";
 		public const string RenderEndId = "render_end";
 		public const string WindowsInvalidateId = "windows_invalidate";
+		public const string ImGuiDrawId = "imgui_draw";
 	}
 }

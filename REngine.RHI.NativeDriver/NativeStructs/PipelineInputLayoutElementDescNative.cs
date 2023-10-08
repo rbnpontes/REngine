@@ -14,6 +14,7 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		public uint elementOffset;
 		public uint instanceStepRate;
 		public byte elementType;
+		public byte normalized;
 
 		public static void Fill(in PipelineInputLayoutElementDesc desc, out PipelineInputLayoutElementDescNative output)
 		{
@@ -24,7 +25,8 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 				bufferStride = desc.Input.BufferStride,
 				elementOffset = desc.Input.ElementOffset,
 				instanceStepRate = desc.Input.InstanceStepRate,
-				elementType = (byte)desc.Input.ElementType
+				elementType = (byte)desc.Input.ElementType,
+				normalized = (byte)(desc.Input.IsNormalized ? 1 : 0),
 			};
 		}
 	}

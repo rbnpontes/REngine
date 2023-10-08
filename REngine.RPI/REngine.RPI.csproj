@@ -12,23 +12,30 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH</DefineConstants>
+		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+	  <PackageReference Include="ImGui.NET" Version="1.89.9.2" />
 	  <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="Assets\Shaders\imgui_ps.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Assets\Shaders\imgui_vs.hlsl">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Assets\Shaders\cube_feat_ps.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

@@ -32,6 +32,9 @@ namespace REngine.RPI
 				.Add<SpriteTextureManager>()
 				.Add<ISpriteBatch, SpriteBatchImpl>()
 #endif
+#if RENGINE_IMGUI
+				.Add<IImGuiSystem, ImGuiSystem>()
+#endif
 				.Add<BasicFeaturesFactory>();
 		}
 	}

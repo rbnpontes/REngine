@@ -34,6 +34,13 @@ namespace REngine.Sandbox
 		public override void OnStart(IServiceProvider provider)
 		{
 			base.OnStart(provider);
+
+#if RENGINE_IMGUI
+			IRenderer renderer = provider.Get<IRenderer>();
+			IImGuiSystem imGuiSystem = provider.Get<IImGuiSystem>();
+
+			renderer.AddFeature(imGuiSystem.Feature);
+#endif
 			pSampleWindow?.EngineStart(provider);
 		}
 
