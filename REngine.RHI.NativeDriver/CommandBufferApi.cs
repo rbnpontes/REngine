@@ -75,6 +75,7 @@ namespace REngine.RHI.NativeDriver
 			uint numBuffers,
 			IntPtr buffers,
 			IntPtr offsets,
+			byte reset,
 			byte isDeferred
 		);
 		[DllImport(Constants.Lib)]

@@ -3,6 +3,7 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.RHI;
+using REngine.RHI.DiligentDriver;
 using REngine.RPI;
 using REngine.RPI.Features;
 using System;
@@ -39,6 +40,14 @@ namespace REngine.Sandbox
 		public override void OnUpdate(IServiceProvider provider)
 		{
 			pSampleWindow?.EngineUpdate(provider);
+		}
+
+		protected override DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider)
+		{
+			return new DriverSettings
+			{
+				Backend = GraphicsBackend.Vulkan
+			};
 		}
 	}
 }

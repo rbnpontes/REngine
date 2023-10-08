@@ -51,13 +51,21 @@ namespace REngine.Sandbox
 					DriverFactory.OnDriverMessage += HandleGraphicsMessage;
 					
 					var driver = DriverFactory.Build(
-						new DriverSettings { },
+						OnCreateDriverSettings(provider),
 						nativeWindow,
 						new SwapChainDesc(graphicsSettings)
 						{
 							Size = new SwapChainSize(window.Size)
 						}, out swapChain);
 
+					// When format is not supported by the driver
+					// Driver will search for a compatible format
+					// In this case we must update graphics settings
+					if(swapChain != null)
+					{
+						graphicsSettings.DefaultColorFormat = swapChain.Desc.Formats.Color;
+						graphicsSettings.DefaultDepthFormat = swapChain.Desc.Formats.Depth;
+					}
 					return driver;
 				})
 				.Add((IServiceProvider provider) =>
@@ -76,6 +84,8 @@ namespace REngine.Sandbox
 				Size = new Size(500, 500)
 			});
 		} 
+
+		protected virtual DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider) => new DriverSettings { };
 
 		private void HandleGraphicsMessage(object? sender, MessageEventArgs args)
 		{

@@ -13,6 +13,7 @@ namespace REngine.RHI.NativeDriver
 	internal partial class CommandBufferImpl : NativeObject, ICommandBuffer
 	{
 		private readonly bool pIsDeferred;
+
 		public CommandBufferImpl(IntPtr handle, bool isDeferred) : base(handle)
 		{
 			pIsDeferred = isDeferred;
@@ -134,6 +135,11 @@ namespace REngine.RHI.NativeDriver
 			return this;
 		}
 
+		public ICommandBuffer SetRT(ITextureView rt, ITextureView depthStencil)
+		{
+			return SetRTs(new ITextureView[] { rt }, depthStencil );
+		}
+
 		public unsafe ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil)
 		{
 			IntPtr[] renderTargets = rts.Select(x => x.Handle).ToArray();
@@ -151,17 +157,17 @@ namespace REngine.RHI.NativeDriver
 			return this;
 		}
 
-		public ICommandBuffer SetVertexBuffer(IBuffer buffer)
+		public ICommandBuffer SetVertexBuffer(IBuffer buffer, bool reset)
 		{
-			return SetVertexBuffers(0, new IBuffer[] { buffer }, new ulong[0]);
+			return SetVertexBuffers(0, new IBuffer[] { buffer }, new ulong[0], reset);
 		}
 
-		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers)
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, bool reset)
 		{
-			return SetVertexBuffers(startSlot, buffers, buffers.Select(x => ulong.MinValue).ToArray());
+			return SetVertexBuffers(startSlot, buffers, buffers.Select(x => ulong.MinValue).ToArray(), reset);
 		}
 
-		public unsafe ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets)
+		public unsafe ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets, bool reset = true)
 		{
 			IntPtr[] buffersPtr = buffers.Select(x => x.Handle).ToArray();
 			fixed(void* ptr = buffersPtr)
@@ -174,6 +180,7 @@ namespace REngine.RHI.NativeDriver
 						(uint)buffers.Count(),
 						new IntPtr(ptr),
 						new IntPtr(offsetsPtr),
+						(byte)(reset ? 1 : 0),
 						GetIsDeferredByte()
 					);
 				}
