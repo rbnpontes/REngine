@@ -18,13 +18,24 @@ namespace REngine.Sandbox
 {
 	public abstract class App : IEngineApplication
 	{
-		private LinkedList<MessageEventArgs> pTmpGraphicsLogs = new LinkedList<MessageEventArgs>();
+		private ILoggerFactory pLoggerFactory;
 
 		public ILogger Logger { get; private set; }
+
 		
 		public App(Type inheritanceType)
 		{
-			Logger = new DebugLoggerFactory().Build(inheritanceType);
+			FileLoggerFactory fileLoggerFactory = new FileLoggerFactory(EngineSettings.LoggerPath);
+#if DEBUG
+			pLoggerFactory = new ComposedLoggerFactory(new ILoggerFactory[]
+			{
+				new DebugLoggerFactory(),
+				fileLoggerFactory
+			});
+#else
+			pLoggerFactory = fileLoggerFactory;
+#endif
+			Logger = pLoggerFactory.Build(inheritanceType);
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{
@@ -32,10 +43,27 @@ namespace REngine.Sandbox
 
 		public virtual void OnSetup(IServiceRegistry registry)
 		{
+			// Create Application Data Path
+			if (!Directory.Exists(EngineSettings.AppDataPath))
+				Directory.CreateDirectory(EngineSettings.AppDataPath);
+
 			WindowsModule.Setup(registry);
 			RHIModule.Setup(registry);
 			RPIModule.Setup(registry);
 			ISwapChain? swapChain = null;
+
+			registry.Add(()=> pLoggerFactory);
+
+			DriverFactory.OnDriverMessage += HandleGraphicsMessage;
+
+			Logger.Info("OS Version: "+Environment.OSVersion.ToString());
+			Logger.Info("Machine: "+Environment.MachineName.ToString());
+			Logger.Info("TickCount:" + Environment.TickCount.ToString());
+			Logger.Info("ProcessorCount: " + Environment.ProcessorCount.ToString());
+			Logger.Info("UserName: " + Environment.UserName);
+			Logger.Info("UserDomainName: " + Environment.UserDomainName);
+			Logger.Info("App Data Path: " + EngineSettings.AppDataPath);
+			Logger.Info("Log Path: " + EngineSettings.LoggerPath);
 
 			registry
 				.Add(
@@ -48,16 +76,18 @@ namespace REngine.Sandbox
 					var window = provider.Get<IWindow>();
 					window.GetNativeWindow(out NativeWindow nativeWindow);
 
-					DriverFactory.OnDriverMessage += HandleGraphicsMessage;
-					
+					Logger.Info(window);
+
+					DriverSettings driverSettings = OnCreateDriverSettings(provider);
 					var driver = DriverFactory.Build(
-						OnCreateDriverSettings(provider),
+						driverSettings,
 						nativeWindow,
 						new SwapChainDesc(graphicsSettings)
 						{
 							Size = new SwapChainSize(window.Size)
 						}, out swapChain);
 
+					Logger.Info("GraphicsBackend: " + driverSettings.Backend);
 					// When format is not supported by the driver
 					// Driver will search for a compatible format
 					// In this case we must update graphics settings

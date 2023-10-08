@@ -1,4 +1,5 @@
-﻿using REngine.Core;
+﻿using Gtk;
+using REngine.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,10 +45,10 @@ namespace REngine.WindowsGtk
 					WindowId = gdk_x11_window_get_xid(window.Handle)
 				};
 			}
-			else if(string.Equals(a, WindowWaylandName))
-				output = new NativeWindow {  Display = gdk_wayland_display_get_wl_display(window.Display.Handle) };
-			else
-				throw new NotImplementedException($"Not implemented this window type '{a}'");
+			else 
+			{
+				throw new NotSupportedException("Unfortunately, only X11 Windows Manager is supported. If you are under Linux and have Xorg Windows Manager, we recomend to use this instead.");
+			}
 #else
 			throw new NotImplementedException();
 #endif

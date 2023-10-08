@@ -67,7 +67,8 @@ namespace REngine.Core.DependencyInjection
 				return result;
 			};
 
-			pConstructors.Add(typeof(Interface), constructor);
+			// dependencies must overwrite
+			pConstructors[typeof(Interface)] = constructor;
 			return this;
 		}
 
