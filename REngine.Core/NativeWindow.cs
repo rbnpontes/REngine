@@ -14,6 +14,11 @@ namespace REngine.Core
 	public struct NativeWindow
 	{
 		public IntPtr Hwnd;
+
+		public override string ToString()
+		{
+			return $"Hwnd: {Hwnd.ToString("x8")}";
+		}
 	}
 #elif LINUX
 	/// <summary>
@@ -30,6 +35,21 @@ namespace REngine.Core
 		public uint WindowId;
 		public IntPtr Display;
 		public IntPtr XCBConnection;
+
+		public override string ToString()
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("WindowId: ");
+			builder.AppendLine(WindowId.ToString());
+
+			builder.Append("Display: ");
+			builder.AppendLine(Display.ToString("x8"));
+
+			builder.Append("XCBConnection: ");
+			builder.AppendLine(XCBConnection.ToString("x8"));
+
+			return builder.ToString();
+		}
 	}
 #endif
 }

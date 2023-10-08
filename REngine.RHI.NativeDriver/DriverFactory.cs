@@ -202,7 +202,11 @@ namespace REngine.RHI.NativeDriver
 			Array.Copy(commands, 1, deferredCmd, 0, commands.Length - 1);
 
 			if (swapChainDesc != null)
+			{
+				if (result.swapChain == IntPtr.Zero)
+					throw new NullReferenceException("Error has ocurred at SwapChain creation. SwapChain is null");
 				swapChain = new SwapChainImpl(result.swapChain);
+			}
 			else
 				swapChain = null;
 
