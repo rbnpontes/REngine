@@ -10,14 +10,17 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<DefineConstants>WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-		<DefineConstants>LINUX;RENGINE_SPRITEBATCH</DefineConstants>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-		<DefineConstants>OSX;RENGINE_SPRITEBATCH</DefineConstants>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
+		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="MathNet.Numerics" Version="5.0.0" />

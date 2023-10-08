@@ -13,15 +13,15 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	  <DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
