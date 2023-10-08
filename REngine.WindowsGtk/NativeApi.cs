@@ -35,7 +35,7 @@ namespace REngine.WindowsGtk
 			output = new NativeWindow { Hwnd = gdk_win32_window_get_handle(window.Handle) };
 #elif LINUX
 			string a = window.NativeType.ToString();
-			if (string.Equals(a, "GdkX11Window"))
+			if (string.Equals(a, WindowX11Name))
 			{
 				IntPtr display = gdk_x11_display_get_xdisplay(window.Display.Handle);
 				output = new NativeWindow
@@ -44,10 +44,10 @@ namespace REngine.WindowsGtk
 					WindowId = gdk_x11_window_get_xid(window.Handle)
 				};
 			}
-			else if(string.Equals(a, "GdkWaylandWindow"))
+			else if(string.Equals(a, WindowWaylandName))
 				output = new NativeWindow {  Display = gdk_wayland_display_get_wl_display(window.Display.Handle) };
-
-			throw new NotImplementedException($"Not implemented this window type '{a}'");
+			else
+				throw new NotImplementedException($"Not implemented this window type '{a}'");
 #else
 			throw new NotImplementedException();
 #endif
