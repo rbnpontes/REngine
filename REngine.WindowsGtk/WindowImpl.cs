@@ -43,19 +43,7 @@ namespace REngine.WindowsGtk
 			}
 		}
 
-		public override Size Size 
-		{ 
-			get
-			{
-				GetWindow().GetSize(out int width, out int height);
-				return new Size(width, height);
-			}
-			set
-			{
-				GetWindow().Resize(value.Width, value.Height);
-			}
-		}
-
+		public override Size Size { get; set; }
 		public override Point Position 
 		{
 			get
@@ -90,8 +78,8 @@ namespace REngine.WindowsGtk
 
 		private void HandleConfigure(object o, Gtk.ConfigureEventArgs args)
 		{
-			if (HandleResize())
-				EmitResize(Size);
+			GetWindow().GetSize(out int w, out int h);
+			Size = new Size(w, h);
 		}
 
 		private Gtk.Window GetWindow()
@@ -127,21 +115,25 @@ namespace REngine.WindowsGtk
 			return this;
 		}
 
+		public override IWindow Update()
+		{
+			HandleResize();
+			return this;
+		}
+
 		private bool HandleResize()
 		{
 			if (pDisposed)
 				return false;
 			GetWindow().GetSize(out int width, out int height);
 
-			int currWidth = width;
-			int currHeight = height;
+			width = Math.Clamp(width, pMinSize.Width, pMaxSize.Width);
+			height = Math.Clamp(height, pMinSize.Height, pMaxSize.Height);
 
-			width = Math.Clamp(currWidth, pMinSize.Width, pMinSize.Height);
-			height = Math.Clamp(currHeight, pMinSize.Height, pMaxSize.Height);
-
-			if(currWidth != width || currHeight != height)
+			if(Size.Width != width || Size.Height != height)
 			{
-				GetWindow().Resize(width, height);
+				Size = new Size(width, height);
+				EmitResize(Size);
 				return true;
 			}
 

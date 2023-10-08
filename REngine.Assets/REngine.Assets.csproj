@@ -9,15 +9,6 @@
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<Configurations>Debug;Release;Debug-Linux</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-		<DefineConstants>LINUX</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-		<DefineConstants>OSX</DefineConstants>
-	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="StbImageSharp" Version="2.27.13" />
 	  <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />

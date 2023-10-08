@@ -12,7 +12,7 @@ namespace REngine.Core
 	{
 		public string Title;
 		public Size Size;
-		public Vector2? Position;
+		public Point? Position;
 		/// <summary>
 		/// Must be a Winforms control or Gtk Widget
 		/// WindowInstance must be compatible with Window System

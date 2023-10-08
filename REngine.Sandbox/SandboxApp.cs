@@ -1,6 +1,4 @@
-﻿using Diligent;
-using Microsoft.VisualBasic.Devices;
-using REngine.Assets;
+﻿using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
@@ -18,31 +16,29 @@ namespace REngine.Sandbox
 {
 	internal class SandboxApp : App
 	{
-		private SampleForm? pSampleForm;
+		private SampleWindow? pSampleWindow;
 		public SandboxApp() : base(typeof(SandboxApp))
 		{
 		}
 
 		protected override IWindow OnSetupWindow(IWindowManager windowManager)
 		{
-			pSampleForm = new SampleForm();
-			pSampleForm.Show();
-			var wnd = windowManager.Create(new WindowCreationInfo
+			pSampleWindow = new SampleWindow();
+
+			return windowManager.Create(new WindowCreationInfo
 			{
-				WindowInstance = pSampleForm.GameContent
+				WindowInstance = pSampleWindow.GameContentWindow
 			});
-			pSampleForm.GameWindow = wnd;
-			return wnd;
 		}
 		public override void OnStart(IServiceProvider provider)
 		{
 			base.OnStart(provider);
-			pSampleForm?.EngineStart(provider);
+			pSampleWindow?.EngineStart(provider);
 		}
 
 		public override void OnUpdate(IServiceProvider provider)
 		{
-			pSampleForm?.CurrentSample?.Update(provider);
+			pSampleWindow?.EngineUpdate(provider);
 		}
 	}
 }

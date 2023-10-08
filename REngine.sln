@@ -34,9 +34,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.NativeDriver", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.NativeDriver.Tests", "REngine.RHI.NativeDriver.Tests\REngine.RHI.NativeDriver.Tests.csproj", "{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.NativeDriver.Sandbox", "REngine.RHI.NativeDriver.Sandbox\REngine.RHI.NativeDriver.Sandbox.csproj", "{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RHI.NativeDriver.Playground", "REngine.RHI.NativeDriver.Sandbox\REngine.RHI.NativeDriver.Playground.csproj", "{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.WindowsGtk", "REngine.WindowsGtk\REngine.WindowsGtk.csproj", "{C043374D-001B-4869-AAE7-FD1AFC402656}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Playground", "Playground", "{ACCB3A60-EEFE-46D6-9CA9-31457EF454C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Gtk.Playground", "REngine.Gtk.Playground\REngine.Gtk.Playground.csproj", "{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,6 +125,12 @@ Global
 		{C043374D-001B-4869-AAE7-FD1AFC402656}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{C043374D-001B-4869-AAE7-FD1AFC402656}.Release|x64.ActiveCfg = Release|x64
 		{C043374D-001B-4869-AAE7-FD1AFC402656}.Release|x64.Build.0 = Release|x64
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Debug|x64.Build.0 = Debug|Any CPU
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Release|x64.ActiveCfg = Release|Any CPU
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -130,7 +140,8 @@ Global
 		{1BBE06B2-7073-446E-9256-1413474572C9} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
-		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D} = {ACCB3A60-EEFE-46D6-9CA9-31457EF454C3}
+		{AC9CBF66-F8C8-4552-BA91-0E480D1F429F} = {ACCB3A60-EEFE-46D6-9CA9-31457EF454C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

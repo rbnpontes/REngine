@@ -24,29 +24,17 @@ namespace REngine.WindowsGtk
 
 		public IntPtr Handle => pWidget.Handle;
 
-		public virtual Rectangle Bounds 
-		{
-			get => throw new NotImplementedException();
-			set => throw new NotImplementedException();
-		}
+		public virtual Rectangle Bounds { get => new Rectangle(); set { } }
 
-		public virtual Size Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public virtual Point Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public virtual Size Size { get => new Size(); set { } }
+		public virtual Point Position { get => new Point(); set { } }
 
-		public virtual Size MinSize 
-		{
-			get => throw new NotImplementedException();
-			set => throw new NotImplementedException();
-		}
-		public virtual Size MaxSize
-		{
-			get => throw new NotImplementedException();
-			set => throw new NotImplementedException();
-		}
+		public virtual Size MinSize { get => new Size(); set { } }
+		public virtual Size MaxSize { get => new Size(); set { } }
 
 		public virtual bool Focused => pWidget.HasFocus;
 
-		public bool IsClosed => pWidget.IsVisible;
+		public bool IsClosed => !pWidget.IsVisible;
 
 		public event WindowEvent? OnUpdate;
 		public event WindowEvent? OnShow;
@@ -102,7 +90,7 @@ namespace REngine.WindowsGtk
 
 		public IWindow Show()
 		{
-			pWidget.Show();
+			pWidget.ShowAll();
 			OnShow?.Invoke(this, pDefaultEventArgs);
 			return this;
 		}

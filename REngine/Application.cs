@@ -5,7 +5,7 @@ using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
 using REngine.RPI;
-using REngine.Windows;
+using REngine.WindowsGtk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,11 +46,10 @@ namespace REngine.Sandbox
 				{
 					var graphicsSettings = provider.Get<GraphicsSettings>();
 					var window = provider.Get<IWindow>();
+					window.GetNativeWindow(out NativeWindow nativeWindow);
 
-#if WINDOWS
-					NativeWindow nativeWindow = new() { Hwnd = window.Handle };
-#endif
 					DriverFactory.OnDriverMessage += HandleGraphicsMessage;
+					
 					var driver = DriverFactory.Build(
 						new DriverSettings { },
 						nativeWindow,

@@ -12,6 +12,7 @@ namespace REngine.Windows
 		private readonly IExecutionPipeline pPipeline;
 
 		private bool pDisposed = false;
+
 		public IReadOnlyList<IWindow> Windows { get => pWindows.AsReadOnly(); }
 
 		public WindowManager(
