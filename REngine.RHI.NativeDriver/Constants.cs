@@ -11,7 +11,7 @@ namespace REngine.RHI.NativeDriver
 #if WINDOWS
 		public const string Lib = "runtimes/win-64/REngine-DiligentNativeDriver.dll";
 #elif LINUX
-		public const string Lib = "runtimes/linux/REngine-DiligentNativeDriver.a";
+		public const string Lib = "runtimes/linux/libREngine-DiligentNativeDriver.so";
 #endif
 	}
 }
