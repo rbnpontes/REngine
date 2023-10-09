@@ -113,11 +113,13 @@ namespace REngine.RPI
 				if (featureEntry.Removed)
 					continue;
 
-				newFeatures[nextItemIdx].Index = nextItemIdx;
 				newFeatures[nextItemIdx] = featureEntry;
+				newFeatures[nextItemIdx].Index = nextItemIdx;
 
 				++nextItemIdx;
 			}
+
+			pFeatureEntries = newFeatures;
 			pFeatures2RemoveCount = 0;
 		}
 
@@ -128,6 +130,8 @@ namespace REngine.RPI
 			
 			FeatureEntry[] newFeatures = new FeatureEntry[pFeatureEntries.Length + pFeatures2Insert.Count];
 			// Copy Features to Feature Array
+			Array.Copy(pFeatureEntries, newFeatures, pFeatureEntries.Length);
+
 			int nextIdx = pFeatureEntries.Length;
 			var nextNode = pFeatures2Insert.First;
 			while(nextNode != null)
@@ -150,7 +154,8 @@ namespace REngine.RPI
 
 		public IEnumerator<IRenderFeature> GetEnumerator()
 		{
-			foreach(var entry in pFeatureEntries)
+			var entries = pFeatureEntries;
+			foreach(var entry in entries)
 			{
 				if (entry.Removed)
 					continue;
