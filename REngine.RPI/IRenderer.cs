@@ -24,13 +24,13 @@ namespace REngine.RPI
 		/// </summary>
 		/// <param name="feature"></param>
 		/// <returns></returns>
-		public IRenderer AddFeature(IRenderFeature feature);
+		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1);
 		/// <summary>
 		/// Insert a Batch of Render Features
 		/// </summary>
 		/// <param name="features"></param>
 		/// <returns></returns>
-		public IRenderer AddFeature(IEnumerable<IRenderFeature> features);
+		public IRenderer AddFeature(IEnumerable<IRenderFeature> features, int zindex = -1);
 		public IRenderer RemoveFeature(IRenderFeature feature);
 		/// <summary>
 		/// Check for dirty render features and run compile
@@ -42,5 +42,10 @@ namespace REngine.RPI
 		/// </summary>
 		/// <returns></returns>
 		public IRenderer Render();
+		/// <summary>
+		/// Executes Sort operation on Render features
+		/// </summary>
+		/// <returns></returns>
+		public IRenderer PrepareFeatures();
 	}
 }

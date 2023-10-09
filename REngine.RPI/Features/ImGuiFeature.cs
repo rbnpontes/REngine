@@ -50,7 +50,7 @@ namespace REngine.RPI.Features
 				Input = new InputLayoutElementDesc
 				{
 					BufferIndex =0,
-					ElementType = ElementType.Vector4,
+					ElementType = ElementType.UByte4,
 					IsNormalized = true
 				}
 			}

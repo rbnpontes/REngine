@@ -39,7 +39,7 @@ namespace REngine.Sandbox
 			IRenderer renderer = provider.Get<IRenderer>();
 			IImGuiSystem imGuiSystem = provider.Get<IImGuiSystem>();
 
-			renderer.AddFeature(imGuiSystem.Feature);
+			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
 			pSampleWindow?.EngineStart(provider);
 		}

@@ -25,6 +25,17 @@ namespace REngine.RPI
 			All = Fixed | Frame | Object
 		}
 
+		class RenderFeatureEntry
+		{
+			public int ZIndex { get; set; }
+			public IRenderFeature Feature { get; set; }
+
+			public RenderFeatureEntry(IRenderFeature feature)
+			{
+				Feature = feature;
+			}
+		}
+
 		private readonly IServiceProvider pProvider;
 		private readonly ILogger<IRenderer> pLogger;
 		private readonly RPIEvents pRenderEvents;
@@ -33,14 +44,12 @@ namespace REngine.RPI
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 
-		private readonly LinkedList<IRenderFeature> pFeatures = new();
-		private readonly LinkedList<IRenderFeature> pFeaturesToRemove = new();
+		private readonly FeatureCollection pFeatureCollection = new FeatureCollection();
 
 		private IGraphicsDriver? pDriver;
 		private bool pDisposed = false;
 
 		private ISwapChain? pSwapChain;
-
 
 		public bool IsDisposed { get => pDisposed; }
 
@@ -87,45 +96,40 @@ namespace REngine.RPI
 
 		public void Dispose()
 		{
-			if(pDisposed) return;
+			if(pDisposed)
+				return;
+
 			pDisposed = true;
 
 			pRenderEvents.ExecuteBeginDispose(this);
 
-			var feat = pFeatures.First;
-			while(feat != null)
-			{
-				feat.Value.Dispose();
-				feat = feat.Next;
-			}
-			pFeatures.Clear();
-			
+			pFeatureCollection.Dispose();
 			SwapChain?.Dispose();
+			
 			pRenderEvents.ExecuteEndDispose(this);
 
 			pEngineEvents.OnStart -= HandleEngineStart;
 			pEngineEvents.OnBeforeStop -= HandleEngineStop;
 		}
 
-		public IRenderer AddFeature(IRenderFeature feature)
+		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
 		{
 			AssertDispose();
-			pFeatures.AddLast(feature);
+			pFeatureCollection.AddFeature(feature, zindex);
 			return this;
 		}
 
-		public IRenderer AddFeature(IEnumerable<IRenderFeature> features)
+		public IRenderer AddFeature(IEnumerable<IRenderFeature> features, int zindex = -1)
 		{
 			AssertDispose();
-			foreach (var feat in features)
-				AddFeature(feat);
+			pFeatureCollection.AddFeatures(features, zindex);
 			return this;
 		}
 
 		public IRenderer RemoveFeature(IRenderFeature feature)
 		{
 			AssertDispose();
-			pFeatures.Remove(feature);
+			pFeatureCollection.RemoveFeature(feature);
 			return this;
 		}
 
@@ -133,32 +137,21 @@ namespace REngine.RPI
 		{
 			if (pDisposed || pDriver is null)
 				return this;
-			var featNode = pFeatures.First;
+
+			pFeatureCollection.Prepare();
+
 			RenderFeatureSetupInfo setupInfo = new RenderFeatureSetupInfo(
 				pDriver,
 				this,
 				pBufferProvider
 			);
-			while(featNode != null)
-			{
-				var feature = featNode.Value;
-				if (feature.IsDisposed)
-				{
-					pFeaturesToRemove.AddLast(feature);
-					featNode = featNode.Next;
-					continue;
-				}
 
+			foreach(var feature in pFeatureCollection)
+			{
 				if (!feature.IsDirty)
-				{
-					featNode = featNode.Next;
 					continue;
-				}
-				
 				feature.Setup(setupInfo);
 				feature.Compile(pDriver.ImmediateCommand);
-
-				featNode = featNode.Next;
 			}
 
 			return this;
@@ -180,18 +173,19 @@ namespace REngine.RPI
 
 			}
 
-			var featNode = pFeatures.First;
-			while (featNode != null)
+			foreach(var feature in pFeatureCollection)
 			{
-				if(featNode.Value.IsDisposed || featNode.Value.IsDirty)
-				{
-					featNode = featNode.Next;
+				if (feature.IsDirty)
 					continue;
-				}
 
-				featNode.Value.Execute(pDriver.ImmediateCommand);
-				featNode = featNode.Next;
+				feature.Execute(pDriver.ImmediateCommand);
 			}
+			return this;
+		}
+
+		public IRenderer PrepareFeatures()
+		{
+			pFeatureCollection.Prepare();
 			return this;
 		}
 
@@ -254,25 +248,11 @@ namespace REngine.RPI
 			Render();
 			
 			pRenderEvents.ExecuteEndRender(this);
-
-			RemoveDisposedFeatures();
 		}
 
 		private void HandlePresent()
 		{
 			pSwapChain?.Present(true);
-		}
-
-		private void RemoveDisposedFeatures()
-		{
-			// TODO: improve this remove logic
-			var next = pFeaturesToRemove.First;
-			while(next != null)
-			{
-				pFeatures.Remove(next.Value);
-				next = next.Next;
-			}
-			pFeaturesToRemove.Clear();
 		}
 
 		private void HandleEngineStart(object? sender, EventArgs e)
