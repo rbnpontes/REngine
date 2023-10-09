@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.Threading
 {
+    public interface IExecutionPipelineVar
+    {
+        object? Value { get; set; }
+    }
     public interface IExecutionPipeline
     {
         public IExecutionPipeline Load(Stream stream);
@@ -34,5 +38,8 @@ namespace REngine.Core.Threading
         /// <param name="action"></param>
         /// <returns></returns>
         public IExecutionPipeline Invoke(Action action);
+
+        public IExecutionPipelineVar GetOrCreateVar(string name);
+        public IExecutionPipelineVar GetOrCreateVar(int varHashCode);
     }
 }

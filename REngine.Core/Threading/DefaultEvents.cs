@@ -21,7 +21,13 @@ namespace REngine.Core.Threading
 		public const string RenderBeginId = "render_begin";
 		public const string RenderId = "render";
 		public const string RenderEndId = "render_end";
+		public const string RenderPrepareId = "render_prepare";
 		public const string WindowsInvalidateId = "windows_invalidate";
 		public const string ImGuiDrawId = "imgui_draw";
+	}
+
+	public static class DefaultVars
+	{
+		public const string RenderNeedsPrepare = "@render_needs_prepare";
 	}
 }

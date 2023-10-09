@@ -10,9 +10,12 @@ namespace REngine.Core.Threading
     internal class ExecutionPipelineImpl : IExecutionPipeline
     {
         private static readonly LinkedList<Action> EmptyScheduledCalls = new();
+        
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
 
+        private readonly Dictionary<int, ExecutionPipelineVarImpl> pVars = new Dictionary<int, ExecutionPipelineVarImpl>();
+        
         public readonly CancellationTokenSource StopTokenSource = new ();
 
         private IList<EPNode> pNodes = new List<EPNode>();
@@ -156,6 +159,25 @@ namespace REngine.Core.Threading
             lock (pSyncObj)
                 pExecuteScheduledCalls.AddLast(action);
             return this;
+        }
+
+        private ExecutionPipelineVarImpl? pLastVar = null;
+        
+        public IExecutionPipelineVar GetOrCreateVar(string name)
+        {
+            return GetOrCreateVar(name.GetHashCode());
+        }
+
+        public IExecutionPipelineVar GetOrCreateVar(int varHashCode)
+        {
+            if (pLastVar is null)
+                pVars.TryGetValue(varHashCode, out pLastVar);
+            else if (pLastVar.Key == varHashCode)
+                return pLastVar;
+
+            if (pLastVar is null)
+                pVars[varHashCode] = pLastVar = new ExecutionPipelineVarImpl(varHashCode);
+            return pLastVar;    
         }
     }
 }

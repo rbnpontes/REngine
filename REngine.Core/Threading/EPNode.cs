@@ -124,7 +124,6 @@ namespace REngine.Core.Threading
 #endif
 			return node;
 		}
-
 	}
 
 	internal class TaskNode : EPNode
@@ -244,6 +243,75 @@ namespace REngine.Core.Threading
 			result.IdName = id;
 #endif
 			return result;
+		}
+	}
+
+	internal enum IfNodeCmp
+	{
+		Equal = 0,
+		NotEqual,
+	}
+
+	internal class IfNode : EPNode
+	{
+		private IExecutionPipelineVar? pVar;
+
+		public int VarKey { get; set; } = 0;
+		public IfNodeCmp Cmp { get; set; } = IfNodeCmp.Equal;
+
+		public IfNode(int id = 0) : base(id) { }
+		public IfNode(EPNode parent) : base(parent) { }
+
+		public override void Execute(ExecutionPipelineImpl pipeline)
+		{
+			if (VarKey == 0)
+				return;
+
+			if (pVar is null)
+				pVar = pipeline.GetOrCreateVar(VarKey);
+
+			if (!CanExecute())
+				return;
+			base.Execute(pipeline);
+			ExecuteEvents(pipeline);
+			ExecuteChildrens(pipeline);
+		}
+
+		private bool CanExecute()
+		{
+			object? value = pVar?.Value;
+			if (value is null)
+				return false;
+
+			bool result = false;
+			switch (Cmp)
+			{
+				case IfNodeCmp.Equal:
+					result = Equals(value, true); 
+					break;
+				case IfNodeCmp.NotEqual:
+					result = !Equals(value, true);
+					break;
+			}
+
+			return result;
+		}
+	
+		public static IfNode Resolve(XmlElement element)
+		{
+			string id = element.GetAttribute("id");
+			int hashCode = id.GetHashCode();
+			
+			IfNode node = new(hashCode);
+#if DEBUG
+			node.IdName = id;
+#endif
+			node.VarKey = element.GetAttribute("test").GetHashCode();
+			string cmpValue = element.GetAttribute("compare");
+			if(Enum.TryParse(cmpValue, out IfNodeCmp cmp))
+				node.Cmp = cmp;
+
+			return node;
 		}
 	}
 }

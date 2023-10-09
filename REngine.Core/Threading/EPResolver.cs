@@ -9,6 +9,11 @@ namespace REngine.Core.Threading
 {
 	internal class EPResolver
 	{
+		// TODO: Refactor this resolver
+		// This class must be more resilient 
+		// And next feature on this class must include
+		// dynamic changes
+
 		class UnresolvedTaskNode
 		{
 			public TaskNode Node { get; set; }
@@ -98,6 +103,11 @@ namespace REngine.Core.Threading
 
 				return taskNode;
 			}
+			else if(string.Equals(element.Name, "if"))
+			{
+				IfNode ifNode = IfNode.Resolve(element);
+				return ifNode;
+			}
 
 			throw new NotImplementedException($"Not implemented this element type: {element.Name}");
 		}
@@ -106,7 +116,7 @@ namespace REngine.Core.Threading
 		{
 			if (string.IsNullOrEmpty(tagName))
 				throw new Exception("Invalid Element Name. Tag name must not be null or empty.");
-			if (!(string.Equals(tagName, "step") || string.Equals(tagName, "task")))
+			if (!(string.Equals(tagName, "step") || string.Equals(tagName, "task") || string.Equals(tagName, "if")))
 				throw new Exception("Invalid Element Name. Tag name must be <step/> or <task/>");
 		}
 	}

@@ -39,6 +39,17 @@ namespace REngine.RPI
 
 		private object pSync = new();
 
+		public bool NeedsPrepare
+		{
+			get
+			{
+				bool result = false;
+				lock(pSync)
+					result = pFeatures2RemoveCount > 0 || pFeatures2Insert.Count > 0;
+				return result;
+			}
+		}
+
 		public void AddFeature(IRenderFeature feature, int zindex)
 		{
 			lock(pSync)

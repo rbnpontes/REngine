@@ -44,6 +44,8 @@ namespace REngine.RPI
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 
+		private IExecutionPipelineVar pNeedsPrepareVar;
+
 		private readonly FeatureCollection pFeatureCollection = new FeatureCollection();
 
 		private IGraphicsDriver? pDriver;
@@ -84,6 +86,8 @@ namespace REngine.RPI
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
 			pExecutionPipeline = pipeline;
+
+			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeforeStop += HandleEngineStop;
@@ -138,7 +142,7 @@ namespace REngine.RPI
 			if (pDisposed || pDriver is null)
 				return this;
 
-			pFeatureCollection.Prepare();
+			pNeedsPrepareVar.Value = pFeatureCollection.NeedsPrepare;
 
 			RenderFeatureSetupInfo setupInfo = new RenderFeatureSetupInfo(
 				pDriver,
@@ -185,7 +189,13 @@ namespace REngine.RPI
 
 		public IRenderer PrepareFeatures()
 		{
-			pFeatureCollection.Prepare();
+			if (pFeatureCollection.NeedsPrepare)
+			{
+				pLogger.Debug("Executing Render Prepare");
+				pFeatureCollection.Prepare();
+				pNeedsPrepareVar.Value = false;
+				pLogger.Debug("Render Prepare Finished");
+			}
 			return this;
 		}
 
@@ -270,6 +280,7 @@ namespace REngine.RPI
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())
 				.AddEvent(DefaultEvents.RenderId, (_) => HandleRender())
+				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures())
 				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
 		}
 

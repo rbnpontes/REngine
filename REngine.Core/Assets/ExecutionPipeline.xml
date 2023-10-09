@@ -16,6 +16,14 @@
 		<step id="render_begin"/>
 		<step id="render"/>
 		<step id="render_end">
+			<!--
+				This task will be used to Remove, Insert and Sort
+				Render Features, this can be an expensive task
+				and must execute when it needs
+			-->
+			<if id="render_needs_prepare_condition" test="@render_needs_prepare" compare="Equal" end="render">
+				<task id="render_prepare"></task>
+			</if>
 			<task id="spritebatch_organize_instance" end="spritebatch_draw"/>
 			<step id="windows_invalidate"/>
 			<!-- 
