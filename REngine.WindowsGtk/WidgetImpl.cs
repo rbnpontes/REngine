@@ -1,9 +1,10 @@
-﻿using Gtk;
-using REngine.Core;
+﻿using REngine.Core;
+using REngine.Core.IO;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,8 @@ namespace REngine.WindowsGtk
 	{
 		protected readonly Gtk.Widget pWidget;
 		protected readonly WindowEventArgs pDefaultEventArgs;
+
+		private Vector2 pMousePosition;
 
 		protected bool pDisposed;
 
@@ -42,12 +45,38 @@ namespace REngine.WindowsGtk
 		public event WindowInputEvent? OnKeyDown;
 		public event WindowInputEvent? OnKeyUp;
 		public event WindowResizeEvent? OnResize;
+		public event WindowMouseEvent? OnMouseDown;
+		public event WindowMouseEvent? OnMouseUp;
+		public event WindowMouseEvent? OnMouseMove;
 
 		public WidgetImpl(Gtk.Widget widget)
 		{
 			pWidget = widget;
 			pDefaultEventArgs = new WindowEventArgs(widget, widget.Handle);
 
+			pWidget.ButtonPressEvent += HandleButtonPress;
+			pWidget.ButtonReleaseEvent += HandleButtonRelease;
+		}
+
+		private uint pLastReleaseTime = 0;
+		private void HandleButtonRelease(object o, Gtk.ButtonReleaseEventArgs args)
+		{
+			var button = args.Event.Button;
+			if (args.Event.Time == pLastReleaseTime)
+				return;
+			pLastReleaseTime = args.Event.Time;
+			EmitMouseUp(InputConverter.GetMouseKey(button));
+		}
+
+
+		private uint pLastPressTime = 0;
+		private void HandleButtonPress(object o, Gtk.ButtonPressEventArgs args)
+		{
+			var button = args.Event.Button;
+			if (args.Event.Time == pLastPressTime)
+				return;
+			pLastPressTime = args.Event.Time;
+			EmitMouseDown(InputConverter.GetMouseKey(button));
 		}
 
 		public virtual IWindow Close()
@@ -97,6 +126,16 @@ namespace REngine.WindowsGtk
 
 		public virtual IWindow Update()
 		{
+			pWidget.Display.GetPointer(out int x, out int y);
+			pWidget.Window.GetOrigin(out int originX, out int originY);
+
+			Vector2 msPos = new Vector2(x - originX, y - originY);
+
+			if (msPos == pMousePosition)
+				return this;
+			pMousePosition = msPos;
+
+			EmitMouseMove(MouseKey.None);
 			OnUpdate?.Invoke(this, pDefaultEventArgs);
 			return this;
 		}
@@ -106,6 +145,28 @@ namespace REngine.WindowsGtk
 			OnResize?.Invoke(this, new WindowResizeEventArgs(size, pWidget, Handle));
 		}
 
-		public Widget GetWidget() { return pWidget; }
+		public Gtk.Widget GetWidget() { return pWidget; }
+
+		protected void EmitMouseDown(MouseKey key)
+		{
+			OnMouseDown?.Invoke(this, new WindowMouseEventArgs(key, pWidget, Handle)
+			{
+				Position = pMousePosition
+			});
+		}
+		protected void EmitMouseUp(MouseKey key)
+		{
+			OnMouseUp?.Invoke(this, new WindowMouseEventArgs(key, pWidget, Handle)
+			{
+				Position = pMousePosition
+			});
+		}
+		protected void EmitMouseMove(MouseKey key)
+		{
+			OnMouseMove?.Invoke(this, new WindowMouseEventArgs(key, pWidget, Handle)
+			{
+				Position = pMousePosition
+			});
+		}
 	}
 }

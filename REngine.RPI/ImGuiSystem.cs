@@ -1,4 +1,5 @@
 ﻿using REngine.Core;
+using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
 using REngine.RHI;
@@ -14,11 +15,14 @@ namespace REngine.RPI
 {
 	internal class ImGuiSystem : IImGuiSystem, IDisposable
 	{
+		const byte MaxMouseKeys = (byte)MouseKey.XButton2;
+
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IEngine pEngine;
 		private readonly GraphicsSettings pGraphicsSettings;
 		private readonly IRenderer pRenderer;
+		private readonly IInput pInput;
 
 		private ImGuiFeature? pFeature;
 
@@ -40,7 +44,8 @@ namespace REngine.RPI
 			IExecutionPipeline executionPipeline,
 			EngineEvents engineEvents,
 			GraphicsSettings graphicsSettings,
-			IRenderer renderer
+			IRenderer renderer,
+			IInput input
 		) 
 		{ 
 			pEngine = engine;
@@ -48,6 +53,7 @@ namespace REngine.RPI
 			pExecutionPipeline = executionPipeline;
 			pGraphicsSettings = graphicsSettings;
 			pRenderer = renderer;
+			pInput = input;
 
 			engineEvents.OnStart += HandleEngineStart;
 			engineEvents.OnStop += HandleEngineStop;
@@ -118,6 +124,9 @@ namespace REngine.RPI
 
 			var io = ImGuiNET.ImGui.GetIO();
 			io.DeltaTime = (float)pEngine.DeltaTime;
+			io.MousePos = pInput.MousePosition;
+			for (byte i = 1; i < MaxMouseKeys; ++i)
+				io.MouseDown[i - 1] = pInput.GetMouseDown((MouseKey)i);
 
 			ImGuiNET.ImGui.SetCurrentContext(pImGuiCtx);
 

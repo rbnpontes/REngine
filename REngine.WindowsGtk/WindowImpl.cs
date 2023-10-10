@@ -1,5 +1,4 @@
-﻿using GLib;
-using REngine.Core;
+﻿using REngine.Core;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -74,6 +73,17 @@ namespace REngine.WindowsGtk
 		public WindowImpl(Gtk.Window window) : base(window)
 		{
 			window.ConfigureEvent += HandleConfigure;
+			window.KeyPressEvent += HandleKeyPress;
+			window.KeyReleaseEvent += HandleKeyRelease;
+		}
+
+		private void HandleKeyPress(object o, Gtk.KeyPressEventArgs args)
+		{
+			var key = args.Event;
+		}
+
+		private void HandleKeyRelease(object o, Gtk.KeyReleaseEventArgs args)
+		{
 		}
 
 		private void HandleConfigure(object o, Gtk.ConfigureEventArgs args)
@@ -117,6 +127,7 @@ namespace REngine.WindowsGtk
 
 		public override IWindow Update()
 		{
+			base.Update();
 			HandleResize();
 			return this;
 		}

@@ -8,6 +8,7 @@ namespace REngine.Core.IO
 {
 	public enum MouseKey
 	{
+		None = 0,
 		Left,
 		Right,
 		Middle,

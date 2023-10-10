@@ -38,9 +38,20 @@ namespace REngine.Core
 		}
 	}
 
+	public class WindowMouseEventArgs : WindowEventArgs
+	{
+		public MouseKey MouseKey { get; private set; }
+		public Vector2 Position { get; set; }
+		public WindowMouseEventArgs(MouseKey mouseKey, object windowObj, IntPtr handle) : base(windowObj, handle)
+		{
+			MouseKey = mouseKey;
+		}
+	}
+
 	public delegate void WindowEvent(object sender, WindowEventArgs e);
 	public delegate void WindowResizeEvent(object sender, WindowResizeEventArgs e);
 	public delegate void WindowInputEvent(object sender, WindowInputEventArgs e);
+	public delegate void WindowMouseEvent(object sender, WindowMouseEventArgs e);
 
 	public interface IWindow : IDisposable
 	{
@@ -50,6 +61,9 @@ namespace REngine.Core
 		public event WindowInputEvent? OnKeyDown;
 		public event WindowInputEvent? OnKeyUp;
 		public event WindowResizeEvent? OnResize;
+		public event WindowMouseEvent? OnMouseDown;
+		public event WindowMouseEvent? OnMouseUp;
+		public event WindowMouseEvent? OnMouseMove;
 
 		public string Title { get; set; }
 		public IntPtr Handle { get; }

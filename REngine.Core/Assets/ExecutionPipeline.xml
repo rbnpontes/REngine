@@ -13,6 +13,7 @@
 			</task>
 		</step>
 		<step id="update"/>
+		<step id="update_end"/>
 		<step id="render_begin"/>
 		<step id="render"/>
 		<step id="render_end">

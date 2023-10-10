@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace REngine.Core.IO
 {
+	public class InputEventArgs : EventArgs
+	{
+		public InputKey Key { get; internal set; }
+	}
+	public class InputMouseEventArgs : EventArgs
+	{
+		public MouseKey Key { get; internal set; }
+	}
+
 	public interface IInput
 	{
 		/// <summary>
@@ -19,5 +29,17 @@ namespace REngine.Core.IO
 		public bool GetKeyPress(InputKey key);
 		public bool GetMouseDown(MouseKey key);
 		public bool GetMousePress(MouseKey key);
+
+		public Vector2 MousePosition { get; }
+		public Vector2 MouseDelta { get; }
+		public Vector2 MouseMovement { get; }
+
+		public event EventHandler<InputEventArgs>? OnKeyDown;
+		public event EventHandler<InputEventArgs>? OnKeyPressed;
+		public event EventHandler<InputEventArgs>? OnKeyUp;
+
+		public event EventHandler<InputMouseEventArgs>? OnMouseDown;
+		public event EventHandler<InputMouseEventArgs>? OnMousePressed;
+		public event EventHandler<InputMouseEventArgs>? OnMouseUp;
 	}
 }

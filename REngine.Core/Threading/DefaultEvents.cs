@@ -10,6 +10,7 @@ namespace REngine.Core.Threading
 	{
 		public const string FrameId = "frame";
 		public const string UpdateBeginId = "update_begin";
+		public const string UpdateEndId = "update_end";
 		public const string SpriteBatchTaskId = "spritebatch_task";
 		public const string SpriteBatchDrawId = "spritebatch_draw";
 		public const string SpriteBatchBuildTexId = "spritebatch_build_tex";

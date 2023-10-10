@@ -1,43 +1,197 @@
-﻿using System;
+﻿using REngine.Core.DependencyInjection;
+using REngine.Core.Threading;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace REngine.Core.IO
 {
-	internal class InputImpl : IInput
+	internal class InputImpl : IInput, IDisposable
 	{
-		private byte[] pPressKeys = new byte[(int)InputKey.OemClear];
-		private byte[] pMouseKeys = new byte[(int)MouseKey.XButton2];
+		private readonly object pSync = new();
+		private readonly byte[] pPressKeys = new byte[(int)InputKey.OemClear];
+		private readonly byte[] pMouseKeys = new byte[(int)MouseKey.XButton2];
+		private readonly IServiceProvider pProvider;
+		private readonly EngineEvents pEngineEvents;
+		private readonly IExecutionPipeline pExecution;
+		private readonly LinkedList<Action> pDisposeWndEvents = new LinkedList<Action>();
+
+		private bool pDisposed = false;
+
+		private Vector2 pLastMousePos = new Vector2();
+
+		public Vector2 MousePosition { get; private set; }
+
+		public Vector2 MouseDelta { get; private set; }
+
+		public Vector2 MouseMovement { get => pLastMousePos - MousePosition; }
+
+		public event EventHandler<InputEventArgs>? OnKeyDown;
+		public event EventHandler<InputEventArgs>? OnKeyPressed;
+		public event EventHandler<InputEventArgs>? OnKeyUp;
+
+		public event EventHandler<InputMouseEventArgs>? OnMouseDown;
+		public event EventHandler<InputMouseEventArgs>? OnMousePressed;
+		public event EventHandler<InputMouseEventArgs>? OnMouseUp;
+
+
+		public InputImpl(
+			EngineEvents engineEvents,
+			IServiceProvider provider,
+			IExecutionPipeline execution
+		)
+		{
+			pEngineEvents = engineEvents;
+			pProvider = provider;
+			pExecution = execution;
+
+			engineEvents.OnStart += HandleEngineStart;
+			engineEvents.OnBeforeStop += HandleEngineStop;
+		}
+
+		public void Dispose()
+		{
+			if (pDisposed)
+				return;
+
+			pEngineEvents.OnStart -= HandleEngineStart;
+			pEngineEvents.OnBeforeStop -= HandleEngineStop;
+
+			var disposeWndEventsNode = pDisposeWndEvents.First;
+			while(disposeWndEventsNode != null)
+			{
+				disposeWndEventsNode.Value();
+				disposeWndEventsNode = disposeWndEventsNode.Next;
+			}
+
+			pDisposeWndEvents.Clear();
+			pDisposed = true;
+
+			GC.SuppressFinalize(this);
+		}
+
+		private void HandleEngineStop(object? sender, EventArgs e)
+		{
+			Dispose();
+		}
+
+		private void HandleEngineStart(object? sender, EventArgs e)
+		{
+			IWindow? wnd = pProvider.GetOrDefault<IWindow>();
+			// Bind Main Window
+			if (wnd != null)
+				BindWindow(wnd);
+
+			pExecution.AddEvent(DefaultEvents.UpdateBeginId, (_) => HandleKeys());
+		}
+
+		private void HandleKeys()
+		{
+			lock (pSync)
+			{
+				for(int i =0; i < pPressKeys.Length; ++i)
+				{
+					// Promote pressed key to only down keys, this will make our press behavior
+					if (pPressKeys[i] == 1)
+					{
+						pPressKeys[i] = 2;
+						OnKeyPressed?.Invoke(this, new InputEventArgs { Key = (InputKey)i });
+					}
+				}
+				for(int i =0; i < pMouseKeys.Length; ++i)
+				{
+					if (pMouseKeys[i] == 1)
+					{
+						pMouseKeys[i] = 2;
+						OnMousePressed?.Invoke(this, new InputMouseEventArgs { Key = (MouseKey)i });
+					}
+				}
+			}
+		}
 
 		public IInput BindWindow(IWindow window)
 		{
+			window.OnKeyDown += HandleKeyDown;
+			window.OnKeyUp += HandleKeyUp;
+
+			window.OnMouseDown += HandleMouseDown;
+			window.OnMouseUp += HandleMouseUp;
+			window.OnMouseMove += HandleMouseMove;
+
+			pDisposeWndEvents.AddLast(() =>
+			{
+				window.OnKeyDown -= HandleKeyDown;
+				window.OnKeyUp -= HandleKeyUp;
+			});
 			return this;
+		}
+
+		private void HandleMouseMove(object sender, WindowMouseEventArgs e)
+		{
+			lock (pSync)
+			{
+				pLastMousePos = MousePosition;
+				MousePosition = e.Position;
+			}
+		}
+
+		private void HandleMouseUp(object sender, WindowMouseEventArgs e)
+		{
+			lock(pSync)
+				pMouseKeys[(int)e.MouseKey] = 0;
+		}
+
+		private void HandleMouseDown(object sender, WindowMouseEventArgs e)
+		{
+			lock (pSync)
+				pMouseKeys[(int)e.MouseKey] = 1;
+		}
+
+		private void HandleKeyUp(object sender, WindowInputEventArgs e)
+		{
+			lock(pSync)
+				pPressKeys[(int)e.Keys] = 0;
+		}
+
+		private void HandleKeyDown(object sender, WindowInputEventArgs e)
+		{
+			lock(pSync)
+				pPressKeys[(int)e.Keys] = 1;
 		}
 
 		public bool GetKeyDown(InputKey key)
 		{
-			return pPressKeys[(int)key] != 0;
+			bool state = false;
+			lock (pSync)
+				state = pPressKeys[(int)key] > 0;
+			return state;
 		}
 
 		public bool GetKeyPress(InputKey key)
 		{
-			byte pressed = pMouseKeys[(int)key];
-			pPressKeys[(int)key] = Math.Min(++pPressKeys[(int)key], (byte)2);
-			return pressed == 1;
+			bool state = false;
+			lock (pSync)
+				state = pPressKeys[(int)key] == 1;
+			return state;
 		}
 
 		public bool GetMouseDown(MouseKey key)
 		{
-			return pMouseKeys[(int)key] > 0;
+			bool state = false;
+			lock (pSync)
+				state = pMouseKeys[(int)key] > 0;
+			return state;
 		}
 
 		public bool GetMousePress(MouseKey key)
 		{
-			byte pressed = pMouseKeys[(int)key];
-			pMouseKeys[(int)key] = Math.Min(++pMouseKeys[(int)key], (byte)2);
-			return pressed == 1;
+			bool state = false;
+			lock (pSync)
+				state = pMouseKeys[(int)key] == 1;
+			return state;
 		}
 	}
 }

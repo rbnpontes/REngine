@@ -20,8 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Windows", "REngine.Windows\REngine.Windows.csproj", "{E73286E1-0549-4F74-BCCE-629488A2F068}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine", "REngine\REngine.csproj", "{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.RPI", "REngine.RPI\REngine.RPI.csproj", "{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}"
@@ -40,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.WindowsGtk", "REngi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Playground", "Playground", "{ACCB3A60-EEFE-46D6-9CA9-31457EF454C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Gtk.Playground", "REngine.Gtk.Playground\REngine.Gtk.Playground.csproj", "{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Gtk.Playground", "REngine.Gtk.Playground\REngine.Gtk.Playground.csproj", "{AC9CBF66-F8C8-4552-BA91-0E480D1F429F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,11 +73,6 @@ Global
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.ActiveCfg = Release|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Release|x64.Build.0 = Release|x64
-		{E73286E1-0549-4F74-BCCE-629488A2F068}.Debug|x64.ActiveCfg = Debug|x64
-		{E73286E1-0549-4F74-BCCE-629488A2F068}.Debug|x64.Build.0 = Debug|x64
-		{E73286E1-0549-4F74-BCCE-629488A2F068}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
-		{E73286E1-0549-4F74-BCCE-629488A2F068}.Release|x64.ActiveCfg = Release|x64
-		{E73286E1-0549-4F74-BCCE-629488A2F068}.Release|x64.Build.0 = Release|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.ActiveCfg = Debug|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.Build.0 = Debug|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
