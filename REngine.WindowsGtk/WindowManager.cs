@@ -124,7 +124,6 @@ namespace REngine.WindowsGtk
 					window.Update();
 			}
 
-
 			if (closedWindows == pWindows.Count)
 				pEngine.Stop();
 		}

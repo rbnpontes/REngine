@@ -32,6 +32,7 @@ namespace REngine.Core.IO
 		public event EventHandler<InputEventArgs>? OnKeyDown;
 		public event EventHandler<InputEventArgs>? OnKeyPressed;
 		public event EventHandler<InputEventArgs>? OnKeyUp;
+		public event EventHandler<InputTextEventArgs>? OnInput;
 
 		public event EventHandler<InputMouseEventArgs>? OnMouseDown;
 		public event EventHandler<InputMouseEventArgs>? OnMousePressed;
@@ -116,6 +117,7 @@ namespace REngine.Core.IO
 		{
 			window.OnKeyDown += HandleKeyDown;
 			window.OnKeyUp += HandleKeyUp;
+			window.OnInput += HandleInput;
 
 			window.OnMouseDown += HandleMouseDown;
 			window.OnMouseUp += HandleMouseUp;
@@ -125,8 +127,18 @@ namespace REngine.Core.IO
 			{
 				window.OnKeyDown -= HandleKeyDown;
 				window.OnKeyUp -= HandleKeyUp;
+				window.OnInput -= HandleInput;
+
+				window.OnMouseDown -= HandleMouseDown;
+				window.OnMouseUp -= HandleMouseUp;
+				window.OnMouseMove -= HandleMouseMove;
 			});
 			return this;
+		}
+
+		private void HandleInput(object sender, WindowInputTextEventArgs e)
+		{
+			OnInput?.Invoke(this, new InputTextEventArgs { Text = e.Value });
 		}
 
 		private void HandleMouseMove(object sender, WindowMouseEventArgs e)
@@ -152,14 +164,37 @@ namespace REngine.Core.IO
 
 		private void HandleKeyUp(object sender, WindowInputEventArgs e)
 		{
+			int keyIdx = (int)e.Key;
+			if (keyIdx >= pPressKeys.Length)
+				return;
+
+			int combinedKey = GetCombinedKey(e.Key);
 			lock(pSync)
-				pPressKeys[(int)e.Keys] = 0;
+				pPressKeys[keyIdx] = pPressKeys[combinedKey] = 0;
+
+			OnKeyUp?.Invoke(this, new InputEventArgs { Key = e.Key });
 		}
 
 		private void HandleKeyDown(object sender, WindowInputEventArgs e)
 		{
-			lock(pSync)
-				pPressKeys[(int)e.Keys] = 1;
+			int keyIdx = (int)e.Key;
+			if (keyIdx >= pPressKeys.Length)
+				return;
+
+			int combinedKey = GetCombinedKey(e.Key);
+			lock (pSync)
+			{
+				// Only set pressed keys if key has been released
+				if (pPressKeys[keyIdx] == 0)
+					pPressKeys[keyIdx] = pPressKeys[combinedKey] = 1;
+
+				// sometimes combined key returns zero, and this value is writed with value
+				// of the key. we must garantee that this value never changes
+				// otherwise we will have strange behaviours
+				pPressKeys[0] = 0;
+			}
+
+			OnKeyDown?.Invoke(this, new InputEventArgs { Key = e.Key });
 		}
 
 		public bool GetKeyDown(InputKey key)
@@ -192,6 +227,28 @@ namespace REngine.Core.IO
 			lock (pSync)
 				state = pMouseKeys[(int)key] == 1;
 			return state;
+		}
+		
+		private int GetCombinedKey(InputKey key)
+		{
+			int combinedKey = 0;
+			switch(key)
+			{
+				case InputKey.LeftControl:
+				case InputKey.RightControl:
+					combinedKey = (int)InputKey.Control;
+					break;
+				case InputKey.LeftAlt:
+				case InputKey.RightAlt:
+					combinedKey = (int)InputKey.Alt;
+					break;
+				case InputKey.LeftShift:
+				case InputKey.RightShift:
+					combinedKey = (int)InputKey.Shift;
+					break;
+			}
+
+			return combinedKey;
 		}
 	}
 }

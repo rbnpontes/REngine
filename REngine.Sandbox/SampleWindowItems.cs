@@ -20,7 +20,8 @@ namespace REngine.Sandbox
 		{
 			Resize(800, 500);
 			WindowPosition = WindowPosition.Center;
-			Title = "[REngine] Sandbox";
+			Title = pGameContent.Title = "[REngine] Sandbox";
+			Name = "REngine.Sandbox";
 
 			Box vpanel = new (Orientation.Vertical, 5);
 			vpanel.Expand = false;
@@ -31,6 +32,7 @@ namespace REngine.Sandbox
 				new TreeViewColumn("Sample Name", new CellRendererText(), "text", 0, null)
 			);
 			pSamplesList.Model = pStore;
+			pSamplesList.EnableSearch = false;
 
 			Button loadButton = new() { Label = "Load Sample" };
 			loadButton.Clicked += (s, e) => ExecClickLoadSample();
@@ -50,8 +52,26 @@ namespace REngine.Sandbox
 			
 			ShowAll();
 
-			viewport.Add(pGameContent);
+			viewport.Child = pGameContent;
 			pGameContent.ShowAll();
+
+			KeyPressEvent += HandleKeyPress;
+			KeyReleaseEvent += HandleKeyRelease;
+
+			AddEvents((int)(Gdk.EventMask.KeyPressMask | Gdk.EventMask.KeyReleaseMask));
+		}
+
+		private void HandleKeyRelease(object o, KeyReleaseEventArgs args)
+		{
+			OnKeyUp(args.Event.Key);
+			args.RetVal = false;
+		}
+
+		private void HandleKeyPress(object o, KeyPressEventArgs args)
+		{
+			OnKeyDown(args.Event.Key);
+			OnInput(args.Event.KeyValue);
+			args.RetVal = false;
 		}
 
 		private void ExecClickLoadSample()

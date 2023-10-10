@@ -1,6 +1,7 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Sandbox.Models;
+using REngine.WindowsGtk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace REngine.Sandbox
 		private SampleItem? pLastSampleItem;
 		private ISample? pLastSample;
 		private IServiceProvider? pServiceProvider;
+		private IWindow? pGameWindow;
 
 		public SampleWindow() : base(Gtk.WindowType.Toplevel) 
 		{
@@ -71,6 +73,31 @@ namespace REngine.Sandbox
 		public void EngineUpdate(IServiceProvider provider) 
 		{
 			pLastSample?.Update(provider);
+		}
+	
+		private void OnKeyDown(Gdk.Key key)
+		{
+			if (pServiceProvider is null)
+				return;
+			GetGameWindow().ForwardKeyDownEvent(InputConverter.GetKeys(key));
+		}
+		private void OnKeyUp(Gdk.Key key)
+		{
+			if (pServiceProvider is null)
+				return;
+			GetGameWindow().ForwardKeyUpEvent(InputConverter.GetKeys(key));
+		}
+		private void OnInput(uint utf32Char)
+		{
+			if (pServiceProvider is null)
+				return;
+			GetGameWindow().ForwardInputEvent((int)utf32Char);
+		}
+
+		private IWindow GetGameWindow()
+		{
+			pGameWindow ??= pServiceProvider.Get<IWindow>();
+			return pGameWindow;
 		}
 	}
 }

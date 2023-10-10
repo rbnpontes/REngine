@@ -16,6 +16,7 @@ namespace REngine.WindowsGtk
 		protected readonly WindowEventArgs pDefaultEventArgs;
 
 		private Vector2 pMousePosition;
+		private bool pIsMouseInside = false;
 
 		protected bool pDisposed;
 
@@ -44,6 +45,7 @@ namespace REngine.WindowsGtk
 		public event WindowEvent? OnClose;
 		public event WindowInputEvent? OnKeyDown;
 		public event WindowInputEvent? OnKeyUp;
+		public event WindowInputTextEvent? OnInput;
 		public event WindowResizeEvent? OnResize;
 		public event WindowMouseEvent? OnMouseDown;
 		public event WindowMouseEvent? OnMouseUp;
@@ -56,6 +58,59 @@ namespace REngine.WindowsGtk
 
 			pWidget.ButtonPressEvent += HandleButtonPress;
 			pWidget.ButtonReleaseEvent += HandleButtonRelease;
+
+			pWidget.KeyPressEvent += HandleKeyPress;
+			pWidget.KeyReleaseEvent += HandleKeyRelease;
+
+			pWidget.MotionNotifyEvent += HandleMotionNotify;
+
+			pWidget.CanFocus = true;
+
+			pWidget.AddEvents((int)(Gdk.EventMask.KeyPressMask | Gdk.EventMask.KeyReleaseMask | Gdk.EventMask.PointerMotionMask));
+		}
+
+		public void Dispose()
+		{
+			if (pDisposed)
+				return;
+
+			pWidget.KeyPressEvent -= HandleKeyPress;
+			pWidget.KeyReleaseEvent -= HandleKeyRelease;
+
+			pWidget.ButtonPressEvent -= HandleButtonPress;
+			pWidget.ButtonReleaseEvent -= HandleButtonRelease;
+
+			pWidget.MotionNotifyEvent -= HandleMotionNotify;
+
+			OnDispose();
+
+			pDisposed = true;
+			GC.SuppressFinalize(this);
+		}
+
+		private void HandleMotionNotify(object o, Gtk.MotionNotifyEventArgs args)
+		{
+			pWidget.Display.GetPointer(out int x, out int y);
+			pWidget.Window.GetOrigin(out int originX, out int originY);
+
+			Vector2 msPos = new Vector2(x - originX, y - originY);
+
+			if (msPos == pMousePosition)
+				return;
+			pMousePosition = msPos;
+
+			EmitMouseMove(MouseKey.None);
+		}
+
+		private void HandleKeyRelease(object o, Gtk.KeyReleaseEventArgs args)
+		{
+			ForwardKeyDownEvent(InputConverter.GetKeys(args.Event.Key));
+		}
+
+		private void HandleKeyPress(object o, Gtk.KeyPressEventArgs args)
+		{
+			ForwardKeyUpEvent(InputConverter.GetKeys(args.Event.Key));
+			ForwardInputEvent((int)args.Event.KeyValue);
 		}
 
 		private uint pLastReleaseTime = 0;
@@ -83,17 +138,6 @@ namespace REngine.WindowsGtk
 		{
 			pWidget.Hide();
 			return this;
-		}
-
-		public void Dispose()
-		{
-			if (pDisposed)
-				return;
-
-			OnDispose();
-
-			pDisposed = true;
-			GC.SuppressFinalize(this);
 		}
 
 		protected virtual void OnDispose()
@@ -126,17 +170,25 @@ namespace REngine.WindowsGtk
 
 		public virtual IWindow Update()
 		{
-			pWidget.Display.GetPointer(out int x, out int y);
-			pWidget.Window.GetOrigin(out int originX, out int originY);
-
-			Vector2 msPos = new Vector2(x - originX, y - originY);
-
-			if (msPos == pMousePosition)
-				return this;
-			pMousePosition = msPos;
-
-			EmitMouseMove(MouseKey.None);
 			OnUpdate?.Invoke(this, pDefaultEventArgs);
+			return this;
+		}
+
+		public virtual IWindow ForwardKeyDownEvent(InputKey key)
+		{
+			OnKeyDown?.Invoke(this, new WindowInputEventArgs(key, pWidget, Handle));
+			return this;
+		}
+		public virtual IWindow ForwardKeyUpEvent(InputKey key)
+		{
+			OnKeyUp?.Invoke(this, new WindowInputEventArgs(key, pWidget, Handle));
+			return this;
+		}
+		public virtual IWindow ForwardInputEvent(int utf32Char)
+		{
+			string value = char.ConvertFromUtf32(utf32Char);
+			int utf32Code = char.ConvertToUtf32(value, 0);
+			OnInput?.Invoke(this, new WindowInputTextEventArgs(value, pWidget, Handle));
 			return this;
 		}
 

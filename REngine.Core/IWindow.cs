@@ -31,10 +31,19 @@ namespace REngine.Core
 
 	public class WindowInputEventArgs : WindowEventArgs 
 	{
-		public Keys Keys { get; private set; }
-		public WindowInputEventArgs(Keys keys, object windowObj, IntPtr handle) : base(windowObj, handle)
+		public InputKey Key { get; private set; }
+		public WindowInputEventArgs(InputKey key, object windowObj, IntPtr handle) : base(windowObj, handle)
 		{
-			Keys = keys;
+			Key = key;
+		}
+	}
+
+	public class WindowInputTextEventArgs : WindowEventArgs 
+	{ 
+		public string Value { get; private set; }
+		public WindowInputTextEventArgs(string value, object windowObj, IntPtr handle) : base(windowObj, handle)
+		{
+			Value = value;
 		}
 	}
 
@@ -51,6 +60,7 @@ namespace REngine.Core
 	public delegate void WindowEvent(object sender, WindowEventArgs e);
 	public delegate void WindowResizeEvent(object sender, WindowResizeEventArgs e);
 	public delegate void WindowInputEvent(object sender, WindowInputEventArgs e);
+	public delegate void WindowInputTextEvent(object sender, WindowInputTextEventArgs e);
 	public delegate void WindowMouseEvent(object sender, WindowMouseEventArgs e);
 
 	public interface IWindow : IDisposable
@@ -60,6 +70,7 @@ namespace REngine.Core
 		public event WindowEvent? OnClose;
 		public event WindowInputEvent? OnKeyDown;
 		public event WindowInputEvent? OnKeyUp;
+		public event WindowInputTextEvent? OnInput;
 		public event WindowResizeEvent? OnResize;
 		public event WindowMouseEvent? OnMouseDown;
 		public event WindowMouseEvent? OnMouseUp;
@@ -84,5 +95,9 @@ namespace REngine.Core
 		public IWindow Fullscreen();
 
 		public IWindow GetNativeWindow(out NativeWindow window);
+
+		public IWindow ForwardKeyDownEvent(InputKey key);
+		public IWindow ForwardKeyUpEvent(InputKey key);
+		public IWindow ForwardInputEvent(int utf32Char);
 	}
 }

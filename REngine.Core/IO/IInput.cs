@@ -15,6 +15,10 @@ namespace REngine.Core.IO
 	{
 		public MouseKey Key { get; internal set; }
 	}
+	public class InputTextEventArgs : EventArgs
+	{
+		public string Text { get; internal set; } = string.Empty;
+	}
 
 	public interface IInput
 	{
@@ -37,6 +41,7 @@ namespace REngine.Core.IO
 		public event EventHandler<InputEventArgs>? OnKeyDown;
 		public event EventHandler<InputEventArgs>? OnKeyPressed;
 		public event EventHandler<InputEventArgs>? OnKeyUp;
+		public event EventHandler<InputTextEventArgs>? OnInput;
 
 		public event EventHandler<InputMouseEventArgs>? OnMouseDown;
 		public event EventHandler<InputMouseEventArgs>? OnMousePressed;

@@ -14,6 +14,7 @@ namespace REngine.Core
 		private readonly EngineEvents pEvents;
 		private readonly UpdateEventArgs pUpdateEvtArgs;
 		private readonly IExecutionPipeline pExecPipeline;
+		private readonly object pSync = new();
 
 		private double pLastElapsed;
 		private double pDeltaTime;
@@ -46,12 +47,15 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
-			double curr = pStopwatch.Elapsed.TotalMilliseconds;
-			pDeltaTime = curr - pLastElapsed;
-			pLastElapsed = curr;
+			lock (pSync)
+			{
+				double curr = pStopwatch.Elapsed.TotalMilliseconds;
+				pDeltaTime = curr - pLastElapsed;
+				pLastElapsed = curr;
 
-			pUpdateEvtArgs.DeltaTime = pDeltaTime;
-			pUpdateEvtArgs.Elapsed = curr;
+				pUpdateEvtArgs.DeltaTime = pDeltaTime;
+				pUpdateEvtArgs.Elapsed = curr;
+			}
 
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();

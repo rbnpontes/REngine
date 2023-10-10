@@ -24,7 +24,8 @@ namespace REngine.Sandbox.Models
 		private readonly Dictionary<string, SampleItem> pItems = new Dictionary<string, SampleItem>();
 
 		public SamplesListStore() : base(new Type[] { typeof(string) })
-		{ }
+		{ 
+		}
 
 		public void Add(SampleItem sample)
 		{

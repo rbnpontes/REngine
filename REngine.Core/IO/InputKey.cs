@@ -18,6 +18,7 @@ namespace REngine.Core.IO
 
 	public enum InputKey
 	{
+		None=0,
 		Backspace,
 		Tab,
 		LineFeed,
@@ -87,9 +88,9 @@ namespace REngine.Core.IO
 		X,
 		Y,
 		Z,
-		LeftWindow,
-		Command = LeftWindow,
-		RightWindow,
+		LeftSuper,
+		Command = LeftSuper,
+		RightSuper,
 		Apps,
 		Sleep,
 		NumPad0,

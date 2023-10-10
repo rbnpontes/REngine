@@ -217,6 +217,7 @@ namespace REngine.Core.Threading
 		public override void ExecuteLinkedNode(EPNode owner)
 		{
 			Task? task;
+
 			lock (pSyncObject)
 			{
 				task = pIncomingTask;
