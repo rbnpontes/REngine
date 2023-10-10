@@ -262,7 +262,7 @@ namespace REngine.RPI
 
 		private void HandlePresent()
 		{
-			pSwapChain?.Present(true);
+			pSwapChain?.Present(pRenderState.Vsync);
 		}
 
 		private void HandleEngineStart(object? sender, EventArgs e)

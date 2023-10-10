@@ -17,5 +17,7 @@ namespace REngine.RPI
 		public byte DefaultClearStencilValue { get; set; } = 0;
 
 		public RendererFixedData FixedData { get; set; } = new RendererFixedData();
+
+		public bool Vsync { get; set; } = true;
 	}
 }
