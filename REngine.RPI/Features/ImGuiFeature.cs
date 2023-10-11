@@ -181,9 +181,8 @@ namespace REngine.RPI.Features
 			if (swapChain is null || pDevice is null)
 				return this;
 
+			pSystem.BeginRender();
 			var io = ImGuiNET.ImGui.GetIO();
-			io.DisplaySize.X = swapChain.Size.Width;
-			io.DisplaySize.Y = swapChain.Size.Height;
 
 			CreateProjection(swapChain.Size, out Matrix4x4 output);
 
@@ -191,15 +190,14 @@ namespace REngine.RPI.Features
 			mappedData[0] = output;
 			command.Unmap(pCBuffer, MapType.Write);
 
-			ImGuiNET.ImGui.Render();
-
 			command.SetRT(swapChain.ColorBuffer, swapChain.DepthBuffer);
 
 			RenderDrawData(command, pDevice, io, swapChain);
+			pSystem.EndRender();
 			return this;
 		}
 
-		private void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, ISwapChain swapChain)
+		private unsafe void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, ISwapChain swapChain)
 		{
 			Viewport viewport = new Viewport
 			{
@@ -209,9 +207,12 @@ namespace REngine.RPI.Features
 
 			var drawData = ImGuiNET.ImGui.GetDrawData();
 
+			if (drawData.NativePtr == IntPtr.Zero.ToPointer())
+				return;
+
 			drawData.ScaleClipRects(io.DisplayFramebufferScale);
 
-			for(int n =0; n < drawData.CmdListsCount; ++n)
+			for (int n =0; n < drawData.CmdListsCount; ++n)
 			{
 				ImGuiNET.ImDrawListPtr cmdList = drawData.CmdLists[n];
 

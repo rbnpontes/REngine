@@ -1,4 +1,5 @@
-﻿using REngine.Core;
+﻿using ImGuiNET;
+using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
@@ -29,6 +30,7 @@ namespace REngine.RPI
 
 		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
+		private readonly Mutex pMutex = new();
 
 		private ImGuiFeature? pFeature;
 
@@ -313,8 +315,16 @@ namespace REngine.RPI
 		{
 			if (pDisposed)
 				return;
+			var swapChain = pRenderer.SwapChain;
+			// If there's not swap chain, there's no reason to render
+			if (swapChain is null)
+				return;
+
+			pMutex.WaitOne();
 
 			var io = ImGuiNET.ImGui.GetIO();
+			io.DisplaySize.X = swapChain.Size.Width;
+			io.DisplaySize.Y = swapChain.Size.Height;
 			io.DeltaTime = (float)pEngine.DeltaTime;
 			io.MousePos = pInput.MousePosition;
 			for (byte i = 1; i < MaxMouseKeys; ++i)
@@ -347,6 +357,19 @@ namespace REngine.RPI
 			OnGui?.Invoke(this, EventArgs.Empty);
 
 			ImGuiNET.ImGui.EndFrame();
+
+			ImGuiNET.ImGui.Render();
+
+			pMutex.ReleaseMutex();
+		}
+
+		public void BeginRender()
+		{
+			pMutex.WaitOne();
+		}
+		public void EndRender()
+		{
+			pMutex.ReleaseMutex();
 		}
 
 		private ImGuiFeature GetFeature()

@@ -18,7 +18,8 @@ namespace REngine.Core
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, EngineImpl>()
 				.Add<EngineEvents>()
-				.Add<IExecutionPipeline, ExecutionPipelineImpl>();
+				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
+				.Add<ExecutionPipelineNodeRegistry>();
 		}
 	}
 }

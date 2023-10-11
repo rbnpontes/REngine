@@ -174,7 +174,6 @@ namespace REngine.RPI
 					.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
-
 			}
 
 			foreach(var feature in pFeatureCollection)
