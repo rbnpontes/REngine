@@ -49,6 +49,9 @@ namespace REngine.RPI
 		/// </summary>
 		public uint SpriteBatchTexturesBuildTimeMs { get; set; } = 2;
 #endif
+#if RENGINE_IMGUI
+		public float ImGuiUpdateRate { get; set; } = 0.16f; // Updates ImGui at 60FPS
+#endif
 		public void Merge(RenderSettings settings)
 		{
 			PipelineCacheFilename = settings.PipelineCacheFilename;
@@ -61,6 +64,9 @@ namespace REngine.RPI
 			SpriteBatchInstanceExpansionRatio = settings.SpriteBatchInstanceExpansionRatio;
 			SpriteBatchMaxTextures = settings.SpriteBatchMaxTextures;
 			SpriteBatchTexturesBuildTimeMs = settings.SpriteBatchTexturesBuildTimeMs;
+#endif
+#if RENGINE_IMGUI
+			ImGuiUpdateRate = settings.ImGuiUpdateRate;
 #endif
 		}
 	}

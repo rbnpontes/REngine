@@ -8,9 +8,9 @@
 				<step id="spritebatch_draw"/>
 				<step id="spritebatch_build_tex"/>
 			</task>
-			<step id="imgui_draw"/>
-			<!--<task id="imgui_task" end="render">
-			</task>-->
+			<deferred target="@imgui_update_rate">
+				<step id="imgui_draw"/>
+			</deferred>
 		</step>
 		<step id="update"/>
 		<step id="update_end"/>
