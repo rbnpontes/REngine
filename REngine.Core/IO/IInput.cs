@@ -36,6 +36,8 @@ namespace REngine.Core.IO
 
 		public Vector2 MousePosition { get; }
 		public Vector2 MouseWheel { get; }
+		public Vector2 MouseWheelXDeadzone { get; set; }
+		public Vector2 MouseWheelYDeadzone { get; set; }
 		public Vector2 MouseMovement { get; }
 
 		public event EventHandler<InputEventArgs>? OnKeyDown;

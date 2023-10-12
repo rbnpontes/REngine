@@ -11,6 +11,8 @@ namespace REngine.Core.IO
 {
 	internal class InputImpl : IInput, IDisposable
 	{
+		const float DefaultMsWheelDeadzone = 0.34f;
+
 		private readonly object pSync = new();
 		private readonly byte[] pPressKeys = new byte[(int)InputKey.OemClear];
 		private readonly byte[] pMouseKeys = new byte[(int)MouseKey.XButton2];
@@ -26,6 +28,8 @@ namespace REngine.Core.IO
 		public Vector2 MousePosition { get; private set; }
 
 		public Vector2 MouseWheel { get; private set; }
+		public Vector2 MouseWheelXDeadzone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
+		public Vector2 MouseWheelYDeadzone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
 
 		public Vector2 MouseMovement { get => pLastMousePos - MousePosition; }
 
@@ -110,6 +114,17 @@ namespace REngine.Core.IO
 						OnMousePressed?.Invoke(this, new InputMouseEventArgs { Key = (MouseKey)i });
 					}
 				}
+
+				// Apply Deadzone
+				float mouseWheelX = MouseWheel.X;
+				float mouseWheelY = MouseWheel.Y;
+
+				if (MouseWheel.X >= MouseWheelXDeadzone.X && MouseWheel.X <= MouseWheelXDeadzone.Y)
+					mouseWheelX = 0;
+				if (MouseWheel.Y >= MouseWheelYDeadzone.X && MouseWheel.Y <= MouseWheelYDeadzone.Y)
+					mouseWheelY = 0;
+
+				MouseWheel = new Vector2(mouseWheelX, mouseWheelY);
 			}
 		}
 

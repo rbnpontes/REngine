@@ -330,7 +330,6 @@ namespace REngine.RPI
 		}
 
 		private double pLastElapsed = 0;
-		private float pUpdateRateImGui = 16.0f;
 		private void HandleDraw()
 		{
 			if (pDisposed)
@@ -369,19 +368,7 @@ namespace REngine.RPI
 
 			ImGuiNET.ImGui.NewFrame();
 #if DEBUG
-			bool demoWnd = true;
-			ImGuiNET.ImGui.ShowDemoWindow(ref demoWnd);
-
-			if(ImGuiNET.ImGui.Begin("Engine Info"))
-			{
-				ImGuiNET.ImGui.Text($"Engine Delta Time: {pEngine.DeltaTime}");
-				ImGuiNET.ImGui.Text($"ImGui Delta Time: {io.DeltaTime}");
-				ImGuiNET.ImGui.Text($"Elapsed Time: {pEngine.ElapsedTime}");
-				ImGuiNET.ImGui.SliderFloat("Update Rate", ref pUpdateRateImGui, 0.01f, 60.0f);
-				ImGuiNET.ImGui.End();
-			}
-
-			pUpdateRateVar.Value = pUpdateRateImGui;
+			ImGuiNET.ImGui.ShowDemoWindow();
 #endif
 			OnGui?.Invoke(this, EventArgs.Empty);
 

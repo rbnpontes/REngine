@@ -1,4 +1,5 @@
 ﻿using REngine.Core.DependencyInjection;
+using REngine.Core.Timing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,14 @@ namespace REngine.Core.Threading.Nodes
 	[Node("deferred")]
 	internal class DeferredNode : EPNode
 	{
+		private readonly TimerInterval pInterval;
+
 		private IExecutionPipelineVar pTargetValue = new ExecutionPipelineVarImpl(0);
 		private IEngine? pEngine;
-		private double pLastTime = -1;
 
 		public DeferredNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
+			pInterval = new TimerInterval(ExecuteNode);
 		}
 
 		public override void Execute()
@@ -28,20 +31,9 @@ namespace REngine.Core.Threading.Nodes
 			if(pEngine is null)
 				pEngine = ServiceProvider.Get<IEngine>();
 
-			if(pLastTime == -1)
-			{
-				ExecuteNode();
-				pLastTime = pEngine.ElapsedTime;
-				return;
-			}
-
-			float expectedTime = (float)varVal;
-			float currTime = (float)(pEngine.ElapsedTime - pLastTime);
-			if(currTime >= expectedTime)
-			{
-				ExecuteNode();
-				pLastTime = pEngine.ElapsedTime;
-			}
+			pInterval
+				.SetInterval((float)varVal)
+				.Update(pEngine.ElapsedTime);
 		}
 		
 		private void ExecuteNode()

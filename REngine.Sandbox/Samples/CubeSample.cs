@@ -37,7 +37,7 @@ namespace REngine.Sandbox.Samples
 
 		public void Update(IServiceProvider provider)
 		{
-			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
+			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0f) * 0.001f;
 			var wndSize = Window?.Size ?? new Size();
 
 			var worldMatrix = Matrix4x4.CreateRotationY(elapsedTime) * Matrix4x4.CreateRotationX(-MathF.PI * 0.1f);

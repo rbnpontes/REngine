@@ -21,6 +21,8 @@ namespace REngine.Windows
 		private readonly MouseButtonCallback pMouseButtonCallback;
 		private readonly MouseCallback pMouseCallback;
 		private readonly MouseCallback pMouseWheelCallback;
+		private readonly KeyCallback pKeyboardCallback;
+		private readonly CharCallback pInputCallback;
 
 		private bool pDisposed = false;
 		private string pTitle;
@@ -130,11 +132,16 @@ namespace REngine.Windows
 			pMouseButtonCallback = HandleMouseButton;
 			pMouseCallback = HandleMouseMove;
 			pMouseWheelCallback = HandleMouseWheel;
+			pKeyboardCallback = HandleKeyboard;
+			pInputCallback = HandleInput;
+
 
 			Glfw.SetWindowSizeCallback(window, pResizeCallback);
 			Glfw.SetMouseButtonCallback(window, pMouseButtonCallback);
 			Glfw.SetCursorPositionCallback(window, pMouseCallback);
 			Glfw.SetScrollCallback(window, pMouseWheelCallback);
+			Glfw.SetKeyCallback(window, pKeyboardCallback);
+			Glfw.SetCharCallback(window, pInputCallback);
 		}
 
 		public void Dispose()
@@ -291,6 +298,23 @@ namespace REngine.Windows
 		{
 			OnMouseWheel?.Invoke(this,
 				new WindowMouseWheelEventArgs(new Vector2((float)x, (float)y), pWindow, IntPtr.Zero)
+			);
+		}
+
+		private void HandleKeyboard(GLFW.Window window, GLFW.Keys key, int scanCode, InputState state, ModifierKeys modifiers)
+		{
+			EmitKeyboard(InputConverter.GetInputKey(key), state);	
+		}
+
+		private void EmitKeyboard(InputKey key, InputState state)
+		{
+			(state == InputState.Press ? OnKeyDown : OnKeyUp)?.Invoke(this, new WindowInputEventArgs(key, pWindow, IntPtr.Zero));
+		}
+
+		private void HandleInput(GLFW.Window window, uint codePoint)
+		{
+			OnInput?.Invoke(this, 
+				new WindowInputTextEventArgs(char.ConvertFromUtf32((int)codePoint), pWindow, IntPtr.Zero)
 			);
 		}
 	}
