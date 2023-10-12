@@ -27,6 +27,10 @@ namespace REngine.Core.Threading
 					pValue = value;
 			}
 		}
+#if DEBUG
+		public string DebugKey { get; set; } = string.Empty;
+#endif
+
 		public ExecutionPipelineVarImpl(int varKey)
 		{
 			Key = varKey;

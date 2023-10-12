@@ -16,7 +16,7 @@ namespace REngine.Core.Threading.Nodes
 		private Task? pIncomingTask;
 		private EPNode? pTarget;
 
-		public TaskNode(ExecutionPipelineImpl execPipeline) : base(execPipeline)
+		public TaskNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
 		}
 

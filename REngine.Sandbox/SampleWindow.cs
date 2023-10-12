@@ -1,7 +1,5 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
-using REngine.Sandbox.Models;
-using REngine.WindowsGtk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +9,33 @@ using System.Threading.Tasks;
 
 namespace REngine.Sandbox
 {
-	internal partial class SampleWindow : Gtk.Window
+	internal partial class SampleWindow
 	{
+		class SampleItem 
+		{
+			public Type Type { get; private set; }
+			public string Name { get; private set; }
+
+			public SampleItem(Type type, string name)
+			{
+				Type = type;
+				Name = name;
+			}
+		}
+
+		private readonly List<SampleItem> pSamples = new();
+
 		private SampleItem? pLastSampleItem;
 		private ISample? pLastSample;
 		private IServiceProvider? pServiceProvider;
-		private IWindow? pGameWindow;
 
-		public SampleWindow() : base(Gtk.WindowType.Toplevel) 
+		public SampleWindow() : base() 
 		{
-			InitializeComponents();
+		}
+
+		public void Init()
+		{
+			CollectSamples();
 		}
 
 		private void CollectSamples()
@@ -33,8 +48,8 @@ namespace REngine.Sandbox
 				.ForEach(type =>
 				{
 					SampleAttribute? attr = type.GetCustomAttribute<SampleAttribute>();
-					var sample = new SampleItem(attr?.SampleName ?? type.Name, type);
-					pStore.Add(sample);
+					var sample = new SampleItem(type, attr?.SampleName ?? type.Name);
+					pSamples.Add(sample);
 				});
 		}
 
@@ -48,7 +63,7 @@ namespace REngine.Sandbox
 			pLastSample?.Dispose();
 			pLastSample = null;
 
-			ISample? sample = Activator.CreateInstance(item.SampleType) as ISample;
+			ISample? sample = Activator.CreateInstance(item.Type) as ISample;
 			if (sample is null)
 				throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
 
@@ -64,8 +79,7 @@ namespace REngine.Sandbox
 			CollectSamples();
 
 			pServiceProvider = provider;
-			pStore.GetIterFirst(out Gtk.TreeIter firstIter);
-			SampleItem? item = pStore.GetSample(firstIter);
+			SampleItem? item = pSamples.FirstOrDefault();
 			if (item != null)
 				LoadSample(item);
 		}
@@ -73,31 +87,6 @@ namespace REngine.Sandbox
 		public void EngineUpdate(IServiceProvider provider) 
 		{
 			pLastSample?.Update(provider);
-		}
-	
-		private void OnKeyDown(Gdk.Key key)
-		{
-			if (pServiceProvider is null)
-				return;
-			GetGameWindow().ForwardKeyDownEvent(InputConverter.GetKeys(key));
-		}
-		private void OnKeyUp(Gdk.Key key)
-		{
-			if (pServiceProvider is null)
-				return;
-			GetGameWindow().ForwardKeyUpEvent(InputConverter.GetKeys(key));
-		}
-		private void OnInput(uint utf32Char)
-		{
-			if (pServiceProvider is null)
-				return;
-			GetGameWindow().ForwardInputEvent((int)utf32Char);
-		}
-
-		private IWindow GetGameWindow()
-		{
-			pGameWindow ??= pServiceProvider.Get<IWindow>();
-			return pGameWindow;
 		}
 	}
 }

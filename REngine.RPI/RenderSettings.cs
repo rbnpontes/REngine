@@ -50,7 +50,7 @@ namespace REngine.RPI
 		public uint SpriteBatchTexturesBuildTimeMs { get; set; } = 2;
 #endif
 #if RENGINE_IMGUI
-		public float ImGuiUpdateRate { get; set; } = 0.16f; // Updates ImGui at 60FPS
+		public float ImGuiUpdateRate { get; set; } = 16.0f; // Update ImGui at 60FPS
 #endif
 		public void Merge(RenderSettings settings)
 		{

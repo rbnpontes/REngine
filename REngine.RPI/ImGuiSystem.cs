@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using REngine.Core;
+﻿using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
@@ -7,6 +6,7 @@ using REngine.RHI;
 using REngine.RPI.Features;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,10 +27,14 @@ namespace REngine.RPI
 		private readonly IRenderer pRenderer;
 		private readonly IInput pInput;
 		private readonly ILogger<IImGuiSystem> pLogger;
+		private readonly IExecutionPipelineVar pUpdateRateVar;
+		private readonly RPIEvents pRPIEvents;
 
 		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
 		private readonly Mutex pMutex = new();
+
+		private readonly Stopwatch pStopwatch = Stopwatch.StartNew();
 
 		private ImGuiFeature? pFeature;
 
@@ -56,7 +60,9 @@ namespace REngine.RPI
 			GraphicsSettings graphicsSettings,
 			IRenderer renderer,
 			IInput input,
-			ILoggerFactory factory
+			ILoggerFactory factory,
+			RenderSettings renderSettings,
+			RPIEvents rpiEvents
 		) 
 		{ 
 			pEngine = engine;
@@ -66,14 +72,19 @@ namespace REngine.RPI
 			pRenderer = renderer;
 			pInput = input;
 			pLogger = factory.Build<IImGuiSystem>();
+			pRPIEvents = rpiEvents;
 
 			pImGuiSettingsPath = Path.Join(EngineSettings.AppDataPath, "imgui_settings.ini");
+			pUpdateRateVar = executionPipeline.GetOrCreateVar(DefaultVars.ImGuiUpdateRate);
+			pUpdateRateVar.Value = renderSettings.ImGuiUpdateRate;
 
 			engineEvents.OnStart += HandleEngineStart;
 			engineEvents.OnStop += HandleEngineStop;
 			input.OnInput += HandleInput;
 			input.OnKeyDown += HandleKeyDown;
 			input.OnKeyUp += HandleKeyUp;
+
+			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
 		public void Dispose()
@@ -89,6 +100,8 @@ namespace REngine.RPI
 			pInput.OnInput -= HandleInput;
 			pInput.OnKeyDown -= HandleKeyDown;
 			pInput.OnKeyUp -= HandleKeyUp;
+
+			pRPIEvents.OnUpdateSettings -= HandleUpdateSettings;
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
 
@@ -123,6 +136,11 @@ namespace REngine.RPI
 			AllocateFontBuffer();
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
+		}
+
+		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
+		{
+			pUpdateRateVar.Value = e.Settings.ImGuiUpdateRate;
 		}
 
 		private void SetupKeyMap()
@@ -311,6 +329,8 @@ namespace REngine.RPI
 			ImGuiNET.ImGui.GetIO().KeysDown[(int)e.Key] = true;
 		}
 
+		private double pLastElapsed = 0;
+		private float pUpdateRateImGui = 16.0f;
 		private void HandleDraw()
 		{
 			if (pDisposed)
@@ -323,9 +343,12 @@ namespace REngine.RPI
 			pMutex.WaitOne();
 
 			var io = ImGuiNET.ImGui.GetIO();
+			double curr = pStopwatch.Elapsed.TotalMilliseconds * 0.001;
+			io.DeltaTime = (float)(curr - pLastElapsed);
+			pLastElapsed = curr;
+
 			io.DisplaySize.X = swapChain.Size.Width;
 			io.DisplaySize.Y = swapChain.Size.Height;
-			io.DeltaTime = (float)pEngine.DeltaTime;
 			io.MousePos = pInput.MousePosition;
 			for (byte i = 1; i < MaxMouseKeys; ++i)
 				io.MouseDown[i - 1] = pInput.GetMouseDown((MouseKey)i);
@@ -349,10 +372,14 @@ namespace REngine.RPI
 
 			if(ImGuiNET.ImGui.Begin("Engine Info"))
 			{
-				ImGuiNET.ImGui.Text($"Delta Time: {pEngine.DeltaTime}");
+				ImGuiNET.ImGui.Text($"Engine Delta Time: {pEngine.DeltaTime}");
+				ImGuiNET.ImGui.Text($"ImGui Delta Time: {io.DeltaTime}");
 				ImGuiNET.ImGui.Text($"Elapsed Time: {pEngine.ElapsedTime}");
+				ImGuiNET.ImGui.SliderFloat("Update Rate", ref pUpdateRateImGui, 0.01f, 60.0f);
 				ImGuiNET.ImGui.End();
 			}
+
+			pUpdateRateVar.Value = pUpdateRateImGui;
 #endif
 			OnGui?.Invoke(this, EventArgs.Empty);
 

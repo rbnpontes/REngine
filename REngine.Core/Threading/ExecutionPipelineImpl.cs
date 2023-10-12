@@ -168,24 +168,28 @@ namespace REngine.Core.Threading
                 pExecuteScheduledCalls.AddLast(action);
             return this;
         }
-
-        private ExecutionPipelineVarImpl? pLastVar = null;
         
         public IExecutionPipelineVar GetOrCreateVar(string name)
         {
-            return GetOrCreateVar(name.GetHashCode());
-        }
+            return HandleCreateVar(name.GetHashCode(), name);
+		}
 
         public IExecutionPipelineVar GetOrCreateVar(int varHashCode)
         {
-            if (pLastVar is null)
-                pVars.TryGetValue(varHashCode, out pLastVar);
-            else if (pLastVar.Key == varHashCode)
-                return pLastVar;
-
-            if (pLastVar is null)
-                pVars[varHashCode] = pLastVar = new ExecutionPipelineVarImpl(varHashCode);
-            return pLastVar;    
+            return HandleCreateVar(varHashCode);
         }
+
+        private ExecutionPipelineVarImpl HandleCreateVar(int varHashCode, string dbgKey = "Unknow")
+        {
+            if (pVars.TryGetValue(varHashCode, out var varNode))
+                return varNode;
+
+			varNode = new ExecutionPipelineVarImpl(varHashCode);
+#if DEBUG
+			varNode.DebugKey = dbgKey;
+#endif
+            pVars[varHashCode] = varNode;
+			return varNode;
+		}
     }
 }

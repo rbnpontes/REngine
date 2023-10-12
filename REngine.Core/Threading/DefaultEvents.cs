@@ -26,9 +26,4 @@ namespace REngine.Core.Threading
 		public const string WindowsInvalidateId = "windows_invalidate";
 		public const string ImGuiDrawId = "imgui_draw";
 	}
-
-	public static class DefaultVars
-	{
-		public const string RenderNeedsPrepare = "@render_needs_prepare";
-	}
 }

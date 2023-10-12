@@ -34,7 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="runtimes\win-64\REngine-DiligentNativeDriver.dll">
+		<None Update="runtimes\win-x64\native\REngine-DiligentNativeDriver.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

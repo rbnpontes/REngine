@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -104,13 +105,15 @@ namespace REngine.WindowsGtk
 
 		private void HandleKeyRelease(object o, Gtk.KeyReleaseEventArgs args)
 		{
-			ForwardKeyDownEvent(InputConverter.GetKeys(args.Event.Key));
+			ForwardKeyUpEvent(InputConverter.GetKeys(args.Event.Key));
+			args.RetVal = true;
 		}
 
 		private void HandleKeyPress(object o, Gtk.KeyPressEventArgs args)
 		{
-			ForwardKeyUpEvent(InputConverter.GetKeys(args.Event.Key));
+			ForwardKeyDownEvent(InputConverter.GetKeys(args.Event.Key));
 			ForwardInputEvent((int)args.Event.KeyValue);
+			args.RetVal = true;
 		}
 
 		private uint pLastReleaseTime = 0;
@@ -151,6 +154,11 @@ namespace REngine.WindowsGtk
 		}
 
 		public virtual IWindow Fullscreen()
+		{
+			return this;
+		}
+
+		public virtual IWindow ExitFullscreen()
 		{
 			return this;
 		}

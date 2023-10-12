@@ -93,6 +93,7 @@ namespace REngine.Core
 		public IWindow Update();
 
 		public IWindow Fullscreen();
+		public IWindow ExitFullscreen();
 
 		public IWindow GetNativeWindow(out NativeWindow window);
 

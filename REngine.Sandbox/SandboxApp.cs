@@ -25,10 +25,11 @@ namespace REngine.Sandbox
 		protected override IWindow OnSetupWindow(IWindowManager windowManager)
 		{
 			pSampleWindow = new SampleWindow();
-
+			pSampleWindow.Init();
 			return windowManager.Create(new WindowCreationInfo
 			{
-				WindowInstance = pSampleWindow.GameContentWindow
+				Title = "[REngine] Samples",
+				Size = new System.Drawing.Size(800, 500)
 			});
 		}
 		public override void OnStart(IServiceProvider provider)

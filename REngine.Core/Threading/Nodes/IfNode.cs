@@ -20,8 +20,8 @@ namespace REngine.Core.Threading.Nodes
 
 		public int VarKey { get; set; } = 0;
 		public IfNodeCmp Cmp { get; set; } = IfNodeCmp.Equal;
-
-		public IfNode(ExecutionPipelineImpl execPipeline) : base(execPipeline)
+		
+		public IfNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
 		}
 

@@ -27,7 +27,7 @@
 		<ProjectReference Include="..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI\REngine.RPI.csproj" />
-		<ProjectReference Include="..\REngine.WindowsGtk\REngine.WindowsGtk.csproj" />
+		<ProjectReference Include="..\REngine.Windows\REngine.Windows.csproj" />
 	</ItemGroup>
 
 </Project>

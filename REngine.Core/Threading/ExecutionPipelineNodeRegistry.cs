@@ -11,9 +11,12 @@ namespace REngine.Core.Threading
 	internal class ExecutionPipelineNodeRegistry
 	{
 		private readonly Dictionary<string, Type> pTypes = new();
+		private readonly IServiceProvider pServiceProvider;
 
-		public ExecutionPipelineNodeRegistry()
+		public ExecutionPipelineNodeRegistry(IServiceProvider provider)
 		{
+			pServiceProvider = provider;
+
 			Add<StepNode>()
 		   .Add<TaskNode>()
 		   .Add<IfNode>()
@@ -40,7 +43,7 @@ namespace REngine.Core.Threading
 		{
 			if (!pTypes.TryGetValue(tag, out var type))
 				throw new Exception($"Invalid tag '{tag}'. There's no node registered with this tag");
-			EPNode? node = Activator.CreateInstance(type, pipeline) as EPNode;
+			EPNode? node = Activator.CreateInstance(type, pipeline, pServiceProvider) as EPNode;
 			if (node is null)
 				throw new NullReferenceException($"Could not possible to create '{tag}' node.");
 			return node;

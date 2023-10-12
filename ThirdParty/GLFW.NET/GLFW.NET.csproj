@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<RootNamespace>GLFW</RootNamespace>
+		<Authors>Eric Freed</Authors>
+		<AssemblyVersion>1.0.1.0</AssemblyVersion>
+		<Description>Complete, cross-platform, managed wrapper around the GLFW library for creating native windows with an OpenGL context.</Description>
+		<RepositoryUrl>https://github.com/ForeverZer0/glfw-net</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ForeverZer0/glfw-net</PackageProjectUrl>
+		<PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+		<PackageReleaseNotes>
+			- Implemented new GLFW 3.3 features
+			- Large refactorings
+			- Code improvements
+		</PackageReleaseNotes>
+		<RepositoryType>GitHub</RepositoryType>
+		<PackageTags>GLFW OpenGL OpenGLES ES C# F# VB Csharp CS Windows Mono Linux Mac OSX Context NET Standard Core Framework Game Native Form Cross Platform Unix netcore netstandard dotnet winform</PackageTags>
+		<Copyright>Copyright © Eric Freed 2018</Copyright>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<Version>1.0.1</Version>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PackageVersion>3.3.1</PackageVersion>
+		<Title>glfw-net</Title>
+		<PackageIconUrl>https://github.com/ForeverZer0/glfw-net/raw/master/favicons.png</PackageIconUrl>
+		<PackageId>glfw-net</PackageId>
+
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<Configurations>Debug;Release;Debug-Linux</Configurations>
+		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<DocumentationFile>bin\Release\netstandard2.0\GLFW.NET.xml</DocumentationFile>
+		<DefineConstants>TRACE;RELEASE;NETSTANDARD;NETSTANDARD2_0;GLFW_VERSION_3_3;WINDOWS</DefineConstants>
+		<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<DocumentationFile>bin\Debug\netstandard2.0\GLFW.NET.xml</DocumentationFile>
+		<DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;GLFW_VERSION_3_3;WINDOWS</DefineConstants>
+		<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
+		<DocumentationFile>bin\Debug\netstandard2.0\GLFW.NET.xml</DocumentationFile>
+		<DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;GLFW_VERSION_3_3;LINUX</DefineConstants>
+		<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="bin\**" />
+	  <EmbeddedResource Remove="bin\**" />
+	  <None Remove="bin\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<None Update="runtimes\win-x64\native\glfw3.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<None Update="runtimes\win-x64\glfw3.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+</Project>

@@ -10,7 +10,7 @@ namespace REngine.Core.Threading.Nodes
 	[Node("step")]
 	internal class StepNode : EPNode
 	{
-		public StepNode(ExecutionPipelineImpl execPipeline) : base(execPipeline)
+		public StepNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
 		}
 

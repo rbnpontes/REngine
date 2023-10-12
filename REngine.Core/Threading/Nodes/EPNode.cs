@@ -12,6 +12,7 @@ namespace REngine.Core.Threading.Nodes
 		private readonly object pSync = new();
 		protected readonly LinkedList<Action<IExecutionPipeline>> pEvents = new();
 		protected readonly ExecutionPipelineImpl ExecutionPipeline;
+		protected readonly IServiceProvider ServiceProvider;
 
 		public int Id { get; set; } = 0;
 #if DEBUG
@@ -23,9 +24,10 @@ namespace REngine.Core.Threading.Nodes
 
 		public List<EPNode> LinkedNodes { get; set; } = new();
 
-		public EPNode(ExecutionPipelineImpl execPipeline) 
+		public EPNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) 
 		{
 			ExecutionPipeline = execPipeline;
+			ServiceProvider = provider;
 		}
 
 		public virtual void AddEvent(Action<IExecutionPipeline> listener)

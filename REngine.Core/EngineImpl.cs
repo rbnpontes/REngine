@@ -49,7 +49,7 @@ namespace REngine.Core
 
 			lock (pSync)
 			{
-				double curr = pStopwatch.Elapsed.TotalMilliseconds;
+				double curr = pStopwatch.Elapsed.TotalMilliseconds * 0.001;
 				pDeltaTime = curr - pLastElapsed;
 				pLastElapsed = curr;
 
