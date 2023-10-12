@@ -69,6 +69,7 @@ namespace REngine.Windows
 			{ Keys.Right, InputKey.Right },
 			{ Keys.Left, InputKey.Left },
 			{ Keys.Up, InputKey.Up },
+			{ Keys.Down, InputKey.Down },
 			{ Keys.PageUp, InputKey.PageUp },
 			{ Keys.PageDown, InputKey.PageDown },
 			{ Keys.Home, InputKey.Home },
