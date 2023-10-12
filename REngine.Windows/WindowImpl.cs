@@ -14,8 +14,12 @@ namespace REngine.Windows
 	internal class WindowImpl : IWindow
 	{
 		const byte MaxWaitResizeFrames = 15;
+
 		private readonly GLFW.Window pWindow;
 		protected readonly WindowEventArgs pDefaultEventArgs;
+		private readonly SizeCallback pResizeCallback;
+		private readonly MouseButtonCallback pMouseButtonCallback;
+		private readonly MouseCallback pMouseCallback;
 
 		private bool pDisposed = false;
 		private string pTitle;
@@ -120,7 +124,13 @@ namespace REngine.Windows
 			pTitle = title;
 			pDefaultEventArgs = new(window, IntPtr.Zero);
 
-			Glfw.SetWindowSizeCallback(window, HandleWindowSize);
+			pResizeCallback = HandleWindowSize;
+			pMouseButtonCallback = HandleMouseButton;
+			pMouseCallback = HandleMouseMove;
+
+			Glfw.SetWindowSizeCallback(window, pResizeCallback);
+			Glfw.SetMouseButtonCallback(window, pMouseButtonCallback);
+			Glfw.SetCursorPositionCallback(window, pMouseCallback);
 		}
 
 		public void Dispose()
@@ -140,7 +150,6 @@ namespace REngine.Windows
 			Glfw.SetWindowShouldClose(pWindow, true);
 			return this;
 		}
-
 
 		public IWindow Focus()
 		{
@@ -251,11 +260,28 @@ namespace REngine.Windows
 			return this;
 		}
 	
-		public void HandleWindowSize(GLFW.Window window, int width, int height)
+		private void HandleWindowSize(GLFW.Window window, int width, int height)
 		{
 			pNewSize = new Size(width, height);
 			pResizeDirtyCount = 0;
 			pDirtyResize = true;
+		}
+
+		private void HandleMouseButton(GLFW.Window window, MouseButton button, InputState state, ModifierKeys modifiers)
+		{
+			MouseKey key = InputConverter.GetMouseKey(button);
+			var evt = new WindowMouseEventArgs(key, pWindow, IntPtr.Zero);
+
+			(state == InputState.Press ? OnMouseDown : OnMouseUp)?.Invoke(this, evt);
+		}
+
+		private void HandleMouseMove(GLFW.Window window, double x, double y)
+		{
+			OnMouseMove?.Invoke(this, new WindowMouseEventArgs(MouseKey.None, pWindow, IntPtr.Zero)
+			{
+				Position = new Vector2((float)x, (float)y)
+			});
+
 		}
 	}
 }
