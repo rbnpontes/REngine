@@ -25,7 +25,6 @@ namespace REngine.Sandbox
 		protected override IWindow OnSetupWindow(IWindowManager windowManager)
 		{
 			pSampleWindow = new SampleWindow();
-			pSampleWindow.Init();
 			return windowManager.Create(new WindowCreationInfo
 			{
 				Title = "[REngine] Samples",

@@ -1,5 +1,7 @@
-﻿using REngine.Core;
+﻿using ImGuiNET;
+using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.RPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +31,8 @@ namespace REngine.Sandbox
 		private ISample? pLastSample;
 		private IServiceProvider? pServiceProvider;
 
+		private int pSelectedItemIdx = -1;
+
 		public SampleWindow() : base() 
 		{
 		}
@@ -40,6 +44,7 @@ namespace REngine.Sandbox
 
 		private void CollectSamples()
 		{
+			HashSet<string> addedSamples = new();
 			Assembly
 				.GetExecutingAssembly()
 				.GetTypes()
@@ -48,8 +53,11 @@ namespace REngine.Sandbox
 				.ForEach(type =>
 				{
 					SampleAttribute? attr = type.GetCustomAttribute<SampleAttribute>();
+					if (addedSamples.Contains(attr?.SampleName ?? string.Empty))
+						return;
 					var sample = new SampleItem(type, attr?.SampleName ?? type.Name);
 					pSamples.Add(sample);
+					addedSamples.Add(sample.Name);
 				});
 		}
 
@@ -82,11 +90,37 @@ namespace REngine.Sandbox
 			SampleItem? item = pSamples.FirstOrDefault();
 			if (item != null)
 				LoadSample(item);
+
+			provider.Get<IImGuiSystem>().OnGui += OnGui;
 		}
 
 		public void EngineUpdate(IServiceProvider provider) 
 		{
 			pLastSample?.Update(provider);
+		}
+
+		private void OnGui(object? sender, EventArgs e)
+		{
+			if (ImGui.Begin("Samples"))
+			{
+				RenderSampleList();
+
+				if(pSelectedItemIdx != -1)
+				{
+					if (ImGui.Button("Load Sample"))
+						LoadSample(pSamples[pSelectedItemIdx]);
+				}
+				ImGui.End();
+			}
+		}
+
+		private void RenderSampleList()
+		{
+			for(int i =0; i< pSamples.Count; ++i)
+			{
+				if (ImGui.Selectable(pSamples[i].Name, pSelectedItemIdx == i))
+					pSelectedItemIdx = i;
+			}
 		}
 	}
 }
