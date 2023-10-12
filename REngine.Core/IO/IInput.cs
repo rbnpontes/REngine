@@ -35,7 +35,7 @@ namespace REngine.Core.IO
 		public bool GetMousePress(MouseKey key);
 
 		public Vector2 MousePosition { get; }
-		public Vector2 MouseDelta { get; }
+		public Vector2 MouseWheel { get; }
 		public Vector2 MouseMovement { get; }
 
 		public event EventHandler<InputEventArgs>? OnKeyDown;

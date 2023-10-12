@@ -350,6 +350,8 @@ namespace REngine.RPI
 			io.DisplaySize.X = swapChain.Size.Width;
 			io.DisplaySize.Y = swapChain.Size.Height;
 			io.MousePos = pInput.MousePosition;
+			io.MouseWheel = pInput.MouseWheel.Y;
+			io.MouseWheelH = pInput.MouseWheel.X;
 			for (byte i = 1; i < MaxMouseKeys; ++i)
 				io.MouseDown[i - 1] = pInput.GetMouseDown((MouseKey)i);
 

@@ -20,6 +20,7 @@ namespace REngine.Windows
 		private readonly SizeCallback pResizeCallback;
 		private readonly MouseButtonCallback pMouseButtonCallback;
 		private readonly MouseCallback pMouseCallback;
+		private readonly MouseCallback pMouseWheelCallback;
 
 		private bool pDisposed = false;
 		private string pTitle;
@@ -117,6 +118,7 @@ namespace REngine.Windows
 		public event WindowMouseEvent? OnMouseDown;
 		public event WindowMouseEvent? OnMouseUp;
 		public event WindowMouseEvent? OnMouseMove;
+		public event WindowMouseWheelEvent? OnMouseWheel;
 
 		public WindowImpl(GLFW.Window window, string title)
 		{
@@ -127,10 +129,12 @@ namespace REngine.Windows
 			pResizeCallback = HandleWindowSize;
 			pMouseButtonCallback = HandleMouseButton;
 			pMouseCallback = HandleMouseMove;
+			pMouseWheelCallback = HandleMouseWheel;
 
 			Glfw.SetWindowSizeCallback(window, pResizeCallback);
 			Glfw.SetMouseButtonCallback(window, pMouseButtonCallback);
 			Glfw.SetCursorPositionCallback(window, pMouseCallback);
+			Glfw.SetScrollCallback(window, pMouseWheelCallback);
 		}
 
 		public void Dispose()
@@ -281,7 +285,13 @@ namespace REngine.Windows
 			{
 				Position = new Vector2((float)x, (float)y)
 			});
+		}
 
+		private void HandleMouseWheel(GLFW.Window window, double x, double y)
+		{
+			OnMouseWheel?.Invoke(this,
+				new WindowMouseWheelEventArgs(new Vector2((float)x, (float)y), pWindow, IntPtr.Zero)
+			);
 		}
 	}
 }

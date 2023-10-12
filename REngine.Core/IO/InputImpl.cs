@@ -25,7 +25,7 @@ namespace REngine.Core.IO
 
 		public Vector2 MousePosition { get; private set; }
 
-		public Vector2 MouseDelta { get; private set; }
+		public Vector2 MouseWheel { get; private set; }
 
 		public Vector2 MouseMovement { get => pLastMousePos - MousePosition; }
 
@@ -122,6 +122,7 @@ namespace REngine.Core.IO
 			window.OnMouseDown += HandleMouseDown;
 			window.OnMouseUp += HandleMouseUp;
 			window.OnMouseMove += HandleMouseMove;
+			window.OnMouseWheel += HandleMouseWheel;
 
 			pDisposeWndEvents.AddLast(() =>
 			{
@@ -132,8 +133,14 @@ namespace REngine.Core.IO
 				window.OnMouseDown -= HandleMouseDown;
 				window.OnMouseUp -= HandleMouseUp;
 				window.OnMouseMove -= HandleMouseMove;
+				window.OnMouseWheel -= HandleMouseWheel;
 			});
 			return this;
+		}
+
+		private void HandleMouseWheel(object sender, WindowMouseWheelEventArgs e)
+		{
+			MouseWheel = e.Wheel;
 		}
 
 		private void HandleInput(object sender, WindowInputTextEventArgs e)
