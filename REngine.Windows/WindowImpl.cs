@@ -13,6 +13,7 @@ namespace REngine.Windows
 {
 	internal class WindowImpl : IWindow
 	{
+		const byte MaxWaitResizeFrames = 15;
 		private readonly GLFW.Window pWindow;
 		protected readonly WindowEventArgs pDefaultEventArgs;
 
@@ -95,6 +96,10 @@ namespace REngine.Windows
 			get => Glfw.WindowShouldClose(pWindow);
 		}
 
+		private byte pResizeDirtyCount = 0;
+		private bool pDirtyResize = false;
+		private Size pNewSize = new();
+
 		private bool pFullscreen = false;
 		private Rectangle pWindowedBounds = Rectangle.Empty;
 
@@ -114,6 +119,8 @@ namespace REngine.Windows
 			pWindow = window;
 			pTitle = title;
 			pDefaultEventArgs = new(window, IntPtr.Zero);
+
+			Glfw.SetWindowSizeCallback(window, HandleWindowSize);
 		}
 
 		public void Dispose()
@@ -232,7 +239,23 @@ namespace REngine.Windows
 
 		public IWindow Update()
 		{
+			if (pDirtyResize)
+			{
+				if (pResizeDirtyCount > MaxWaitResizeFrames)
+				{
+					OnResize?.Invoke(this, new WindowResizeEventArgs(new Size(pNewSize.Width, pNewSize.Height), pWindow, IntPtr.Zero));
+					pDirtyResize = false;
+				}
+				++pResizeDirtyCount;
+			}
 			return this;
+		}
+	
+		public void HandleWindowSize(GLFW.Window window, int width, int height)
+		{
+			pNewSize = new Size(width, height);
+			pResizeDirtyCount = 0;
+			pDirtyResize = true;
 		}
 	}
 }

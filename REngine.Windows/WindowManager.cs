@@ -80,6 +80,8 @@ namespace REngine.Windows
 			{
 				if (wnd.IsClosed)
 					++closedWindows;
+				else
+					wnd.Update();
 			}
 
 			if(closedWindows == pWindows.Count)
