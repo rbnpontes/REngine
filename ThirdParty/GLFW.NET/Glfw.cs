@@ -24,12 +24,12 @@ namespace GLFW
 #if WINDOWS
         public const string LIBRARY = "runtimes/win-x64/native/glfw3.dll";
 #elif LINUX
-		public const string LIBRARY = "runtimes/linux-x64/native/glfw";
+		public const string LIBRARY = "runtimes/linux-x64/native/libglfw.so";
 #else
-        public const string LIBRARY = "runtimes/win-x64/native/libglfw.3"; // mac
+        public const string LIBRARY = "libglfw.3"; // mac
 #endif
 
-        private static readonly ErrorCallback errorCallback = GlfwError;
+		private static readonly ErrorCallback errorCallback = GlfwError;
 
         #endregion
 

@@ -61,7 +61,12 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<None Update="runtimes\win-x64\glfw3.dll">
+		<None Update="runtimes\win-x64\native\glfw3.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
+		<None Update="runtimes\linux-x64\native\libglfw.so">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

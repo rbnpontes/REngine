@@ -261,7 +261,7 @@ namespace REngine.RPI.Features
 			if (pVBuffer is null || pIBuffer is null)
 				return;
 			command
-				.SetVertexBuffer(pVBuffer, false)
+				.SetVertexBuffer(pVBuffer)
 				.SetIndexBuffer(pIBuffer)
 				.SetPipeline(pPipeline)
 				.SetBlendFactors(Color.Black)

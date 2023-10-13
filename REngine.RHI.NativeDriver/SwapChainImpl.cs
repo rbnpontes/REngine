@@ -23,15 +23,19 @@ namespace REngine.RHI.NativeDriver
 		[DllImport(Constants.Lib)]
 		static extern IntPtr rengine_swapchain_get_depthbuffer(IntPtr swapChain);
 
+		private readonly object pSync = new();
+
 		public SwapChainDesc Desc 
 		{ 
 			get
 			{
 				SwapChainDescNative desc = new();
 				SwapChainDesc result = new();
-				rengine_swapchain_get_desc(Handle, ref desc);
-
-				SwapChainDescNative.CopyTo(desc, ref result);
+				lock (pSync)
+				{
+					rengine_swapchain_get_desc(Handle, ref desc);
+					SwapChainDescNative.CopyTo(desc, ref result);
+				}
 				return result;
 			}
 		}
@@ -53,36 +57,41 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
-		private Dictionary<IntPtr, ITextureView> pBuffers = new();
-		private ITextureView? pColorBuffer;
+		private TextureViewWrapper pColorBuffer;
+		private TextureViewWrapper? pDepthBuffer;
 
 		public ITextureView ColorBuffer 
-		{ 
-			get
-			{
-				return AcquireColorBuffer();
-			}
+		{
+			get => pColorBuffer;
 		}
 
-		public ITextureView? DepthBuffer { get; private set; }
+		public ITextureView? DepthBuffer
+		{
+			get => pDepthBuffer;
+		}
 
-		public uint BufferCount => throw new NotImplementedException();
+		public uint BufferCount => Desc.BufferCount;
 
 		public event EventHandler<SwapChainResizeEventArgs>? OnResize;
 		public event EventHandler? OnPresent;
-		public event EventHandler? OnDispose;
 
 		public SwapChainImpl(IntPtr handle) : base(handle)
 		{
-			DepthBuffer = AcquireDepthBuffer();
+			IntPtr ptr = rengine_swapchain_get_depthbuffer(Handle);
+			if(ptr != IntPtr.Zero)
+				pDepthBuffer = new TextureViewWrapper(ptr);
+			pColorBuffer = new TextureViewWrapper(rengine_swapchain_get_backbuffer(Handle));
 		}
 
 		public ISwapChain Present(bool vsync)
 		{
-			rengine_swapchain_present(Handle, vsync ? 1u : 0u);
-			OnPresent?.Invoke(this, EventArgs.Empty);
+			lock (pSync)
+			{
+				rengine_swapchain_present(Handle, vsync ? 1u : 0u);
+				OnPresent?.Invoke(this, EventArgs.Empty);
 
-			pColorBuffer = null;
+				CollectBuffers();
+			}
 			return this;
 		}
 
@@ -96,62 +105,27 @@ namespace REngine.RHI.NativeDriver
 			var currSize = Size;
 			if (currSize.Width == width && currSize.Height == height)
 				return this;
-			
-			rengine_swapchain_resize(Handle, width, height, (uint)transform);
+
+			lock(pSync)
+			{
+				rengine_swapchain_resize(Handle, width, height, (uint)transform);
+				CollectBuffers();
+			}
+
 			OnResize?.Invoke(this, 
 				new SwapChainResizeEventArgs(
 					new SwapChainSize(width, height),
 					transform
 				)
 			);
-			
-			DepthBuffer = AcquireDepthBuffer();
-			// before clear, we must clear registry entries
-			foreach (var buffer in pBuffers)
-				ObjectRegistry.Unlock(buffer.Value.Handle);
-			pBuffers.Clear();
-			pColorBuffer = null;
 			return this;
 		}
 
-		private ITextureView AcquireColorBuffer()
+		private void CollectBuffers()
 		{
-			ITextureView? colorBuffer = pColorBuffer;
-			if(colorBuffer is null)
-			{
-				IntPtr colorBufferPtr = rengine_swapchain_get_backbuffer(Handle);
-				if (colorBufferPtr == IntPtr.Zero)
-					throw new NullReferenceException("Backbuffer is null");
-
-				if(!pBuffers.TryGetValue(colorBufferPtr, out colorBuffer))
-				{
-					colorBuffer = new TextureViewImpl(colorBufferPtr);
-					pBuffers.Add(colorBufferPtr, colorBuffer);
-				}
-			}
-
-			return colorBuffer;
-		}
-		
-		private ITextureView? AcquireDepthBuffer()
-		{
-			ITextureView? result = null;
-			var depthBufferObj = ObjectRegistry.Acquire(rengine_swapchain_get_depthbuffer(Handle));
-			if (depthBufferObj is ITextureView depthBuffer)
-				result = depthBuffer;
-			else
-			{
-				IntPtr depthPtr = rengine_swapchain_get_depthbuffer(Handle);
-				if (depthPtr != IntPtr.Zero)
-					result = new TextureViewImpl(depthPtr);
-			}
-
-			return result;
-		}
-
-		protected override void BeforeRelease()
-		{
-			OnDispose?.Invoke(this, EventArgs.Empty);
+			pColorBuffer.Handle = rengine_swapchain_get_backbuffer(Handle);
+			if(pDepthBuffer != null)
+				pDepthBuffer.Handle = rengine_swapchain_get_depthbuffer(Handle);
 		}
 	}
 }

@@ -8,25 +8,18 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.NativeDriver
 {
-	internal partial class TextureViewImpl : NativeObject, ITextureView
+	internal class TextureViewWrapper : ITextureView
 	{
-		private ITexture? pParent;
-		
 		public ITexture Parent
 		{
 			get
 			{
-				if (pParent != null)
-					return pParent;
-
 				ResultNative result = new();
-				rengine_textureview_getparent(Handle, ref result);
+				TextureViewImpl.rengine_textureview_getparent(Handle, ref result);
 
 				if (result.error != IntPtr.Zero)
 					throw new NullReferenceException(Marshal.PtrToStringAnsi(result.error) ?? "Could not get ITextureView parent.");
-				pParent = ObjectRegistry.Acquire(result.value) as ITexture;
-				pParent ??= new TextureImpl(Handle);
-				return pParent;
+				return new TextureWrapper(result.value);
 			}
 		}
 
@@ -35,7 +28,7 @@ namespace REngine.RHI.NativeDriver
 			get
 			{
 				TextureViewDescDTO desc = new();
-				rengine_textureview_getdesc(Handle, ref desc);
+				TextureViewImpl.rengine_textureview_getdesc(Handle, ref desc);
 				TextureViewDescDTO.Fill(desc, out TextureViewDesc output);
 				return output;
 			}
@@ -43,16 +36,26 @@ namespace REngine.RHI.NativeDriver
 
 		public TextureViewType ViewType => Desc.ViewType;
 
-		public string Name => Marshal.PtrToStringAnsi(rengine_object_getname(Handle)) ?? string.Empty;
-		
-		public TextureViewImpl(IntPtr handle) : base(handle)
+		public string Name => Marshal.PtrToStringAnsi(NativeObject.rengine_object_getname(Handle)) ?? string.Empty;
+
+		public IntPtr Handle { get; set; }
+
+		public bool IsDisposed { get; private set; }
+
+		public event EventHandler? OnDispose;
+
+		public TextureViewWrapper(IntPtr handle)
 		{
+			Handle = handle;
 		}
 
-
-		protected override void BeforeRelease()
+		public void Dispose()
 		{
-			pParent = null;
+			if (IsDisposed)
+				return;
+			OnDispose?.Invoke(this, EventArgs.Empty);
+			IsDisposed = true;
+			GC.SuppressFinalize(this);
 		}
 	}
 }

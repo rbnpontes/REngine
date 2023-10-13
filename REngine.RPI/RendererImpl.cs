@@ -170,8 +170,9 @@ namespace REngine.RPI
 			// if swap chain has been setted, then we must clear
 			if(pSwapChain != null)
 			{
+				var colorBuffer = pSwapChain.ColorBuffer;
 				pDriver.ImmediateCommand
-					.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
+					.SetRTs(new ITextureView[] { colorBuffer }, pSwapChain.DepthBuffer)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
 			}

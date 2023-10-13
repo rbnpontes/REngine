@@ -11,8 +11,8 @@ namespace REngine.RHI.NativeDriver
 	internal partial class TextureViewImpl
 	{
 		[DllImport(Constants.Lib)]
-		static extern void rengine_textureview_getparent(IntPtr texView, ref ResultNative result);
+		internal static extern void rengine_textureview_getparent(IntPtr texView, ref ResultNative result);
 		[DllImport(Constants.Lib)]
-		static extern void rengine_textureview_getdesc(IntPtr texView, ref TextureViewDescDTO output);
+		internal static extern void rengine_textureview_getdesc(IntPtr texView, ref TextureViewDescDTO output);
 	}
 }
