@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	internal class SpriteBatchFeature : IRenderFeature
+	internal class SpriteBatchFeature : BaseRenderFeature
 	{
 		[Flags]
 		public enum DirtyFlags
@@ -102,14 +102,13 @@ namespace REngine.RPI.Features
 
 		private DirtyFlags pDirtyFlags = DirtyFlags.All;
 
-		public bool IsDirty { get => pDirtyFlags != DirtyFlags.None; }
-		public bool IsDisposed { get; private set; } = false;
+		public override bool IsDirty { get => pDirtyFlags != DirtyFlags.None; protected set { } }
 
 		public SpriteBatchFeature(
-			SpriteBatcher batcher, 
-			SpriteTextureManager texManager, 
+			SpriteBatcher batcher,
+			SpriteTextureManager texManager,
 			GraphicsSettings settings
-		)
+		): base()
 		{
 			pBatcher = batcher;
 			pTextureManager = texManager;
@@ -126,13 +125,8 @@ namespace REngine.RPI.Features
 			MarkAsDirty(DirtyFlags.BindingInvalid);
 		}
 
-		public void Dispose()
+		protected override void OnDispose()
 		{
-			if (IsDisposed)
-				return;
-
-			IsDisposed = true;
-
 			IShaderResourceBinding?[][] bindingArray = new IShaderResourceBinding?[][] { pBindings, pInstancedBindings };
 			foreach(var binding in bindingArray)
 			{
@@ -153,6 +147,8 @@ namespace REngine.RPI.Features
 
 			pVBuffer = null;
 			pDefaultPipeline = pTexturedPipeline = pInstancedPipeline = pTexturedInstancedPipeline = null;
+
+			base.OnDispose();
 		}
 
 		public void CheckCBufferSizes(ulong cbufferSize)
@@ -161,7 +157,7 @@ namespace REngine.RPI.Features
 				MarkAsDirty(DirtyFlags.CBuffer);
 		}
 
-		public IRenderFeature Setup(RenderFeatureSetupInfo setupInfo)
+		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
 		{
 			pRenderer = setupInfo.Renderer;
 			pDriver = setupInfo.Driver;
@@ -276,24 +272,18 @@ namespace REngine.RPI.Features
 			}
 
 			pDirtyFlags = DirtyFlags.None;
-			return this;
 		}
 
-		public IRenderFeature Compile(ICommandBuffer command)
-		{
-			return this;
-		}
-
-		public IRenderFeature Execute(ICommandBuffer command)
+		protected override void OnExecute(ICommandBuffer command)
 		{
 			BufferData cbufferData = new BufferData();
 			InstancedBufferData instancedBufferData = new();
 
 			if (pRenderer?.SwapChain is null || pDriver is null)
-				return this;
+				return;
 
 			if (pDefaultPipeline is null || pTexturedPipeline is null || pVBuffer is null)
-				return this;
+				return;
 
 			CalculateProjection(pRenderer.SwapChain.Size, out Matrix4x4 projection);
 
@@ -302,9 +292,10 @@ namespace REngine.RPI.Features
 
 			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
 			
-			ExecuteIndexed(command, pVBuffer, pDefaultPipeline, pTexturedPipeline, ref cbufferData);
-			ExecuteInstanced(command, pVBuffer, pInstancedPipeline, pTexturedInstancedPipeline, ref instancedBufferData);
-			return this;
+			lock(pBatcher.SyncPrimitive)
+				ExecuteIndexed(command, pVBuffer, pDefaultPipeline, pTexturedPipeline, ref cbufferData);
+			lock(pBatcher.SyncPrimitive)
+				ExecuteInstanced(command, pVBuffer, pInstancedPipeline, pTexturedInstancedPipeline, ref instancedBufferData);
 		}
 
 		private void ExecuteIndexed(
@@ -377,6 +368,8 @@ namespace REngine.RPI.Features
 			SpriteInstancing? entry;
 			foreach(var entryPair in entries)
 			{
+				if(entryPair.Value is null)
+					continue;
 				textureSlot = entryPair.Value.TextureSlot;
 				// Only Renders Object that still exists
 				if (!entryPair.Value.Instancing.TryGetTarget(out entry))
@@ -412,7 +405,7 @@ namespace REngine.RPI.Features
 			}
 		}
 
-		public IRenderFeature MarkAsDirty()
+		public override IRenderFeature MarkAsDirty()
 		{
 			pDirtyFlags = DirtyFlags.All;
 			return this;

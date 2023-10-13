@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Threading;
 using REngine.RPI;
 using System;
 using System.Collections.Generic;
@@ -108,7 +109,13 @@ namespace REngine.Sandbox
 				if(pSelectedItemIdx != -1)
 				{
 					if (ImGui.Button("Load Sample"))
+					{
 						LoadSample(pSamples[pSelectedItemIdx]);
+						//// ImGui can run at a separate thread, in this case we must load sample at main thread
+						//pServiceProvider.Get<IExecutionPipeline>().Invoke(() =>
+						//{
+						//});
+					}
 				}
 				ImGui.End();
 			}

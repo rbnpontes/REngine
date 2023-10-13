@@ -16,7 +16,7 @@ namespace REngine.RPI.Features
 		public Matrix4x4 Transform { get; set; }
 	}
 
-	internal class CubeRenderFeature : ICubeRenderFeature
+	internal class CubeRenderFeature : BaseRenderFeature, ICubeRenderFeature
 	{
 		protected GraphicsSettings pSettings;
 		protected GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube PSO " };
@@ -74,43 +74,38 @@ namespace REngine.RPI.Features
 			new Vector4(0.2f, 0.2f, 0.2f, 0.2f)
 		};
 
-		public bool IsDirty { get; private set; } = true;
-		public bool IsDisposed { get; private set; } = false;
+		public override bool IsDirty { get; protected set; } = true;
 
 		public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
 
-		public CubeRenderFeature(GraphicsSettings settings)
+		public CubeRenderFeature(GraphicsSettings settings) : base()
 		{
 			pSettings = settings;
 		}
 
-		public void Dispose()
+		protected override void OnDispose()
 		{
-			if (IsDisposed)
-				return;
-			IsDisposed = true;
-
 			pVertexBuffer?.Dispose();
 			pIndexBuffer?.Dispose();
 			pPipeline?.Dispose();
 
 			pVertexBuffer = pIndexBuffer = null;
 			pPipeline = null;
+
+			base.OnDispose();
 		}
 
-		public IRenderFeature MarkAsDirty()
+		public override IRenderFeature MarkAsDirty()
 		{
 			IsDirty = true;
 			return this;
 		}
 
-		public IRenderFeature Setup(RenderFeatureSetupInfo setupInfo)
+		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
 		{
-			if (IsDisposed)
-				return this;
-
-			Dispose();
-			IsDisposed = false;
+			pVertexBuffer?.Dispose();
+			pIndexBuffer?.Dispose();
+			pPipeline?.Dispose();
 
 			pVertexBuffer = CreateVertexBuffer(setupInfo.Driver.Device);
 			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
@@ -119,18 +114,12 @@ namespace REngine.RPI.Features
 			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
 
 			IsDirty = false;
-			return this;
 		}
 
-		public IRenderFeature Compile(ICommandBuffer command)
-		{
-			return this;
-		}
-
-		public IRenderFeature Execute(ICommandBuffer command)
+		protected override void OnExecute(ICommandBuffer command)
 		{ 
 			if (pVertexBuffer is null || pIndexBuffer is null || pCBuffer is null || pPipeline is null || pSwapChain is null)
-				return this;
+				return;
 
 			var mappedData = command.Map<Matrix4x4>(pCBuffer, MapType.Write, MapFlags.Discard);
 			mappedData[0] = Transform;
@@ -146,7 +135,6 @@ namespace REngine.RPI.Features
 				{
 					NumIndices = (uint)pIndices.Length
 				});
-			return this;
 		}
 
 		protected virtual IShader LoadShader(IDevice device, ShaderType type)

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	internal class ImGuiFeature : IRenderFeature
+	internal class ImGuiFeature : BaseRenderFeature
 	{
 		[Flags]
 		public enum DirtyFlags
@@ -84,25 +84,20 @@ namespace REngine.RPI.Features
 		private uint pVertexBufferCount = 0;
 		private uint pIndexBufferCount = 0;
 
-		public bool IsDirty { get => pDirtyFlags != DirtyFlags.None; }
-
-		public bool IsDisposed { get; private set; }
+		public override bool IsDirty { get => pDirtyFlags != DirtyFlags.None; protected set { } }
 
 		public ImGuiFeature(
 			ImGuiSystem system, 
 			GraphicsSettings settings,
-			IRenderer renderer)
+			IRenderer renderer) : base()
 		{
 			pSystem = system;
 			pSettings = settings;
 			pRenderer = renderer;
 		}
 
-		public void Dispose()
+		protected override void OnDispose()
 		{
-			if(IsDisposed) 
-				return;
-
 			pResourceBinding?.Dispose();
 			pPipeline?.Dispose();
 			pFontTexture?.Dispose();
@@ -118,10 +113,10 @@ namespace REngine.RPI.Features
 
 			pVBuffer = pIBuffer = null;
 
-			GC.SuppressFinalize(this);
+			base.OnDispose();
 		}
 		
-		public IRenderFeature MarkAsDirty()
+		public override IRenderFeature MarkAsDirty()
 		{
 			return MarkAsDirty(DirtyFlags.All);
 		}
@@ -131,7 +126,7 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		public IRenderFeature Setup(RenderFeatureSetupInfo execInfo)
+		protected override void OnSetup(in RenderFeatureSetupInfo execInfo)
 		{
 			var buffer = execInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
 			if(buffer != pCBuffer)
@@ -167,19 +162,13 @@ namespace REngine.RPI.Features
 			}
 
 			pDevice = execInfo.Driver.Device;
-			return this;
 		}
 
-		public IRenderFeature Compile(ICommandBuffer command)
-		{
-			return this;
-		}
-
-		public IRenderFeature Execute(ICommandBuffer command)
+		protected override void OnExecute(ICommandBuffer command)
 		{
 			var swapChain = pRenderer.SwapChain;
 			if (swapChain is null || pDevice is null)
-				return this;
+				return;
 
 			pSystem.BeginRender();
 			var io = ImGuiNET.ImGui.GetIO();
@@ -194,7 +183,6 @@ namespace REngine.RPI.Features
 
 			RenderDrawData(command, pDevice, io, swapChain);
 			pSystem.EndRender();
-			return this;
 		}
 
 		private unsafe void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, ISwapChain swapChain)

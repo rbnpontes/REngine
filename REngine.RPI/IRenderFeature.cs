@@ -27,7 +27,7 @@ namespace REngine.RPI
 		public bool IsDisposed { get; }
 
 		public IRenderFeature MarkAsDirty();
-		public IRenderFeature Setup(RenderFeatureSetupInfo execInfo);
+		public IRenderFeature Setup(in RenderFeatureSetupInfo execInfo);
 		public IRenderFeature Compile(ICommandBuffer command);
 		public IRenderFeature Execute(ICommandBuffer command);
 	}
