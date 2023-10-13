@@ -6,6 +6,7 @@ using REngine.RPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace REngine.Sandbox
 		private SampleItem? pLastSampleItem;
 		private ISample? pLastSample;
 		private IServiceProvider? pServiceProvider;
+		private IWindow? pGameWindow;
 
 		private int pSelectedItemIdx = -1;
 
@@ -93,6 +95,8 @@ namespace REngine.Sandbox
 				LoadSample(item);
 
 			provider.Get<IImGuiSystem>().OnGui += OnGui;
+
+			pGameWindow = provider.Get<IWindow>();
 		}
 
 		public void EngineUpdate(IServiceProvider provider) 
@@ -117,7 +121,24 @@ namespace REngine.Sandbox
 						//});
 					}
 				}
+
+				RenderFullscreenButton();
 				ImGui.End();
+			}
+		}
+
+		private void RenderFullscreenButton()
+		{
+			if (pGameWindow is null)
+				return;
+			string label = pGameWindow.IsFullscreen ? "Exit Fullscreen" : "Fullscreen";
+
+			if (ImGui.Button(label))
+			{
+				if (pGameWindow.IsFullscreen)
+					pGameWindow.ExitFullscreen();
+				else
+					pGameWindow.Fullscreen();
 			}
 		}
 

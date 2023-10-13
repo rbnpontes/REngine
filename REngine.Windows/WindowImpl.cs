@@ -103,11 +103,16 @@ namespace REngine.Windows
 			get => Glfw.WindowShouldClose(pWindow);
 		}
 
+		private bool pFullscreen = false;
+		public bool IsFullscreen
+		{
+			get => pFullscreen;
+		}
+
 		private byte pResizeDirtyCount = 0;
 		private bool pDirtyResize = false;
 		private Size pNewSize = new();
 
-		private bool pFullscreen = false;
 		private Rectangle pWindowedBounds = Rectangle.Empty;
 
 		public event WindowEvent? OnUpdate;
