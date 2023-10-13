@@ -116,6 +116,7 @@ namespace REngine.Sandbox
 				if (ImGui.Button("Load Sample") && pSelectedItemIdx != -1)
 					LoadSample(pSamples[pSelectedItemIdx]);
 
+				RenderToggleVsyncButton();
 				RenderFullscreenButton();
 
 				ImGui.End();
@@ -135,6 +136,14 @@ namespace REngine.Sandbox
 				else
 					pGameWindow.Fullscreen();
 			}
+		}
+
+		private void RenderToggleVsyncButton()
+		{
+			if(pRenderState is null) return;
+
+			if (ImGui.Button(pRenderState.Vsync ? "Disable Vsync" : "Enable Vsync"))
+				pRenderState.Vsync = !pRenderState.Vsync;
 		}
 
 		private void RenderSampleList()
