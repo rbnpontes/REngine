@@ -137,6 +137,8 @@ namespace REngine.RPI
 
 		public Dictionary<int, SpriteInstancingEntry> InstanceEntries { get; private set; } = new ();
 
+		public object SyncPrimitive { get; private set; } = new();
+
 		public SpriteBatcher(RenderSettings settings)
 		{
 			pSettings = settings;
@@ -150,7 +152,10 @@ namespace REngine.RPI
 
 		public void UpdateSettings()
 		{
-			Items.GrowthSize = (uint)Math.Floor(pSettings.SpriteBatchInitialSize * (double)pSettings.SpriteBatchInitialSize);
+			lock (SyncPrimitive)
+			{
+				Items.GrowthSize = (uint)Math.Floor(pSettings.SpriteBatchInitialSize * (double)pSettings.SpriteBatchInitialSize);
+			}
 		}
 
 		private void ResizeInstanceData(int newLength)
@@ -165,37 +170,49 @@ namespace REngine.RPI
 
 		public SpriteInstancing Allocate(int length)
 		{
-			if (length < 1)
-				throw new Exception("Length cannot be less than 1");
+			SpriteInstancing result;
+			lock (SyncPrimitive)
+			{
+				if (length < 1)
+					throw new Exception("Length cannot be less than 1");
 
-			if (TotalInstanceItems + length > InstanceData.Length)
-				ResizeInstanceData(length);
-			var result = new SpriteInstancing(this, TotalInstanceItems, length);
-			TotalInstanceItems += length;
-			MaxAllocatedInstanceItems = Math.Max(MaxAllocatedInstanceItems, (ulong)length);
+				if (TotalInstanceItems + length > InstanceData.Length)
+					ResizeInstanceData(length);
+				result = new SpriteInstancing(this, TotalInstanceItems, length);
+				TotalInstanceItems += length;
+				MaxAllocatedInstanceItems = Math.Max(MaxAllocatedInstanceItems, (ulong)length);
+			}
 			return result;
 		}
 		
 		public void Add(in SpriteBatchInfo next)
 		{
-			Items.Add(next);
+			lock(SyncPrimitive)
+				Items.Add(next);
 		}
 		public void Add(byte textureSlot, SpriteInstancing instancing)
 		{
-			int key = instancing.GetHashCode();
-			if(InstanceEntries.TryGetValue(key, out var entry))
+			lock (SyncPrimitive)
 			{
-				if (entry.TextureSlot != textureSlot)
-					entry.TextureSlot = textureSlot;
-				return;
-			}
+				int key = instancing.GetHashCode();
 
-			InstanceEntries.Add(key, new SpriteInstancingEntry(textureSlot, instancing));
+				if(InstanceEntries.TryGetValue(key, out var entry))
+				{
+					if (entry.TextureSlot != textureSlot)
+						entry.TextureSlot = textureSlot;
+					return;
+				}
+
+				InstanceEntries.Add(key, new SpriteInstancingEntry(textureSlot, instancing));
+			}
 		}
 
 		public void Reset()
 		{
-			Items.Clear();
+			lock (SyncPrimitive)
+			{
+				Items.Clear();
+			}
 		}
 	}
 }

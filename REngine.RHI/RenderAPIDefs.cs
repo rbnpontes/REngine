@@ -20,12 +20,14 @@ namespace REngine.RHI
 		public uint ElementOffset;
 		public uint InstanceStepRate;
 		public ElementType ElementType;
+		public bool IsNormalized;
 
 		public InputLayoutElementDesc()
 		{
 			this = default(InputLayoutElementDesc);
 			BufferStride = uint.MaxValue;
 			ElementOffset = uint.MaxValue;
+			IsNormalized = false;
 		}
 	}
 
@@ -59,7 +61,7 @@ namespace REngine.RHI
 			ShadowCompare = false;
 			AddressModes = new TextureAddressModes();
 		}
-		public SamplerStateDesc(TextureFilterMode filterMode, TextureAddressMode addressMode)
+		public SamplerStateDesc(TextureFilterMode filterMode, TextureAddressMode addressMode = TextureAddressMode.Clamp)
 		{
 			FilterMode = filterMode;
 			Anisotropy = 0;

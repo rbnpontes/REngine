@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Threading.Nodes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,11 @@ namespace REngine.Core.Threading
 {
 	internal class EPResolver
 	{
+		// TODO: Refactor this resolver
+		// This class must be more resilient 
+		// And next feature on this class must include
+		// dynamic changes
+
 		class UnresolvedTaskNode
 		{
 			public TaskNode Node { get; set; }
@@ -21,10 +27,19 @@ namespace REngine.Core.Threading
 			}
 		}
 
-		private List<UnresolvedTaskNode> pTasksToResolve = new();
+		private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
+		private readonly ExecutionPipelineImpl pPipeline;
 
-		public List<EPNode> Nodes { get; private set; } = new ();
+		private List<(XmlElement, EPNode)> pCreatedNodes = new();
+
+		public List<EPNode> RootNodes { get; private set; } = new();
 		public Dictionary<int, EPNode> NodesTable { get; private set; } = new ();
+
+		public EPResolver(ExecutionPipelineNodeRegistry registry, ExecutionPipelineImpl pipeline)
+		{
+			pNodeRegistry = registry;
+			pPipeline = pipeline;
+		}
 
 		public void Load(Stream stream)
 		{
@@ -45,12 +60,11 @@ namespace REngine.Core.Threading
 				ParseNodesRecursive(null, element);
 			}
 
-			// Resolve references after parse
-			foreach(var unresolvedTask in pTasksToResolve)
+			// Resolve and Define Nodes
+			foreach(var pair in pCreatedNodes)
 			{
-				EPNode? targetNode;
-				NodesTable.TryGetValue(unresolvedTask.NodeTarget, out targetNode);
-				unresolvedTask.Node.Target = targetNode;
+				(XmlElement element, EPNode node) = pair;
+				node.Define(element, NodesTable);
 			}
 		}
 
@@ -60,9 +74,11 @@ namespace REngine.Core.Threading
 			node.Parent ??= parentNode;
 
 			if (parentNode is null)
-				Nodes.Add(node);
+				RootNodes.Add(node);
 			else
 				parentNode.Children.Add(node);
+
+			pCreatedNodes.Add((element, node));
 
 			for(int i = 0; i < element.ChildNodes.Count; ++i)
 			{
@@ -77,37 +93,27 @@ namespace REngine.Core.Threading
 		{
 			IsValidTag(element.Name);
 
-			int id = element.GetAttribute("id").GetHashCode();
-		
+			string idValue = element.GetAttribute("id");
+			int id = idValue.GetHashCode();
+
 			if (NodesTable.ContainsKey(id))
-				return NodesTable[id];
+				throw new Exception($"Node with '{id}' is already registered.");
 
-			if (string.Equals(element.Name, "step"))
-			{
-				StepNode stepNode = StepNode.Resolve(element);
-				NodesTable.Add(stepNode.Id, stepNode);
-				return stepNode;
-			}
-			else if (string.Equals(element.Name, "task"))
-			{
-				TaskNode taskNode = TaskNode.Resolve(element, out int targetNodeId);
-				NodesTable.Add(taskNode.Id, taskNode);
-
-				if (targetNodeId != 0)
-					pTasksToResolve.Add(new UnresolvedTaskNode(taskNode, targetNodeId));
-
-				return taskNode;
-			}
-
-			throw new NotImplementedException($"Not implemented this element type: {element.Name}");
+			EPNode node = pNodeRegistry.Create(element.Name, pPipeline);
+			node.Id = id;
+#if DEBUG
+			node.DebugName = idValue;
+			node.Xml = element.OuterXml;
+#endif
+			if(id != 0)
+				NodesTable[id] = node;
+			return node;
 		}
 
 		private static void IsValidTag(string? tagName)
 		{
 			if (string.IsNullOrEmpty(tagName))
 				throw new Exception("Invalid Element Name. Tag name must not be null or empty.");
-			if (!(string.Equals(tagName, "step") || string.Equals(tagName, "task")))
-				throw new Exception("Invalid Element Name. Tag name must be <step/> or <task/>");
 		}
 	}
 }

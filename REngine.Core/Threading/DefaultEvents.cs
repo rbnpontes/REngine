@@ -10,6 +10,7 @@ namespace REngine.Core.Threading
 	{
 		public const string FrameId = "frame";
 		public const string UpdateBeginId = "update_begin";
+		public const string UpdateEndId = "update_end";
 		public const string SpriteBatchTaskId = "spritebatch_task";
 		public const string SpriteBatchDrawId = "spritebatch_draw";
 		public const string SpriteBatchBuildTexId = "spritebatch_build_tex";
@@ -21,6 +22,8 @@ namespace REngine.Core.Threading
 		public const string RenderBeginId = "render_begin";
 		public const string RenderId = "render";
 		public const string RenderEndId = "render_end";
+		public const string RenderPrepareId = "render_prepare";
 		public const string WindowsInvalidateId = "windows_invalidate";
+		public const string ImGuiDrawId = "imgui_draw";
 	}
 }

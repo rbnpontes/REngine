@@ -31,16 +31,47 @@ namespace REngine.Core
 
 	public class WindowInputEventArgs : WindowEventArgs 
 	{
-		public Keys Keys { get; private set; }
-		public WindowInputEventArgs(Keys keys, object windowObj, IntPtr handle) : base(windowObj, handle)
+		public InputKey Key { get; private set; }
+		public WindowInputEventArgs(InputKey key, object windowObj, IntPtr handle) : base(windowObj, handle)
 		{
-			Keys = keys;
+			Key = key;
+		}
+	}
+
+	public class WindowInputTextEventArgs : WindowEventArgs 
+	{ 
+		public string Value { get; private set; }
+		public WindowInputTextEventArgs(string value, object windowObj, IntPtr handle) : base(windowObj, handle)
+		{
+			Value = value;
+		}
+	}
+
+	public class WindowMouseEventArgs : WindowEventArgs
+	{
+		public MouseKey MouseKey { get; private set; }
+		public Vector2 Position { get; set; }
+		public WindowMouseEventArgs(MouseKey mouseKey, object windowObj, IntPtr handle) : base(windowObj, handle)
+		{
+			MouseKey = mouseKey;
+		}
+	}
+
+	public class WindowMouseWheelEventArgs : WindowEventArgs
+	{
+		public Vector2 Wheel { get; set; }
+		public WindowMouseWheelEventArgs(Vector2 position, object wndObj, IntPtr handle) : base(wndObj, handle) 
+		{ 
+			Wheel = position;
 		}
 	}
 
 	public delegate void WindowEvent(object sender, WindowEventArgs e);
 	public delegate void WindowResizeEvent(object sender, WindowResizeEventArgs e);
 	public delegate void WindowInputEvent(object sender, WindowInputEventArgs e);
+	public delegate void WindowInputTextEvent(object sender, WindowInputTextEventArgs e);
+	public delegate void WindowMouseEvent(object sender, WindowMouseEventArgs e);
+	public delegate void WindowMouseWheelEvent(object sender, WindowMouseWheelEventArgs e);
 
 	public interface IWindow : IDisposable
 	{
@@ -49,7 +80,12 @@ namespace REngine.Core
 		public event WindowEvent? OnClose;
 		public event WindowInputEvent? OnKeyDown;
 		public event WindowInputEvent? OnKeyUp;
+		public event WindowInputTextEvent? OnInput;
 		public event WindowResizeEvent? OnResize;
+		public event WindowMouseEvent? OnMouseDown;
+		public event WindowMouseEvent? OnMouseUp;
+		public event WindowMouseEvent? OnMouseMove;
+		public event WindowMouseWheelEvent? OnMouseWheel;
 
 		public string Title { get; set; }
 		public IntPtr Handle { get; }
@@ -60,6 +96,7 @@ namespace REngine.Core
 		public Size MaxSize { get; set; }
 		public bool Focused { get; }
 		public bool IsClosed { get; }
+		public bool IsFullscreen { get; }
 
 		public IWindow Close();
 		public IWindow Show();
@@ -68,7 +105,12 @@ namespace REngine.Core
 		public IWindow Update();
 
 		public IWindow Fullscreen();
+		public IWindow ExitFullscreen();
 
 		public IWindow GetNativeWindow(out NativeWindow window);
+
+		public IWindow ForwardKeyDownEvent(InputKey key);
+		public IWindow ForwardKeyUpEvent(InputKey key);
+		public IWindow ForwardInputEvent(int utf32Char);
 	}
 }

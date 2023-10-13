@@ -23,7 +23,7 @@ namespace REngine.RHI.NativeDriver
 				rengine_textureview_getparent(Handle, ref result);
 
 				if (result.error != IntPtr.Zero)
-					throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not get ITextureView parent.");
+					throw new NullReferenceException(Marshal.PtrToStringAnsi(result.error) ?? "Could not get ITextureView parent.");
 				pParent = ObjectRegistry.Acquire(result.value) as ITexture;
 				pParent ??= new TextureImpl(Handle);
 				return pParent;

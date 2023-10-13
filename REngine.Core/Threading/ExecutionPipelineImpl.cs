@@ -1,4 +1,5 @@
 ﻿using REngine.Core.IO;
+using REngine.Core.Threading.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,13 @@ namespace REngine.Core.Threading
     internal class ExecutionPipelineImpl : IExecutionPipeline
     {
         private static readonly LinkedList<Action> EmptyScheduledCalls = new();
+        
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
 
+        private readonly Dictionary<int, ExecutionPipelineVarImpl> pVars = new Dictionary<int, ExecutionPipelineVarImpl>();
+        private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
+        
         public readonly CancellationTokenSource StopTokenSource = new ();
 
         private IList<EPNode> pNodes = new List<EPNode>();
@@ -22,11 +27,13 @@ namespace REngine.Core.Threading
 
         public ExecutionPipelineImpl(
             EngineEvents engineEvents,
-            ILoggerFactory factory)
+            ILoggerFactory factory,
+            ExecutionPipelineNodeRegistry nodeRegistry)
         {
-            engineEvents.OnBeforeStop += HandleStop;
-
+            pNodeRegistry = nodeRegistry;
             pLogger = factory.Build<IExecutionPipeline>();
+
+            engineEvents.OnBeforeStop += HandleStop;
         }
 
         private void HandleStop(object? sender, EventArgs e)
@@ -41,12 +48,16 @@ namespace REngine.Core.Threading
         public IExecutionPipeline Load(Stream stream)
         {
             pLogger.Info("Loading Execution Pipeline Settings");
-            EPResolver resolver = new();
+            EPResolver resolver = new(pNodeRegistry, this);
             resolver.Load(stream);
 
-            pNodes = resolver.Nodes;
+            pNodes = resolver.RootNodes;
             pNodesTable = resolver.NodesTable;
 
+#if DEBUG
+            // Clear registry to free memory
+            pNodeRegistry.ClearRegistry();
+#endif
             return this;
         }
         
@@ -81,7 +92,7 @@ namespace REngine.Core.Threading
             try
             {
                 foreach (EPNode node in pNodes)
-                    node.Execute(this);
+                    node.Execute();
             }
             catch (OperationCanceledException e)
             {
@@ -157,5 +168,28 @@ namespace REngine.Core.Threading
                 pExecuteScheduledCalls.AddLast(action);
             return this;
         }
+        
+        public IExecutionPipelineVar GetOrCreateVar(string name)
+        {
+            return HandleCreateVar(name.GetHashCode(), name);
+		}
+
+        public IExecutionPipelineVar GetOrCreateVar(int varHashCode)
+        {
+            return HandleCreateVar(varHashCode);
+        }
+
+        private ExecutionPipelineVarImpl HandleCreateVar(int varHashCode, string dbgKey = "Unknow")
+        {
+            if (pVars.TryGetValue(varHashCode, out var varNode))
+                return varNode;
+
+			varNode = new ExecutionPipelineVarImpl(varHashCode);
+#if DEBUG
+			varNode.DebugKey = dbgKey;
+#endif
+            pVars[varHashCode] = varNode;
+			return varNode;
+		}
     }
 }

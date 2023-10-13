@@ -1,79 +1,104 @@
-﻿using REngine.Core;
+﻿using GLFW;
+using REngine.Core;
+using REngine.Core.IO;
 using REngine.Core.Threading;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using Exception = System.Exception;
 
 namespace REngine.Windows
 {
-	public class WindowManager : IWindowManager, IDisposable
+	public sealed class WindowManager : IWindowManager
 	{
-		private readonly WindowsBuilder pBuilder = new();
-		private readonly List<IWindow> pWindows = new();
-		private readonly IEngine pEngine;
-		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pPipeline;
+		private readonly ILogger<IWindowManager> pLogger;
+		private readonly EngineEvents pEngineEvents;
+		private readonly IEngine pEngine;
 
+		private readonly List<WindowImpl> pWindows = new();
 		private bool pDisposed = false;
 
-		public IReadOnlyList<IWindow> Windows { get => pWindows.AsReadOnly(); }
+		public IReadOnlyList<IWindow> Windows => throw new NotImplementedException();
+		public Vector2 VideoScale { get; private set; }
 
 		public WindowManager(
-			EngineEvents events, 
-			IEngine engine,
-			IExecutionPipeline pipeline)
+			ILogger<IWindowManager> logger,
+			IExecutionPipeline pipeline,
+			EngineEvents engineEvents,
+			IEngine engine
+		) 
 		{
-			pEngine = engine;
-			pEngineEvents = events;
 			pPipeline = pipeline;
+			pLogger = logger;
+			pEngineEvents = engineEvents;
+			pEngine = engine;
 
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.SetHighDpiMode(HighDpiMode.SystemAware);
+			Glfw.Init();
+			Glfw.SetErrorCallback(HandleGlfwError);
 
-			events.OnStart += HandleStart;
-			events.OnStop += HandleStop;
+			pEngineEvents.OnBeforeStart += HandleBeforeStart;
+			pEngineEvents.OnStart += HandleEngineStart;
+			pEngineEvents.OnStop += HandleEngineStop;
 		}
 
 		public void Dispose()
 		{
 			if (pDisposed)
 				return;
-
-			CloseAllWindows();
-			foreach (var window in Windows)
-				window.Dispose();
+			pWindows.ForEach(x => x.Dispose());
 			pWindows.Clear();
 
-			pEngineEvents.OnStop -= HandleStop;
-
-			GC.SuppressFinalize(this);
-
+			Glfw.Terminate();
 			pDisposed = true;
+			GC.SuppressFinalize(this);
 		}
 
-		private void HandleStop(object? sender, EventArgs e)
+		private void HandleBeforeStart(object? sender, EventArgs e)
 		{
+			pEngineEvents.OnBeforeStart -= HandleBeforeStart;
+
+			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
+			var monitor = Glfw.Monitors.FirstOrDefault();
+			VideoScale = new Vector2(monitor.ContentScale.X, monitor.ContentScale.Y);
+		}
+
+		private void HandleEngineStart(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnStart -= HandleEngineStart;
+			pPipeline.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update());
+		}
+
+		private void HandleEngineStop(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnStop -= HandleEngineStop;
 			Dispose();
 		}
 
-		private void HandleStart(object? sender, EventArgs e)
+		private void Update()
 		{
-			pEngineEvents.OnStart -= HandleStart;
-			pPipeline
-				.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update())
-				.AddEvent(DefaultEvents.WindowsInvalidateId, (_) => HandleInvalidateEvent());
-		}
+			if (pDisposed)
+				return;
 
-		private void HandleInvalidateEvent()
-		{
-			foreach (var wnd in Windows)
-				wnd.Update();
-		}
+			Glfw.PollEvents();
 
-		private static void PumpMessages(IntPtr wnd)
-		{
-			while (User32Api.PeekMessage(out User32Api.MSG msg, wnd, 0, 0, 0x0001))
+			int closedWindows = 0;
+			foreach(var wnd in pWindows)
 			{
-				User32Api.TranslateMessage(ref msg);
-				User32Api.DispatchMessage(ref msg);
+				if (wnd.IsClosed)
+					++closedWindows;
+				else
+					wnd.Update();
+			}
+
+			if(closedWindows == pWindows.Count)
+			{
+				pEngine.Stop();
+				return;
 			}
 		}
 
@@ -82,55 +107,35 @@ namespace REngine.Windows
 			if (pDisposed)
 				return this;
 
-			foreach(var window in Windows)
-			{
-				window.Close();
-			}
-			return this;
-		}
-
-		public IWindowManager Update()
-		{
-			if (pDisposed)
-				return this;
-
-			PumpMessages(IntPtr.Zero);
-			int closedWindows = 0;
-			foreach(var window in pWindows)
-			{
-				if (window.IsClosed)
-					closedWindows++;
-			}
-
-
-			if (closedWindows == pWindows.Count)
-				pEngine.Stop();
+			foreach(var wnd in pWindows)
+				wnd.Close();
 			return this;
 		}
 
 		public IWindow Create(WindowCreationInfo createInfo)
 		{
-			IWindow window;
-			if(createInfo.WindowInstance != null)
-			{
-				Control? ctrl = createInfo.WindowInstance as Control;
-				if (ctrl is null)
-					throw new ArgumentException("Invalid control type at WindowCreationInfo. Control must inherit WinForms Control");
-				window = pBuilder.Build(ctrl);
-			}
-			else
-			{
-				window = pBuilder.Build();
-				
-				window.Title = createInfo.Title;
-				window.Size = createInfo.Size;
+			AssertDispose();
 
-				if (createInfo.Position != null)
-					window.Position = createInfo.Position.Value;
-			}
+			if (createInfo.WindowInstance != null)
+				pLogger.Warning("WindowInstance is not used by GLFW windowm manager");
+			var wnd = Glfw.CreateWindow(createInfo.Size.Width, createInfo.Size.Height, createInfo.Title, GLFW.Monitor.None, GLFW.Window.None);		
+			var output = new WindowImpl(wnd, createInfo.Title);
+			output.Show();
+			pWindows.Add(output);
 
-			pWindows.Add(window);
-			return window;
+			return output;
+		}
+
+		private void HandleGlfwError(ErrorCode code, IntPtr messagePtr)
+		{
+			string msg = Marshal.PtrToStringAnsi(messagePtr) ?? "Unknow Glfw Error";
+			throw new Exception($"{msg}. Error Code: {code}");
+		}
+
+		private void AssertDispose()
+		{
+			if (pDisposed)
+				throw new ObjectDisposedException("Window Manager has been disposed");
 		}
 	}
 }

@@ -121,7 +121,7 @@ namespace REngine.Core.Collections
 		private void ValidateIndex(int index)
 		{
 			if (index >= pNextItemIdx)
-				throw new IndexOutOfRangeException("Index if greater than Count");
+				throw new IndexOutOfRangeException($"Index if greater than Count. Index: {index}");
 			if (index < 0)
 				throw new IndexOutOfRangeException("Index is less than 0");
 		}

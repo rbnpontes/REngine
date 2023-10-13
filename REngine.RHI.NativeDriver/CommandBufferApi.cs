@@ -100,5 +100,29 @@ namespace REngine.RHI.NativeDriver
 			IntPtr data,
 			byte isDeferred
 		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_setblendfactors(
+			IntPtr context,
+			float r,
+			float g,
+			float b,
+			float a
+		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_setviewports(
+			IntPtr context,
+			IntPtr viewports,
+			byte numViewports,
+			uint rtWidth,
+			uint rtHeight
+		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_setscissors(
+			IntPtr context,
+			IntPtr scissors,
+			byte numScissors,
+			uint rtWidth,
+			uint rtHeight
+		);
 	}
 }

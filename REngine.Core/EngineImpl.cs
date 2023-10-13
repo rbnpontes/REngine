@@ -1,11 +1,6 @@
 ﻿using REngine.Core.Threading;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
 	internal class EngineImpl : IEngine
@@ -14,13 +9,16 @@ namespace REngine.Core
 		private readonly EngineEvents pEvents;
 		private readonly UpdateEventArgs pUpdateEvtArgs;
 		private readonly IExecutionPipeline pExecPipeline;
+		private readonly object pSync = new();
 
-		private double pLastElapsed;
-		private double pDeltaTime;
+		private readonly Timer pTimer = new Timer();
+
 		private bool pStopped = false;
 
-		public double DeltaTime { get => pDeltaTime; }
-		public double ElapsedTime { get => pStopwatch?.Elapsed.TotalMilliseconds ?? 0.0; }
+
+		public double DeltaTime { get => pTimer.DeltaTime; }
+		public double ElapsedTime { get => pTimer.Elapsed; }
+
 		public bool IsStopped { get => pStopped; }
 
 		public EngineImpl(
@@ -46,12 +44,10 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
-			double curr = pStopwatch.Elapsed.TotalMilliseconds;
-			pDeltaTime = curr - pLastElapsed;
-			pLastElapsed = curr;
+			pTimer.Measure();
 
-			pUpdateEvtArgs.DeltaTime = pDeltaTime;
-			pUpdateEvtArgs.Elapsed = curr;
+			pUpdateEvtArgs.DeltaTime = pTimer.DeltaTime;
+			pUpdateEvtArgs.Elapsed = pTimer.Elapsed;
 
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();

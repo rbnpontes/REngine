@@ -25,15 +25,22 @@ namespace REngine.Sandbox
 		protected override IWindow OnSetupWindow(IWindowManager windowManager)
 		{
 			pSampleWindow = new SampleWindow();
-
 			return windowManager.Create(new WindowCreationInfo
 			{
-				WindowInstance = pSampleWindow.GameContentWindow
+				Title = "[REngine] Samples",
+				Size = new System.Drawing.Size(800, 500)
 			});
 		}
 		public override void OnStart(IServiceProvider provider)
 		{
 			base.OnStart(provider);
+
+#if RENGINE_IMGUI
+			IRenderer renderer = provider.Get<IRenderer>();
+			IImGuiSystem imGuiSystem = provider.Get<IImGuiSystem>();
+
+			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
+#endif
 			pSampleWindow?.EngineStart(provider);
 		}
 

@@ -1,4 +1,5 @@
 ﻿using REngine.Core;
+using REngine.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,9 @@ namespace REngine.RPI
 		/// </summary>
 		public uint SpriteBatchTexturesBuildTimeMs { get; set; } = 2;
 #endif
+#if RENGINE_IMGUI
+		public float ImGuiUpdateRate { get; set; } = 33.0f; // Update ImGui at 30FPS
+#endif
 		public void Merge(RenderSettings settings)
 		{
 			PipelineCacheFilename = settings.PipelineCacheFilename;
@@ -60,6 +64,9 @@ namespace REngine.RPI
 			SpriteBatchInstanceExpansionRatio = settings.SpriteBatchInstanceExpansionRatio;
 			SpriteBatchMaxTextures = settings.SpriteBatchMaxTextures;
 			SpriteBatchTexturesBuildTimeMs = settings.SpriteBatchTexturesBuildTimeMs;
+#endif
+#if RENGINE_IMGUI
+			ImGuiUpdateRate = settings.ImGuiUpdateRate;
 #endif
 		}
 	}

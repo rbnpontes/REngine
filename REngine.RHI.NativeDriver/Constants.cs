@@ -9,9 +9,9 @@ namespace REngine.RHI.NativeDriver
 	internal class Constants
 	{
 #if WINDOWS
-		public const string Lib = "runtimes/win-64/REngine-DiligentNativeDriver.dll";
+		public const string Lib = "runtimes/win-x64/native/REngine-DiligentNativeDriver.dll";
 #elif LINUX
-		public const string Lib = "runtimes/linux-64/libREngine-DiligentNativeDriver.so";
+		public const string Lib = "runtimes/linux-x64/native/libREngine-DiligentNativeDriver.so";
 #endif
 	}
 }

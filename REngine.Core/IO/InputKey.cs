@@ -8,6 +8,7 @@ namespace REngine.Core.IO
 {
 	public enum MouseKey
 	{
+		None = 0,
 		Left,
 		Right,
 		Middle,
@@ -17,6 +18,7 @@ namespace REngine.Core.IO
 
 	public enum InputKey
 	{
+		None=0,
 		Backspace,
 		Tab,
 		LineFeed,
@@ -86,9 +88,9 @@ namespace REngine.Core.IO
 		X,
 		Y,
 		Z,
-		LeftWindow,
-		Command = LeftWindow,
-		RightWindow,
+		LeftSuper,
+		Command = LeftSuper,
+		RightSuper,
 		Apps,
 		Sleep,
 		NumPad0,
@@ -131,6 +133,7 @@ namespace REngine.Core.IO
 		F22,
 		F23,
 		F24,
+		F25,
 		NumLock,
 		Scroll,
 		LeftShift,
@@ -161,13 +164,16 @@ namespace REngine.Core.IO
 		LaunchApp2,
 		Semicolon,
 		Plus,
+		Equal = Plus,
 		Comma,
 		Minus,
 		Period,
 		Question,
 		Tilde,
+		Grave = Tilde,
 		OpenBrackets,
 		Pipe,
+		Slash = Pipe,
 		CloseBrackets,
 		Quotes,
 		Backslash,
