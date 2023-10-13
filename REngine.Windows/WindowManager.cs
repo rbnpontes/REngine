@@ -5,6 +5,7 @@ using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace REngine.Windows
 		private bool pDisposed = false;
 
 		public IReadOnlyList<IWindow> Windows => throw new NotImplementedException();
+		public Vector2 VideoScale { get; private set; }
 
 		public WindowManager(
 			ILogger<IWindowManager> logger,
@@ -39,6 +41,7 @@ namespace REngine.Windows
 			Glfw.Init();
 			Glfw.SetErrorCallback(HandleGlfwError);
 
+			pEngineEvents.OnBeforeStart += HandleBeforeStart;
 			pEngineEvents.OnStart += HandleEngineStart;
 			pEngineEvents.OnStop += HandleEngineStop;
 		}
@@ -55,10 +58,18 @@ namespace REngine.Windows
 			GC.SuppressFinalize(this);
 		}
 
+		private void HandleBeforeStart(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnBeforeStart -= HandleBeforeStart;
+
+			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
+			var monitor = Glfw.Monitors.FirstOrDefault();
+			VideoScale = new Vector2(monitor.ContentScale.X, monitor.ContentScale.Y);
+		}
+
 		private void HandleEngineStart(object? sender, EventArgs e)
 		{
 			pEngineEvents.OnStart -= HandleEngineStart;
-			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
 			pPipeline.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update());
 		}
 

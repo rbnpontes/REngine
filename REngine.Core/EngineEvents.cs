@@ -25,10 +25,17 @@ namespace REngine.Core
 
 	public sealed class EngineEvents
 	{
+		public event EventHandler? OnBeforeStart;
 		public event EventHandler? OnStart;
 		public event EventHandler<UpdateEventArgs>? OnUpdate;
 		public event EventHandler? OnBeforeStop;
 		public event EventHandler? OnStop;
+
+		public EngineEvents ExecuteBeforeStart()
+		{
+			OnBeforeStart?.Invoke(this, EventArgs.Empty);
+			return this;
+		}
 
 		public EngineEvents ExecuteStart()
 		{

@@ -34,6 +34,8 @@ namespace REngine.Sandbox
 		private IServiceProvider? pServiceProvider;
 		private IWindow? pGameWindow;
 
+		private RenderState? pRenderState;
+
 		private int pSelectedItemIdx = -1;
 
 		public SampleWindow() : base() 
@@ -96,6 +98,7 @@ namespace REngine.Sandbox
 
 			provider.Get<IImGuiSystem>().OnGui += OnGui;
 
+			pRenderState = provider.Get<RenderState>();
 			pGameWindow = provider.Get<IWindow>();
 		}
 
@@ -110,19 +113,11 @@ namespace REngine.Sandbox
 			{
 				RenderSampleList();
 
-				if(pSelectedItemIdx != -1)
-				{
-					if (ImGui.Button("Load Sample"))
-					{
-						LoadSample(pSamples[pSelectedItemIdx]);
-						//// ImGui can run at a separate thread, in this case we must load sample at main thread
-						//pServiceProvider.Get<IExecutionPipeline>().Invoke(() =>
-						//{
-						//});
-					}
-				}
+				if (ImGui.Button("Load Sample") && pSelectedItemIdx != -1)
+					LoadSample(pSamples[pSelectedItemIdx]);
 
 				RenderFullscreenButton();
+
 				ImGui.End();
 			}
 		}

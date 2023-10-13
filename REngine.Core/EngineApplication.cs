@@ -71,7 +71,9 @@ namespace REngine.Core
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");
 
-			pServiceProvider.Get<EngineEvents>().ExecuteStart();
+			pServiceProvider.Get<EngineEvents>()
+				.ExecuteBeforeStart()
+				.ExecuteStart();
 			pApp.OnStart(pServiceProvider);
 			return this;
 		}

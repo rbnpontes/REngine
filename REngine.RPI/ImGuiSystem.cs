@@ -1,4 +1,5 @@
 ﻿using REngine.Core;
+using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,15 +22,16 @@ namespace REngine.RPI
 	{
 		const byte MaxMouseKeys = (byte)MouseKey.XButton2;
 
+		private readonly IServiceProvider pProvider;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly EngineEvents pEngineEvents;
-		private readonly IEngine pEngine;
 		private readonly GraphicsSettings pGraphicsSettings;
 		private readonly IRenderer pRenderer;
 		private readonly IInput pInput;
 		private readonly ILogger<IImGuiSystem> pLogger;
 		private readonly IExecutionPipelineVar pUpdateRateVar;
 		private readonly RPIEvents pRPIEvents;
+		private readonly RenderState pRenderState;
 
 		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
@@ -54,7 +57,6 @@ namespace REngine.RPI
 		public event EventHandler? OnGui;
 
 		public ImGuiSystem(
-			IEngine engine,
 			IExecutionPipeline executionPipeline,
 			EngineEvents engineEvents,
 			GraphicsSettings graphicsSettings,
@@ -62,10 +64,11 @@ namespace REngine.RPI
 			IInput input,
 			ILoggerFactory factory,
 			RenderSettings renderSettings,
-			RPIEvents rpiEvents
-		) 
+			RPIEvents rpiEvents,
+			RenderState renderState,
+			IServiceProvider provider
+		)
 		{ 
-			pEngine = engine;
 			pEngineEvents = engineEvents;
 			pExecutionPipeline = executionPipeline;
 			pGraphicsSettings = graphicsSettings;
@@ -73,6 +76,8 @@ namespace REngine.RPI
 			pInput = input;
 			pLogger = factory.Build<IImGuiSystem>();
 			pRPIEvents = rpiEvents;
+			pRenderState = renderState;
+			pProvider = provider;
 
 			pImGuiSettingsPath = Path.Join(EngineSettings.AppDataPath, "imgui_settings.ini");
 			pUpdateRateVar = executionPipeline.GetOrCreateVar(DefaultVars.ImGuiUpdateRate);
@@ -131,6 +136,13 @@ namespace REngine.RPI
 			io.Fonts.Build();
 
 			io.DisplaySize.X = io.DisplaySize.Y = 1;
+
+			var wndManager = pProvider.GetOrDefault<IWindowManager>();
+			if (wndManager != null)
+			{
+				var videoScale = wndManager.VideoScale;
+				io.FontGlobalScale = (videoScale.X + videoScale.Y) / 2.0f;
+			}
 
 			SetupKeyMap();
 			AllocateFontBuffer();

@@ -33,6 +33,8 @@ namespace REngine.Core
 	{
 		public IReadOnlyList<IWindow> Windows { get; }
 		public IWindowManager CloseAllWindows();
+
+		public Vector2 VideoScale { get; }
 		public IWindow Create(WindowCreationInfo createInfo);
 	}
 }
