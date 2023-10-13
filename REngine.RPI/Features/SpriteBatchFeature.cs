@@ -306,6 +306,8 @@ namespace REngine.RPI.Features
 			ref BufferData cbufferData)
 		{
 			var items = pBatcher.Items;
+			if (items.Count == 0)
+				Console.WriteLine("Empty Batches");
 			for (int i =0; i < items.Count; ++i)
 			{
 				var item = items[i];

@@ -94,7 +94,8 @@ namespace REngine.Core.Threading.Nodes
 			if (targetNodeId == 0)
 				return;
 
-			nodesList.TryGetValue(targetNodeId, out pTarget);
+			if (nodesList.TryGetValue(targetNodeId, out pTarget))
+				pTarget.LinkedNodes.Add(this);
 		}
 	}
 }

@@ -111,7 +111,8 @@ namespace REngine.RPI
 		private void HandleDraw()
 		{
 			GetFeature();
-			pBatcher.Reset();
+			lock(pBatcher.SyncPrimitive)
+				pBatcher.Reset();
 			OnDraw?.Invoke(this, EventArgs.Empty);
 		}
 
