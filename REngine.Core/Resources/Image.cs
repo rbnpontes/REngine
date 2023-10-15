@@ -480,6 +480,8 @@ namespace REngine.Core.Resources
 				maxRowHeight = Math.Max(maxRowHeight, img.Size.Height);
 				nextWidth += (ushort)(img.Size.Width + spacing);
 
+				bounds.Add(new Rectangle(nextWidth, nextHeight, img.Size.Width, img.Size.Height));
+
 				++currCol;
 				if(currCol >= breakAt)
 				{

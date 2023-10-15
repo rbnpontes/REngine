@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,19 @@ using REngine.Core.Resources;
 
 namespace REngine.Assets
 {
+	public class FontAtlasCharData
+	{
+		public Rectangle Bounds { get; set; }
+	}
+	public class FontAtlas
+	{
+		public Image Atlas { get; set; }
+		public FontAtlasCharData[] CharData { get; private set; } = new FontAtlasCharData[FontAsset.CharMap.Length];
+		public FontAtlas(Image atlas) 
+		{ 
+			Atlas = atlas;
+		}
+	}
 	public class FontAsset : IAsset
 	{
 		public const string CharMap = "ABCDEFGHIJKLMNOPQRSTUVXYWZÇabcdefghijklmnopqrstuvxywzç1234567890-=_'\"/\\*+,.;~][´`^|<>?!@#$%¨&(){}ºª§";
@@ -127,7 +141,7 @@ namespace REngine.Assets
 			return image;
 		}
 
-		public Task<ImageAtlas> BuildAtlas()
+		public Task<FontAtlas> BuildAtlas()
 		{
 			return Task.Run(() =>
 			{
@@ -141,7 +155,17 @@ namespace REngine.Assets
 					}
 					images.Add(GetGlyph(CharMap[i]));
 				}
-				return Image.MakeAtlas(images, 5, 8);
+
+				var atlasData = Image.MakeAtlas(images, 5, 8);
+				FontAtlas result = new(atlasData.Image);
+				for(int i =0; i < CharMap.Length; ++i)
+				{
+					FontAtlasCharData charData = new FontAtlasCharData();
+					charData.Bounds = atlasData.Items.ElementAt(i);
+					result.CharData[i] = charData;
+				}
+
+				return result;
 			});
 		}
 
