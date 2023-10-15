@@ -30,6 +30,9 @@
 	  <ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="Assets\Fonts\Anonymous Pro.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Assets\you_must_play.jpg">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

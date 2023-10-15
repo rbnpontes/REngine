@@ -8,8 +8,10 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<Configurations>Debug;Release;Debug-Linux</Configurations>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<ItemGroup>
+	  <PackageReference Include="FreeTypeSharp" Version="1.1.3" />
 	  <PackageReference Include="StbImageSharp" Version="2.27.13" />
 	  <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
 	</ItemGroup>

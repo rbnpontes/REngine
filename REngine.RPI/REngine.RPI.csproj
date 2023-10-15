@@ -30,6 +30,9 @@
 	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="Assets\Fonts\Anonymous Pro.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Assets\Shaders\imgui_ps.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
@@ -48,5 +51,8 @@
 	  <None Update="Assets\Shaders\spritebatch_vs.hlsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="UI\" />
 	</ItemGroup>
 </Project>
