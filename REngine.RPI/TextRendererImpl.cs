@@ -58,7 +58,6 @@ namespace REngine.RPI
 				if (pDisposed)
 					return;
 
-				PipelineState.Dispose();
 				VertexBuffer.Dispose();
 
 				if(TargetNode != null)
@@ -104,7 +103,6 @@ namespace REngine.RPI
 				if(pDisposed) return;
 
 				pBuffer.Dispose();
-				pRenderer.Dispose();
 
 				OnDispose?.Invoke(this, EventArgs.Empty);
 
@@ -167,7 +165,6 @@ namespace REngine.RPI
 		private readonly IBufferProvider pBufferProvider;
 		private readonly ILogger<ITextRenderer> pLogger;
 		private readonly GraphicsSettings pGraphicsSettings;
-		private readonly RenderState pRenderState;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IRenderer pRenderer;
 
@@ -187,7 +184,6 @@ namespace REngine.RPI
 			IBufferProvider bufferProvider,
 			ILoggerFactory loggerFactory,
 			GraphicsSettings graphicsSettings,
-			RenderState renderState,
 			EngineEvents engineEvents,
 			IRenderer renderer
 		) 
@@ -195,7 +191,6 @@ namespace REngine.RPI
 			pBufferProvider = bufferProvider;
 			pLogger = loggerFactory.Build<ITextRenderer>();
 			pGraphicsSettings = graphicsSettings;
-			pRenderState = renderState;
 			pEngineEvents = engineEvents;
 			pRenderer = renderer;
 
@@ -241,10 +236,6 @@ namespace REngine.RPI
 
 				if(currNode.Value is IDisposable disposable)
 					disposable.Dispose();
-
-				// If object has not been disposed, try to remove manualy 
-				lock (pSync)
-					list.Remove(currNode);
 			}
 
 			lock (pSync)
@@ -276,8 +267,7 @@ namespace REngine.RPI
 			{
 				Name = "Text Renderer Vertex Buffer",
 				BindFlags = BindFlags.VertexBuffer,
-				Usage = Usage.Dynamic,
-				AccessFlags = CpuAccessFlags.Write,
+				Usage = Usage.Immutable,
 				Size = (ulong)(vertices.Length * Marshal.SizeOf<Vertex>()),
 			}, vertices);
 			return new BufferWrapper(buffer, this);

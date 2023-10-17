@@ -199,15 +199,18 @@ namespace REngine.Assets
 						);
 				}
 
-				image.SetData(new ImageDataInfo
+				if(faceRec->glyph->bitmap.width > 0 && faceRec->glyph->bitmap.rows > 0)
 				{
-					Components = 1,
-					Size = new ImageSize(
-						(ushort)faceRec->glyph->bitmap.width,
-						(ushort)faceRec->glyph->bitmap.rows
-					),
-					Data = data
-				});
+					image.SetData(new ImageDataInfo
+					{
+						Components = 1,
+						Size = new ImageSize(
+							(ushort)faceRec->glyph->bitmap.width,
+							(ushort)faceRec->glyph->bitmap.rows
+						),
+						Data = data
+					});
+				}
 
 				left = faceRec->glyph->bitmap_left;
 				top = faceRec->glyph->bitmap_top;

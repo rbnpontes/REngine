@@ -80,6 +80,7 @@ namespace REngine.RPI
 		public ISpriteBatch SetTexture(byte slot, Image image);
 		public ISpriteInstancing GetInstancing(int length);
 
+		public ISpriteBatch Draw(TextRendererBatch textBatch);
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
 		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem);
 		public ISpriteBatch ClearTexture(byte slot);

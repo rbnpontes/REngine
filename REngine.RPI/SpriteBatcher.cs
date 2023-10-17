@@ -130,7 +130,7 @@ namespace REngine.RPI
 		private readonly RenderSettings pSettings;
 
 		public BatchList<SpriteBatchInfo> Items { get; private set; }
-
+		public BatchList<TextRendererBatch> TextBatches { get; private set; }
 		public SpriteInstanceItem[] InstanceData { get; private set; }
 		public int TotalInstanceItems { get; private set; }
 		public ulong MaxAllocatedInstanceItems { get; private set; }
@@ -144,7 +144,11 @@ namespace REngine.RPI
 			pSettings = settings;
 			Items = new BatchList<SpriteBatchInfo>(
 				settings.SpriteBatchInitialSize, 
-				(uint)Math.Floor((double)settings.SpriteBatchInitialSize * settings.SpriteBatchInitialSize)
+				settings.SpriteBatchInitialSize * 2
+			);
+			TextBatches = new BatchList<TextRendererBatch>(
+				settings.SpriteBatchInitialSize,
+				settings.SpriteBatchTextsInitialSize * 2
 			);
 			InstanceData = new SpriteInstanceItem[settings.SpriteBatchInitialInstanceSize];
 			TotalInstanceItems = 0;
@@ -154,7 +158,8 @@ namespace REngine.RPI
 		{
 			lock (SyncPrimitive)
 			{
-				Items.GrowthSize = (uint)Math.Floor(pSettings.SpriteBatchInitialSize * (double)pSettings.SpriteBatchInitialSize);
+				Items.GrowthSize = pSettings.SpriteBatchInitialSize * 2;
+				TextBatches.GrowthSize = pSettings.SpriteBatchTextsInitialSize * 2;
 			}
 		}
 
@@ -206,12 +211,18 @@ namespace REngine.RPI
 				InstanceEntries.Add(key, new SpriteInstancingEntry(textureSlot, instancing));
 			}
 		}
-
+		public void Add(TextRendererBatch batch)
+		{
+			lock(SyncPrimitive)
+				TextBatches.Add(batch);
+		}
+		
 		public void Reset()
 		{
 			lock (SyncPrimitive)
 			{
 				Items.Clear();
+				TextBatches.Clear();
 			}
 		}
 	}

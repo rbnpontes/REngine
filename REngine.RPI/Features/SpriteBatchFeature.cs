@@ -321,6 +321,17 @@ namespace REngine.RPI.Features
 
 				cmd.Draw(new DrawArgs { NumVertices = 6 });
 			}
+
+			// Render Texts
+			var textBatches = pBatcher.TextBatches;
+			for(int i =0; i < textBatches.Count; ++i)
+			{
+				cmd
+					.SetVertexBuffer(textBatches[i].VertexBuffer)
+					.SetPipeline(textBatches[i].PipelineState)
+					.CommitBindings(textBatches[i].PipelineState.GetResourceBinding())
+					.Draw(new DrawArgs { NumVertices = textBatches[i].NumVertices });
+			}
 		}
 
 		private unsafe void ExecuteInstanced(

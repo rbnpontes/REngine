@@ -9,7 +9,7 @@ namespace REngine.Core.Resources
 {
 	public abstract class Font
 	{
-		public const string CharMap = "ABCDEFGHIJKLMNOPQRSTUVXYWZÇabcdefghijklmnopqrstuvxywzç1234567890-=_'\"/\\*+,.;~][´`^|<>?!@#$%¨&(){}ºª§";
+		public const string CharMap = "ABCDEFGHIJKLMNOPQRSTUVXYWZÇabcdefghijklmnopqrstuvxywzç1234567890-=_'\"/\\*+,.;~][´`^|<>?!@#$%¨&(){}ºª§ ";
 
 		public abstract string Name { get; }
 		public abstract Image Atlas { get; }
