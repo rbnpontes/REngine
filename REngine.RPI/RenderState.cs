@@ -18,6 +18,7 @@ namespace REngine.RPI
 
 		public RendererFixedData FixedData { get; set; } = new RendererFixedData();
 
+		public Viewport Viewport { get; set; }
 		public bool Vsync { get; set; } = true;
 	}
 }
