@@ -70,8 +70,8 @@ namespace REngine.Asset.Tests
 				using (FontAsset asset = new())
 				{
 					await asset.Load(stream);
-					var atlas = await asset.BuildAtlas();
-					img = atlas.Image;
+					var font = asset.Font;
+					img = font.Atlas;
 				}
 			}
 

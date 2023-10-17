@@ -114,7 +114,6 @@ namespace REngine.RPI
 			{
 				BindFlags = BindFlags.UniformBuffer,
 				Usage = Usage.Dynamic,
-				Mode = BufferMode.Raw,
 				AccessFlags = CpuAccessFlags.Write
 			};
 

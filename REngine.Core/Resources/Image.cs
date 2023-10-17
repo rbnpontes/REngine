@@ -104,6 +104,8 @@ namespace REngine.Core.Resources
 		public byte[] Data { get; private set; } = new byte[0];
 		public byte Components { get; private set; } = 0;
 
+		public uint Stride { get => (uint)(Size.Width * Size.Depth * Components); }
+
 		private int GetPixelIdx(ushort x, ushort y, byte z)
 		{
 			x = Math.Min(x, (ushort)(Size.Width - 1));

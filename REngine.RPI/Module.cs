@@ -27,6 +27,7 @@ namespace REngine.RPI
 				)
 				.Add<IBufferProvider, BufferProvider>()
 				.Add<IRenderer, RendererImpl>()
+				.Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
 				.Add<SpriteBatcher>()
 				.Add<SpriteTextureManager>()

@@ -10,24 +10,85 @@ using REngine.Core.Resources;
 
 namespace REngine.Assets
 {
-	public class FontAtlasCharData
+	internal class FontAtlasCharData
 	{
 		public Rectangle Bounds { get; set; }
+		public int Left { get; set; }
+		public int Top { get; set; }	
+		public int AdvanceHorizontal { get; set; }
+		public int AdvanceVertical { get; set; }
 	}
-	public class FontAtlas
-	{
-		public Image Atlas { get; set; }
-		public FontAtlasCharData[] CharData { get; private set; } = new FontAtlasCharData[FontAsset.CharMap.Length];
-		public FontAtlas(Image atlas) 
-		{ 
-			Atlas = atlas;
-		}
-	}
+
 	public class FontAsset : IAsset
 	{
-		public const string CharMap = "ABCDEFGHIJKLMNOPQRSTUVXYWZÇabcdefghijklmnopqrstuvxywzç1234567890-=_'\"/\\*+,.;~][´`^|<>?!@#$%¨&(){}ºª§";
+		class FontImpl : Font
+		{
+			private static readonly IDictionary<int, byte> sKeyPair = new Dictionary<int, byte>();
+
+			private readonly Image pAtlas;
+			private readonly FontAtlasCharData[] pCharData;
+
+			private string pFontName = "Unknow Font";
+			public override string Name { get => pFontName; }
+			public override Image Atlas { get => pAtlas; }
+
+			public FontImpl(Image atlas, FontAtlasCharData[] charData)
+			{
+				pAtlas = atlas;
+				pCharData = charData;
+			}
+
+			public override Point GetAdvance(byte glyphIndex)
+			{
+				FontAtlasCharData charData = GetGlyphData(glyphIndex);
+				return new Point(charData.AdvanceHorizontal, charData.AdvanceVertical);
+			}
+
+			public override Rectangle GetBounds(byte glyphIndex)
+			{
+				FontAtlasCharData charData = GetGlyphData(glyphIndex);
+				return charData.Bounds;
+			}
+
+			public override Point GetOffset(byte glyphIndex)
+			{
+				FontAtlasCharData charData = GetGlyphData(glyphIndex);
+				return new Point(charData.Left, charData.Top);
+			}
+
+			public override byte GetGlyhIndex(int charCode)
+			{
+				if(sKeyPair.TryGetValue(charCode, out byte glyphCode))
+					return glyphCode;
+				
+				for(byte i = 0; i < CharMap.Length; ++i)
+				{
+					if (CharMap[i] == charCode)
+					{
+						sKeyPair[charCode] = i;
+						return i;
+					}
+				}
+				throw new Exception($"Not found glyph. Char code: '{char.ConvertFromUtf32(charCode)}'");
+			}
+
+			public void SetFontName(string fontName)
+			{
+				pFontName = fontName;
+			}
+
+			private FontAtlasCharData GetGlyphData(byte glyphIndex)
+			{
+				if (glyphIndex >= pCharData.Length)
+					throw new Exception($"Invalid Glyph index. Value: {glyphIndex}");
+				return pCharData[glyphIndex];
+			}
+		}
+
 		private FreeTypeLibrary? pLib;
 		private IntPtr pFace = IntPtr.Zero;
+		private Font? pFont;
+
 		private object pSync = new();
 
 		public int Size { get; private set; }
@@ -35,6 +96,16 @@ namespace REngine.Assets
 		public string Checksum { get; private set; } = string.Empty;
 
 		public string Name { get; set; } = string.Empty;
+
+		public Font Font
+		{
+			get
+			{
+				if (pFont is null)
+					throw new NullReferenceException("Font has not been loaded. Did you forget to load font ?");
+				return pFont;
+			}
+		}
 
 		public void Dispose()
 		{
@@ -48,6 +119,8 @@ namespace REngine.Assets
 			{
 				lock (pSync)
 					LoadFace(stream);
+				lock (pSync)
+					BuildFont();
 			});
 		}
 
@@ -76,9 +149,7 @@ namespace REngine.Assets
 			var size = (IntPtr)(6 << 6);
 			var err = FT.FT_Set_Char_Size(face, size, size, 300, 300);
 			if (err != FT_Error.FT_Err_Ok)
-			{
 				throw new Exception($"Error has ocurred at set char size on face. Error: {err}");
-			}
 
 			pFace = face;
 		}
@@ -95,8 +166,8 @@ namespace REngine.Assets
 
 			return result;
 		}
-
-		public unsafe Image GetGlyph(uint charCode)
+		
+		private unsafe Image GetGlyphImage(uint charCode, out int left, out int top, out uint advanceX, out uint advanceY)
 		{
 			Image image = new Image();
 			lock (pSync)
@@ -137,36 +208,56 @@ namespace REngine.Assets
 					),
 					Data = data
 				});
+
+				left = faceRec->glyph->bitmap_left;
+				top = faceRec->glyph->bitmap_top;
+				advanceX = (uint)faceRec->glyph->linearHoriAdvance;
+				advanceY = (uint)faceRec->glyph->linearVertAdvance;
 			}
 			return image;
 		}
-
-		public Task<FontAtlas> BuildAtlas()
+		
+		public unsafe Image GetGlyph(uint charCode)
 		{
-			return Task.Run(() =>
+			return GetGlyphImage(charCode, out int left, out int top, out uint advanceX, out uint advanceY);
+		}
+
+		private void BuildFont()
+		{
+			List<Image> images = new();
+			List<(int, int, uint, uint)> offsets = new();
+
+			for(int i = 0; i < Font.CharMap.Length; i++) 
 			{
-				List<Image> images = new();
-				for(int i =0; i < CharMap.Length; ++i)
+				lock (pSync)
 				{
-					lock (pSync)
-					{
-						if (pFace == IntPtr.Zero)
-							throw new ObjectDisposedException("FontAsset has been disposed");
-					}
-					images.Add(GetGlyph(CharMap[i]));
+					if(pFace == IntPtr.Zero)
+						throw new ObjectDisposedException("FontAsset has been disposed");
+					images.Add(GetGlyphImage(Font.CharMap[i], out int left, out int top, out uint advanceX, out uint advanceY));
+					offsets.Add((left, top, advanceX, advanceY));
 				}
+			}
 
-				var atlasData = Image.MakeAtlas(images, 5, 8);
-				FontAtlas result = new(atlasData.Image);
-				for(int i =0; i < CharMap.Length; ++i)
-				{
-					FontAtlasCharData charData = new FontAtlasCharData();
-					charData.Bounds = atlasData.Items.ElementAt(i);
-					result.CharData[i] = charData;
-				}
+			var atlasData = Image.MakeAtlas(images, 5, 8);
 
-				return result;
-			});
+			FontAtlasCharData[] charDataValues = new FontAtlasCharData[Font.CharMap.Length];
+			for (int i = 0; i < Font.CharMap.Length; ++i)
+			{
+				(int left, int top, uint advanceX, uint advanceY) = offsets[i];
+				FontAtlasCharData charData = new FontAtlasCharData();
+				charData.Bounds = atlasData.Items.ElementAt(i);
+				charData.Left = left;
+				charData.Top = top;
+				charData.AdvanceHorizontal = (int)advanceX;
+				charData.AdvanceVertical = (int)advanceY;
+				charDataValues[i] = charData;
+			}
+
+			var font = new FontImpl(atlasData.Image, charDataValues);
+			if (!string.IsNullOrEmpty(Name))
+				font.SetFontName(Name);
+			Size += font.Atlas.Data.Length;
+			pFont = font;
 		}
 
 		public Task Save(Stream stream)

@@ -31,22 +31,19 @@ namespace REngine.RPI.Features
 		struct BufferData
 		{
 			public Matrix4x4 Transform;
-			public Matrix4x4 Projection;
 			public Vector4 Color;
 
 			public BufferData()
 			{
-				Transform = Projection = Matrix4x4.Identity;
+				Transform = Matrix4x4.Identity;
 				Color = Vector4.One;
 			}
 		}
 		struct InstancedBufferData
 		{
-			public Matrix4x4 Projection;
 			public Vector4 Color;
 			public InstancedBufferData()
 			{
-				Projection = Matrix4x4.Identity;
 				Color = Vector4.One;
 			}
 		}
@@ -164,6 +161,7 @@ namespace REngine.RPI.Features
 			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
 			pBufferProvider = setupInfo.BufferProvider;
 
+			IBuffer fixedCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Fixed);
 			IDevice device = setupInfo.Driver.Device;
 
 			if((pDirtyFlags & DirtyFlags.Pipeline) != 0)
@@ -261,13 +259,13 @@ namespace REngine.RPI.Features
 
 			if((pDirtyFlags & DirtyFlags.CBuffer) != 0)
 			{
-				SetCBufferBinding(pDefaultPipeline?.GetResourceBinding());
-				SetCBufferBinding(pInstancedPipeline?.GetResourceBinding());
+				SetCBufferBinding(pDefaultPipeline?.GetResourceBinding(), fixedCBuffer);
+				SetCBufferBinding(pInstancedPipeline?.GetResourceBinding(), fixedCBuffer);
 
 				foreach(var bindings in bindingArray)
 				{
 					for (byte i = 0; i < bindings.Length; ++i)
-						SetCBufferBinding(bindings[i]);
+						SetCBufferBinding(bindings[i], fixedCBuffer);
 				}
 			}
 
@@ -284,11 +282,6 @@ namespace REngine.RPI.Features
 
 			if (pDefaultPipeline is null || pTexturedPipeline is null || pVBuffer is null)
 				return;
-
-			CalculateProjection(pRenderer.SwapChain.Size, out Matrix4x4 projection);
-
-			cbufferData.Projection = projection;
-			instancedBufferData.Projection = projection;
 
 			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
 			
@@ -433,12 +426,6 @@ namespace REngine.RPI.Features
 			return transform * Matrix4x4.CreateRotationZ(rotation) * Matrix4x4.CreateTranslation(new Vector3(position, 0.0f));
 		}
 
-		private static void CalculateProjection(in SwapChainSize size, out Matrix4x4 matrix)
-		{
-			matrix = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
-			matrix.M33 = matrix.M43 = 0.5f;
-		}
-
 		private IPipelineState CreatePipeline(IDevice device, IShader vshader, IShader pshader, bool instanced) 
 		{
 			GraphicsPipelineDesc desc = new();
@@ -568,12 +555,13 @@ namespace REngine.RPI.Features
 			if(tex != null)
 				binding?.Set(ShaderTypeFlags.Pixel, "g_texture", tex);
 		}
-		private void SetCBufferBinding(IShaderResourceBinding? binding)
+		private void SetCBufferBinding(IShaderResourceBinding? binding, IBuffer fixedCBuffer)
 		{
 			if (binding is null || pCBuffer is null)
 				return;
 
-			binding.Set(ShaderTypeFlags.Vertex, "Constants", pCBuffer);
+			binding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, fixedCBuffer);
+			binding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pCBuffer);
 		}
 	}
 }
