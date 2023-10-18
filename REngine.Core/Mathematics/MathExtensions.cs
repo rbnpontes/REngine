@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +23,11 @@ namespace REngine.Core.Mathematics
 				color.G,
 				color.B
 			};
+		}
+
+		public static Vector4 ToVector4(this Rectangle rectangle)
+		{
+			return new Vector4(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
 		}
 	}
 }

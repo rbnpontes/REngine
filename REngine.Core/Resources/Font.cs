@@ -13,6 +13,7 @@ namespace REngine.Core.Resources
 
 		public abstract string Name { get; }
 		public abstract Image Atlas { get; }
+		public abstract Size CharSize { get; }
 
 		public abstract byte GetGlyhIndex(int charCode);
 		public abstract Point GetOffset(byte glyphIndex);

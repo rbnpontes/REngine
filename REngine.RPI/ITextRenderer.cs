@@ -20,7 +20,8 @@ namespace REngine.RPI
 		public abstract IPipelineState PipelineState { get; }
 		public abstract IBuffer VertexBuffer { get; }
 		public abstract ITexture FontTexture { get; }
-		public abstract uint NumVertices { get; }
+		public abstract IShaderResourceBinding ShaderResourceBinding { get; }
+		public abstract uint NumItems { get; }
 
 		public abstract void Dispose();
 	}

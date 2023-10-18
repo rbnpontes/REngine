@@ -1,5 +1,6 @@
 ﻿using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.RHI;
 using System;
@@ -22,6 +23,13 @@ namespace REngine.RPI
 			public Vector4 Color;
 		}
 
+		struct TextChar
+		{
+			public Vector4 Color;
+			public Vector4 Bounds;
+			public Vector4 PositionAndAtlasSize;
+		}
+
 		class TextRendererBatchImpl : TextRendererBatch
 		{
 			private readonly TextRendererImpl pRenderer;
@@ -32,25 +40,29 @@ namespace REngine.RPI
 		
 			public override IPipelineState PipelineState { get; }
 
+			public override IShaderResourceBinding ShaderResourceBinding { get; }
+
 			public override IBuffer VertexBuffer { get; }
 
 			public override ITexture FontTexture { get; }
 
-			public override uint NumVertices { get; }
+			public override uint NumItems { get; }
 
 			public TextRendererBatchImpl(
 				TextRendererImpl renderer,
 				IPipelineState pipeline,
+				IShaderResourceBinding binding,
 				IBuffer vbuffer,
 				ITexture fontTexture,
-				uint numVertices
+				uint numItems
 			)
 			{
 				pRenderer = renderer;
+				ShaderResourceBinding = binding;
 				PipelineState = pipeline;
 				VertexBuffer = vbuffer;
 				FontTexture = fontTexture;
-				NumVertices = numVertices;
+				NumItems = numItems;
 			}
 
 			public override void Dispose()
@@ -59,6 +71,7 @@ namespace REngine.RPI
 					return;
 
 				VertexBuffer.Dispose();
+				ShaderResourceBinding.Dispose();
 
 				if(TargetNode != null)
 				{
@@ -139,6 +152,13 @@ namespace REngine.RPI
 				pTexture = texture;
 				pRenderer = renderer;
 				pFont = font;
+				texture.OnDispose += HandleDispose;
+			}
+
+			private void HandleDispose(object? sender, EventArgs e)
+			{
+				pTexture.OnDispose -= HandleDispose;
+				OnDispose?.Invoke(this, EventArgs.Empty);
 			}
 
 			public void Dispose()
@@ -261,15 +281,15 @@ namespace REngine.RPI
 			Dispose();
 		}
 
-		private BufferWrapper AllocateVBuffer(Vertex[] vertices)
+		private BufferWrapper AllocateVBuffer(TextChar[] chars)
 		{
 			var buffer = GetDevice().CreateBuffer(new BufferDesc
 			{
 				Name = "Text Renderer Vertex Buffer",
 				BindFlags = BindFlags.VertexBuffer,
 				Usage = Usage.Immutable,
-				Size = (ulong)(vertices.Length * Marshal.SizeOf<Vertex>()),
-			}, vertices);
+				Size = (ulong)(chars.Length * Marshal.SizeOf<TextChar>()),
+			}, chars);
 			return new BufferWrapper(buffer, this);
 		}
 
@@ -312,36 +332,29 @@ namespace REngine.RPI
 			desc.Name = "Text Renderer Pipeline";
 			desc.Output.RenderTargetFormats[0] = pGraphicsSettings.DefaultColorFormat;
 			desc.Output.DepthStencilFormat = pGraphicsSettings.DefaultDepthFormat;
-			desc.PrimitiveType = PrimitiveType.TriangleList;
-			desc.RasterizerState.CullMode = CullMode.Front;
+			desc.PrimitiveType = PrimitiveType.TriangleStrip;
+			desc.RasterizerState.CullMode = CullMode.Both;
 			desc.DepthStencilState.EnableDepth = false;
 			desc.BlendState.BlendMode = BlendMode.Alpha;
 
 			desc.Shaders.VertexShader = vsShader;
 			desc.Shaders.PixelShader = psShader;
 
-			desc.InputLayouts.Add(
-				new PipelineInputLayoutElementDesc 
-				{
-					InputIndex = 0,
-					Input = new InputLayoutElementDesc 
-					{ 
-						BufferIndex = 0,
-						ElementType = ElementType.Vector2
-					}
-				}
-			);
-			desc.InputLayouts.Add(
-				new PipelineInputLayoutElementDesc
-				{
-					InputIndex = 1,
-					Input = new InputLayoutElementDesc
+			for(uint i =0; i < 3; ++i)
+			{
+				desc.InputLayouts.Add(
+					new PipelineInputLayoutElementDesc
 					{
-						BufferIndex = 0,
-						ElementType = ElementType.Vector2
+						InputIndex = i,
+						Input = new InputLayoutElementDesc
+						{
+							BufferIndex = 0,
+							ElementType = ElementType.Vector4,
+							InstanceStepRate = 1
+						}
 					}
-				}
-			);
+				);
+			}
 
 			desc.Samplers.Add(
 				new ImmutableSamplerDesc
@@ -352,9 +365,6 @@ namespace REngine.RPI
 			);
 
 			var pipeline = GetDevice().CreateGraphicsPipeline(desc);
-
-			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
-		
 			return pipeline;
 		}
 
@@ -407,10 +417,10 @@ namespace REngine.RPI
 				throw new ArgumentNullException("text cannot be null or empty");
 
 			if (pPipeline is null)
-				BuildPipeline();
+				pPipeline = BuildPipeline();
 
-			Vertex[] vertices = CreateVertices(createInfo.Font, createInfo.Color, createInfo.Position, createInfo.Text);
-			BufferWrapper vbuffer = AllocateVBuffer(vertices);
+			TextChar[] chars = CreateChars(createInfo.Font, createInfo.Color, createInfo.Position, createInfo.Text);
+			BufferWrapper vbuffer = AllocateVBuffer(chars);
 
 			lock(pSync)
 				vbuffer.TargetNode = pBuffers2Dispose.AddLast(vbuffer);
@@ -423,12 +433,17 @@ namespace REngine.RPI
 					pFontTextures.Add(createInfo.Font.Name.GetHashCode(), texture);
 			}
 
+			var srb = pPipeline.CreateResourceBinding();
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
+			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+
 			var result = new TextRendererBatchImpl(
 				this,
 				pPipeline,
+				srb,
 				vbuffer,
 				texture,
-				(uint)vertices.Length
+				(uint)chars.Length
 			);
 
 			lock(pSync)
@@ -437,73 +452,106 @@ namespace REngine.RPI
 			return result;
 		}
 
-		private Vertex[] CreateVertices(Font font, in Color color, in Vector2 position, string text)
+		private TextChar[] CreateChars(Font font, in Color color, in Vector2 position, string text)
 		{
-			Vertex[] vertices = new Vertex[text.Length * 6];
-			Vector4 vertexColor = new(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-
+			TextChar[] chars = new TextChar[text.Length];
+			Vector4 charColor = new(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+		
 			float baseX = position.X;
-			for(int i =0; i < text.Length; ++i)
+
+			for(int i = 0;  i < chars.Length; i++)
 			{
 				byte glyphIndex = font.GetGlyhIndex(text[i]);
 				var bounds = font.GetBounds(glyphIndex);
 				var offset = font.GetOffset(glyphIndex);
 				var advance = font.GetAdvance(glyphIndex);
 
-				float x = baseX + offset.X;
-				float y = bounds.Height - offset.Y;
-
-				float w = bounds.Width;
-				float h = bounds.Height;
-
-				// UV must be in normalized values [0...1]
-				Vector2 leftTopUv = new Vector2(bounds.Left / font.Atlas.Size.Width, bounds.Top / font.Atlas.Size.Height);
-				Vector2 rightBottomUv = new Vector2(bounds.Right / font.Atlas.Size.Width, bounds.Bottom / font.Atlas.Size.Height);
-
-				// First Triangle
-				vertices[i] = new Vertex
+				chars[i] = new TextChar
 				{
-					Position = new Vector2(x, y + h),
-					UV = new Vector2(leftTopUv.X, leftTopUv.Y),
-					Color = vertexColor
-				};
-				vertices[i + 1] = new Vertex
-				{
-					Position = new Vector2(x, y),
-					UV = new Vector2(leftTopUv.X, rightBottomUv.Y),
-					Color = vertexColor
-				};
-				vertices[i + 2] = new Vertex
-				{
-					Position = new Vector2(x + w, y),
-					UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
-					Color = vertexColor
-				};
-				// Second Triangle
-				vertices[i + 3] = new Vertex
-				{
-					Position = new Vector2(x, y + h),
-					UV = new Vector2(leftTopUv.X, leftTopUv.Y),
-					Color = vertexColor
-				};
-				vertices[i + 4] = new Vertex
-				{
-					Position = new Vector2(x + w, y),
-					UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
-					Color = vertexColor
-				};
-				vertices[i + 5] = new Vertex
-				{
-					Position = new Vector2(x + w, y + h),
-					UV = new Vector2(rightBottomUv.X, leftTopUv.Y),
-					Color = vertexColor
+					PositionAndAtlasSize = new Vector4(
+						baseX + offset.X, 
+						(position.Y + font.CharSize.Height) - offset.Y,
+						font.Atlas.Size.Width,
+						font.Atlas.Size.Height
+					),
+					Bounds = bounds.ToVector4(),
+					Color = charColor,
 				};
 
-				baseX += advance.X >> 6;
+				baseX += advance.X;
 			}
 
-			return vertices;
+			return chars;
 		}
+
+		//private Vertex[] CreateVertices(Font font, in Color color, in Vector2 position, string text)
+		//{
+		//	Vertex[] vertices = new Vertex[text.Length * 6];
+		//	Vector4 vertexColor = new(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+
+		//	float baseX = position.X;
+		//	for(int i =0; i < text.Length; ++i)
+		//	{
+		//		int vertexIdx = i * 6;
+		//		byte glyphIndex = font.GetGlyhIndex(text[i]);
+		//		var bounds = font.GetBounds(glyphIndex);
+		//		var offset = font.GetOffset(glyphIndex);
+		//		var advance = font.GetAdvance(glyphIndex);
+
+		//		float x = baseX + offset.X;
+		//		float y = bounds.Height - offset.Y;
+
+		//		float w = bounds.Width;
+		//		float h = bounds.Height;
+
+		//		// UV must be in normalized values [0...1]
+		//		Vector2 leftTopUv = new Vector2(bounds.Left / (float)font.Atlas.Size.Width, bounds.Top / (float)font.Atlas.Size.Height);
+		//		Vector2 rightBottomUv = new Vector2(bounds.Right / (float)font.Atlas.Size.Width, bounds.Bottom / (float)font.Atlas.Size.Height);
+
+		//		// First Triangle
+		//		vertices[vertexIdx] = new Vertex
+		//		{
+		//			Position = new Vector2(x, y + h),
+		//			UV = new Vector2(leftTopUv.X, leftTopUv.Y),
+		//			Color = vertexColor
+		//		};
+		//		vertices[vertexIdx + 1] = new Vertex
+		//		{
+		//			Position = new Vector2(x, y),
+		//			UV = new Vector2(leftTopUv.X, rightBottomUv.Y),
+		//			Color = vertexColor
+		//		};
+		//		vertices[vertexIdx + 2] = new Vertex
+		//		{
+		//			Position = new Vector2(x + w, y),
+		//			UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
+		//			Color = vertexColor
+		//		};
+		//		// Second Triangle
+		//		vertices[vertexIdx + 3] = new Vertex
+		//		{
+		//			Position = new Vector2(x, y + h),
+		//			UV = new Vector2(leftTopUv.X, leftTopUv.Y),
+		//			Color = vertexColor
+		//		};
+		//		vertices[vertexIdx + 4] = new Vertex
+		//		{
+		//			Position = new Vector2(x + w, y),
+		//			UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
+		//			Color = vertexColor
+		//		};
+		//		vertices[vertexIdx + 5] = new Vertex
+		//		{
+		//			Position = new Vector2(x + w, y + h),
+		//			UV = new Vector2(rightBottomUv.X, leftTopUv.Y),
+		//			Color = vertexColor
+		//		};
+
+		//		baseX += 16;
+		//	}
+
+		//	return vertices;
+		//}
 
 		private IDevice GetDevice()
 		{

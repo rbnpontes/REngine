@@ -25,17 +25,19 @@ namespace REngine.Assets
 		{
 			private static readonly IDictionary<int, byte> sKeyPair = new Dictionary<int, byte>();
 
-			private readonly Image pAtlas;
 			private readonly FontAtlasCharData[] pCharData;
 
 			private string pFontName = "Unknow Font";
 			public override string Name { get => pFontName; }
-			public override Image Atlas { get => pAtlas; }
+			public override Size CharSize { get; }
+			public override Image Atlas { get; }
 
-			public FontImpl(Image atlas, FontAtlasCharData[] charData)
+			public FontImpl(Image atlas, Size charSize, FontAtlasCharData[] charData)
 			{
-				pAtlas = atlas;
 				pCharData = charData;
+				
+				Atlas = atlas;
+				CharSize = charSize;
 			}
 
 			public override Point GetAdvance(byte glyphIndex)
@@ -146,8 +148,8 @@ namespace REngine.Assets
 			fontData = Array.Empty<byte>();
 			GC.Collect();
 
-			var size = (IntPtr)(6 << 6);
-			var err = FT.FT_Set_Char_Size(face, size, size, 300, 300);
+			//var err = FT.FT_Set_Char_Size(face, IntPtr.Zero, new IntPtr(16*24), 300, 300);
+			var err = FT.FT_Set_Pixel_Sizes(face, 0, 16);
 			if (err != FT_Error.FT_Err_Ok)
 				throw new Exception($"Error has ocurred at set char size on face. Error: {err}");
 
@@ -214,8 +216,8 @@ namespace REngine.Assets
 
 				left = faceRec->glyph->bitmap_left;
 				top = faceRec->glyph->bitmap_top;
-				advanceX = (uint)faceRec->glyph->linearHoriAdvance;
-				advanceY = (uint)faceRec->glyph->linearVertAdvance;
+				advanceX = (uint)faceRec->glyph->advance.x >> 6;
+				advanceY = (uint)faceRec->glyph->advance.y >> 6;
 			}
 			return image;
 		}
@@ -256,7 +258,7 @@ namespace REngine.Assets
 				charDataValues[i] = charData;
 			}
 
-			var font = new FontImpl(atlasData.Image, charDataValues);
+			var font = new FontImpl(atlasData.Image, new Size(16, 16), charDataValues);
 			if (!string.IsNullOrEmpty(Name))
 				font.SetFontName(Name);
 			Size += font.Atlas.Data.Length;

@@ -329,8 +329,11 @@ namespace REngine.RPI.Features
 				cmd
 					.SetVertexBuffer(textBatches[i].VertexBuffer)
 					.SetPipeline(textBatches[i].PipelineState)
-					.CommitBindings(textBatches[i].PipelineState.GetResourceBinding())
-					.Draw(new DrawArgs { NumVertices = textBatches[i].NumVertices });
+					.CommitBindings(textBatches[i].ShaderResourceBinding)
+					.Draw(new DrawArgs { 
+						NumVertices = 4,
+						NumInstances = textBatches[i].NumItems
+					});
 			}
 		}
 

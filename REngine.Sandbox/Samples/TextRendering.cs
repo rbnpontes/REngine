@@ -37,6 +37,9 @@ namespace REngine.Sandbox.Samples
 		public void Load(IServiceProvider provider)
 		{
 			pSpriteBatch = provider.Get<ISpriteBatch>();
+			pRenderer = provider.Get<IRenderer>();
+
+			pRenderer.AddFeature(pSpriteFeature = pSpriteBatch.Feature);
 
 			// Load Font
 			FontAsset fontAsset = new();
@@ -50,8 +53,9 @@ namespace REngine.Sandbox.Samples
 				Color = Color.Green,
 				Font = fontAsset.Font,
 				Position = Vector2.Zero,
-				Text = "Hello World!!!"
+				Text = "Hello World"
 			});
+
 
 			pSpriteBatch.OnDraw += OnDraw;
 		}
