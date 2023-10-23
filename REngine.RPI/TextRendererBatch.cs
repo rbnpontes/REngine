@@ -172,7 +172,7 @@ namespace REngine.RPI
 				baseX += advance.X;
 			}
 
-			int requiredSize = Unsafe.SizeOf<CharData>() * sizeof(ulong) * 2;
+			int requiredSize = Unsafe.SizeOf<CharData>() * chars.Length * 2;
 			if (pVBuffer is null)
 			{
 				pVBuffer = AllocateVBuffer(chars);

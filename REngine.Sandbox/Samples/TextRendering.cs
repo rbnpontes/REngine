@@ -80,6 +80,10 @@ namespace REngine.Sandbox.Samples
 			ImGui.SliderInt("Font Size", ref fontSize, 6, 100);
 			pBatch.Size = (uint)fontSize;
 
+			string text = pBatch.Text;
+			ImGui.InputText("Text", ref text, 200);
+			pBatch.Text = text;
+
 			ImGui.End();
 		}
 
