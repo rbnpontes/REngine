@@ -49,9 +49,9 @@ void main(in VSInput input, out PSOutput output)
     float2 position = posValues[input.vertexId];
     float2 uv = uvValues[input.vertexId];
     
-    // char items uses atlas size, so char size will be font size
+    // char sizes is relative to atlas size
     // in this case, we must scale down and apply final font size
-    position *= output.fontScale = 1.0f / g_positionAndSizes.w;
+    position *= 1.0f / g_positionAndSizes.w;
     position *= g_positionAndSizes.z;
     position += g_positionAndSizes.xy; // apply position
     

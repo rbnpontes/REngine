@@ -38,6 +38,9 @@ namespace REngine.RPI
 
 		private IBuffer? pVBuffer;
 		private string pText = string.Empty;
+		private uint pSize = 16;
+		private Vector2 pPosition = Vector2.Zero;
+		private bool pDirtyBounds = false;
 		private BufferData pCBufferData = new();
 
 		public string Text
@@ -53,16 +56,52 @@ namespace REngine.RPI
 			{
 				lock (pSync)
 				{
-					pDirty = string.Equals(Text, value, StringComparison.CurrentCulture);
+					pDirty = !string.Equals(Text, value, StringComparison.CurrentCulture);
 					pText = value;
 				}
 			}
 		}
 
-		public Vector2 Position { get; set; } = Vector2.Zero;
-		public uint Size { get; set; } = 16;
+		public Vector2 Position
+		{
+			get
+			{
+				Vector2 position;
+				lock (pSync)
+					position = pPosition;
+				return position;
+			}
+			set
+			{
+				lock (pSync)
+				{
+					if(value != pPosition)
+					{
+						pPosition = value;
+						pDirtyBounds = true;
+					}
+				}
+			}
+		}
+		public uint Size 
+		{
+			get => pSize;
+			set
+			{
+				lock (pSync)
+				{
+					if(pSize != value)
+					{
+						pSize = value;
+						pDirtyBounds = true;
+					}
+				}
+			}
+		}
 
 		public Color Color { get; set; } = Color.White;
+
+		public RectangleF Bounds { get; private set; } = new();
 
 		public bool IsDirty { get => pDirty; }
 
@@ -131,7 +170,10 @@ namespace REngine.RPI
 		{
 			AssertDispose();
 			lock (pSync)
+			{
 				UpdateGlyphs(commandBuffer);
+				UpdateBounds();
+			}
 			return this;
 		}
 
@@ -151,6 +193,8 @@ namespace REngine.RPI
 			CharData[] chars = new CharData[Text.Length];
 			float baseX = 0.0f;
 
+			RectangleF currBounds = new();
+			float fontSizeRatio = 1.0f / pFont.CharSize.Width;
 			for (int i = 0; i < chars.Length; ++i)
 			{
 				byte glyphIdx = pFont.GetGlyhIndex(Text[i]);
@@ -158,11 +202,20 @@ namespace REngine.RPI
 				var offset = pFont.GetOffset(glyphIdx);
 				var advance = pFont.GetAdvance(glyphIdx);
 
+				Vector2 min = new Vector2(
+					baseX + offset.X, 
+					pFont.CharSize.Height - offset.Y
+				);
+				Vector2 max = new Vector2(
+					min.X + bounds.Width,
+					min.Y + bounds.Height
+				);
+
 				chars[i] = new CharData
 				{
 					PositionAndAtlasSize = new Vector4(
-						baseX + offset.X,
-						pFont.CharSize.Height - offset.Y,
+						min.X,
+						min.Y,
 						pFont.Atlas.Size.Width,
 						pFont.Atlas.Size.Height
 					),
@@ -170,7 +223,25 @@ namespace REngine.RPI
 				};
 
 				baseX += advance.X;
+
+				// glyph bounds is relative to atlas size
+				// in this case, we must downscale by the font size
+				// and scale again to the target font size
+				min *= fontSizeRatio;
+				max *= fontSizeRatio;
+
+				min *= Size;
+				max *= Size;
+
+				//min += Position;
+				//max += Position;
+
+				currBounds = currBounds.Merge(RectangleF.FromLTRB(min.X, min.Y, max.X, max.Y));
 			}
+
+			currBounds.Offset(pPosition.X, pPosition.Y);
+			Bounds = currBounds;
+			pDirtyBounds = false;
 
 			int requiredSize = Unsafe.SizeOf<CharData>() * chars.Length * 2;
 			if (pVBuffer is null)
@@ -193,7 +264,51 @@ namespace REngine.RPI
 				data
 			);
 		}
-		
+
+		private void UpdateBounds()
+		{
+			if (!pDirtyBounds)
+				return;
+
+			RectangleF currBounds = new();
+			float baseX = 0.0f;
+			float fontSizeRatio = 1.0f / pFont.CharSize.Width;
+
+			for (int i =0; i < Text.Length; ++i)
+			{
+				byte glyphIdx = pFont.GetGlyhIndex(Text[i]);
+				var bounds = pFont.GetBounds(glyphIdx);
+				var offset = pFont.GetOffset(glyphIdx);
+				var advance = pFont.GetAdvance(glyphIdx);
+
+				Vector2 min = new Vector2(
+					baseX + offset.X,
+					pFont.CharSize.Height - offset.Y
+				);
+				Vector2 max = new Vector2(
+					min.X + bounds.Width,
+					min.Y + bounds.Height
+				);
+
+				// glyph bounds is relative to atlas size
+				// in this case, we must downscale by the font size
+				// and scale again to the target font size
+				min *= fontSizeRatio;
+				max *= fontSizeRatio;
+
+				min *= Size;
+				max *= Size;
+
+				baseX += advance.X;
+
+				currBounds = currBounds.Merge(RectangleF.FromLTRB(min.X, min.Y, max.X, max.Y));
+			}
+
+			currBounds.Offset(pPosition.X, pPosition.Y);
+			Bounds = currBounds;
+			pDirtyBounds = false;
+		}
+
 		private IBuffer AllocateVBuffer(CharData[] data)
 		{
 			// Allocate Twice as required

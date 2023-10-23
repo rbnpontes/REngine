@@ -29,5 +29,70 @@ namespace REngine.Core.Mathematics
 		{
 			return new Vector4(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
 		}
+
+		public static RectangleF Merge(this RectangleF first, Rectangle second)
+		{
+			float left = first.Left;
+			float right = first.Right;
+			float top = first.Top;
+			float bottom = first.Bottom;
+
+			if (first.Width <= 0 || first.Width <= 0)
+				return second;
+			else if(second.Width > 0 && second.Height > 0)
+			{
+				if(second.Left < left)
+					left = second.Left;
+				if (second.Top < top)
+					top = second.Top;
+				if(second.Right > right)
+					right = second.Right;
+				if(second.Bottom > bottom)
+					bottom = second.Bottom;
+			}
+
+			return RectangleF.FromLTRB(left, top, right, bottom);
+		}
+		
+		public static RectangleF Merge(this RectangleF first, RectangleF second)
+		{
+			float left = first.Left;
+			float right = first.Right;
+			float top = first.Top;
+			float bottom = first.Bottom;
+
+			if(second.Left < left)
+				left = second.Left;
+			if(second.Top < top)
+				top = second.Top;
+			if(second.Right > right)
+				right = second.Right;
+			if (second.Bottom > bottom)
+				bottom = second.Bottom;
+
+			return RectangleF.FromLTRB(left, top, right, bottom);
+		}
+		public static RectangleF Merge(this RectangleF first, Vector2 second)
+		{
+			float left = first.Left;
+			float right = first.Right;
+			float top = first.Top;
+			float bottom = first.Bottom;
+
+			if(second.X < left)
+				left = second.X;
+			if(second.X > right)
+				right = second.X;
+			if(second.Y < top)
+				top = second.Y;
+			if(second.Y > bottom)
+				bottom = second.Y;
+
+			return RectangleF.FromLTRB(left, top, right, bottom);
+		}
+		public static RectangleF Merge(this RectangleF first, float x, float y)
+		{
+			return first.Merge(new Vector2(x, y));
+		}
 	}
 }

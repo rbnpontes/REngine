@@ -69,6 +69,7 @@ namespace REngine.Sandbox.Samples
 		{
 		}
 
+		private bool pDrawTextBounds = false;
 		private void OnGui(object? sender, EventArgs e)
 		{
 			if (pBatch is null)
@@ -84,12 +85,32 @@ namespace REngine.Sandbox.Samples
 			ImGui.InputText("Text", ref text, 200);
 			pBatch.Text = text;
 
+			ImGui.Checkbox("Draw Text Bounds", ref pDrawTextBounds);
+			if (pDrawTextBounds)
+				DrawBounds(pBatch.Bounds);
+
 			ImGui.End();
+		}
+
+		private void DrawBounds(RectangleF rect)
+		{
+			var drawList = ImGui.GetBackgroundDrawList();
+			drawList.AddRect(
+				new Vector2(rect.Left, rect.Top),
+				new Vector2(rect.Right, rect.Bottom),
+				0xFF00FF00
+			);
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
-			if(pSpriteBatch is null || pBatch is null) return;
+			if(pSpriteBatch is null || pBatch is null || Window is null) return;
+
+			var bounds = pBatch.Bounds;
+			pBatch.Position = new Vector2(
+				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
+				(Window.Size.Height * 0.5f) + (bounds.Height * 0.5f)
+			);
 
 			pSpriteBatch.Draw(pBatch);
 		}
