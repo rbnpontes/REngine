@@ -71,6 +71,15 @@ namespace REngine.Core.Resources
 		{
 			return $"ImageSize({Width}, {Height}, {Depth})";
 		}
+
+		public Vector2 ToVector2()
+		{
+			return new Vector2(Width, Height);
+		}
+		public Size ToSize()
+		{
+			return new Size(Width, Height);
+		}
 	}
 
 	public struct ImageDataInfo

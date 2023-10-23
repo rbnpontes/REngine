@@ -2,20 +2,25 @@
 {
 	float4x4 g_projection;
 };
+cbuffer ObjectConstants
+{
+    float4 g_color;
+    float4 g_positionAndSizes;
+};
 
 struct VSInput
 {
     uint vertexId : SV_VertexID;
-    float4 color : ATTRIB0;
-	float4 bounds : ATTRIB1;
-    float4 positionAndAtlasSize : ATTRIB2;
+	float4 bounds : ATTRIB0;
+    float4 positionAndAtlasSize : ATTRIB1;
 };
 
 struct PSOutput
 {
 	float4 pos : SV_POSITION;
 	float4 color : COLOR;
-	float2 uv : TEXCOORD;
+	float2 uv : TEXCOORD0;
+    float fontScale : TEXCOORD1;
 };
 
 void main(in VSInput input, out PSOutput output)
@@ -41,10 +46,17 @@ void main(in VSInput input, out PSOutput output)
     uvValues[2] = float2(normalizedBounds.z, normalizedBounds.w); // (1, 0)
     uvValues[3] = float2(normalizedBounds.z, normalizedBounds.y); // (1, 1)
 	
-    float4 position = float4(posValues[input.vertexId], 0.0, 1.0);
+    float2 position = posValues[input.vertexId];
     float2 uv = uvValues[input.vertexId];
     
-	output.pos = mul(g_projection, position);
-	output.color = input.color;
+    // char items uses atlas size, so char size will be font size
+    // in this case, we must scale down and apply final font size
+    position *= output.fontScale = 1.0f / g_positionAndSizes.w;
+    position *= g_positionAndSizes.z;
+    position += g_positionAndSizes.xy; // apply position
+    
+    output.fontScale = 1.0f / g_positionAndSizes.z;
+    output.pos = mul(g_projection, float4(position, 0.0, 1.0));
+	output.color = g_color;
 	output.uv = uv;
 }

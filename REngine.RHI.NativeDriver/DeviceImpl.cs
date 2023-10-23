@@ -64,7 +64,43 @@ namespace REngine.RHI.NativeDriver
 
 		public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc)
 		{
-			throw new NotImplementedException();
+			List<IntPtr> strings2Dispose = new();
+			List<IDisposable> disposables = new();
+			var immutableSamplers = new ArrayPointer<ImmutableSamplerDescNative>(
+				desc
+					.Samplers
+					.Select(x =>
+					{
+						ImmutableSamplerDescNative.Fill(x, out ImmutableSamplerDescNative output);
+						if (output.name != IntPtr.Zero)
+							strings2Dispose.Add(output.name);
+						return output;
+					})
+					.ToArray()
+			);
+
+			disposables.Add(immutableSamplers);
+
+			ComputePipelineDescDTO.Fill(desc, out ComputePipelineDescDTO output);
+			if (output.name != IntPtr.Zero)
+				strings2Dispose.Add(output.name);
+			output.samplers = immutableSamplers.Handle;
+
+			ResultNative result = new();
+			lock (pSync)
+			{
+				rengine_device_create_computepipeline(
+					Handle,
+					ref output,
+					(byte)(pBackend == GraphicsBackend.OpenGL ? 1 : 0),
+					ref result
+				);
+			}
+
+			if(result.error != IntPtr.Zero)
+				throw new Exception("Can´t create Compute Pipeline. "+(Marshal.PtrToStringAnsi(result.error) ?? "Reason is Unknow"));
+
+			return new ComputePipelineImpl(desc, result.value);
 		}
 
 		public unsafe IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc)

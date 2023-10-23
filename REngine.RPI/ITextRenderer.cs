@@ -15,36 +15,10 @@ namespace REngine.RPI
 		public TextRendererException(string message) : base(message) { }
 	}
 
-	public abstract class TextRendererBatch : IDisposable
-	{
-		public abstract IPipelineState PipelineState { get; }
-		public abstract IBuffer VertexBuffer { get; }
-		public abstract ITexture FontTexture { get; }
-		public abstract IShaderResourceBinding ShaderResourceBinding { get; }
-		public abstract uint NumItems { get; }
-
-		public abstract void Dispose();
-	}
-
-	public struct TextRendererCreateInfo
-	{
-		public string Text;
-		public Color Color;
-		public Vector2 Position;
-		public Font Font;
-	}
-
 	public interface ITextRenderer
 	{
-		/// <summary>
-		/// Get Internal Stored GPU Texture atlas
-		/// TextRenderer stores texture by font name
-		/// If you use a Font with same name of previous registered
-		/// you will get an invalid texture
-		/// </summary>
-		/// <param name="font">Font object</param>
-		/// <returns>GPU Texture Atlas</returns>
-		public ITexture? GetFontTexture(Font font);
-		public TextRendererBatch CreateBatch(TextRendererCreateInfo createInfo);
+		public ITextRenderer SetFont(Font font);
+		public ITextRenderer SetFont(Font font, string fontName);
+		public TextRendererBatch CreateBatch(string fontName);
 	}
 }

@@ -21,6 +21,7 @@ namespace REngine.Assets
 
 	public class FontAsset : IAsset
 	{
+		const int DefaultFontSize = 48;
 		class FontImpl : Font
 		{
 			private static readonly IDictionary<int, byte> sKeyPair = new Dictionary<int, byte>();
@@ -149,7 +150,7 @@ namespace REngine.Assets
 			GC.Collect();
 
 			//var err = FT.FT_Set_Char_Size(face, IntPtr.Zero, new IntPtr(16*24), 300, 300);
-			var err = FT.FT_Set_Pixel_Sizes(face, 0, 16);
+			var err = FT.FT_Set_Pixel_Sizes(face, 0, DefaultFontSize);
 			if (err != FT_Error.FT_Err_Ok)
 				throw new Exception($"Error has ocurred at set char size on face. Error: {err}");
 
@@ -243,7 +244,7 @@ namespace REngine.Assets
 				}
 			}
 
-			var atlasData = Image.MakeAtlas(images, 5, 8);
+			var atlasData = Image.MakeAtlas(images, 16, 8);
 
 			FontAtlasCharData[] charDataValues = new FontAtlasCharData[Font.CharMap.Length];
 			for (int i = 0; i < Font.CharMap.Length; ++i)

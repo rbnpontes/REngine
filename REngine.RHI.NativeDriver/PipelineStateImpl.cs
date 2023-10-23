@@ -23,4 +23,19 @@ namespace REngine.RHI.NativeDriver
 			return Desc.Name;
 		}
 	}
+
+	internal class ComputePipelineImpl : BasePipelineStateImpl, IComputePipelineState
+	{
+		public ComputePipelineDesc Desc { get; private set; }
+		public ComputePipelineImpl(ComputePipelineDesc desc, IntPtr handle) : base(handle)
+		{
+			// Remove Compute Shader
+			desc.ComputeShader = null;
+			Desc = desc;
+		}
+		protected override string GetName()
+		{
+			return Desc.Name;
+		}
+	}
 }

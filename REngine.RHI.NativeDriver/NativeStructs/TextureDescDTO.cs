@@ -17,7 +17,7 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		public ushort format;
 		public uint mipLevels;
 		public uint sampleCount;
-		public byte bindFlags;
+		public uint bindFlags;
 		public byte usage;
 		public byte accessFlags;
 		public byte textureFlags;
@@ -43,7 +43,7 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 				format = (ushort)desc.Format,
 				mipLevels = desc.MipLevels,
 				sampleCount = desc.SampleCount,
-				bindFlags = (byte)desc.BindFlags,
+				bindFlags = (uint)desc.BindFlags,
 				usage = (byte)desc.Usage,
 				accessFlags = (byte)desc.AccessFlags,
 				textureFlags = (byte)desc.Flags,

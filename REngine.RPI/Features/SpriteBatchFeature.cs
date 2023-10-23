@@ -324,17 +324,8 @@ namespace REngine.RPI.Features
 
 			// Render Texts
 			var textBatches = pBatcher.TextBatches;
-			for(int i =0; i < textBatches.Count; ++i)
-			{
-				cmd
-					.SetVertexBuffer(textBatches[i].VertexBuffer)
-					.SetPipeline(textBatches[i].PipelineState)
-					.CommitBindings(textBatches[i].ShaderResourceBinding)
-					.Draw(new DrawArgs { 
-						NumVertices = 4,
-						NumInstances = textBatches[i].NumItems
-					});
-			}
+			for (int i = 0; i < textBatches.Count; ++i)
+				textBatches[i].Draw(cmd);
 		}
 
 		private unsafe void ExecuteInstanced(

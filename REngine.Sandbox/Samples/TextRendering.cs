@@ -1,4 +1,5 @@
-﻿using REngine.Assets;
+﻿using ImGuiNET;
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.RPI;
@@ -21,6 +22,7 @@ namespace REngine.Sandbox.Samples
 		private IRenderFeature? pSpriteFeature;
 		private IRenderer? pRenderer;
 		private ITextRenderer? pTextRenderer;
+		private IImGuiSystem? pImGuiSystem;
 
 		private TextRendererBatch? pBatch;
 
@@ -32,10 +34,15 @@ namespace REngine.Sandbox.Samples
 			pBatch?.Dispose();
 			if (pSpriteBatch != null)
 				pSpriteBatch.OnDraw -= OnDraw;
+
+			if(pImGuiSystem != null)
+				pImGuiSystem.OnGui -= OnGui; ;
 		}
 
 		public void Load(IServiceProvider provider)
 		{
+			if (Window is null)
+				return;
 			pSpriteBatch = provider.Get<ISpriteBatch>();
 			pRenderer = provider.Get<IRenderer>();
 
@@ -48,21 +55,32 @@ namespace REngine.Sandbox.Samples
 				fontAsset.Load(stream).Wait();
 
 			pTextRenderer = provider.Get<ITextRenderer>();
-			pBatch = pTextRenderer.CreateBatch(new TextRendererCreateInfo
-			{
-				Color = Color.Green,
-				Font = fontAsset.Font,
-				Position = Vector2.Zero,
-				Text = "Hello World"
-			});
+			pBatch = pTextRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 
-
+			pBatch.Text = "Hello World";
+			pBatch.Position = new Vector2(Window.Size.Width / 2.0f, Window.Size.Height / 2.0f);
 			pSpriteBatch.OnDraw += OnDraw;
-		}
 
+			pImGuiSystem = provider.Get<IImGuiSystem>();
+			pImGuiSystem.OnGui += OnGui;
+		}
 
 		public void Update(IServiceProvider provider)
 		{
+		}
+
+		private void OnGui(object? sender, EventArgs e)
+		{
+			if (pBatch is null)
+				return;
+
+			ImGui.Begin("TextRenderer Settings");
+
+			int fontSize = (int)pBatch.Size;
+			ImGui.SliderInt("Font Size", ref fontSize, 6, 100);
+			pBatch.Size = (uint)fontSize;
+
+			ImGui.End();
 		}
 
 		private void OnDraw(object? sender, EventArgs e)

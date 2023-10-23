@@ -3,6 +3,7 @@ using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.RHI;
+using REngine.RPI.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,169 +17,58 @@ namespace REngine.RPI
 {
 	internal class TextRendererImpl : ITextRenderer, IDisposable
 	{
-		struct Vertex
+		class FontEntry : IDisposable
 		{
-			public Vector2 Position;
-			public Vector2 UV;
-			public Vector4 Color;
-		}
+			private bool pDisposed = false;
 
-		struct TextChar
-		{
-			public Vector4 Color;
-			public Vector4 Bounds;
-			public Vector4 PositionAndAtlasSize;
-		}
+			public IShaderResourceBinding SRB { get; private set; }
+			public Font Font { get; private set; }
+			public ITexture TextureAtlas { get; private set; }
 
-		class TextRendererBatchImpl : TextRendererBatch
+			public FontEntry(Font font, ITexture textureAtlas, IShaderResourceBinding srb)
+			{
+				Font = font;
+				TextureAtlas = textureAtlas;
+				SRB = srb;
+			}
+
+			public void Dispose()
+			{
+				if(pDisposed) return;
+
+				SRB.Dispose();
+				TextureAtlas.Dispose();
+
+				pDisposed = true;
+				GC.SuppressFinalize(this);
+			}
+		}
+		class InternalBatch : TextRendererBatch
 		{
 			private readonly TextRendererImpl pRenderer;
 
-			private bool pDisposed;
+			public LinkedListNode<InternalBatch>? BatchNode;
 
-			public LinkedListNode<TextRendererBatchImpl>? TargetNode;
-		
-			public override IPipelineState PipelineState { get; }
-
-			public override IShaderResourceBinding ShaderResourceBinding { get; }
-
-			public override IBuffer VertexBuffer { get; }
-
-			public override ITexture FontTexture { get; }
-
-			public override uint NumItems { get; }
-
-			public TextRendererBatchImpl(
+			public InternalBatch(
 				TextRendererImpl renderer,
-				IPipelineState pipeline,
-				IShaderResourceBinding binding,
-				IBuffer vbuffer,
-				ITexture fontTexture,
-				uint numItems
-			)
+				IDevice device, 
+				IPipelineState fontPipeline,
+				IShaderResourceBinding srb,
+				IBuffer cbuffer, 
+				Font font
+			) : base(device, fontPipeline, srb, cbuffer, font)
 			{
 				pRenderer = renderer;
-				ShaderResourceBinding = binding;
-				PipelineState = pipeline;
-				VertexBuffer = vbuffer;
-				FontTexture = fontTexture;
-				NumItems = numItems;
 			}
 
-			public override void Dispose()
+			protected override void OnDispose()
 			{
-				if (pDisposed)
-					return;
-
-				VertexBuffer.Dispose();
-				ShaderResourceBinding.Dispose();
-
-				if(TargetNode != null)
-				{
-					lock(pRenderer.pSync)
-						pRenderer.pBatches2Dispose.Remove(TargetNode);
-				}
-
-				pDisposed = true;
-				GC.SuppressFinalize(this);
-			}
-		}
-
-		class BufferWrapper : IBuffer
-		{
-			private readonly IBuffer pBuffer;
-			private readonly TextRendererImpl pRenderer;
-
-			private bool pDisposed = false;
-
-			public LinkedListNode<BufferWrapper>? TargetNode;
-
-			public BufferDesc Desc { get => pBuffer.Desc; }
-
-			public ulong Size { get => pBuffer.Size; }
-
-			public string Name { get => pBuffer.Name; }
-
-			public IntPtr Handle { get => pBuffer.Handle; }
-
-			public bool IsDisposed { get => pDisposed; }
-
-			public BufferWrapper(IBuffer buffer, TextRendererImpl renderer)
-			{
-				pBuffer = buffer;
-				pRenderer = renderer;
-			}
-
-			public event EventHandler? OnDispose;
-
-			public void Dispose()
-			{
-				if(pDisposed) return;
-
-				pBuffer.Dispose();
-
-				OnDispose?.Invoke(this, EventArgs.Empty);
-
-				if (TargetNode != null)
-				{
-					lock (pRenderer.pSync)
-						pRenderer.pBuffers2Dispose.Remove(TargetNode);
-				}
-
-				pDisposed = true;
-				GC.SuppressFinalize(this);
-			}
-		}
-		class TextureWrapper : ITexture
-		{
-			private readonly ITexture pTexture;
-			private readonly TextRendererImpl pRenderer;
-			private readonly Font pFont;
-
-			private bool pDisposed = false;
-
-			public TextureDesc Desc => pTexture.Desc;
-
-			public string Name => pTexture.Name;
-
-			public IntPtr Handle => pTexture.Handle;
-
-			public bool IsDisposed => pDisposed;
-
-			public event EventHandler? OnDispose;
-
-			public TextureWrapper(ITexture texture, TextRendererImpl renderer, Font font)
-			{
-				pTexture = texture;
-				pRenderer = renderer;
-				pFont = font;
-				texture.OnDispose += HandleDispose;
-			}
-
-			private void HandleDispose(object? sender, EventArgs e)
-			{
-				pTexture.OnDispose -= HandleDispose;
-				OnDispose?.Invoke(this, EventArgs.Empty);
-			}
-
-			public void Dispose()
-			{
-				if(pDisposed) return;
-
-				pTexture.Dispose();
 				lock (pRenderer.pSync)
 				{
-					if(pRenderer.pFontTextures.ContainsKey(pFont.Name.GetHashCode()))
-						pRenderer.pFontTextures.Remove(pFont.Name.GetHashCode());
+					if(BatchNode != null)
+						pRenderer.pBatches.Remove(BatchNode);
+					BatchNode = null;
 				}
-
-				pDisposed = true;
-				GC.SuppressFinalize(this);
-			}
-
-			public ITextureView GetDefaultView(TextureViewType view)
-			{
-				return pTexture.GetDefaultView(view);
 			}
 		}
 
@@ -188,10 +78,8 @@ namespace REngine.RPI
 		private readonly EngineEvents pEngineEvents;
 		private readonly IRenderer pRenderer;
 
-		private readonly LinkedList<TextRendererBatchImpl> pBatches2Dispose = new();
-		private readonly LinkedList<BufferWrapper> pBuffers2Dispose = new();
-
-		private readonly Dictionary<int, TextureWrapper> pFontTextures = new();
+		private readonly LinkedList<InternalBatch> pBatches = new();
+		private readonly Dictionary<int, FontEntry> pFonts = new();
 
 		private readonly object pSync = new();
 
@@ -222,17 +110,13 @@ namespace REngine.RPI
 			if (pDisposed)
 				return;
 
-			if (pBatches2Dispose.Count > 0)
-				pLogger.Info($"Clearing ({pBatches2Dispose.Count}) batches");
-			DisposeItems(pBatches2Dispose);
+			if (pBatches.Count > 0)
+				pLogger.Info($"Clearing ({pBatches.Count}) batches");
+			DisposeBatches();
 
-			if (pBuffers2Dispose.Count > 0)
-				pLogger.Info($"Clearing ({pBuffers2Dispose.Count}) buffers");
-			DisposeItems(pBuffers2Dispose);
-
-			if (pFontTextures.Count > 0)
-				pLogger.Info($"Clearing ({pFontTextures.Count}) font textures");
-			DisposeFontTextures();
+			if (pFonts.Count > 0)
+				pLogger.Info($"Clearing ({pFonts.Count}) font textures");
+			DisposeFonts();
 
 			pPipeline?.Dispose();
 			pPipeline = null;
@@ -243,37 +127,20 @@ namespace REngine.RPI
 			GC.SuppressFinalize(this);
 		}
 
-		private void DisposeItems<T>(LinkedList<T> list) where T : class
+		private void DisposeBatches()
 		{
-			LinkedListNode<T>? nextNode;
-			lock(pSync)
-				nextNode = list.First;
-			while(nextNode != null)
-			{
-				var currNode = nextNode;
-				lock(pSync)
-					nextNode = currNode.Next;
-
-				if(currNode.Value is IDisposable disposable)
-					disposable.Dispose();
-			}
-
-			lock (pSync)
-				list.Clear();
+			while(pBatches.First != null)
+				pBatches.First.Value.Dispose();
 		}
 
-		private void DisposeFontTextures()
+		private void DisposeFonts()
 		{
-			List<KeyValuePair<int, TextureWrapper>> texPair;
-
 			lock (pSync)
 			{
-				texPair = pFontTextures.ToList();
-				pFontTextures.Clear();
+				foreach(var pair in pFonts)
+					pair.Value.Dispose();
+				pFonts.Clear();
 			}
-
-			foreach(var pair in texPair)
-				pair.Value.Dispose();
 		}
 
 		private void HandleEngineStop(object? sender, EventArgs e)
@@ -281,46 +148,22 @@ namespace REngine.RPI
 			Dispose();
 		}
 
-		private BufferWrapper AllocateVBuffer(TextChar[] chars)
-		{
-			var buffer = GetDevice().CreateBuffer(new BufferDesc
-			{
-				Name = "Text Renderer Vertex Buffer",
-				BindFlags = BindFlags.VertexBuffer,
-				Usage = Usage.Immutable,
-				Size = (ulong)(chars.Length * Marshal.SizeOf<TextChar>()),
-			}, chars);
-			return new BufferWrapper(buffer, this);
-		}
-
-		//private IBuffer AllocateIBuffer(uint[] indices)
-		//{
-		//	return pDevice.CreateBuffer(new BufferDesc
-		//	{
-		//		Name = "Text Renderer Index Buffer",
-		//		BindFlags = BindFlags.IndexBuffer,
-		//		Usage = Usage.Dynamic,
-		//		AccessFlags = CpuAccessFlags.Write,
-		//		Size = (ulong)(indices.Length * sizeof(uint))
-		//	}, indices);
-		//}
-
-		private TextureWrapper AllocateTexture(Font font)
+		private ITexture AllocateTexture(Font font, Image image)
 		{
 			var texture = GetDevice().CreateTexture(new TextureDesc
 			{
 				Name = $"Font ({font.Name}) Texture",
 				AccessFlags = CpuAccessFlags.None,
-				Size = new TextureSize(font.Atlas.Size.Width, font.Atlas.Size.Height),
+				Size = new TextureSize(image.Size.Width, image.Size.Height),
 				BindFlags = BindFlags.ShaderResource,
-				Usage = Usage.Immutable,
+				Usage = Usage.Default,
 				Dimension = TextureDimension.Tex2D,
 				Format = TextureFormat.R8UNorm
 			}, new ITextureData[] { 
-				new ByteTextureData(font.Atlas.Data, font.Atlas.Stride) 
+				new ByteTextureData(image.Data, image.Stride) 
 			});
 
-			return new TextureWrapper(texture, this, font);
+			return texture;
 		}
 
 		private IPipelineState BuildPipeline()
@@ -340,7 +183,7 @@ namespace REngine.RPI
 			desc.Shaders.VertexShader = vsShader;
 			desc.Shaders.PixelShader = psShader;
 
-			for(uint i =0; i < 3; ++i)
+			for(uint i =0; i < 2; ++i)
 			{
 				desc.InputLayouts.Add(
 					new PipelineInputLayoutElementDesc
@@ -360,7 +203,7 @@ namespace REngine.RPI
 				new ImmutableSamplerDesc
 				{
 					Name = "g_texture",
-					Sampler = new SamplerStateDesc(TextureFilterMode.Nearest, TextureAddressMode.Clamp)
+					Sampler = new SamplerStateDesc(TextureFilterMode.Anisotropic, TextureAddressMode.Clamp)
 				}
 			);
 
@@ -398,160 +241,71 @@ namespace REngine.RPI
 			return GetDevice().CreateShader(shaderCI);
 		}
 
-		public ITexture? GetFontTexture(Font font)
+		public ITextRenderer SetFont(Font font)
 		{
-			return TryGetFontTexture(font);
+			return SetFont(font, font.Name);
 		}
-
-		private TextureWrapper? TryGetFontTexture(Font font)
+		
+		public ITextRenderer SetFont(Font font, string fontName)
 		{
-			TextureWrapper? tex;
+			if(string.IsNullOrEmpty(fontName))
+				throw new ArgumentNullException(nameof(fontName));
+
+			int fontHashCode = fontName.GetHashCode();
+			FontEntry? fontEntry;
+			lock(pSync)
+				pFonts.TryGetValue(fontHashCode, out fontEntry);
+			
+			if (fontEntry?.Font == font)
+				return this;
+
+			SdfBuilder builder = new SdfBuilder(font.Atlas);
+			builder.Radius = 4;
+			builder.Cutoff = 0.45f;
+			ITexture texture = AllocateTexture(font, builder.Build());
+
+			IShaderResourceBinding srb;
 			lock (pSync)
-				pFontTextures.TryGetValue(font.Name.GetHashCode(), out tex);
-			return tex;
+			{
+				if (pPipeline is null)
+					pPipeline = BuildPipeline();
+
+				srb = pPipeline.CreateResourceBinding();
+			}
+
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
+			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+
+			lock(pSync)
+				pFonts[fontHashCode] = new FontEntry(font, texture, srb);
+			return this;
 		}
 
-		public TextRendererBatch CreateBatch(TextRendererCreateInfo createInfo)
+		public TextRendererBatch CreateBatch(string fontName)
 		{
-			if (string.IsNullOrEmpty(createInfo.Text))
-				throw new ArgumentNullException("text cannot be null or empty");
+			if (string.IsNullOrEmpty(fontName))
+				throw new ArgumentNullException("font name cannot be null or empty. Font must register first with SetFont method.");
 
 			if (pPipeline is null)
 				pPipeline = BuildPipeline();
 
-			TextChar[] chars = CreateChars(createInfo.Font, createInfo.Color, createInfo.Position, createInfo.Text);
-			BufferWrapper vbuffer = AllocateVBuffer(chars);
+			FontEntry? fontEntry;
+			pFonts.TryGetValue(fontName.GetHashCode(), out fontEntry);
 
-			lock(pSync)
-				vbuffer.TargetNode = pBuffers2Dispose.AddLast(vbuffer);
+			if (fontEntry is null)
+				throw new NullReferenceException($"Font '{fontName}' was not found. Did you call SetFont method first ?");
 
-			TextureWrapper? texture = TryGetFontTexture(createInfo.Font);
-			if(texture is null)
-			{
-				texture = AllocateTexture(createInfo.Font);
-				lock(pSync)
-					pFontTextures.Add(createInfo.Font.Name.GetHashCode(), texture);
-			}
-
-			var srb = pPipeline.CreateResourceBinding();
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
-			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
-
-			var result = new TextRendererBatchImpl(
+			InternalBatch batch = new InternalBatch(
 				this,
+				pDevice,
 				pPipeline,
-				srb,
-				vbuffer,
-				texture,
-				(uint)chars.Length
+				fontEntry.SRB,
+				pBufferProvider.GetBuffer(BufferGroupType.Object),
+				fontEntry.Font
 			);
-
-			lock(pSync)
-				result.TargetNode = pBatches2Dispose.AddLast(result);
-
-			return result;
+			return batch;
 		}
-
-		private TextChar[] CreateChars(Font font, in Color color, in Vector2 position, string text)
-		{
-			TextChar[] chars = new TextChar[text.Length];
-			Vector4 charColor = new(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-		
-			float baseX = position.X;
-
-			for(int i = 0;  i < chars.Length; i++)
-			{
-				byte glyphIndex = font.GetGlyhIndex(text[i]);
-				var bounds = font.GetBounds(glyphIndex);
-				var offset = font.GetOffset(glyphIndex);
-				var advance = font.GetAdvance(glyphIndex);
-
-				chars[i] = new TextChar
-				{
-					PositionAndAtlasSize = new Vector4(
-						baseX + offset.X, 
-						(position.Y + font.CharSize.Height) - offset.Y,
-						font.Atlas.Size.Width,
-						font.Atlas.Size.Height
-					),
-					Bounds = bounds.ToVector4(),
-					Color = charColor,
-				};
-
-				baseX += advance.X;
-			}
-
-			return chars;
-		}
-
-		//private Vertex[] CreateVertices(Font font, in Color color, in Vector2 position, string text)
-		//{
-		//	Vertex[] vertices = new Vertex[text.Length * 6];
-		//	Vector4 vertexColor = new(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-
-		//	float baseX = position.X;
-		//	for(int i =0; i < text.Length; ++i)
-		//	{
-		//		int vertexIdx = i * 6;
-		//		byte glyphIndex = font.GetGlyhIndex(text[i]);
-		//		var bounds = font.GetBounds(glyphIndex);
-		//		var offset = font.GetOffset(glyphIndex);
-		//		var advance = font.GetAdvance(glyphIndex);
-
-		//		float x = baseX + offset.X;
-		//		float y = bounds.Height - offset.Y;
-
-		//		float w = bounds.Width;
-		//		float h = bounds.Height;
-
-		//		// UV must be in normalized values [0...1]
-		//		Vector2 leftTopUv = new Vector2(bounds.Left / (float)font.Atlas.Size.Width, bounds.Top / (float)font.Atlas.Size.Height);
-		//		Vector2 rightBottomUv = new Vector2(bounds.Right / (float)font.Atlas.Size.Width, bounds.Bottom / (float)font.Atlas.Size.Height);
-
-		//		// First Triangle
-		//		vertices[vertexIdx] = new Vertex
-		//		{
-		//			Position = new Vector2(x, y + h),
-		//			UV = new Vector2(leftTopUv.X, leftTopUv.Y),
-		//			Color = vertexColor
-		//		};
-		//		vertices[vertexIdx + 1] = new Vertex
-		//		{
-		//			Position = new Vector2(x, y),
-		//			UV = new Vector2(leftTopUv.X, rightBottomUv.Y),
-		//			Color = vertexColor
-		//		};
-		//		vertices[vertexIdx + 2] = new Vertex
-		//		{
-		//			Position = new Vector2(x + w, y),
-		//			UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
-		//			Color = vertexColor
-		//		};
-		//		// Second Triangle
-		//		vertices[vertexIdx + 3] = new Vertex
-		//		{
-		//			Position = new Vector2(x, y + h),
-		//			UV = new Vector2(leftTopUv.X, leftTopUv.Y),
-		//			Color = vertexColor
-		//		};
-		//		vertices[vertexIdx + 4] = new Vertex
-		//		{
-		//			Position = new Vector2(x + w, y),
-		//			UV = new Vector2(rightBottomUv.X, rightBottomUv.Y),
-		//			Color = vertexColor
-		//		};
-		//		vertices[vertexIdx + 5] = new Vertex
-		//		{
-		//			Position = new Vector2(x + w, y + h),
-		//			UV = new Vector2(rightBottomUv.X, leftTopUv.Y),
-		//			Color = vertexColor
-		//		};
-
-		//		baseX += 16;
-		//	}
-
-		//	return vertices;
-		//}
 
 		private IDevice GetDevice()
 		{
@@ -559,7 +313,7 @@ namespace REngine.RPI
 				return pDevice;
 			pDevice = pRenderer.Driver?.Device;
 			if (pDevice is null)
-				throw new TextRendererException("Empty Graphics Driver. It seems that Renderer was not initialized");
+				throw new TextRendererException("Empty Graphics Driver. It seems renderer was not initialized");
 			return pDevice;
 		}
 	}
