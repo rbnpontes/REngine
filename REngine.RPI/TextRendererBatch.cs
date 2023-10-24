@@ -48,6 +48,7 @@ namespace REngine.RPI
 		private CharData[] pCharData = Array.Empty<CharData>();
 
 		private RectangleF pBounds = new();
+		private RectangleF? pDefinitiveBounds = new();
 
 		private BufferData pCBufferData = new();
 
@@ -83,7 +84,13 @@ namespace REngine.RPI
 			set
 			{
 				lock (pSync)
-					pPosition = value;
+				{
+					if(pPosition != value)
+					{
+						pPosition = value;
+						pDefinitiveBounds = null;
+					}
+				}
 			}
 		}
 		public uint Size 
@@ -99,7 +106,11 @@ namespace REngine.RPI
 			{
 				lock (pSync)
 				{
-					pSize = value;
+					if(pSize != value)
+					{
+						pSize = value;
+						pDefinitiveBounds = null;
+					}
 				}
 			}
 		}
@@ -120,6 +131,7 @@ namespace REngine.RPI
 					if(pVerticalSpacing != value)
 					{
 						pVerticalSpacing = Math.Max(value, -1.0f);
+						pDefinitiveBounds = null;
 						pDirtyBounds = true;
 					}
 				}
@@ -141,6 +153,7 @@ namespace REngine.RPI
 					if(pHorizontalSpacing != value)
 					{
 						pHorizontalSpacing = Math.Max(value, -1.0f);
+						pDefinitiveBounds = null;
 						pDirtyBounds = true;
 					}
 				}
@@ -158,14 +171,32 @@ namespace REngine.RPI
 					if (pDirtyBounds)
 						UpdateGlyphs();
 
-					// glyph bounds is relative to atlas size
-					// in this case, we must downscale to font size ratio
-					// and scale again by the current size
-					result = pBounds.Scale(1.0f / pFont.CharSize.Width);
-					result = result.Scale(pSize);
-					result = result.Add(pPosition);
+					// Calculate Final Bounds from Base Bounds
+					if(pDefinitiveBounds is null)
+					{
+						// glyph bounds is relative to atlas size
+						// in this case, we must downscale to font size ratio
+						// and scale again by the current size
+						pDefinitiveBounds = pBounds
+							.Scale(1.0f / pFont.CharSize.Width)
+							.Scale(pSize)
+							.Add(pPosition);
+					}
+
+					result = pDefinitiveBounds.Value;
 				}
 
+				return result;
+			}
+		}
+
+		public RectangleF TextBounds
+		{
+			get
+			{
+				RectangleF result;
+				lock (pSync)
+					result = pBounds;
 				return result;
 			}
 		}
@@ -309,6 +340,7 @@ namespace REngine.RPI
 			pBounds = currBounds;
 
 			pCharData = chars;
+			pDefinitiveBounds = null;
 			pDirty = true;
 		}
 

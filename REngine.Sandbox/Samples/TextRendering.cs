@@ -102,24 +102,18 @@ namespace REngine.Sandbox.Samples
 				ImGui.Checkbox("Debug Text Bounds", ref pDrawTextBounds);
 
 				if (pDrawTextBounds)
-					DrawBounds(pBatch.Bounds);
+					DrawBounds(pLastBounds);
 			}
 
 			ImGui.End();
 		}
 
-		private float pOffset = 0f;
 		private void DrawBounds(RectangleF rect)
 		{
 			uint color = 0xFF00FF00;
 			
 			Vector2 min = rect.Location.ToVector2();
 			Vector2 max = new Vector2(rect.Right, rect.Bottom);
-
-			ImGui.DragFloat("Offset", ref pOffset);
-
-			min.Y += pOffset;
-			max.Y += pOffset;
 
 			var drawList = ImGui.GetBackgroundDrawList();
 			drawList.AddText(min, color, min.ToString());
@@ -148,14 +142,10 @@ namespace REngine.Sandbox.Samples
 				pBatch.Text = pText;
 			}
 
-			//var bounds = pBatch.Bounds;
-			//Vector2 position = new Vector2(
-			//	(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
-			//	(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
-			//);
+			var bounds = pBatch.Bounds;
 			pBatch.Position = new Vector2(
-				Window.Size.Width * 0.5f,
-				Window.Size.Height * 0.5f
+				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
+				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
 			);
 
 			lock (pSync)
