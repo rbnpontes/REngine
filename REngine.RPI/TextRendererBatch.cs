@@ -83,13 +83,7 @@ namespace REngine.RPI
 			set
 			{
 				lock (pSync)
-				{
-					if(value != pPosition)
-					{
-						pPosition = value;
-						pDirtyBounds = true;
-					}
-				}
+					pPosition = value;
 			}
 		}
 		public uint Size 
@@ -105,11 +99,7 @@ namespace REngine.RPI
 			{
 				lock (pSync)
 				{
-					if(pSize != value)
-					{
-						pSize = value;
-						pDirtyBounds = true;
-					}
+					pSize = value;
 				}
 			}
 		}
@@ -129,7 +119,7 @@ namespace REngine.RPI
 				{
 					if(pVerticalSpacing != value)
 					{
-						pVerticalSpacing = value;
+						pVerticalSpacing = Math.Max(value, -1.0f);
 						pDirtyBounds = true;
 					}
 				}
@@ -150,7 +140,7 @@ namespace REngine.RPI
 				{
 					if(pHorizontalSpacing != value)
 					{
-						pHorizontalSpacing = value;
+						pHorizontalSpacing = Math.Max(value, -1.0f);
 						pDirtyBounds = true;
 					}
 				}
@@ -166,10 +156,14 @@ namespace REngine.RPI
 				lock (pSync)
 				{
 					if (pDirtyBounds)
-					{
 						UpdateGlyphs();
-					}
-					result = pBounds;
+
+					// glyph bounds is relative to atlas size
+					// in this case, we must downscale to font size ratio
+					// and scale again by the current size
+					result = pBounds.Scale(1.0f / pFont.CharSize.Width);
+					result = result.Scale(pSize);
+					result = result.Add(pPosition);
 				}
 
 				return result;
@@ -272,8 +266,7 @@ namespace REngine.RPI
 			float baseX = 0.0f;
 			float baseY = 0.0f;
 			float currHeight = 0.0f;
-			float fontSizeRatio = 1.0f / pFont.CharSize.Width;
-			for (int i = 0; i < chars.Length; ++i)
+			for (int i = 0; i < pText.Length; ++i)
 			{
 				if (pText[i] == '\n')
 				{
@@ -307,27 +300,14 @@ namespace REngine.RPI
 					Bounds = bounds.ToVector4()
 				};
 
+				baseX += advance.X + (pHorizontalSpacing * bounds.Width);
 
-				// glyph bounds is relative to atlas size
-				// in this case, we must downscale by the font size
-				// and scale again to the target font size
-				//min *= fontSizeRatio;
-				//max *= fontSizeRatio;
-
-				//min *= Size;
-				//max *= Size;
-
-				baseX += advance.X + (pHorizontalSpacing * (max.X - min.X));
-
-				currHeight = Math.Max(currHeight, (max.Y - min.Y));
+				currHeight = Math.Max(currHeight, bounds.Height);
 				currBounds = currBounds.Merge(RectangleF.FromLTRB(min.X, min.Y, max.X, max.Y));
 			}
 
-			currBounds = currBounds.Scale(fontSizeRatio);
-			currBounds = currBounds.Scale(Size);
-			currBounds.Offset(pPosition.X, pPosition.Y);
-
 			pBounds = currBounds;
+
 			pCharData = chars;
 			pDirty = true;
 		}

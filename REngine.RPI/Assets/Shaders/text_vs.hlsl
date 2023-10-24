@@ -53,10 +53,9 @@ void main(in VSInput input, out PSOutput output)
     // in this case, we must scale down and apply final font size
     position *= 1.0f / g_positionAndSizes.w;
     position *= g_positionAndSizes.z;
-    position += g_positionAndSizes.xy; // apply position
     
     output.fontScale = 1.0f / g_positionAndSizes.z;
-    output.pos = mul(g_projection, float4(position, 0.0, 1.0));
+    output.pos = mul(g_projection, float4(position + g_positionAndSizes.xy, 0.0, 1.0));
 	output.color = g_color;
 	output.uv = uv;
 }

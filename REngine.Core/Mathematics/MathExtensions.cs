@@ -111,24 +111,32 @@ namespace REngine.Core.Mathematics
 		/// <returns></returns>
 		public static RectangleF Scale(this RectangleF @this, float scaleX, float scaleY)
 		{
-			Vector2 rightBottom = new Vector2(@this.Right, @this.Bottom);
-			rightBottom *= new Vector2(scaleX, scaleY);
+			return new RectangleF(
+				@this.X * scaleX,
+				@this.Y * scaleY,
+				@this.Width * scaleX,
+				@this.Height * scaleY
+			);
+			//return RectangleF.Inflate(@this, scaleX, scaleY);
+		}
 
-			float left = @this.Left;
-			float top = @this.Top;
-			float right = rightBottom.X;
-			float bottom = rightBottom.Y;
-
-			if(right < left)
-				(left, right) = (right, left);
-			if(bottom < top)
-				(top, bottom) = (bottom, top);
-
+		/// <summary>
+		/// Add vector to rect bounds
+		/// </summary>
+		/// <param name="this"></param>
+		/// <param name="position"></param>
+		/// <returns></returns>
+		public static RectangleF Add(this RectangleF @this, Vector2 position)
+		{
+			return @this.Add(position.X, position.Y);
+		}
+		public static RectangleF Add(this RectangleF @this, float x, float y)
+		{
 			return RectangleF.FromLTRB(
-				left,
-				top,
-				right,
-				bottom
+				@this.Left + x,
+				@this.Top + y,
+				@this.Right + x,
+				@this.Bottom + y
 			);
 		}
 	}

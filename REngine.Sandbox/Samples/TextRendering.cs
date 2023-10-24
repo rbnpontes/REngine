@@ -2,6 +2,7 @@
 using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Mathematics;
 using REngine.RPI;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace REngine.Sandbox.Samples
 		private float pHorizontalSpacing = 0;
 		private float pVerticalSpacing = 0;
 		private string pText = string.Empty;
+		private RectangleF pLastBounds = new();
 
 		public void Dispose()
 		{
@@ -97,15 +99,16 @@ namespace REngine.Sandbox.Samples
 				ImGui.SliderFloat("Horizontal Spacing", ref pHorizontalSpacing, -10, 10);
 				ImGui.SliderFloat("Vertical Spacing", ref pVerticalSpacing, -10, 10);
 				ImGui.InputTextMultiline("Text", ref pText, 200, new Vector2(200, 13 * 3));
-			}
+				ImGui.Checkbox("Debug Text Bounds", ref pDrawTextBounds);
 
-			ImGui.Checkbox("Debug Text Bounds", ref pDrawTextBounds);
-			if (pDrawTextBounds)
-				DrawBounds(pBatch.Bounds);
+				if (pDrawTextBounds)
+					DrawBounds(pBatch.Bounds);
+			}
 
 			ImGui.End();
 		}
 
+		private float pOffset = 0f;
 		private void DrawBounds(RectangleF rect)
 		{
 			uint color = 0xFF00FF00;
@@ -113,12 +116,17 @@ namespace REngine.Sandbox.Samples
 			Vector2 min = rect.Location.ToVector2();
 			Vector2 max = new Vector2(rect.Right, rect.Bottom);
 
+			ImGui.DragFloat("Offset", ref pOffset);
+
+			min.Y += pOffset;
+			max.Y += pOffset;
+
 			var drawList = ImGui.GetBackgroundDrawList();
 			drawList.AddText(min, color, min.ToString());
 			drawList.AddText(max, color, max.ToString());
 			drawList.AddRect(
-				new Vector2(rect.Left, rect.Top),
-				new Vector2(rect.Right, rect.Bottom),
+				new Vector2(min.X, min.Y),
+				new Vector2(max.X, max.Y),
 				color
 			);
 		}
@@ -140,11 +148,18 @@ namespace REngine.Sandbox.Samples
 				pBatch.Text = pText;
 			}
 
-			var bounds = pBatch.Bounds;
+			//var bounds = pBatch.Bounds;
+			//Vector2 position = new Vector2(
+			//	(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
+			//	(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
+			//);
 			pBatch.Position = new Vector2(
-				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
-				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
+				Window.Size.Width * 0.5f,
+				Window.Size.Height * 0.5f
 			);
+
+			lock (pSync)
+				pLastBounds = pBatch.Bounds;
 
 			pSpriteBatch.Draw(pBatch);
 		}
