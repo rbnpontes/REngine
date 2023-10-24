@@ -94,5 +94,42 @@ namespace REngine.Core.Mathematics
 		{
 			return first.Merge(new Vector2(x, y));
 		}
+		/// <summary>
+		/// Scale a Rectangle by an scale value
+		/// </summary>
+		/// <param name="scale"></param>
+		/// <returns></returns>
+		public static RectangleF Scale(this RectangleF @this, float scale)
+		{
+			return @this.Scale(scale, scale);
+		}
+		/// <summary>
+		/// Scale a Rectnagle by an scale values
+		/// </summary>
+		/// <param name="scaleX"></param>
+		/// <param name="scaleY"></param>
+		/// <returns></returns>
+		public static RectangleF Scale(this RectangleF @this, float scaleX, float scaleY)
+		{
+			Vector2 rightBottom = new Vector2(@this.Right, @this.Bottom);
+			rightBottom *= new Vector2(scaleX, scaleY);
+
+			float left = @this.Left;
+			float top = @this.Top;
+			float right = rightBottom.X;
+			float bottom = rightBottom.Y;
+
+			if(right < left)
+				(left, right) = (right, left);
+			if(bottom < top)
+				(top, bottom) = (bottom, top);
+
+			return RectangleF.FromLTRB(
+				left,
+				top,
+				right,
+				bottom
+			);
+		}
 	}
 }

@@ -17,6 +17,8 @@ namespace REngine.Sandbox.Samples
 	[Sample("Text Rendering")]
 	internal class TextRendering : ISample
 	{
+		private readonly object pSync = new object();
+
 		public IWindow? Window { get; set; }
 		private ISpriteBatch? pSpriteBatch;
 		private IRenderFeature? pSpriteFeature;
@@ -25,6 +27,11 @@ namespace REngine.Sandbox.Samples
 		private IImGuiSystem? pImGuiSystem;
 
 		private TextRendererBatch? pBatch;
+
+		private int pTextSize = 0;
+		private float pHorizontalSpacing = 0;
+		private float pVerticalSpacing = 0;
+		private string pText = string.Empty;
 
 		public void Dispose()
 		{
@@ -57,8 +64,11 @@ namespace REngine.Sandbox.Samples
 			pTextRenderer = provider.Get<ITextRenderer>();
 			pBatch = pTextRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 
-			pBatch.Text = "Hello World";
-			pBatch.Position = new Vector2(Window.Size.Width / 2.0f, Window.Size.Height / 2.0f);
+			pBatch.Text = pText = "Hello World";
+			pTextSize = (int)pBatch.Size;
+			pHorizontalSpacing = pBatch.HorizontalSpacing;
+			pVerticalSpacing = pBatch.VerticalSpacing;
+
 			pSpriteBatch.OnDraw += OnDraw;
 
 			pImGuiSystem = provider.Get<IImGuiSystem>();
@@ -77,15 +87,19 @@ namespace REngine.Sandbox.Samples
 
 			ImGui.Begin("TextRenderer Settings");
 
-			int fontSize = (int)pBatch.Size;
-			ImGui.SliderInt("Font Size", ref fontSize, 6, 100);
-			pBatch.Size = (uint)fontSize;
 
-			string text = pBatch.Text;
-			ImGui.InputText("Text", ref text, 200);
-			pBatch.Text = text;
+			// Usually, ImGui runs in your own thread
+			// In this case to prevent unexpected issues
+			// we will lock our thread before change values
+			lock (pSync)
+			{
+				ImGui.SliderInt("Font Size", ref pTextSize, 6, 100);
+				ImGui.SliderFloat("Horizontal Spacing", ref pHorizontalSpacing, -10, 10);
+				ImGui.SliderFloat("Vertical Spacing", ref pVerticalSpacing, -10, 10);
+				ImGui.InputTextMultiline("Text", ref pText, 200, new Vector2(200, 13 * 3));
+			}
 
-			ImGui.Checkbox("Draw Text Bounds", ref pDrawTextBounds);
+			ImGui.Checkbox("Debug Text Bounds", ref pDrawTextBounds);
 			if (pDrawTextBounds)
 				DrawBounds(pBatch.Bounds);
 
@@ -94,11 +108,18 @@ namespace REngine.Sandbox.Samples
 
 		private void DrawBounds(RectangleF rect)
 		{
+			uint color = 0xFF00FF00;
+			
+			Vector2 min = rect.Location.ToVector2();
+			Vector2 max = new Vector2(rect.Right, rect.Bottom);
+
 			var drawList = ImGui.GetBackgroundDrawList();
+			drawList.AddText(min, color, min.ToString());
+			drawList.AddText(max, color, max.ToString());
 			drawList.AddRect(
 				new Vector2(rect.Left, rect.Top),
 				new Vector2(rect.Right, rect.Bottom),
-				0xFF00FF00
+				color
 			);
 		}
 
@@ -106,10 +127,23 @@ namespace REngine.Sandbox.Samples
 		{
 			if(pSpriteBatch is null || pBatch is null || Window is null) return;
 
+			// ImGui can run in our thread, we must lock this values before read
+			lock (pSync)
+			{
+				// Any slighty changes to this properties will force
+				// bound box changes, in this case we must 
+				// be carefully while is reading bounding box
+				// because this property will trigger text calculation
+				pBatch.Size = (uint)pTextSize;
+				pBatch.HorizontalSpacing = pHorizontalSpacing;
+				pBatch.VerticalSpacing = pVerticalSpacing;
+				pBatch.Text = pText;
+			}
+
 			var bounds = pBatch.Bounds;
 			pBatch.Position = new Vector2(
 				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
-				(Window.Size.Height * 0.5f) + (bounds.Height * 0.5f)
+				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
 			);
 
 			pSpriteBatch.Draw(pBatch);

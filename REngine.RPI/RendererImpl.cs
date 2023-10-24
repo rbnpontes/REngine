@@ -174,7 +174,7 @@ namespace REngine.RPI
 			{
 				var swapChainSize = pSwapChain.Size;
 
-				UpdateFixedFrameBuffer(swapChainSize);
+				UpdateFixedFrameBuffer();
 
 				var colorBuffer = pSwapChain.ColorBuffer;
 				pDriver.ImmediateCommand
@@ -252,7 +252,7 @@ namespace REngine.RPI
 			};
 
 		}
-		private void UpdateFixedFrameBuffer(SwapChainSize size)
+		private void UpdateFixedFrameBuffer()
 		{
 			if (pDriver is null)
 				return;
