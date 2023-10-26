@@ -33,6 +33,7 @@ namespace REngine.Sandbox.Samples
 		private float pHorizontalSpacing = 0;
 		private float pVerticalSpacing = 0;
 		private string pText = string.Empty;
+		private Vector4 pColor = new();
 		private RectangleF pLastBounds = new();
 
 		public void Dispose()
@@ -73,6 +74,8 @@ namespace REngine.Sandbox.Samples
 
 			pSpriteBatch.OnDraw += OnDraw;
 
+			pColor = pBatch.Color.ToVector4();
+
 			pImGuiSystem = provider.Get<IImGuiSystem>();
 			pImGuiSystem.OnGui += OnGui;
 		}
@@ -89,7 +92,6 @@ namespace REngine.Sandbox.Samples
 
 			ImGui.Begin("TextRenderer Settings");
 
-
 			// Usually, ImGui runs in your own thread
 			// In this case to prevent unexpected issues
 			// we will lock our thread before change values
@@ -98,6 +100,7 @@ namespace REngine.Sandbox.Samples
 				ImGui.SliderInt("Font Size", ref pTextSize, 6, 100);
 				ImGui.SliderFloat("Horizontal Spacing", ref pHorizontalSpacing, -10, 10);
 				ImGui.SliderFloat("Vertical Spacing", ref pVerticalSpacing, -10, 10);
+				ImGui.ColorPicker4("Text Color", ref pColor);
 				ImGui.InputTextMultiline("Text", ref pText, 200, new Vector2(200, 13 * 3));
 				ImGui.Checkbox("Debug Text Bounds", ref pDrawTextBounds);
 
@@ -140,6 +143,7 @@ namespace REngine.Sandbox.Samples
 				pBatch.HorizontalSpacing = pHorizontalSpacing;
 				pBatch.VerticalSpacing = pVerticalSpacing;
 				pBatch.Text = pText;
+				pBatch.Color = pColor.ToColor();
 			}
 
 			var bounds = pBatch.Bounds;

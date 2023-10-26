@@ -25,9 +25,45 @@ namespace REngine.Core.Mathematics
 			};
 		}
 
+		public static Vector3 ToVector3(this Color color)
+		{
+			return new Vector3(
+				color.R / 255.0f,
+				color.G / 255.0f,
+				color.B / 255.0f
+			);
+		}
+		public static Vector4 ToVector4(this Color color)
+		{
+			return new Vector4(
+				color.R / 255.0f,
+				color.G / 255.0f,
+				color.B / 255.0f,
+				color.A / 255.0f
+			);
+		}
+
 		public static Vector4 ToVector4(this Rectangle rectangle)
 		{
 			return new Vector4(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+		}
+
+		public static Color ToColor(this Vector3 color)
+		{
+			return Color.FromArgb(
+				(byte)(color.X * 255.0f),
+				(byte)(color.Y * 255.0f),
+				(byte)(color.Z * 255.0f)
+			);
+		}
+		public static Color ToColor(this Vector4 color)
+		{
+			return Color.FromArgb(
+				(byte)(color.W * 255.0f),
+				(byte)(color.X * 255.0f),
+				(byte)(color.Y * 255.0f),
+				(byte)(color.Z * 255.0f)
+			);
 		}
 
 		public static RectangleF Merge(this RectangleF first, Rectangle second)
