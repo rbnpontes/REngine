@@ -106,6 +106,9 @@ namespace REngine.RHI.NativeDriver
 			if (currSize.Width == width && currSize.Height == height)
 				return this;
 
+			width = Math.Max(width, 1);
+			height = Math.Max(height, 1);
+
 			lock(pSync)
 			{
 				rengine_swapchain_resize(Handle, width, height, (uint)transform);

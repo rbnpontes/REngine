@@ -279,6 +279,67 @@ namespace REngine.RHI.NativeDriver
 		{
 			return SetScissors(new IntRect[] { scissor }, rtWidth, rtHeight);
 		}
+
+		public ICommandBuffer Compute(ComputeArgs args)
+		{
+			rengine_cmdbuffer_compute(
+				Handle,
+				ref args
+			);
+			return this;
+		}
+#if DEBUG
+		public unsafe ICommandBuffer BeginDebugGroup(string name, Color color)
+		{
+			float[] colorValues = new float[] 
+			{
+				color.R / 255.0f,
+				color.G / 255.0f,
+				color.B / 255.0f,
+				color.A / 255.0f
+			};
+			IntPtr namePtr = Marshal.StringToHGlobalAnsi(name);
+			fixed(float* colorPtr = colorValues)
+			{
+				rengine_cmdbuffer_begin_dbg_grp(
+					Handle,
+					namePtr,
+					new IntPtr(colorPtr)
+				);
+			}
+
+			Marshal.FreeHGlobal(namePtr);
+			return this;
+		}
+
+		public ICommandBuffer EndDebugGroup()
+		{
+			rengine_cmdbuffer_end_dbg_grp(Handle);
+			return this;
+		}
+
+		public unsafe ICommandBuffer InsertDebugLabel(string label, Color color)
+		{
+			float[] colorValues = new float[]
+			{
+				color.R / 255.0f,
+				color.G / 255.0f,
+				color.B / 255.0f,
+				color.A / 255.0f
+			};
+			IntPtr labelPtr = Marshal.StringToHGlobalAnsi(label);
+			fixed(float* colorPtr = colorValues)
+			{
+				rengine_cmdbuffer_insert_dbg_label(
+					Handle,
+					labelPtr,
+					new IntPtr(colorPtr)
+				);
+			}
+			Marshal.FreeHGlobal(labelPtr);
+			return this;
+		}
+#endif
 	}
 
 }

@@ -1,15 +1,17 @@
 ﻿#ifdef RENGINE_INSTANCED
-cbuffer Constants {
-	float4x4 g_projection;
+cbuffer ObjectConstants {
 	float4 g_color;
 };
 #else
-cbuffer Constants {
+cbuffer ObjectConstants {
 	float4x4 g_transform;
-	float4x4 g_projection;
 	float4 g_color;
 };
 #endif
+cbuffer FixedConstants
+{
+    float4x4 g_projection;
+};
 
 #ifdef RENGINE_INSTANCED
 struct PSInput {

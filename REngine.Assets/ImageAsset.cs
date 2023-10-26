@@ -57,23 +57,23 @@ namespace REngine.Assets
 			return Task.Run(() =>
 			{
 				StbImageWriteSharp.ImageWriter writer = new StbImageWriteSharp.ImageWriter();
-				
+				var colorComponents = GetColorComponents(Image.Components);
 				switch (imgType)
 				{
 					case ImageType.Bmp:
-						writer.WriteBmp(Image.Data, Image.Size.Width, Image.Size.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+						writer.WriteBmp(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream);
 						break;
 					case ImageType.Jpeg:
-						writer.WriteJpg(Image.Data, Image.Size.Width, Image.Size.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
+						writer.WriteJpg(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream, 100);
 						break;
 					case ImageType.Png:
-						writer.WritePng(Image.Data, Image.Size.Width, Image.Size.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+						writer.WritePng(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream);
 						break;
 					case ImageType.Tga:
-						writer.WriteTga(Image.Data, Image.Size.Width, Image.Size.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+						writer.WriteTga(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream);
 						break;
 					case ImageType.Hdr:
-						writer.WriteHdr(Image.Data, Image.Size.Width, Image.Size.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+						writer.WriteHdr(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream);
 						break;
 				}
 			});
@@ -84,5 +84,28 @@ namespace REngine.Assets
 			Image = new Image();
 		}
 
+		private StbImageWriteSharp.ColorComponents GetColorComponents(byte components)
+		{
+			StbImageWriteSharp.ColorComponents result;
+			switch (components)
+			{
+				case 1:
+					result = StbImageWriteSharp.ColorComponents.Grey;
+					break;
+				case 2:
+					result = StbImageWriteSharp.ColorComponents.GreyAlpha;
+					break;
+				case 3:
+					result = StbImageWriteSharp.ColorComponents.RedGreenBlue;
+					break;
+				case 4:
+					result = StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha;
+					break;
+				default:
+					throw new Exception($"Invalid components count. Components: {components}");
+			}
+
+			return result;
+		}
 	}
 }

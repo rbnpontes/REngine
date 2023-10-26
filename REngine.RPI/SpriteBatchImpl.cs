@@ -174,6 +174,12 @@ namespace REngine.RPI
 				pBatcher.Add(textureSlot, item);
 			return this;
 		}
+
+		public ISpriteBatch Draw(TextRendererBatch textBatch)
+		{
+			pBatcher.Add(textBatch);
+			return this;
+		}
 	}
 #endif
 }

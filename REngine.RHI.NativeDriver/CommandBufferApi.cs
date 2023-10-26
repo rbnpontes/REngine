@@ -124,5 +124,28 @@ namespace REngine.RHI.NativeDriver
 			uint rtWidth,
 			uint rtHeight
 		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_compute(
+			IntPtr context,
+			ref ComputeArgs args
+		);
+#if DEBUG
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_begin_dbg_grp(
+			IntPtr context,
+			IntPtr name,
+			IntPtr color
+		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_end_dbg_grp(
+			IntPtr context
+		);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_insert_dbg_label(
+			IntPtr context,
+			IntPtr label,
+			IntPtr color
+		);
+#endif
 	}
 }

@@ -32,6 +32,13 @@ namespace REngine.RHI.NativeDriver
 			ref ResultNative result
 		);
 		[DllImport(Constants.Lib)]
+		static extern void rengine_device_create_computepipeline(
+			IntPtr device,
+			ref ComputePipelineDescDTO desc,
+			byte isOpenGl,
+			ref ResultNative result
+		);
+		[DllImport(Constants.Lib)]
 		static extern void rengine_device_create_texture(
 			IntPtr device,
 			ref TextureDescDTO desc,

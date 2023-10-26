@@ -17,3 +17,6 @@ If you see the image down. Well, you did it.
 
 ### Steam Deck
 ![Steam Deck](https://github.com/rbnpontes/REngine/blob/main/doc/steam-deck-doge.jpeg)
+
+### Text Rendering
+![Text Rendering](https://github.com/rbnpontes/REngine/blob/main/doc/text-rendering-sample.jpg)

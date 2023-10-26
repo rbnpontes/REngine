@@ -113,8 +113,8 @@ namespace REngine.RPI
 			BufferDesc desc = new BufferDesc
 			{
 				BindFlags = BindFlags.UniformBuffer,
-				Usage = Usage.Default,
-				Mode = BufferMode.Raw
+				Usage = Usage.Dynamic,
+				AccessFlags = CpuAccessFlags.Write
 			};
 
 			int bufferIdx = -1;
@@ -137,9 +137,6 @@ namespace REngine.RPI
 				pCBuffers[bufferIdx] = pDriver.Device.CreateBuffer(desc);
 				pLogger.Info("Fixed buffer has been created.");
 			}
-
-			desc.Usage = Usage.Dynamic;
-			desc.AccessFlags = CpuAccessFlags.Write;
 
 			bufferIdx = GetBufferGroupIndex(BufferGroupType.Frame);
 			if(pCBuffers[bufferIdx]?.Size != pRenderSettings.FrameBufferSize)

@@ -1,5 +1,6 @@
 ﻿using REngine.Core.Mathematics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,6 +10,16 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.Resources
 {
+	public class ImageAtlas 
+	{
+		public Image Image { get; set; }
+		public Rectangle[] Items { get; set; } = Array.Empty<Rectangle>();
+		public ImageAtlas(Image image)
+		{
+			Image = image;
+		}
+	}
+
 	/// <summary>
 	/// This struct defines Image size
 	/// In Width and Height engine supports values to 65535 as max size
@@ -60,6 +71,15 @@ namespace REngine.Core.Resources
 		{
 			return $"ImageSize({Width}, {Height}, {Depth})";
 		}
+
+		public Vector2 ToVector2()
+		{
+			return new Vector2(Width, Height);
+		}
+		public Size ToSize()
+		{
+			return new Size(Width, Height);
+		}
 	}
 
 	public struct ImageDataInfo
@@ -92,6 +112,8 @@ namespace REngine.Core.Resources
 		public ImageSize Size { get; private set; } = new ImageSize();
 		public byte[] Data { get; private set; } = new byte[0];
 		public byte Components { get; private set; } = 0;
+
+		public uint Stride { get => (uint)(Size.Width * Size.Depth * Components); }
 
 		private int GetPixelIdx(ushort x, ushort y, byte z)
 		{
@@ -394,6 +416,107 @@ namespace REngine.Core.Resources
 
 				return newImg;
 			});
+		}
+
+		/// <summary>
+		/// Merge all images into a single image atlas
+		/// </summary>
+		/// <param name="images">Images List</param>
+		/// <param name="breakAt">At each x items, a new row will be created.</param>
+		/// <returns>Returns merged atlas image</returns>
+		public static ImageAtlas MakeAtlas(IEnumerable<Image> images, byte spacing = 0, byte breakAt = 5)
+		{
+			ushort atlasWidth = 0;
+
+			ushort nextWidth = spacing;
+			ushort nextHeight = nextWidth;
+			byte components = 0;
+
+			ushort currCol = 0;
+			ushort maxRowHeight = 0;
+
+			// Calculate Atlas size
+			foreach (var img in images)
+			{
+				components = Math.Max(img.Components, components);
+
+				nextWidth += (ushort)(img.Size.Width + spacing);
+				maxRowHeight = Math.Max(maxRowHeight, img.Size.Height);
+
+				atlasWidth = Math.Max(nextWidth, atlasWidth);
+
+				++currCol;
+				if(currCol >= breakAt)
+				{
+					nextHeight += (ushort)(maxRowHeight + spacing);
+					nextWidth = spacing;
+					maxRowHeight = 0;
+					currCol = 0;
+				}
+			}
+
+			nextHeight += (ushort)(maxRowHeight + spacing);
+
+			Image result = new Image();
+			result.SetData(new ImageDataInfo
+			{
+				Components = components,
+				Size = new ImageSize(atlasWidth, nextHeight),
+				Data = new byte[atlasWidth * nextHeight * components]
+			});
+
+			currCol = maxRowHeight = 0;
+			
+			List<Rectangle> bounds = new();
+
+			nextWidth = nextHeight = spacing;
+
+			foreach(var img in images)
+			{
+				// Copy image item to image atlas
+				for(ushort y = 0; y < img.Size.Height; ++y)
+				{
+					for(ushort x = 0; x < img.Size.Width; ++x)
+					{
+						Color color = img.GetPixel(x, y);
+						result.SetPixel(
+							color,
+							(ushort)(nextWidth + x),
+							(ushort)(nextHeight + y)
+						);
+					}
+				}
+				
+				bounds.Add(new Rectangle(nextWidth, nextHeight, img.Size.Width, img.Size.Height));
+
+				// Calculate Max Row Height
+				maxRowHeight = Math.Max(maxRowHeight, img.Size.Height);
+				nextWidth += (ushort)(img.Size.Width + spacing);
+
+
+				++currCol;
+				if(currCol >= breakAt)
+				{
+					// Make next row
+					nextHeight += (ushort)(maxRowHeight + spacing);
+					maxRowHeight = 0;
+					nextWidth = spacing;
+					currCol = 0;
+				}
+			}
+
+			//for(ushort y = 0; y < result.Size.Height; ++y)
+			//{
+			//	for(ushort x =0; x < result.Size.Width; ++x)
+			//	{
+			//		Color color = result.GetPixel(x, y);
+			//		int value = color.R + color.G + color.B + color.A;
+			//		if (value != 0)
+			//			System.Diagnostics.Debugger.Break();
+			//	}
+			//}
+
+			return new ImageAtlas(result) { Items = bounds.ToArray() };
 		}
 	}
 }

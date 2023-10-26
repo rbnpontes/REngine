@@ -82,6 +82,8 @@ namespace REngine.RHI
 		public ICommandBuffer Draw(DrawArgs args);
 		public ICommandBuffer Draw(DrawIndexedArgs args);
 
+		public ICommandBuffer Compute(ComputeArgs args);
+
 		public ICommandBuffer SetBlendFactors(in Color color);
 		public ICommandBuffer SetViewports(Viewport[] viewports, uint rtWidth, uint rtHeight);
 		public ICommandBuffer SetViewport(Viewport viewports, uint rtWidth, uint rtHeight);
@@ -98,5 +100,11 @@ namespace REngine.RHI
 		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, byte[] data);
 		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, ReadOnlySpan<T> data) where T : unmanaged;
 		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, ulong size, IntPtr data);
+
+#if DEBUG
+		public ICommandBuffer BeginDebugGroup(string name, Color color);
+		public ICommandBuffer EndDebugGroup();
+		public ICommandBuffer InsertDebugLabel(string label, Color color);
+#endif
 	}
 }

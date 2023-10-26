@@ -240,7 +240,7 @@ namespace REngine.RPI
 				Usage = Usage.Immutable
 			}, new ITextureData[]
 			{
-				new ByteTextureData(image.Data, (ulong)(image.Size.Width * image.Components))
+				new ByteTextureData(image.Data, image.Stride)
 			});
 		}
 	}

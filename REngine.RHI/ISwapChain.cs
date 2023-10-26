@@ -127,6 +127,8 @@ namespace REngine.RHI
 		public SwapChainTransform Transform { get; private set; }
 		public SwapChainResizeEventArgs(SwapChainSize size, SwapChainTransform transform)
 		{
+			Size = size;
+			Transform = transform;
 		}
 	}
 	public interface ISwapChain : IDisposable

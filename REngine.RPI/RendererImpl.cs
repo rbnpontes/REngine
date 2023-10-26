@@ -6,7 +6,9 @@ using REngine.RHI;
 using REngine.RPI.Structs;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -170,9 +172,14 @@ namespace REngine.RPI
 			// if swap chain has been setted, then we must clear
 			if(pSwapChain != null)
 			{
+				var swapChainSize = pSwapChain.Size;
+
+				UpdateFixedFrameBuffer();
+
 				var colorBuffer = pSwapChain.ColorBuffer;
 				pDriver.ImmediateCommand
 					.SetRTs(new ITextureView[] { colorBuffer }, pSwapChain.DepthBuffer)
+					.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
 			}
@@ -216,34 +223,44 @@ namespace REngine.RPI
 			if((pSwapChain = swapChain) != null)
 			{
 				pSwapChain.OnResize += HandleSwapChainResize;
-
 				var swapChainSize = pSwapChain.Size;
-				pRenderState.FixedData = new RendererFixedData
+
+				UpdateFixedBufferData(swapChainSize);
+
+				pRenderState.Viewport = new Viewport
 				{
-					ViewWidth = swapChainSize.Width,
-					ViewHeight = swapChainSize.Height
+					Size = new Vector2(swapChainSize.Width,	 swapChainSize.Height)
 				};
 			}
 
 			pLogger.Info("SwapChain has been changed.");
 			pRenderEvents.ExecuteChangeSwapChain(this);
-
-			UpdateFixedFrameBuffer(pSwapChain?.Size ?? new SwapChainSize());
 		}
 
-		private void UpdateFixedFrameBuffer(SwapChainSize size)
+		private void UpdateFixedBufferData(SwapChainSize size)
+		{
+			pLogger.Debug("Updating Fixed Buffer Data");
+
+			Matrix4x4 proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
+			proj.M33 = proj.M43 = 0.5f;
+
+			pRenderState.FixedData = new RendererFixedData
+			{
+				ScreenProjection = proj,
+				ViewWidth = size.Width,
+				ViewHeight = size.Height
+			};
+
+		}
+		private void UpdateFixedFrameBuffer()
 		{
 			if (pDriver is null)
 				return;
 
 			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Fixed);
-			pDriver.ImmediateCommand.UpdateBuffer(buffer, 0, new RendererFixedData
-			{
-				ViewWidth = size.Width,
-				ViewHeight = size.Height,
-			});
-
-			pLogger.Info("Updated Fixed Buffer");
+			var mappedData = pDriver.ImmediateCommand.Map<RendererFixedData>(buffer, MapType.Write, MapFlags.Discard);
+			mappedData[0] = pRenderState.FixedData;
+			pDriver.ImmediateCommand.Unmap(buffer, MapType.Write);
 		}
 
 		private void HandleBeginRender()
@@ -286,7 +303,12 @@ namespace REngine.RPI
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)
 		{
-			UpdateFixedFrameBuffer(e.Size);
+			UpdateFixedBufferData(e.Size);
+
+			pRenderState.Viewport = new Viewport
+			{
+				Size = new Vector2(e.Size.Width, e.Size.Height)
+			};
 		}
 	}
 }
