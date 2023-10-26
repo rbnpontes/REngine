@@ -38,6 +38,7 @@ namespace REngine.Windows
 			pEngineEvents = engineEvents;
 			pEngine = engine;
 
+			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
 			Glfw.Init();
 			Glfw.SetErrorCallback(HandleGlfwError);
 
@@ -62,7 +63,6 @@ namespace REngine.Windows
 		{
 			pEngineEvents.OnBeforeStart -= HandleBeforeStart;
 
-			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
 			var monitor = Glfw.Monitors.FirstOrDefault();
 			VideoScale = new Vector2(monitor.ContentScale.X, monitor.ContentScale.Y);
 		}
