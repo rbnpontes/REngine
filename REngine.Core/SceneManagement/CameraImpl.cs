@@ -18,7 +18,8 @@ namespace REngine.Core.SceneManagement
 
 		private float pNearClip = 0.01f;
 		private float pFarClip = 1000f;
-		private float pFov = 45f;
+		private float pFov = 90f;
+		private float pZoom = 1;
 		private float pAspectRatio = 1;
 		private bool pAutoAspectRatio = true;
 
@@ -94,7 +95,16 @@ namespace REngine.Core.SceneManagement
 				pFov = value;
 			}
 		}
-
+		public float Zoom
+		{
+			get => pZoom;
+			set
+			{
+				if (pZoom != value)
+					pDirtyProj = true;
+				pZoom = Math.Max(value, float.Epsilon);
+			}
+		}
 		public float AspectRatio
 		{
 			get => pAspectRatio;
@@ -151,7 +161,7 @@ namespace REngine.Core.SceneManagement
 			if (pDirtyProj)
 			{
 				pProj = Matrix4x4.CreatePerspectiveFieldOfView(
-					pFov,
+					(float)Math.Clamp((1.0 / Math.Tan(pFov * Mathf.Degrees2Radians * 0.5)) * pZoom, float.Epsilon, Math.Floor(Math.PI)),
 					pAspectRatio,
 					pNearClip,
 					pFarClip

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -90,6 +91,18 @@ namespace REngine.Core.SceneManagement
 			}
 		}
 
+		public Vector3 EulerAngles
+		{
+			get
+			{
+				Vector3 value;
+				lock (pSync)
+					value = pRotation.ToEulerAngles();
+				return value;
+			}
+			set => Rotation = value.FromEulerAngles();
+		}
+
 		public Vector3 Scale
 		{
 			get
@@ -121,8 +134,7 @@ namespace REngine.Core.SceneManagement
 				Matrix4x4 result;
 				lock (pSync)
 				{
-					if (!pDirty)
-						UpdateTransforms();
+					UpdateTransforms();
 					result = pTransformMatrix;
 				}
 				return result;
@@ -136,8 +148,7 @@ namespace REngine.Core.SceneManagement
 				Matrix4x4 result;
 				lock (pSync)
 				{
-					if(!pDirty)
-						UpdateTransforms();
+					UpdateTransforms();
 					result = pWorldTransformMatrix;
 				}
 
@@ -176,12 +187,17 @@ namespace REngine.Core.SceneManagement
 
 		private void UpdateTransforms()
 		{
+			if (!pDirty)
+				return;
+			pDirty = false;
 			pTransformMatrix = Matrix4x4.CreateScale(pScale)
 							* Matrix4x4.CreateFromQuaternion(pRotation)
 							* Matrix4x4.CreateTranslation(pPosition);
 
-			if(Parent != null)
+			if (Parent != null)
 				pWorldTransformMatrix = Parent.WorldTransformMatrix * pTransformMatrix;
+			else
+				pWorldTransformMatrix = pTransformMatrix;
 		}
 
 		private void UnregisterEvents()

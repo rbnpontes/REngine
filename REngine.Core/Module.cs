@@ -1,5 +1,6 @@
 ﻿using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.SceneManagement;
 using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,8 @@ namespace REngine.Core
 				.Add<IEngine, EngineImpl>()
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
-				.Add<ExecutionPipelineNodeRegistry>();
+				.Add<ExecutionPipelineNodeRegistry>()
+				.Add<ICameraSystem, CameraSystem>();
 		}
 	}
 }

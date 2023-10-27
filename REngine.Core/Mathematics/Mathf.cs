@@ -10,6 +10,9 @@ namespace REngine.Core.Mathematics
 {
 	public static class Mathf
 	{
+		public const double Degrees2Radians = Math.PI / 180.0;
+		public const double Radians2Degrees = 1.0 / Degrees2Radians;
+
 		public static double Lerp(double from, double to, double time) {
 			return (1.0 - time) * from + time * to;
 		}

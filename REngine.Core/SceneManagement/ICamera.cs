@@ -18,6 +18,7 @@ namespace REngine.Core.SceneManagement
 		public float NearClip { get; set; }
 		public float FarClip { get; set; }
 		public float FoV { get; set; }
+		public float Zoom { get; set; }
 		public bool AutoAspectRatio { get; set; }
 		public float AspectRatio { get; set; }
 	}
