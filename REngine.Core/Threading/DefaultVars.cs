@@ -8,7 +8,7 @@ namespace REngine.Core.Threading
 {
 	public static class DefaultVars
 	{
-		public const string ImGuiUpdateRate = "@imgui_update_rate";
-		public const string RenderNeedsPrepare = "@render_needs_prepare";
+		public const string ImGuiUpdateRate = "@vars/@imgui/update_rate";
+		public const string RenderNeedsPrepare = "@vars/@render/needs_prepare";
 	}
 }

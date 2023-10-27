@@ -1,38 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <pipeline>
-	<step id="frame">
-		<step id="update_begin">
+	<step id="@engine/frame">
+		<step id="@engine/update_begin">
 			<!-- Message Loop must be executed at Main Thread-->
-			<step id="windows_update"/>
-			<task id="spritebatch_task" end="render_begin">
-				<step id="spritebatch_draw"/>
-				<step id="spritebatch_build_tex"/>
+			<step id="@wndmgr/update"/>
+			<step id="@scenemgt/update_cameras"/>
+			
+			<task id="@spritebatch/task" end="@render/begin">
+				<step id="@spritebatch/draw"/>
+				<step id="@spritebatch/build_tex"/>
 			</task>
-			<deferred target="@imgui_update_rate">
-				<step id="imgui_draw"/>
+			<deferred target="@vars/@imgui/update_rate">
+				<step id="@imgui/draw"/>
 			</deferred>
 		</step>
-		<step id="update"/>
-		<step id="update_end"/>
-		<step id="render_begin"/>
-		<step id="render"/>
-		<step id="render_end">
+		<step id="@engine/update"/>
+		<step id="@engine/update_end"/>
+		<step id="@render/begin"/>
+		<step id="@render"/>
+		<step id="@render/end">
 			<!--
 				This task will be used to Remove, Insert and Sort
 				Render Features, this can be an expensive task
 				and must execute when it needs
 			-->
-			<if id="render_needs_prepare_condition" test="@render_needs_prepare" compare="Equal" end="render">
-				<task id="render_prepare"></task>
+			<if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal" end="@render">
+				<task id="@render/prepare"></task>
 			</if>
-			<task id="spritebatch_organize_instance" end="spritebatch_draw"/>
-			<step id="windows_invalidate"/>
+			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>
+			<step id="@wndmgr/invalidate"/>
 			<!-- 
 				SwapChain Present must be called at Main Thread
 				If you need this parallelized, you can do but
 				you will deal with unexpected issues on Windows
 			-->
-			<step id="swapchain_present"/>
+			<step id="@render/swapchain_present"/>
 		</step>
 	</step>
 </pipeline>
