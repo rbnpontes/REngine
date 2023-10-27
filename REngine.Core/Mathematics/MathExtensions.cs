@@ -43,6 +43,10 @@ namespace REngine.Core.Mathematics
 			);
 		}
 
+		public static Vector4 ToVector4(this Vector3 vec3)
+		{
+			return new Vector4(vec3, 0);
+		}
 		public static Vector4 ToVector4(this Rectangle rectangle)
 		{
 			return new Vector4(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
