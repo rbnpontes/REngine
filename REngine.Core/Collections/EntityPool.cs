@@ -36,9 +36,9 @@ namespace REngine.Core.Collections
 
 		public void Remove(T entity)
 		{
-			RemoveAt(pEntities.IndexOf(entity));
+			RemoveEntity(pEntities.IndexOf(entity));
 		}
-		public void RemoveAt(int id)
+		public void RemoveEntity(int id)
 		{
 			if (id >= pEntities.Count)
 				throw new Exception($"Invalid Entity Id. Id is greater than entities list ({id} >= {pEntities.Count}).");

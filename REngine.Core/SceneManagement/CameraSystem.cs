@@ -63,6 +63,11 @@ namespace REngine.Core.SceneManagement
 			return cam;
 		}
 
+		public void RemoveCamera(uint id)
+		{
+			pCameras.RemoveEntity((int)id);
+		}
+
 		private void UpdateCameras()
 		{
 			foreach (var cam in pCameras)

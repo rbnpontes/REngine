@@ -174,6 +174,7 @@ namespace REngine.Core.SceneManagement
 		{
 			if(pDisposed) 
 				return;
+			pSystem.RemoveCamera(Id);
 
 			Transform.OnMove -= HandleTransformChanges;
 			Transform.OnRotate -= HandleTransformChanges;
