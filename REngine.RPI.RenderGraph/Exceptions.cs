@@ -31,4 +31,8 @@ namespace REngine.RPI.RenderGraph
 	{
 		public NotFoundVarResolver(string resolverType) : base($"Not found resolver type '{resolverType}'") { }
 	}
+	public class NotRegisteredNode : RenderGraphException
+	{
+		public NotRegisteredNode(string tagName) : base($"There´s no node registered for tag '{tagName}'") { }
+	}
 }
