@@ -43,6 +43,10 @@ namespace REngine.Core.Mathematics
 			);
 		}
 
+		public static Vector4 ToVector4(this Vector3 vec3)
+		{
+			return new Vector4(vec3, 0);
+		}
 		public static Vector4 ToVector4(this Rectangle rectangle)
 		{
 			return new Vector4(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
@@ -63,6 +67,58 @@ namespace REngine.Core.Mathematics
 				(byte)(color.X * 255.0f),
 				(byte)(color.Y * 255.0f),
 				(byte)(color.Z * 255.0f)
+			);
+		}
+
+		/// <summary>
+		/// Convert Quaternion to Euler Angles
+		/// </summary>
+		/// <param name="rot"></param>
+		/// <returns></returns>
+		public static Vector3 ToEulerAngles(this Quaternion rot)
+		{
+			// https://github.com/rbfx/rbfx/blob/dfe7bcc39ea7af92fc03471ecf2d30b3e044eb86/Source/Urho3D/Math/Quaternion.cpp#L190
+			
+			float check = 2.0f * (-rot.Y * rot.Z + rot.W * rot.X);
+			float singularityThreshold = 0.999999f;
+
+			float yy = rot.Y * rot.Y;
+			float zz = rot.Z * rot.Z;
+			float xx = rot.X * rot.X;
+			float unit = rot.W * rot.W + xx + yy + zz;
+
+			if(Math.Abs(check) > singularityThreshold * unit)
+			{
+				return new Vector3(
+					(float)(90.0 * Math.Sign(check)),
+					(float)(-Math.Atan2(2.0 * (rot.X * rot.Z - rot.W * rot.Y), 1.0 - 2.0 * (yy + zz)) * Mathf.Radians2Degrees),
+					.0f
+				);
+			}
+
+			return new Vector3(
+				(float)(Math.Asin(check) * Mathf.Radians2Degrees),
+				(float)(Math.Atan2(2.0 * (rot.X * rot.Z + rot.W * rot.Y), 1.0 - 2.0 * (rot.X * rot.X + yy)) * Mathf.Radians2Degrees),
+				(float)(Math.Atan2(2.0 * (rot.X * rot.Y + rot.W * rot.Z), 1.0 - 2.0 * (rot.X * rot.X + zz)) * Mathf.Radians2Degrees) 
+			);
+		}
+		/// <summary>
+		/// Convert Vector3 Euler Angles to Quaternion
+		/// </summary>
+		/// <param name="rot"></param>
+		/// <returns></returns>
+		public static Quaternion FromEulerAngles(this Vector3 rot)
+		{
+			// https://github.com/rbfx/rbfx/blob/dfe7bcc39ea7af92fc03471ecf2d30b3e044eb86/Source/Urho3D/Math/Quaternion.cpp#L51
+			var (sinX, cosX) = Math.SinCos(rot.X * 0.5);
+			var (sinY, cosY) = Math.SinCos(rot.Y * 0.5);
+			var (sinZ, cosZ) = Math.SinCos(rot.Z * 0.5);
+
+			return new Quaternion(
+				(float)(cosY * sinX * cosZ + sinY * cosX * sinZ),
+				(float)(sinY * cosX * cosZ - cosY * sinX * sinZ),
+				(float)(cosY * cosX * sinZ - sinY * sinX * cosZ),
+				(float)(cosY * cosX * cosZ + sinY * sinX * sinZ)
 			);
 		}
 

@@ -1,6 +1,16 @@
-﻿cbuffer Constants
+﻿cbuffer CameraConstants
 {
-	float4x4 g_worldViewProj;
+    float4x4 g_camView;
+    float4x4 g_camViewInverse;
+    float4x4 g_camViewProjection;
+    float4 g_camPosition;
+    float g_camNearClip;
+    float g_camFarClip;
+};
+
+cbuffer ObjectConstants
+{
+	float4x4 g_model;
 };
 
 struct VSInput
@@ -19,7 +29,12 @@ struct PSInput
 
 void main(in VSInput input, out PSInput output)
 {
-	output.pos = mul(float4(input.pos, 1.0), g_worldViewProj);
+    //float4x4 mvp = mul(mul(transpose(g_model), transpose(g_camView)), transpose(g_camViewProjection));
+    float4x4 mvp = transpose(mul(mul(g_camViewProjection, g_camView), g_model));
+    //float4x4 mvp = g_model * g_camView * g_camViewProjection;
+    //float4x4 mvp = g_camViewProjection * g_camView * g_model;
+    //output.pos = mul(float4(input.pos, 1.0), transpose(mvp));
+    output.pos = mul(float4(input.pos, 1.0), mvp);
 	output.color = input.color;
 	//output.uv = input.uv;
 }

@@ -1,5 +1,6 @@
 ﻿using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.SceneManagement;
 using REngine.RHI;
 using REngine.RPI.Structs;
 using System;
@@ -21,7 +22,7 @@ namespace REngine.RPI
 		private RenderSettings pRenderSettings;
 		private RPIEvents pRPIEvents;
 
-		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object + 1];
+		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
 
 		public BufferProvider(
 			EngineEvents engineEvents, 
@@ -100,7 +101,7 @@ namespace REngine.RPI
 
 		private int GetBufferGroupIndex(BufferGroupType grpType)
 		{
-			return (int)grpType;
+			return (int)(grpType - 1);
 		}
 
 		private void BuildBuffers()
@@ -117,63 +118,33 @@ namespace REngine.RPI
 				AccessFlags = CpuAccessFlags.Write
 			};
 
-			int bufferIdx = -1;
-
-			bufferIdx = GetBufferGroupIndex(BufferGroupType.Fixed);
-			if(pCBuffers[bufferIdx]?.Size != (ulong)Marshal.SizeOf<RendererFixedData>())
+			ulong[] bufferSizes = new ulong[]
 			{
+				(ulong)Marshal.SizeOf<RendererFixedData>(),
+				pRenderSettings.FrameBufferSize,
+				(ulong)Marshal.SizeOf<CameraData>(),
+				pRenderSettings.ObjectBufferSize,
+			};
+
+			for(int i =0; i < bufferSizes.Length; ++i)
+			{
+				BufferGroupType type = (BufferGroupType)(i + 1);
+				if (pCBuffers[i]?.Size == bufferSizes[i])
+					continue;
 				changed = true;
-				if (pCBuffers[bufferIdx] != null)
+				if (pCBuffers[i] != null)
 				{
-					pLogger.Info("Disposing Fixed Buffer");
-					pCBuffers[bufferIdx].Dispose();
+					pLogger.Info($"Disposing {type} Buffer");
+					pCBuffers[i].Dispose();
 				}
 
-				pLogger.Info("Building Fixed Buffer");
+				pLogger.Info($"Building {type} Buffer");
 
-				desc.Name = $"{nameof(IBufferProvider)} - Fixed CBuffer";
-				desc.Size = (ulong)Marshal.SizeOf<RendererFixedData>();
+				desc.Name = $"{nameof(IBufferProvider)} - {type} CBuffer";
+				desc.Size = bufferSizes[i];
 
-				pCBuffers[bufferIdx] = pDriver.Device.CreateBuffer(desc);
-				pLogger.Info("Fixed buffer has been created.");
-			}
-
-			bufferIdx = GetBufferGroupIndex(BufferGroupType.Frame);
-			if(pCBuffers[bufferIdx]?.Size != pRenderSettings.FrameBufferSize)
-			{
-				changed = true;
-				if (pCBuffers[bufferIdx] != null)
-				{
-					pLogger.Info("Disposing Frame Buffer");
-					pCBuffers[bufferIdx].Dispose();
-				}
-
-				pLogger.Info("Building Frame Buffer");
-
-				desc.Name = $"{nameof(IBufferProvider)} - Frame CBuffer";
-				desc.Size = pRenderSettings.FrameBufferSize;
-
-				pCBuffers[bufferIdx] = pDriver.Device.CreateBuffer(desc);
-				pLogger.Info("Frame buffer has been created.");
-			}
-
-			bufferIdx = GetBufferGroupIndex(BufferGroupType.Object);
-			if (pCBuffers[bufferIdx]?.Size != pRenderSettings.ObjectBufferSize)
-			{
-				changed = true;
-				if (pCBuffers[bufferIdx] != null)
-				{
-					pLogger.Info("Disposing Object Buffer");
-					pCBuffers[bufferIdx].Dispose();
-				}
-
-				pLogger.Info("Building Object Buffer");
-
-				desc.Name = $"{nameof(IBufferProvider)} - Object CBuffer";
-				desc.Size = pRenderSettings.ObjectBufferSize;
-
-				pCBuffers[bufferIdx] = pDriver.Device.CreateBuffer(desc);
-				pLogger.Info("Object buffer has been created.");
+				pCBuffers[i] = pDriver.Device.CreateBuffer(desc);
+				pLogger.Info($"{type} buffer has been created.");
 			}
 
 			if (changed)

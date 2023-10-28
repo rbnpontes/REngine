@@ -1,4 +1,5 @@
-﻿using REngine.RHI;
+﻿using REngine.Core.SceneManagement;
+using REngine.RHI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,13 +14,14 @@ namespace REngine.RPI.Features
 {
 	public interface ICubeRenderFeature : IRenderFeature 
 	{ 
-		public Matrix4x4 Transform { get; set; }
+		public Transform Transform { get; }
+		public ICamera? Camera { get; set; }
 	}
 
 	internal class CubeRenderFeature : BaseRenderFeature, ICubeRenderFeature
 	{
 		protected GraphicsSettings pSettings;
-		protected GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube PSO " };
+		protected GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube Pipeline" };
 		protected BufferDesc pVertexBufferDesc = new BufferDesc { 
 			Name = "VBuffer",
 			Usage = Usage.Immutable,
@@ -33,7 +35,8 @@ namespace REngine.RPI.Features
 
 		protected IBuffer? pVertexBuffer;
 		protected IBuffer? pIndexBuffer;
-		protected IBuffer? pCBuffer;
+		protected IBuffer? pObjectCBuffer;
+		protected IBuffer? pCamCBuffer;
 		protected IPipelineState? pPipeline;
 		protected ISwapChain? pSwapChain;
 
@@ -76,7 +79,8 @@ namespace REngine.RPI.Features
 
 		public override bool IsDirty { get; protected set; } = true;
 
-		public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
+		public Transform Transform { get; } = new Transform();
+		public ICamera? Camera { get; set; }
 
 		public CubeRenderFeature(GraphicsSettings settings) : base()
 		{
@@ -111,19 +115,21 @@ namespace REngine.RPI.Features
 			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
 			pPipeline = CreatePipeline(setupInfo.Driver.Device, setupInfo.BufferProvider);
 			pSwapChain = setupInfo.Renderer.SwapChain;
-			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
+			pObjectCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
+			pCamCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Camera);
 
 			IsDirty = false;
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
-		{ 
-			if (pVertexBuffer is null || pIndexBuffer is null || pCBuffer is null || pPipeline is null || pSwapChain is null)
+		{
+			if (Camera is null)
+				return;
+			if (pVertexBuffer is null || pIndexBuffer is null || pObjectCBuffer is null || pPipeline is null || pSwapChain is null)
 				return;
 
-			var mappedData = command.Map<Matrix4x4>(pCBuffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = Transform;
-			command.Unmap(pCBuffer, MapType.Write);
+			UpdateCBuffer(command, pObjectCBuffer, Transform.WorldTransformMatrix);
+			UpdateCBuffer(command, pCamCBuffer, Camera.Data);
 
 			command
 				.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
@@ -135,6 +141,13 @@ namespace REngine.RPI.Features
 				{
 					NumIndices = (uint)pIndices.Length
 				});
+		}
+
+		private void UpdateCBuffer<T>(ICommandBuffer command, IBuffer buffer, in T data) where T : unmanaged
+		{
+			var mappedData = command.Map<T>(buffer, MapType.Write, MapFlags.Discard);
+			mappedData[0] = data;
+			command.Unmap(buffer, MapType.Write);
 		}
 
 		protected virtual IShader LoadShader(IDevice device, ShaderType type)
@@ -187,7 +200,9 @@ namespace REngine.RPI.Features
 
 			var pipeline = device.CreateGraphicsPipeline(pPipelineDesc);
 
-			pipeline.GetResourceBinding().Set(ShaderTypeFlags.Vertex, "Constants", bufferProvider.GetBuffer(BufferGroupType.Object));
+			var srb = pipeline.GetResourceBinding();
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Camera, bufferProvider.GetBuffer(BufferGroupType.Camera));
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferProvider.GetBuffer(BufferGroupType.Object));
 
 			vsShader.Dispose();
 			psShader.Dispose();

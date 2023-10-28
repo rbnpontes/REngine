@@ -11,6 +11,7 @@ namespace REngine.RPI
 	{
 		Fixed = 1,
 		Frame,
+		Camera,
 		Object
 	}
 
