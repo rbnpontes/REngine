@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<render-graph>
+	<resource id="@engine/backbuffer" type="RenderTarget"/>
+	<resource id="@engine/depthbuffer" type="RenderTarget"/>
+	<var id="@vars/@spritebatch/enabled" type="bool" value="false"/>
+
+	<if test="@spritebatch/enabled">
+		<spritebatch-pass colorbuffer="@engine/backbuffer" depthbuffer="@engine/depthbuffer"/>
+	</if>
+	<imgui-pass colorbuffer="@engine/backbuffer" depthbuffer="@engine/depthbuffer"/>
+</render-graph>
