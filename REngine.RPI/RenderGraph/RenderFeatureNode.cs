@@ -8,21 +8,22 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.RenderGraph
 {
-	public class RenderFeatureNode : ExecutableGraphNode
+	public abstract class RenderFeatureNode : ExecutableGraphNode
 	{
-		private readonly IRenderFeature pFeature;
 		private IBufferProvider? pBufferProvider;
 		private IRenderer? pRenderer;
+		private IRenderFeature? pFeature;
 
-		public override bool IsDirty => pFeature.IsDirty;
+		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
-		public RenderFeatureNode(IRenderFeature feature, string debugName) : base(debugName)
+		public RenderFeatureNode(string debugName) : base(debugName)
 		{
-			pFeature = feature;
 		}
 
 		protected override void OnRun(IServiceProvider provider)
 		{
+			if(pFeature is null)
+				pFeature = GetFeature();
 			if (pBufferProvider is null)
 				pBufferProvider = provider.Get<IBufferProvider>();
 			if(pRenderer is null)
@@ -43,21 +44,27 @@ namespace REngine.RPI.RenderGraph
 				Renderer = pRenderer
 			};
 
-			if(pFeature.IsDirty)
+			var feature = pFeature;
+			if (feature is null)
+				return;
+			if(feature.IsDirty)
 			{
-				pFeature.Setup(setupInfo);
-				pFeature.Compile(command);
+				feature.Setup(setupInfo);
+				feature.Compile(command);
 			}
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
-			pFeature.Execute(command);
+			pFeature?.Execute(command);
 		}
 
 		protected override void OnDispose()
 		{
-			pFeature.Dispose();
+			pFeature?.Dispose();
+			pFeature = null;
 		}
+
+		protected abstract IRenderFeature GetFeature();
 	}
 }

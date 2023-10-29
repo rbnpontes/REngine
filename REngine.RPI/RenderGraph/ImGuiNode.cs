@@ -1,4 +1,5 @@
-﻿using REngine.RPI.RenderGraph.Annotations;
+﻿using REngine.Core.DependencyInjection;
+using REngine.RPI.RenderGraph.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,21 @@ namespace REngine.RPI.RenderGraph
 	[NodeTag("imgui-pass")]
 	public class ImGuiNode : RenderFeatureNode
 	{
-		public ImGuiNode(IImGuiSystem system) : base(system.Feature, nameof(ImGuiNode))
+		private IRenderFeature? pFeature;
+		public ImGuiNode() : base(nameof(ImGuiNode)) { }
+
+		protected override void OnRun(IServiceProvider provider)
 		{
+			if(pFeature is null)
+				pFeature = provider.Get<IImGuiSystem>().Feature;
+			base.OnRun(provider);
 		}
-		public ImGuiNode(IRenderFeature feature) : base(feature, nameof(ImGuiNode)) { }
+
+		protected override IRenderFeature GetFeature()
+		{
+			if (pFeature is null)
+				throw new NullReferenceException("Render Feature is null, it seems Imgui Render Feature has not been loaded.");
+			return pFeature;
+		}
 	}
 }

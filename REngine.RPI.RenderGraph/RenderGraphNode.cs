@@ -88,7 +88,8 @@ namespace REngine.RPI.RenderGraph
 			if (IsDisposed)
 				return;
 
-			OnDispose();
+			if(pHasSetup)
+				OnDispose();
 			var children = OnGetChildren();
 			foreach (var child in children)
 				child.Dispose();
