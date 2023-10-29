@@ -41,7 +41,7 @@ namespace REngine.RPI.RenderGraph
 				if(pValue != value)
 				{
 					var args = new VarChangeEventArgs(pValue, value);
-					pValue = args;
+					pValue = value;
 					Change?.Invoke(this, args);
 				}
 			}
