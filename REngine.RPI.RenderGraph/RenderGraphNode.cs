@@ -16,7 +16,9 @@ namespace REngine.RPI.RenderGraph
 		private bool pDirty = true;
 #if DEBUG
 		public string DebugName { get; private set; }
+		public string Xml { get; internal set; } = string.Empty;
 #endif
+		public int Id { get; internal set; }
 		public bool IsDisposed { get; private set; }
 		public IReadOnlyList<RenderGraphNode> Children { get => pChildren.AsReadOnly(); }
 		public RenderGraphNode? Parent { get; private set; }
@@ -206,5 +208,16 @@ namespace REngine.RPI.RenderGraph
 		}
 
 		protected virtual IEnumerable<RenderGraphNode> OnBuild(IResourceManager resourceManager, IDevice device, ICommandBuffer command) { return Children; }
+	}
+
+	public sealed class RootGraphNode : RenderGraphNode
+	{
+		public RootGraphNode() : base("Root") 
+		{ 
+		}
+
+		protected override void OnRun(IServiceProvider provider)
+		{
+		}
 	}
 }

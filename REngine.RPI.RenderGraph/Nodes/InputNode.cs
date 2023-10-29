@@ -18,7 +18,7 @@ namespace REngine.RPI.RenderGraph.Nodes
 		private string pId = string.Empty;
 
 		private IResource? pResource;
-		private ResourceType pExpectedResourceType = ResourceType.Unknow;
+		private GPUObjectType pExpectedResourceType = GPUObjectType.Unknown;
 
 		public InputNode() : base(nameof(InputNode))
 		{
@@ -31,7 +31,14 @@ namespace REngine.RPI.RenderGraph.Nodes
 			if (!properties.TryGetValue(InputTypePropertyKey.GetHashCode(), out string? type))
 				throw new RequiredNodePropertyException(InputTypePropertyKey, nameof(InputNode));
 
-			Enum.TryParse(type, out pExpectedResourceType);
+			string[] typeParts = type.Split('|');
+			foreach(var typePart in typeParts)
+			{
+				GPUObjectType objType = GPUObjectType.Unknown;
+				Enum.TryParse(typePart, true, out objType);
+				pExpectedResourceType |= objType;
+			}
+
 			pId = id;
 		}
 
@@ -40,12 +47,6 @@ namespace REngine.RPI.RenderGraph.Nodes
 			if (pResource != null)
 				return;
 			pResource = ServiceProvider.Get<IResourceManager>().GetResource(pId);
-			if (pResource is ResourceImpl resource)
-			{
-				if (resource.Value is null)
-					resource.Type = pExpectedResourceType;
-			}
-
 			ValidateResource(pResource);
 			pResource.ValueChanged += HandleResourceChange;
 		}
@@ -57,8 +58,10 @@ namespace REngine.RPI.RenderGraph.Nodes
 
 		private void ValidateResource(IResource resource)
 		{
-			if (resource.Type != pExpectedResourceType)
-				throw new ExpectedResourceTypeException(resource.Type, pExpectedResourceType);
+			if (resource.Value is null)
+				return;
+			if ((resource.Value.ObjectType & pExpectedResourceType) != 0)
+				throw new ExpectedResourceTypeException(resource.Value.ObjectType, pExpectedResourceType);
 		}
 
 		protected override IEnumerable<RenderGraphNode> OnGetChildren()

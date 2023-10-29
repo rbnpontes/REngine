@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.RHI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +20,9 @@ namespace REngine.RPI.RenderGraph
 	}
     public class ExpectedResourceTypeException : RenderGraphException
     {
-		public ResourceType Expected { get; private set; }
-		public ResourceType Current { get; private set; }
-        public ExpectedResourceTypeException(ResourceType curr, ResourceType expected) : base($"Expected '{expected}', but gets '{curr}'")
+		public GPUObjectType Expected { get; private set; }
+		public GPUObjectType Current { get; private set; }
+        public ExpectedResourceTypeException(GPUObjectType curr, GPUObjectType expected) : base($"Expected '{expected}', but gets '{curr}'")
 		{
 			Expected = expected;
 			Current = curr;

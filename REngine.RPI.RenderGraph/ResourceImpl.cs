@@ -7,37 +7,18 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.RenderGraph
 {
-	public enum ResourceType
-	{
-		Unknow = 0,
-		VertexBuffer,
-		IndexBuffer,
-		ConstantBuffer,
-		RenderTarget,
-		UnorderedAccess,
-		DepthWrite,
-		DepthRead,
-		ShaderResource
-	}
-
 	public class ResourceChangeEventArgs : EventArgs 
 	{
 		public IGPUObject? OldValue { get; private set; }
 		public IGPUObject? NewValue { get; private set; }
-		public ResourceType OldType { get; private set; }
-		public ResourceType NewType { get; private set; }
 
 		public ResourceChangeEventArgs(
 			IGPUObject? oldValue,
-			IGPUObject? newValue,
-			ResourceType oldType,
-			ResourceType newType
+			IGPUObject? newValue
 		)
 		{
 			OldValue = oldValue;
 			NewValue = newValue;
-			OldType = oldType;
-			NewType = newType;
 		}
 	}
 
@@ -50,10 +31,6 @@ namespace REngine.RPI.RenderGraph
 		/// </summary>
 		public IGPUObject? Value { get; }
 		/// <summary>
-		/// Get Resource Type
-		/// </summary>
-		public ResourceType Type { get; }
-		/// <summary>
 		/// Emit if Value is changed
 		/// </summary>
 		public event EventHandler<ResourceChangeEventArgs>? ValueChanged;
@@ -62,17 +39,11 @@ namespace REngine.RPI.RenderGraph
 	internal class ResourceImpl : IResource
 	{
 		private IGPUObject? pObj;
-		private ResourceType pType;
 
 		public IGPUObject? Value
 		{
 			get => pObj;
 			set => pObj = value;
-		}
-		public ResourceType Type
-		{
-			get => pType;
-			set => pType = value;
 		}
 
 		public int Id { get; internal set; }
@@ -85,29 +56,16 @@ namespace REngine.RPI.RenderGraph
 
 		public ResourceImpl()
 		{
-			pType = ResourceType.Unknow;
-		}
-
-		public void Mutate(ResourceType resourceType)
-		{
-			Mutate(pObj, resourceType);
 		}
 		public void Mutate(IGPUObject newValue)
 		{
-			Mutate(newValue, pType);
-		}
-		public void Mutate(IGPUObject newValue, ResourceType newType)
-		{
-			if (newValue == pObj && newType == pType)
+			if (newValue == pObj)
 				return;
 			var args = new ResourceChangeEventArgs(
 				pObj,
-				newValue,
-				pType,
-				newType
+				newValue
 			);
 
-			pType = newType;
 			pObj = newValue;
 
 			ValueChanged?.Invoke(this, args);

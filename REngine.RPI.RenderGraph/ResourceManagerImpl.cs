@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.RHI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,6 @@ namespace REngine.RPI.RenderGraph
 			ResourceImpl res = new();
 			res.Id = resource.Id;
 			res.Value = resource.Resource;
-			res.Type = resource.ResourceType;
 			pResources.Add(resource.Id, res);
 			return this;
 		}
@@ -39,6 +39,23 @@ namespace REngine.RPI.RenderGraph
 		public IResource GetResource(int resourceId)
 		{
 			return GetOrCreateResource(resourceId);
+		}
+
+		public IResourceManager UpdateResource(string resourceName, IGPUObject resource)
+		{
+			ResourceImpl res = GetOrCreateResource(resourceName.GetHashCode());
+#if DEBUG
+			res.DebugName = resourceName;
+#endif
+			res.Mutate(resource);
+			return this;
+		}
+
+		public IResourceManager UpdateResource(int resourceId, IGPUObject resource)
+		{
+			ResourceImpl res = GetOrCreateResource(resourceId);
+			res.Mutate(resource);
+			return this;
 		}
 
 		private ResourceImpl GetOrCreateResource(int resourceId)
