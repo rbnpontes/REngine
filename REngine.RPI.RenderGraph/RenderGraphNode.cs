@@ -119,6 +119,16 @@ namespace REngine.RPI.RenderGraph
 	{
 		private IGraphicsDriver? pGraphicsDriver;
 
+		public IGraphicsDriver Driver
+		{
+			get
+			{
+				if(pGraphicsDriver is null)
+					throw new NullReferenceException("Graphics Driver is null, it seems Run is not called.");
+				return pGraphicsDriver;
+			}
+		}
+
 		public ExecutableGraphNode(string debugName) : base(debugName)
 		{
 		}

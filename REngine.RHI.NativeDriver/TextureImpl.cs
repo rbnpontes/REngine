@@ -81,7 +81,7 @@ namespace REngine.RHI.NativeDriver
 		public static TextureDesc GetObjectDesc(IntPtr ptr)
 		{
 			TextureDescDTO desc = new();
-			rengine_texture_getdesc(Handle, ref desc);
+			rengine_texture_getdesc(ptr, ref desc);
 
 			TextureDescDTO.Fill(desc, out TextureDesc output);
 			return output;

@@ -1,6 +1,7 @@
 ﻿using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.RPI.Features;
+using REngine.RPI.RenderGraph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,14 @@ namespace REngine.RPI
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
+			RenderGraphModule.Setup(registry);
+			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
+			renderGraphRegistry
+				.Register<SpritebatchNode>()
+				.Register<ImGuiNode>();
+
 			registry
+				.Add(()=> renderGraphRegistry)
 				.Add<RenderSettings>()
 				.Add<RPIEvents>()
 				.Add<RenderState>()

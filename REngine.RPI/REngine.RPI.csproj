@@ -29,6 +29,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
+		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="Assets\Fonts\Anonymous Pro.ttf">

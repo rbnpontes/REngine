@@ -64,7 +64,6 @@ namespace REngine.RPI.RenderGraph
 			{
 				res = new ResourceImpl();
 				res.Id = resourceId;
-				res.Type = ResourceType.Unknow;
 				pResources[resourceId] = res;
 			}
 			return res;

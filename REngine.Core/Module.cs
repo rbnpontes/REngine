@@ -14,6 +14,7 @@ namespace REngine.Core
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
+			//RenderGraphModule.Setup(registry);
 			registry
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IInput, InputImpl>()
