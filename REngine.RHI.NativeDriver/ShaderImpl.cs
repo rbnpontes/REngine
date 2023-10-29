@@ -19,6 +19,8 @@ namespace REngine.RHI.NativeDriver
 			get => Marshal.PtrToStringAnsi(rengine_object_getname(Handle)) ?? string.Empty;
 		}
 
+		public GPUObjectType ObjectType => GPUObjectType.Shader;
+
 		public ShaderImpl(IntPtr handle) : base(handle)
 		{
 		}

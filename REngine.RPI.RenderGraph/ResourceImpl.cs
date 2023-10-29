@@ -10,7 +10,6 @@ namespace REngine.RPI.RenderGraph
 	public enum ResourceType
 	{
 		Unknow = 0,
-		Empty = 1,
 		VertexBuffer,
 		IndexBuffer,
 		ConstantBuffer,
@@ -44,6 +43,7 @@ namespace REngine.RPI.RenderGraph
 
 	public interface IResource
 	{
+		public int Id { get; }
 		/// <summary>
 		/// Return Resource Value
 		/// If resource has not been set, this value will be null
@@ -59,7 +59,7 @@ namespace REngine.RPI.RenderGraph
 		public event EventHandler<ResourceChangeEventArgs>? ValueChanged;
 	}
 
-	internal class RenderGraphResource : IResource
+	internal class ResourceImpl : IResource
 	{
 		private IGPUObject? pObj;
 		private ResourceType pType;
@@ -75,11 +75,17 @@ namespace REngine.RPI.RenderGraph
 			set => pType = value;
 		}
 
+		public int Id { get; internal set; }
+
+#if DEBUG
+		public string DebugName { get; internal set; } = string.Empty;
+#endif
+
 		public event EventHandler<ResourceChangeEventArgs>? ValueChanged;
 
-		public RenderGraphResource()
+		public ResourceImpl()
 		{
-			pType = ResourceType.Empty;
+			pType = ResourceType.Unknow;
 		}
 
 		public void Mutate(ResourceType resourceType)

@@ -14,14 +14,7 @@ namespace REngine.RHI.NativeDriver
 
 		public TextureDesc Desc
 		{
-			get
-			{
-				TextureDescDTO desc = new();
-				rengine_texture_getdesc(Handle, ref desc);
-
-				TextureDescDTO.Fill(desc, out TextureDesc output);
-				return output;
-			}
+			get => GetObjectDesc(Handle);
 		}
 
 		public string Name
@@ -29,8 +22,11 @@ namespace REngine.RHI.NativeDriver
 			get => Desc.Name;
 		}
 
+		public GPUObjectType ObjectType { get; private set; }
+
 		public TextureImpl(IntPtr handle) : base(handle)
 		{
+			ObjectType = GetObjectTypeFromDesc(Desc);
 		}
 
 		protected override void BeforeRelease()
@@ -57,6 +53,38 @@ namespace REngine.RHI.NativeDriver
 				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value);
 
 			return texView;
+		}
+
+		public static GPUObjectType GetObjectTypeFromDesc(in TextureDesc desc)
+		{
+			var dim = desc.Dimension;
+			var flags = desc.BindFlags;
+
+			GPUObjectType result = GPUObjectType.Unknown;
+			if (dim == TextureDimension.Tex1D)
+				result = GPUObjectType.Texture1D;
+			else if (dim == TextureDimension.Tex1DArray)
+				result = GPUObjectType.TextureArray;
+			else if (dim == TextureDimension.Tex2D)
+				result = GPUObjectType.Texture2D;
+			else if (dim == TextureDimension.Tex2DArray)
+				result = GPUObjectType.Texture2D;
+			else if (dim == TextureDimension.Tex3D)
+				result = GPUObjectType.Texture3D;
+
+			if ((flags & BindFlags.RenderTarget) != 0)
+				result |= GPUObjectType.RenderTarget;
+
+			return result;
+		}
+
+		public static TextureDesc GetObjectDesc(IntPtr ptr)
+		{
+			TextureDescDTO desc = new();
+			rengine_texture_getdesc(Handle, ref desc);
+
+			TextureDescDTO.Fill(desc, out TextureDesc output);
+			return output;
 		}
 	}
 }

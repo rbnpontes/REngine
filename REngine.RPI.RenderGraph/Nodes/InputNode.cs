@@ -40,7 +40,7 @@ namespace REngine.RPI.RenderGraph.Nodes
 			if (pResource != null)
 				return;
 			pResource = ServiceProvider.Get<IResourceManager>().GetResource(pId);
-			if (pResource is RenderGraphResource resource)
+			if (pResource is ResourceImpl resource)
 			{
 				if (resource.Value is null)
 					resource.Type = pExpectedResourceType;

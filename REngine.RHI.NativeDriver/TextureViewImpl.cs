@@ -32,19 +32,15 @@ namespace REngine.RHI.NativeDriver
 
 		public TextureViewDesc Desc
 		{
-			get
-			{
-				TextureViewDescDTO desc = new();
-				rengine_textureview_getdesc(Handle, ref desc);
-				TextureViewDescDTO.Fill(desc, out TextureViewDesc output);
-				return output;
-			}
+			get => GetObjectDesc(Handle);
 		}
 
 		public TextureViewType ViewType => Desc.ViewType;
 
 		public string Name => Marshal.PtrToStringAnsi(rengine_object_getname(Handle)) ?? string.Empty;
-		
+
+		public GPUObjectType ObjectType => GPUObjectType.TextureView;
+
 		public TextureViewImpl(IntPtr handle) : base(handle)
 		{
 		}
@@ -53,6 +49,14 @@ namespace REngine.RHI.NativeDriver
 		protected override void BeforeRelease()
 		{
 			pParent = null;
+		}
+
+		public static TextureViewDesc GetObjectDesc(IntPtr ptr)
+		{
+			TextureViewDescDTO desc = new();
+			rengine_textureview_getdesc(ptr, ref desc);
+			TextureViewDescDTO.Fill(desc, out TextureViewDesc output);
+			return output;
 		}
 	}
 }
