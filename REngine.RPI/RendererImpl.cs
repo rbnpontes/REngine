@@ -1,8 +1,10 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Exceptions;
 using REngine.Core.IO;
 using REngine.Core.Threading;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using REngine.RPI.Structs;
 using System;
 using System.Collections.Generic;
@@ -47,6 +49,11 @@ namespace REngine.RPI
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly IEngine pEngine;
 
+#if RENGINE_RENDERGRAPH
+		private RenderGraph.IResourceManager? pRenderGraphResMgr;
+		private RenderGraph.IResource? pMainBackbufferResource;
+		private RenderGraph.IResource? pMainDepthbufferResource;
+#endif
 		private IExecutionPipelineVar pNeedsPrepareVar;
 
 		private readonly FeatureCollection pFeatureCollection = new FeatureCollection();
@@ -185,6 +192,16 @@ namespace REngine.RPI
 					.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
+
+#if RENGINE_RENDERGRAPH
+				if (pMainBackbufferResource is null)
+					throw new EngineFatalException("Main Backbuffer Resource is null. It seems IRenderer does not filled this field");
+				if (pMainDepthbufferResource is null)
+					throw new EngineFatalException("Main Depthbuffer Resource is null. It seems IRenderer does not filled this field");
+				
+				pMainBackbufferResource.Value = colorBuffer;
+				pMainDepthbufferResource.Value = pSwapChain.DepthBuffer;
+#endif
 			}
 
 			foreach(var feature in pFeatureCollection)
@@ -299,6 +316,12 @@ namespace REngine.RPI
 				pLogger.Warning("ISwapChain has not been setted on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
 				UpdateSwapChain(swapChain);
+
+#if RENGINE_RENDERGRAPH
+			pRenderGraphResMgr = pProvider.Get<RenderGraph.IResourceManager>();
+			pMainBackbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainBackbufferResourceName);
+			pMainDepthbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainDepthbufferResourceName);
+#endif
 
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())

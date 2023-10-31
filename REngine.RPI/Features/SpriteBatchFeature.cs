@@ -2,6 +2,7 @@
 using MathNet.Numerics.LinearAlgebra.Complex;
 using REngine.Core.Resources;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	internal class SpriteBatchFeature : GraphicsRenderFeature
+    internal class SpriteBatchFeature : GraphicsRenderFeature
 	{
 		[Flags]
 		public enum DirtyFlags

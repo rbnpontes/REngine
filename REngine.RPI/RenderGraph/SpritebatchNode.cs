@@ -10,8 +10,14 @@ using System.Threading.Tasks;
 namespace REngine.RPI.RenderGraph
 {
 	[NodeTag("spritebatch-pass")]
-	public class SpritebatchNode : RenderFeatureNode
+	public class SpritebatchNode : GraphicsRenderFeatureNode
 	{
+		private static readonly int[] ExpectedWriteResources =
+		{
+			BackbufferSlotName.GetHashCode(),
+			DepthbufferSlotName.GetHashCode()
+		};
+
 		private IRenderFeature? pFeature;
 		public SpritebatchNode() : base(nameof(SpritebatchNode))
 		{
@@ -29,6 +35,11 @@ namespace REngine.RPI.RenderGraph
 			if (pFeature is null)
 				throw new NullReferenceException("Render Feature is null. It seems SpriteBatch Render Feature has not been loaded.");
 			return pFeature;
+		}
+
+		protected override IEnumerable<int> GetExpectedWriteResourceSlots()
+		{
+			return ExpectedWriteResources;
 		}
 	}
 }

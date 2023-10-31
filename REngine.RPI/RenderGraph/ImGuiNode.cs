@@ -1,4 +1,5 @@
 ﻿using REngine.Core.DependencyInjection;
+using REngine.RHI;
 using REngine.RPI.RenderGraph.Annotations;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,15 @@ using System.Threading.Tasks;
 namespace REngine.RPI.RenderGraph
 {
 	[NodeTag("imgui-pass")]
-	public class ImGuiNode : RenderFeatureNode
+	public class ImGuiNode : GraphicsRenderFeatureNode
 	{
-		private IRenderFeature? pFeature;
+		private static readonly int[] ExpectedWriteResources =
+		{
+			BackbufferSlotName.GetHashCode(),
+			DepthbufferSlotName.GetHashCode()
+		};
+
+		private IGraphicsRenderFeature? pFeature;
 		public ImGuiNode() : base(nameof(ImGuiNode)) { }
 
 		protected override void OnRun(IServiceProvider provider)
@@ -27,6 +34,11 @@ namespace REngine.RPI.RenderGraph
 			if (pFeature is null)
 				throw new NullReferenceException("Render Feature is null, it seems Imgui Render Feature has not been loaded.");
 			return pFeature;
+		}
+
+		protected override IEnumerable<int> GetExpectedWriteResourceSlots()
+		{
+			return ExpectedWriteResources;
 		}
 	}
 }

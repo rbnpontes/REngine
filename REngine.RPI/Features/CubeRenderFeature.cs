@@ -1,5 +1,6 @@
 ﻿using REngine.Core.SceneManagement;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	public interface ICubeRenderFeature : IGraphicsRenderFeature 
+    public interface ICubeRenderFeature : IGraphicsRenderFeature 
 	{ 
 		public Transform Transform { get; }
 		public ICamera? Camera { get; set; }

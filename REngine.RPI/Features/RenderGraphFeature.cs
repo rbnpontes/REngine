@@ -33,6 +33,7 @@ namespace REngine.RPI.Features
 			if (IsDisposed)
 				return;
 			pEntry.Root.Dispose();
+			pRenderGraph.RootEntry = null;
 			IsDisposed = true;
 			GC.SuppressFinalize(this);
 		}

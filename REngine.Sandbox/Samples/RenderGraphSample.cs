@@ -42,9 +42,17 @@ namespace REngine.Sandbox.Samples
 			pFeature?.Dispose();
 
 			if(pImGuiSystem != null)
-				pRenderer?.AddFeature(pImGuiSystem.Feature);
+			{
+				pImGuiSystem.OnGui -= OnGui;
+				pRenderer?.AddFeature(pImGuiSystem.Feature, 100);
+			}
 
+			if(pSpritebatch != null)
+				pSpritebatch.OnDraw -= OnDraw;
+			pSpritebatch?.ClearTexture(0);
 			pTextBatch?.Dispose();
+
+			GC.SuppressFinalize(this);
 		}
 
 		public void Load(IServiceProvider provider)
@@ -65,16 +73,17 @@ namespace REngine.Sandbox.Samples
 			pSpritebatch.SetTexture(0, sprite.Image);
 
 			// Load Font
-			FontAsset fontAsset = new();
-			fontAsset.Name = "Anonymous Pro";
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
-				fontAsset.Load(stream).Wait();
+			using (FontAsset fontAsset = new())
+			{
+				fontAsset.Name = "Anonymous Pro";
+				using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
+					fontAsset.Load(stream).Wait();
 
-			pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
-			pTextBatch.Text = "Render Graph Sample";
-			pTextBatch.Size = 24;
-			pTextBatch.Position = (Window.Size * 0.5f).ToVector2();
-
+				pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
+				pTextBatch.Text = "Render Graph Sample";
+				pTextBatch.Size = 24;
+				pTextBatch.Position = (Window.Size * 0.5f).ToVector2();
+			}
 			pEnableSpritebatchVar = pVarMgr.GetVar("@vars/spritebatch/enabled");
 
 			var rootEntry = pRenderGraph.LoadFromFile(

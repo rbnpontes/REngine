@@ -19,7 +19,9 @@ namespace REngine.RPI
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
 			renderGraphRegistry
 				.Register<SpritebatchNode>()
-				.Register<ImGuiNode>();
+				.Register<ImGuiNode>()
+				.Register<ReadNode>()
+				.Register<WriteNode>();
 #endif
 			registry
 #if RENGINE_RENDERGRAPH

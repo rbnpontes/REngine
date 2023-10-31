@@ -3,6 +3,7 @@ using REngine.RHI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -67,6 +68,42 @@ namespace REngine.RPI.RenderGraph
 		}
 
 		protected abstract IRenderFeature GetFeature();
+
+		public void AddReadResource(int resourceSlotId, IResource resource)
+		{
+#if DEBUG
+			ValidateExpectedResource(GetExpectedReadResourceSlots(), resourceSlotId);
+#endif
+			OnAddReadResource(resourceSlotId, resource);
+		}
+		public void AddWriteResource(int resourceSlotId, IResource resource)
+		{
+#if DEBUG
+			ValidateExpectedResource(GetExpectedWriteResourceSlots(), resourceSlotId);
+#endif
+			OnAddWriteResource(resourceSlotId, resource);
+		}
+
+		protected virtual IEnumerable<int> GetExpectedWriteResourceSlots()
+		{
+			return Array.Empty<int>();
+		}
+		protected virtual IEnumerable<int> GetExpectedReadResourceSlots()
+		{
+			return Array.Empty<int>();
+		}
+
+#if DEBUG
+		private void ValidateExpectedResource(IEnumerable<int> expectedResources, int resourceSlot)
+		{
+			if (expectedResources.Contains(resourceSlot))
+				return;
+			throw new RenderGraphException("Invalid Resource Slot.");
+		}
+#endif
+
+		protected virtual void OnAddReadResource(int resourceSlotId, IResource resource) { }
+		protected virtual void OnAddWriteResource(int resourceSlotId, IResource resource) { }
 	}
 }
 #endif

@@ -3,6 +3,7 @@ using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using REngine.RPI.Utils;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	internal class TextRendererImpl : ITextRenderer, IDisposable
+    internal class TextRendererImpl : ITextRenderer, IDisposable
 	{
 		class FontEntry : IDisposable
 		{
@@ -258,6 +259,9 @@ namespace REngine.RPI
 			
 			if (fontEntry?.Font == font)
 				return this;
+
+			if (fontEntry != null)
+				fontEntry.Dispose();
 
 			SdfBuilder builder = new SdfBuilder(font.Atlas);
 			builder.Radius = 4;

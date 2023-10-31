@@ -5,7 +5,13 @@
 	<var id="@vars/@spritebatch/enabled" type="bool" value="false"/>
 
 	<if test="@vars/spritebatch/enabled">
-		<spritebatch-pass colorbuffer="@engine/backbuffer" depthbuffer="@engine/depthbuffer"/>
+		<spritebatch-pass>
+			<write name="backbuffer" value="@engine/backbuffer"/>
+			<write name="depthbuffer" value="@engine/depthbuffer"/>
+		</spritebatch-pass>
 	</if>
-	<imgui-pass colorbuffer="@engine/backbuffer" depthbuffer="@engine/depthbuffer"/>
+	<imgui-pass>
+		<write name="backbuffer" value="@engine/backbuffer"/>
+		<write name="depthbuffer" value="@engine/depthbuffer"/>
+	</imgui-pass>
 </render-graph>

@@ -29,7 +29,7 @@ namespace REngine.RPI.RenderGraph
 		/// Return Resource Value
 		/// If resource has not been set, this value will be null
 		/// </summary>
-		public IGPUObject? Value { get; }
+		public IGPUObject? Value { get; set; }
 		/// <summary>
 		/// Emit if Value is changed
 		/// </summary>
@@ -43,7 +43,10 @@ namespace REngine.RPI.RenderGraph
 		public IGPUObject? Value
 		{
 			get => pObj;
-			set => pObj = value;
+			set
+			{
+				Mutate(value);
+			}
 		}
 
 		public int Id { get; internal set; }
@@ -69,6 +72,11 @@ namespace REngine.RPI.RenderGraph
 			pObj = newValue;
 
 			ValueChanged?.Invoke(this, args);
+		}
+
+		public void SetValueSilent(IGPUObject newValue)
+		{
+			pObj = newValue;
 		}
 	}
 }
