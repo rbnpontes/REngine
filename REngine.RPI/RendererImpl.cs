@@ -45,6 +45,7 @@ namespace REngine.RPI
 		private readonly IBufferProvider pBufferProvider;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
+		private readonly IEngine pEngine;
 
 		private IExecutionPipelineVar pNeedsPrepareVar;
 
@@ -79,7 +80,8 @@ namespace REngine.RPI
 			RPIEvents rendererEvts,
 			RenderState renderState,
 			IBufferProvider bufferProvider,
-			IExecutionPipeline pipeline)
+			IExecutionPipeline pipeline,
+			IEngine engine)
 		{
 			pProvider = provider;
 			pLogger = logger;
@@ -88,6 +90,7 @@ namespace REngine.RPI
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
 			pExecutionPipeline = pipeline;
+			pEngine = engine;
 
 			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
@@ -244,22 +247,25 @@ namespace REngine.RPI
 			Matrix4x4 proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
 			proj.M33 = proj.M43 = 0.5f;
 
-			pRenderState.FixedData = new RendererFixedData
+			pRenderState.FrameData = new FrameData
 			{
 				ScreenProjection = proj,
-				ViewWidth = size.Width,
-				ViewHeight = size.Height
+				ScreenWidth = size.Width,
+				ScreenHeight = size.Height,
+				DeltaTime = (float)pEngine.DeltaTime,
+				ElapsedTime = (float)pEngine.ElapsedTime,
 			};
 
 		}
+
 		private void UpdateFixedFrameBuffer()
 		{
 			if (pDriver is null)
 				return;
 
-			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Fixed);
-			var mappedData = pDriver.ImmediateCommand.Map<RendererFixedData>(buffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = pRenderState.FixedData;
+			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Frame);
+			var mappedData = pDriver.ImmediateCommand.Map<FrameData>(buffer, MapType.Write, MapFlags.Discard);
+			mappedData[0] = pRenderState.FrameData;
 			pDriver.ImmediateCommand.Unmap(buffer, MapType.Write);
 		}
 

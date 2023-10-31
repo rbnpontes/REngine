@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if RENGINE_RENDERGRAPH
 namespace REngine.RPI.RenderGraph
 {
 	[NodeTag("spritebatch-pass")]
@@ -31,3 +32,4 @@ namespace REngine.RPI.RenderGraph
 		}
 	}
 }
+#endif

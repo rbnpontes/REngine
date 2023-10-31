@@ -14,14 +14,17 @@ namespace REngine.RPI
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
+#if RENGINE_RENDERGRAPH
 			RenderGraphModule.Setup(registry);
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
 			renderGraphRegistry
 				.Register<SpritebatchNode>()
 				.Register<ImGuiNode>();
-
+#endif
 			registry
+#if RENGINE_RENDERGRAPH
 				.Add(()=> renderGraphRegistry)
+#endif
 				.Add<RenderSettings>()
 				.Add<RPIEvents>()
 				.Add<RenderState>()

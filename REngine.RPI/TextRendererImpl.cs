@@ -273,7 +273,7 @@ namespace REngine.RPI
 				srb = pPipeline.CreateResourceBinding();
 			}
 
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, pBufferProvider.GetBuffer(BufferGroupType.Frame));
 			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
 			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
 

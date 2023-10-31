@@ -1,6 +1,6 @@
-﻿cbuffer Constants
+﻿cbuffer FrameConstants
 {
-    float4x4 g_projection;
+    float4x4 g_screenProjection;
 };
 
 struct VSInput
@@ -19,7 +19,7 @@ struct PSOutput
 
 void main(in VSInput input, out PSOutput output)
 {
-    output.pos = mul(g_projection, float4(input.pos.xy, 0.0, 1.0));
+    output.pos = mul(g_screenProjection, float4(input.pos.xy, 0.0, 1.0));
     output.color = input.color;
     output.uv = input.uv;
 }

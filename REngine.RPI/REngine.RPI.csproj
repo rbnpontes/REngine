@@ -12,15 +12,15 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
+		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
+		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

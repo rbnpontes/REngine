@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if RENGINE_RENDERGRAPH
 namespace REngine.RPI.RenderGraph
 {
 	public abstract class RenderFeatureNode : ExecutableGraphNode
@@ -68,3 +69,4 @@ namespace REngine.RPI.RenderGraph
 		protected abstract IRenderFeature GetFeature();
 	}
 }
+#endif

@@ -12,12 +12,6 @@ namespace REngine.RPI
 	{
 		public string PipelineCacheFilename { get; set; } = "psocache.bin";
 		/// <summary>
-		/// Size of Frame Uniform Buffer
-		/// The buffer will be used to transfer mutable values like time, delta time and
-		/// any other engine values.
-		/// </summary>
-		public uint FrameBufferSize { get; set; } = 512;
-		/// <summary>
 		/// Size of Object Uniform Buffer
 		/// The buffer will be used to transfer transforms, lights or any other mutable values
 		/// </summary>
@@ -56,7 +50,6 @@ namespace REngine.RPI
 		public void Merge(RenderSettings settings)
 		{
 			PipelineCacheFilename = settings.PipelineCacheFilename;
-			FrameBufferSize = settings.FrameBufferSize;
 			ObjectBufferSize = settings.ObjectBufferSize;
 #if RENGINE_SPRITEBATCH
 			SpriteBatchInitialSize = settings.SpriteBatchInitialSize;

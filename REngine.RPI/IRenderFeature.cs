@@ -31,4 +31,10 @@ namespace REngine.RPI
 		public IRenderFeature Compile(ICommandBuffer command);
 		public IRenderFeature Execute(ICommandBuffer command);
 	}
+
+	public interface IGraphicsRenderFeature : IRenderFeature 
+	{
+		public ITextureView? BackBuffer { get; set; }
+		public ITextureView? DepthBuffer { get; set; }
+	}
 }

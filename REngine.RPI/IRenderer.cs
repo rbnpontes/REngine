@@ -9,8 +9,7 @@ namespace REngine.RPI
 {
 	public enum BufferGroupType
 	{
-		Fixed = 1,
-		Frame,
+		Frame = 1,
 		Camera,
 		Object
 	}

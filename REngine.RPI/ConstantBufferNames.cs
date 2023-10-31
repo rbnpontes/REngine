@@ -8,7 +8,6 @@ namespace REngine.RPI
 {
 	public static class ConstantBufferNames
 	{
-		public const string Fixed = "FixedConstants";
 		public const string Frame = "FrameConstants";
 		public const string Camera = "CameraConstants";
 		public const string Object = "ObjectConstants";
