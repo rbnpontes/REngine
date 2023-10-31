@@ -209,6 +209,9 @@ namespace REngine.RPI
 			);
 
 			var pipeline = GetDevice().CreateGraphicsPipeline(desc);
+
+			vsShader.Dispose();
+			psShader.Dispose();
 			return pipeline;
 		}
 

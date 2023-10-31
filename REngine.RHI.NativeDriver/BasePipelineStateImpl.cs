@@ -47,5 +47,14 @@ namespace REngine.RHI.NativeDriver
 			pDefaultSRB ??= CreateResourceBinding();
 			return pDefaultSRB;
 		}
+
+		protected override void BeforeRelease()
+		{
+			if (pDefaultSRB is null)
+				return;
+			if (pDefaultSRB.IsDisposed)
+				return;
+			pDefaultSRB.Dispose();
+		}
 	}
 }

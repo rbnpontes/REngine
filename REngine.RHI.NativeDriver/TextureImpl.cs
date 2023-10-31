@@ -31,6 +31,16 @@ namespace REngine.RHI.NativeDriver
 
 		protected override void BeforeRelease()
 		{
+			foreach(var texView in pTexViews)
+			{
+				if (texView is null)
+					continue;
+				if (!texView.IsDisposed)
+				{
+					((TextureViewImpl)texView).AddRef();
+					texView.Dispose();
+				}
+			}
 			Array.Fill(pTexViews, null);
 		}
 

@@ -9,23 +9,16 @@ using System.Threading.Tasks;
 namespace REngine.RHI.NativeDriver
 {
 	internal delegate void NativeObjectReleaseCallback(IntPtr handler);
-	internal class NativeObject : INativeObject
+	internal partial class NativeObject : INativeObject
 	{
-		[DllImport(Constants.Lib)]
-		public static extern void rengine_object_releaseref(IntPtr obj);
-		[DllImport(Constants.Lib)]
-		public static extern void rengine_object_set_release_callback(IntPtr obj, IntPtr releaseCallback);
-		[DllImport(Constants.Lib)]
-		public static extern IntPtr rengine_object_getname(IntPtr obj);
 #if FULL_DEBUG
 		public string CreatedAt { get; private set; }
 #endif
-		static readonly NativeObjectReleaseCallback s_disposeCallback = OnRelease;
-
 		private readonly object pSync = new();
 
 		private IntPtr pHandle;
 		private bool pDisposed;
+		private NativeObjectReleaseCallback pDisposeCallback;
 
 		public IntPtr Handle 
 		{
@@ -50,18 +43,21 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
+		public uint StrongRefs { get => rengine_object_strongref_count(Handle); }
+		public uint WeakRefs { get => rengine_object_weakref_count(Handle); }
+		
 		public event EventHandler? OnDispose;
 
 		public NativeObject(IntPtr handle)
 		{
+			pDisposeCallback = OnReleaseObject;
 			pHandle = handle;
 #if FULL_DEBUG
 			CreatedAt = Environment.StackTrace;
 #endif
 
 			ObjectRegistry.Lock(this);
-
-			rengine_object_set_release_callback(handle, Marshal.GetFunctionPointerForDelegate(s_disposeCallback));
+			rengine_object_set_release_callback(handle, Marshal.GetFunctionPointerForDelegate(pDisposeCallback));
 		}
 
 		public void Dispose()
@@ -80,7 +76,8 @@ namespace REngine.RHI.NativeDriver
 
 			BeforeRelease();
 
-			if (disposing)
+			var refs = Math.Max(StrongRefs, WeakRefs);
+			if (disposing && refs > 0)
 				rengine_object_releaseref(pHandle);
 
 			lock (pSync)
@@ -96,10 +93,16 @@ namespace REngine.RHI.NativeDriver
 		{
 		}
 
-		protected static void OnRelease(IntPtr handle)
+		private void OnReleaseObject(IntPtr ptr)
 		{
-			NativeObject? obj = ObjectRegistry.Acquire(handle);
-			obj?.Dispose(false);
+			Dispose(false);
+		}
+
+		internal void AddRef()
+		{
+			if (IsDisposed)
+				return;
+			rengine_object_addref(Handle);
 		}
 	}
 }
