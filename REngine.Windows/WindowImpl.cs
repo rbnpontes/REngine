@@ -278,6 +278,10 @@ namespace REngine.Windows
 	
 		private void HandleWindowSize(GLFW.Window window, int width, int height)
 		{
+			var attr = Glfw.GetWindowAttribute(window, WindowAttribute.AutoIconify);
+			// If window is minimized, don't set resize event
+			if (attr)
+				return;
 			pNewSize = new Size(width, height);
 			pResizeDirtyCount = 0;
 			pDirtyResize = true;
