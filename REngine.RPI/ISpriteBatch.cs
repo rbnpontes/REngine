@@ -75,7 +75,7 @@ namespace REngine.RPI
 		/// Returns SpriteBatch Render Feature
 		/// Don´t dispose this object, SpriteBatch handles for you
 		/// </summary>
-		public IRenderFeature Feature { get; }
+		public IGraphicsRenderFeature Feature { get; }
 		public ISpriteBatch SetTexture(byte slot, ITexture texture);
 		public ISpriteBatch SetTexture(byte slot, Image image);
 		public ISpriteInstancing GetInstancing(int length);

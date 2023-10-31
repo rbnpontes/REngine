@@ -32,7 +32,7 @@ namespace REngine.RPI
 
 		private SpriteBatchFeature? pFeature;
 
-		public IRenderFeature Feature 
+		public IGraphicsRenderFeature Feature 
 		{ 
 			get
 			{

@@ -49,7 +49,7 @@ namespace REngine.RPI
 		public UIntSize FontSize { get; private set; } = new UIntSize();
 		public byte[] FontData { get; private set; } = new byte[0];
 
-		public IRenderFeature Feature
+		public IGraphicsRenderFeature Feature
 		{
 			get => GetFeature();
 		}
