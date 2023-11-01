@@ -10,7 +10,7 @@ namespace REngine.RHI.NativeDriver
 {
 	internal partial class TextureImpl : NativeObject, ITexture
 	{
-		private readonly ITextureView?[] pTexViews = new ITextureView?[(byte)TextureViewType.ShadingRate];
+		private readonly TextureViewImpl?[] pTexViews = new TextureViewImpl?[(byte)TextureViewType.ShadingRate];
 
 		public TextureDesc Desc
 		{
@@ -37,7 +37,6 @@ namespace REngine.RHI.NativeDriver
 					continue;
 				if (!texView.IsDisposed)
 				{
-					((TextureViewImpl)texView).AddRef();
 					texView.Dispose();
 				}
 			}
@@ -46,7 +45,7 @@ namespace REngine.RHI.NativeDriver
 
 		public ITextureView GetDefaultView(TextureViewType view)
 		{
-			ITextureView? texView = pTexViews[(byte)view];
+			TextureViewImpl? texView = pTexViews[(byte)view];
 
 			if(texView != null)
 				return texView;
@@ -57,10 +56,13 @@ namespace REngine.RHI.NativeDriver
 			if(result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default view {view}. Texture View is null");
 
-			texView = ObjectRegistry.Acquire(result.value) as ITextureView;
+			texView = ObjectRegistry.Acquire(result.value) as TextureViewImpl;
 
 			if(texView is null)
+			{
 				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value);
+				texView.AddRef();
+			}
 
 			return texView;
 		}
