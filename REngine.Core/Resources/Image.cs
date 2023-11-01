@@ -518,5 +518,10 @@ namespace REngine.Core.Resources
 
 			return new ImageAtlas(result) { Items = bounds.ToArray() };
 		}
+	
+		public static Image Empty()
+		{
+			return new Image();		
+		}
 	}
 }

@@ -2,6 +2,7 @@
 using MathNet.Numerics.LinearAlgebra.Complex;
 using REngine.Core.Resources;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	internal class SpriteBatchFeature : BaseRenderFeature
+    internal class SpriteBatchFeature : GraphicsRenderFeature
 	{
 		[Flags]
 		public enum DirtyFlags
@@ -161,7 +162,7 @@ namespace REngine.RPI.Features
 			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
 			pBufferProvider = setupInfo.BufferProvider;
 
-			IBuffer fixedCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Fixed);
+			IBuffer fixedCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Frame);
 			IDevice device = setupInfo.Driver.Device;
 
 			if((pDirtyFlags & DirtyFlags.Pipeline) != 0)
@@ -277,13 +278,16 @@ namespace REngine.RPI.Features
 			BufferData cbufferData = new BufferData();
 			InstancedBufferData instancedBufferData = new();
 
-			if (pRenderer?.SwapChain is null || pDriver is null)
+			ITextureView? backbuffer = GetBackBuffer();
+			ITextureView? depthbuffer = GetDepthBuffer();
+
+			if (backbuffer is null || depthbuffer is null)
 				return;
 
 			if (pDefaultPipeline is null || pTexturedPipeline is null || pVBuffer is null)
 				return;
 
-			command.SetRTs(new ITextureView[] { pRenderer.SwapChain.ColorBuffer }, pRenderer.SwapChain.DepthBuffer);
+			command.SetRT(backbuffer, depthbuffer);
 			
 			lock(pBatcher.SyncPrimitive)
 				ExecuteIndexed(command, pVBuffer, pDefaultPipeline, pTexturedPipeline, ref cbufferData);
@@ -565,7 +569,7 @@ namespace REngine.RPI.Features
 			if (binding is null || pCBuffer is null)
 				return;
 
-			binding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, fixedCBuffer);
+			binding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, fixedCBuffer);
 			binding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pCBuffer);
 		}
 	}

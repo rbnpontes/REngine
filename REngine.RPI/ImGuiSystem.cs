@@ -31,7 +31,6 @@ namespace REngine.RPI
 		private readonly ILogger<IImGuiSystem> pLogger;
 		private readonly IExecutionPipelineVar pUpdateRateVar;
 		private readonly RPIEvents pRPIEvents;
-		private readonly RenderState pRenderState;
 
 		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
@@ -49,7 +48,7 @@ namespace REngine.RPI
 		public UIntSize FontSize { get; private set; } = new UIntSize();
 		public byte[] FontData { get; private set; } = new byte[0];
 
-		public IRenderFeature Feature
+		public IGraphicsRenderFeature Feature
 		{
 			get => GetFeature();
 		}
@@ -65,7 +64,6 @@ namespace REngine.RPI
 			ILoggerFactory factory,
 			RenderSettings renderSettings,
 			RPIEvents rpiEvents,
-			RenderState renderState,
 			IServiceProvider provider
 		)
 		{ 
@@ -76,7 +74,6 @@ namespace REngine.RPI
 			pInput = input;
 			pLogger = factory.Build<IImGuiSystem>();
 			pRPIEvents = rpiEvents;
-			pRenderState = renderState;
 			pProvider = provider;
 
 			pImGuiSettingsPath = Path.Join(EngineSettings.AppDataPath, "imgui_settings.ini");

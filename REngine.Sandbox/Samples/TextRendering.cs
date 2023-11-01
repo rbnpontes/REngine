@@ -59,13 +59,16 @@ namespace REngine.Sandbox.Samples
 			pRenderer.AddFeature(pSpriteFeature = pSpriteBatch.Feature);
 
 			// Load Font
-			FontAsset fontAsset = new();
-			fontAsset.Name = "Anonymous Pro";
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
-				fontAsset.Load(stream).Wait();
+			using (FontAsset fontAsset = new())
+			{
 
-			pTextRenderer = provider.Get<ITextRenderer>();
-			pBatch = pTextRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
+				fontAsset.Name = "Anonymous Pro";
+				using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
+					fontAsset.Load(stream).Wait();
+
+				pTextRenderer = provider.Get<ITextRenderer>();
+				pBatch = pTextRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
+			}
 
 			pBatch.Text = pText = "Hello World";
 			pTextSize = (int)pBatch.Size;

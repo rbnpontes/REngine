@@ -25,8 +25,19 @@ namespace REngine.RHI.NativeDriver
 
 		public string Name => Desc.Name;
 
+		public GPUObjectType ObjectType { get; private set; }
+
 		public BufferImpl(IntPtr handle) : base(handle)
 		{
+			var bindFlags = Desc.BindFlags;
+			if ((bindFlags & BindFlags.VertexBuffer) != 0)
+				ObjectType |= GPUObjectType.VertexBuffer;
+			if ((bindFlags & BindFlags.IndexBuffer) != 0)
+				ObjectType |= GPUObjectType.IndexBuffer;
+			if ((bindFlags & BindFlags.UniformBuffer) != 0)
+				ObjectType |= GPUObjectType.ConstantBuffer;
+			if ((bindFlags & BindFlags.UnorderedAccess) != 0)
+				ObjectType = GPUObjectType.UavBuffer;
 		}
 	}
 }

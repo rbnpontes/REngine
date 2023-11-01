@@ -12,14 +12,7 @@ namespace REngine.RHI.NativeDriver
 	{
 		public TextureDesc Desc
 		{
-			get
-			{
-				TextureDescDTO desc = new();
-				TextureImpl.rengine_texture_getdesc(Handle, ref desc);
-
-				TextureDescDTO.Fill(desc, out TextureDesc output);
-				return output;
-			}
+			get => TextureImpl.GetObjectDesc(Handle);
 		}
 
 		public string Name { get => Desc.Name; }
@@ -28,11 +21,14 @@ namespace REngine.RHI.NativeDriver
 
 		public bool IsDisposed { get; private set; }
 
+		public GPUObjectType ObjectType { get; private set; }
+
 		public event EventHandler? OnDispose;
 
 		public TextureWrapper(IntPtr handle)
 		{
 			Handle = handle;
+			ObjectType = TextureImpl.GetObjectTypeFromDesc(Desc);
 		}
 
 		public void Dispose()

@@ -24,6 +24,8 @@ namespace REngine.RPI.Features
 	{
 		private readonly object pSync = new();
 
+		private IRenderer? pRenderer;
+
 		private RenderFeatureState pCurrentState = RenderFeatureState.None;
 		private bool pMustDispose = false;
 		private bool pDisposed = false;
@@ -75,6 +77,8 @@ namespace REngine.RPI.Features
 		{
 			if (IsDisposing())
 				return this;
+
+			pRenderer = execInfo.Renderer;
 
 			lock (pSync)
 			{
@@ -159,5 +163,33 @@ namespace REngine.RPI.Features
 		protected abstract void OnSetup(in RenderFeatureSetupInfo execInfo);
 		protected virtual void OnCompile(ICommandBuffer command) { }
 		protected abstract void OnExecute(ICommandBuffer command);
+
+		protected virtual ITextureView? GetBackBuffer()
+		{
+			return pRenderer?.SwapChain?.ColorBuffer;
+		}
+		protected virtual ITextureView? GetDepthBuffer()
+		{
+			return pRenderer?.SwapChain?.DepthBuffer;
+		}
+	}
+
+	public abstract class GraphicsRenderFeature : BaseRenderFeature, IGraphicsRenderFeature
+	{
+		public ITextureView? BackBuffer { get; set; }
+		public ITextureView? DepthBuffer { get; set; }
+
+		protected override ITextureView? GetBackBuffer()
+		{
+			if(BackBuffer != null)
+				return BackBuffer;
+			return base.GetBackBuffer();
+		}
+		protected override ITextureView? GetDepthBuffer()
+		{
+			if (DepthBuffer != null)
+				return DepthBuffer;
+			return base.GetDepthBuffer();
+		}
 	}
 }

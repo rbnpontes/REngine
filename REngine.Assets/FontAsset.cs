@@ -80,6 +80,11 @@ namespace REngine.Assets
 				pFontName = fontName;
 			}
 
+			public override Font Optimize()
+			{
+				return new FontImpl(Image.Empty(), CharSize, pCharData);
+			}
+
 			private FontAtlasCharData GetGlyphData(byte glyphIndex)
 			{
 				if (glyphIndex >= pCharData.Length)
@@ -113,7 +118,10 @@ namespace REngine.Assets
 		public void Dispose()
 		{
 			pLib?.Dispose();
+			pLib = null;
 			pFace = IntPtr.Zero;
+			pFont = null;
+			GC.SuppressFinalize(this);
 		}
 
 		public Task Load(Stream stream)

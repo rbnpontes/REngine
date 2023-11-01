@@ -16,7 +16,7 @@ namespace REngine.RPI
 		public float DefaultClearDepthValue { get; set; } = 1f;
 		public byte DefaultClearStencilValue { get; set; } = 0;
 
-		public RendererFixedData FixedData { get; set; } = new RendererFixedData();
+		public FrameData FrameData { get; set; } = new FrameData();
 
 		public Viewport Viewport { get; set; }
 		public bool Vsync { get; set; } = true;

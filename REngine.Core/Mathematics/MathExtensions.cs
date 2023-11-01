@@ -231,5 +231,13 @@ namespace REngine.Core.Mathematics
 				@this.Bottom + y
 			);
 		}
+		public static Vector2 GetPosition(this RectangleF @this)
+		{
+			return new Vector2(@this.X, @this.Y);
+		}
+		public static SizeF GetSize(this RectangleF @this)
+		{
+			return new SizeF(@this.Width, @this.Height);
+		}
 	}
 }

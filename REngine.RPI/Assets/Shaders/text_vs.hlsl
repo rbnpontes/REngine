@@ -1,4 +1,4 @@
-﻿cbuffer FixedConstants
+﻿cbuffer FrameConstants
 {
 	float4x4 g_projection;
 };

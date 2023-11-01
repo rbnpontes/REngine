@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 namespace REngine.RPI.Structs
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct RendererFixedData
+	public struct FrameData
 	{
 		public Matrix4x4 ScreenProjection;
-		public uint ViewWidth;
-		public uint ViewHeight;
+		public uint ScreenWidth;
+		public uint ScreenHeight;
+		public float ElapsedTime;		
+		public float DeltaTime;
 	}
 }

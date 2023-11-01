@@ -1,5 +1,6 @@
 ﻿using REngine.Core.SceneManagement;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,13 +13,13 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	public interface ICubeRenderFeature : IRenderFeature 
+    public interface ICubeRenderFeature : IGraphicsRenderFeature 
 	{ 
 		public Transform Transform { get; }
 		public ICamera? Camera { get; set; }
 	}
 
-	internal class CubeRenderFeature : BaseRenderFeature, ICubeRenderFeature
+	internal class CubeRenderFeature : GraphicsRenderFeature, ICubeRenderFeature
 	{
 		protected GraphicsSettings pSettings;
 		protected GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube Pipeline" };
@@ -123,16 +124,19 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
-			if (Camera is null)
+			ITextureView? backbuffer = GetBackBuffer();
+			ITextureView? depthbuffer = GetDepthBuffer();
+
+			if (Camera is null || backbuffer is null || depthbuffer is null)
 				return;
-			if (pVertexBuffer is null || pIndexBuffer is null || pObjectCBuffer is null || pPipeline is null || pSwapChain is null)
+			if (pVertexBuffer is null || pIndexBuffer is null || pObjectCBuffer is null || pPipeline is null)
 				return;
 
 			UpdateCBuffer(command, pObjectCBuffer, Transform.WorldTransformMatrix);
 			UpdateCBuffer(command, pCamCBuffer, Camera.Data);
 
 			command
-				.SetRTs(new ITextureView[] { pSwapChain.ColorBuffer }, pSwapChain.DepthBuffer)
+				.SetRT(backbuffer, depthbuffer)
 				.SetVertexBuffers(0, new IBuffer[] { pVertexBuffer, pVertexBuffer }, new ulong[] { 0, (ulong)(Marshal.SizeOf<Vector3>() * pVertices.Length)})
 				.SetIndexBuffer(pIndexBuffer)
 				.SetPipeline(pPipeline)

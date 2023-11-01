@@ -1,8 +1,10 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Exceptions;
 using REngine.Core.IO;
 using REngine.Core.Threading;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using REngine.RPI.Structs;
 using System;
 using System.Collections.Generic;
@@ -45,7 +47,13 @@ namespace REngine.RPI
 		private readonly IBufferProvider pBufferProvider;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
+		private readonly IEngine pEngine;
 
+#if RENGINE_RENDERGRAPH
+		private RenderGraph.IResourceManager? pRenderGraphResMgr;
+		private RenderGraph.IResource? pMainBackbufferResource;
+		private RenderGraph.IResource? pMainDepthbufferResource;
+#endif
 		private IExecutionPipelineVar pNeedsPrepareVar;
 
 		private readonly FeatureCollection pFeatureCollection = new FeatureCollection();
@@ -79,7 +87,8 @@ namespace REngine.RPI
 			RPIEvents rendererEvts,
 			RenderState renderState,
 			IBufferProvider bufferProvider,
-			IExecutionPipeline pipeline)
+			IExecutionPipeline pipeline,
+			IEngine engine)
 		{
 			pProvider = provider;
 			pLogger = logger;
@@ -88,6 +97,7 @@ namespace REngine.RPI
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
 			pExecutionPipeline = pipeline;
+			pEngine = engine;
 
 			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
@@ -182,6 +192,16 @@ namespace REngine.RPI
 					.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
+
+#if RENGINE_RENDERGRAPH
+				if (pMainBackbufferResource is null)
+					throw new EngineFatalException("Main Backbuffer Resource is null. It seems IRenderer does not filled this field");
+				if (pMainDepthbufferResource is null)
+					throw new EngineFatalException("Main Depthbuffer Resource is null. It seems IRenderer does not filled this field");
+				
+				pMainBackbufferResource.Value = colorBuffer;
+				pMainDepthbufferResource.Value = pSwapChain.DepthBuffer;
+#endif
 			}
 
 			foreach(var feature in pFeatureCollection)
@@ -244,22 +264,25 @@ namespace REngine.RPI
 			Matrix4x4 proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
 			proj.M33 = proj.M43 = 0.5f;
 
-			pRenderState.FixedData = new RendererFixedData
+			pRenderState.FrameData = new FrameData
 			{
 				ScreenProjection = proj,
-				ViewWidth = size.Width,
-				ViewHeight = size.Height
+				ScreenWidth = size.Width,
+				ScreenHeight = size.Height,
+				DeltaTime = (float)pEngine.DeltaTime,
+				ElapsedTime = (float)pEngine.ElapsedTime,
 			};
 
 		}
+
 		private void UpdateFixedFrameBuffer()
 		{
 			if (pDriver is null)
 				return;
 
-			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Fixed);
-			var mappedData = pDriver.ImmediateCommand.Map<RendererFixedData>(buffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = pRenderState.FixedData;
+			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Frame);
+			var mappedData = pDriver.ImmediateCommand.Map<FrameData>(buffer, MapType.Write, MapFlags.Discard);
+			mappedData[0] = pRenderState.FrameData;
 			pDriver.ImmediateCommand.Unmap(buffer, MapType.Write);
 		}
 
@@ -293,6 +316,12 @@ namespace REngine.RPI
 				pLogger.Warning("ISwapChain has not been setted on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
 				UpdateSwapChain(swapChain);
+
+#if RENGINE_RENDERGRAPH
+			pRenderGraphResMgr = pProvider.Get<RenderGraph.IResourceManager>();
+			pMainBackbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainBackbufferResourceName);
+			pMainDepthbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainDepthbufferResourceName);
+#endif
 
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())

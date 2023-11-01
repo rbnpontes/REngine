@@ -3,6 +3,7 @@ using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using REngine.RPI.Utils;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	internal class TextRendererImpl : ITextRenderer, IDisposable
+    internal class TextRendererImpl : ITextRenderer, IDisposable
 	{
 		class FontEntry : IDisposable
 		{
@@ -208,6 +209,9 @@ namespace REngine.RPI
 			);
 
 			var pipeline = GetDevice().CreateGraphicsPipeline(desc);
+
+			vsShader.Dispose();
+			psShader.Dispose();
 			return pipeline;
 		}
 
@@ -252,33 +256,36 @@ namespace REngine.RPI
 				throw new ArgumentNullException(nameof(fontName));
 
 			int fontHashCode = fontName.GetHashCode();
-			FontEntry? fontEntry;
-			lock(pSync)
-				pFonts.TryGetValue(fontHashCode, out fontEntry);
-			
-			if (fontEntry?.Font == font)
-				return this;
-
-			SdfBuilder builder = new SdfBuilder(font.Atlas);
-			builder.Radius = 4;
-			builder.Cutoff = 0.45f;
-			ITexture texture = AllocateTexture(font, builder.Build());
-
-			IShaderResourceBinding srb;
 			lock (pSync)
 			{
-				if (pPipeline is null)
-					pPipeline = BuildPipeline();
+				FontEntry? fontEntry;
+				pFonts.TryGetValue(fontHashCode, out fontEntry);
+				
+				if (fontEntry != null)
+					fontEntry.Dispose();
 
-				srb = pPipeline.CreateResourceBinding();
+				SdfBuilder builder = new SdfBuilder(font.Atlas);
+				builder.Radius = 4;
+				builder.Cutoff = 0.45f;
+				ITexture texture = AllocateTexture(font, builder.Build());
+
+				IShaderResourceBinding srb;
+				lock (pSync)
+				{
+					if (pPipeline is null)
+						pPipeline = BuildPipeline();
+
+					srb = pPipeline.CreateResourceBinding();
+				}
+
+				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, pBufferProvider.GetBuffer(BufferGroupType.Frame));
+				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
+				srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+
+				pFonts[fontHashCode] = new FontEntry(font.Optimize(), texture, srb);
+
+				GC.Collect();
 			}
-
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Fixed, pBufferProvider.GetBuffer(BufferGroupType.Fixed));
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
-			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
-
-			lock(pSync)
-				pFonts[fontHashCode] = new FontEntry(font, texture, srb);
 			return this;
 		}
 

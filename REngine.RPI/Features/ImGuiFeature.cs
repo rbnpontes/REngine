@@ -1,5 +1,6 @@
 ﻿using REngine.Core.Mathematics;
 using REngine.RHI;
+using REngine.RPI.Constants;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI.Features
 {
-	internal class ImGuiFeature : BaseRenderFeature
+    internal class ImGuiFeature : GraphicsRenderFeature
 	{
 		[Flags]
 		public enum DirtyFlags
@@ -68,7 +69,6 @@ namespace REngine.RPI.Features
 		private readonly GraphicsSettings pSettings;
 		private IRenderer pRenderer;
 
-		private IBuffer? pCBuffer;
 		private ITexture? pFontTexture;
 		private ITextureView? pFontTextureView;
 		private IPipelineState? pPipeline;
@@ -128,12 +128,7 @@ namespace REngine.RPI.Features
 
 		protected override void OnSetup(in RenderFeatureSetupInfo execInfo)
 		{
-			var buffer = execInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
-			if(buffer != pCBuffer)
-			{
-				pResourceBinding?.Set(ShaderTypeFlags.Vertex, "Constants", buffer);
-				pCBuffer = buffer;
-			}
+			var buffer = execInfo.BufferProvider.GetBuffer(BufferGroupType.Frame);
 
 			if(pFontTexture is null || (pDirtyFlags & DirtyFlags.FontTexture) != 0)
 			{
@@ -155,7 +150,7 @@ namespace REngine.RPI.Features
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
-				pResourceBinding.Set(ShaderTypeFlags.Vertex, "Constants", pCBuffer);
+				pResourceBinding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, buffer);
 				pResourceBinding.Set(ShaderTypeFlags.Pixel, sFontTexName, pFontTextureView);
 
 				pDirtyFlags ^= DirtyFlags.Pipeline;
@@ -166,31 +161,23 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
-			var swapChain = pRenderer.SwapChain;
-			if (swapChain is null || pDevice is null)
+			ITextureView? backbuffer = GetBackBuffer();
+			ITextureView? depthbuffer = GetDepthBuffer();
+
+			if (backbuffer is null || depthbuffer is null || pDevice is null)
 				return;
 
 			pSystem.BeginRender();
 			var io = ImGuiNET.ImGui.GetIO();
 
-			CreateProjection(swapChain.Size, out Matrix4x4 output);
+			command.SetRT(backbuffer, depthbuffer);
 
-			var mappedData = command.Map<Matrix4x4>(pCBuffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = output;
-			command.Unmap(pCBuffer, MapType.Write);
-
-			command.SetRT(swapChain.ColorBuffer, swapChain.DepthBuffer);
-
-			RenderDrawData(command, pDevice, io, swapChain);
+			RenderDrawData(command, pDevice, io, backbuffer.Parent.Desc.Size);
 			pSystem.EndRender();
 		}
 
-		private unsafe void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, ISwapChain swapChain)
+		private unsafe void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, in TextureSize texSize)
 		{
-			Viewport viewport = new Viewport
-			{
-				Size = new Vector2(swapChain.Size.Width, swapChain.Size.Height),
-			};
 			IntRect scissor = new();
 
 			var drawData = ImGuiNET.ImGui.GetDrawData();
@@ -226,7 +213,7 @@ namespace REngine.RPI.Features
 					if (cmd.UserCallback != IntPtr.Zero)
 						continue;
 
-					SetupRenderState(command, viewport, swapChain.Size);
+					SetupRenderState(command);
 
 					scissor.Left = (int)cmd.ClipRect.X;
 					scissor.Top = (int)cmd.ClipRect.Y;
@@ -234,7 +221,7 @@ namespace REngine.RPI.Features
 					scissor.Bottom = (int)cmd.ClipRect.W;
 
 					command
-						.SetScissor(scissor, swapChain.Size.Width, swapChain.Size.Height)
+						.SetScissor(scissor, texSize.Width, texSize.Height)
 						.CommitBindings(pResourceBinding)
 						.Draw(new DrawIndexedArgs
 						{
@@ -249,14 +236,7 @@ namespace REngine.RPI.Features
 			}
 		}
 
-		private void CreateProjection(in SwapChainSize size, out Matrix4x4 output)
-		{
-			Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
-			projection.M33 = projection.M43 = 0.5f;
-			output = projection;
-		}
-
-		private void SetupRenderState(ICommandBuffer command, in Viewport viewport, in SwapChainSize size)
+		private void SetupRenderState(ICommandBuffer command)
 		{
 			if (pVBuffer is null || pIBuffer is null)
 				return;
@@ -264,8 +244,7 @@ namespace REngine.RPI.Features
 				.SetVertexBuffer(pVBuffer)
 				.SetIndexBuffer(pIBuffer)
 				.SetPipeline(pPipeline)
-				.SetBlendFactors(Color.Black)
-				.SetViewport(viewport, size.Width, size.Height);
+				.SetBlendFactors(Color.Black);
 		}
 
 		private IPipelineState CreatePipelineState(IDevice device)

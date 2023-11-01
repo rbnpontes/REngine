@@ -25,13 +25,7 @@ namespace REngine.RHI.NativeDriver
 
 		public TextureViewDesc Desc
 		{
-			get
-			{
-				TextureViewDescDTO desc = new();
-				TextureViewImpl.rengine_textureview_getdesc(Handle, ref desc);
-				TextureViewDescDTO.Fill(desc, out TextureViewDesc output);
-				return output;
-			}
+			get => TextureViewImpl.GetObjectDesc(Handle);
 		}
 
 		public TextureViewType ViewType => Desc.ViewType;
@@ -41,6 +35,8 @@ namespace REngine.RHI.NativeDriver
 		public IntPtr Handle { get; set; }
 
 		public bool IsDisposed { get; private set; }
+
+		public GPUObjectType ObjectType => GPUObjectType.TextureView;
 
 		public event EventHandler? OnDispose;
 

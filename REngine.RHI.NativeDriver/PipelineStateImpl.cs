@@ -11,7 +11,7 @@ namespace REngine.RHI.NativeDriver
 	internal class GraphicsPipelineImpl : BasePipelineStateImpl, IPipelineState
 	{
 		public GraphicsPipelineDesc Desc { get; private set; }
-		public GraphicsPipelineImpl(GraphicsPipelineDesc desc, IntPtr handle) : base(handle) 
+		public GraphicsPipelineImpl(GraphicsPipelineDesc desc, IntPtr handle) : base(handle, GPUObjectType.GraphicsPipeline) 
 		{
 			// Remove Shaders 
 			desc.Shaders = new GraphicsPipelineShaders();
@@ -27,7 +27,7 @@ namespace REngine.RHI.NativeDriver
 	internal class ComputePipelineImpl : BasePipelineStateImpl, IComputePipelineState
 	{
 		public ComputePipelineDesc Desc { get; private set; }
-		public ComputePipelineImpl(ComputePipelineDesc desc, IntPtr handle) : base(handle)
+		public ComputePipelineImpl(ComputePipelineDesc desc, IntPtr handle) : base(handle, GPUObjectType.ComputePipeline)
 		{
 			// Remove Compute Shader
 			desc.ComputeShader = null;

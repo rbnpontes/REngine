@@ -1,4 +1,5 @@
 ﻿using REngine.Core.DependencyInjection;
+using REngine.Core.IO;
 using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
@@ -35,13 +36,26 @@ namespace REngine.Core
 
 		public IEngineStartup Run()
 		{
+			var loggerFactory = pServiceProvider.Get<ILoggerFactory>();
+			var logger = loggerFactory.Build<IEngineStartup>();
+
 			IEngine engine = pServiceProvider.Get<IEngine>();
 			EngineEvents events = pServiceProvider.Get<EngineEvents>();
 			events.OnUpdate += HandleUpdate;
 
+			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+			{
+				if (e.ExceptionObject is Exception exception)
+					logger.Error(exception.Message);
+				logger.Error(e.ExceptionObject.ToString());
+			};
+
+			logger.Debug("Starting");
 			engine.Start();
+			logger.Debug("Starting Game Loop");
 			while (!engine.IsStopped)
 				engine.ExecuteFrame();
+			logger.Debug("Exiting");
 			return this;
 		}
 

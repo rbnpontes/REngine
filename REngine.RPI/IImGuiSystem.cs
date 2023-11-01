@@ -8,7 +8,7 @@ namespace REngine.RPI
 {
 	public interface IImGuiSystem
 	{
-		public IRenderFeature Feature { get; }
+		public IGraphicsRenderFeature Feature { get; }
 		public event EventHandler? OnGui;
 	}
 }

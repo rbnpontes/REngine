@@ -120,8 +120,7 @@ namespace REngine.RPI
 
 			ulong[] bufferSizes = new ulong[]
 			{
-				(ulong)Marshal.SizeOf<RendererFixedData>(),
-				pRenderSettings.FrameBufferSize,
+				(ulong)Marshal.SizeOf<FrameData>(),
 				(ulong)Marshal.SizeOf<CameraData>(),
 				pRenderSettings.ObjectBufferSize,
 			};

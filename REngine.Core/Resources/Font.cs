@@ -19,5 +19,12 @@ namespace REngine.Core.Resources
 		public abstract Point GetOffset(byte glyphIndex);
 		public abstract Rectangle GetBounds(byte glyphIndex);
 		public abstract Point GetAdvance(byte glyphIndex);
+
+		/// <summary>
+		/// Create an Optimized Font. Use when you need to reduce memory usage
+		/// This optimized font will not contain atlas image.
+		/// </summary>
+		/// <returns></returns>
+		public abstract Font Optimize();
 	}
 }

@@ -23,8 +23,11 @@ namespace REngine.RHI.NativeDriver
 			get => GetName();
 		}
 
-		public BasePipelineStateImpl(IntPtr handle) : base(handle)
+		public GPUObjectType ObjectType { get; private set; }
+
+		public BasePipelineStateImpl(IntPtr handle, GPUObjectType objectType) : base(handle)
 		{
+			ObjectType = objectType;
 		}
 
 		protected abstract string GetName();
@@ -43,6 +46,15 @@ namespace REngine.RHI.NativeDriver
 		{
 			pDefaultSRB ??= CreateResourceBinding();
 			return pDefaultSRB;
+		}
+
+		protected override void BeforeRelease()
+		{
+			if (pDefaultSRB is null)
+				return;
+			if (pDefaultSRB.IsDisposed)
+				return;
+			pDefaultSRB.Dispose();
 		}
 	}
 }

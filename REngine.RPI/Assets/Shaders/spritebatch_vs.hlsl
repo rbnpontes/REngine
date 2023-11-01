@@ -8,7 +8,7 @@ cbuffer ObjectConstants {
 	float4 g_color;
 };
 #endif
-cbuffer FixedConstants
+cbuffer FrameConstants
 {
     float4x4 g_projection;
 };
