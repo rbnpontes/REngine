@@ -231,8 +231,6 @@ namespace REngine.RPI
 
 			lock (pSync)
 			{
-				if (pDirty)
-					System.Diagnostics.Debugger.Break();
 				UpdateCBuffer(commandBuffer);
 				commandBuffer
 					.SetVertexBuffer(pVBuffer)
@@ -325,8 +323,8 @@ namespace REngine.RPI
 					PositionAndAtlasSize = new Vector4(
 						min.X,
 						min.Y,
-						pFont.Atlas.Size.Width,
-						pFont.Atlas.Size.Height
+						pFont.AtlasSize.Width,
+						pFont.AtlasSize.Height
 					),
 					Bounds = bounds.ToVector4()
 				};

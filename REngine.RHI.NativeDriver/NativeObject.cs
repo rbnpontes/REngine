@@ -87,14 +87,22 @@ namespace REngine.RHI.NativeDriver
 			BeforeRelease();
 
 			var refs = Math.Max(StrongRefs, WeakRefs);
-			if (refs > 0)
-				rengine_object_releaseref(pHandle);
 
-			if (pHandle != IntPtr.Zero)
+			IntPtr ptr = pHandle;
+			pHandle = IntPtr.Zero;
+
+
+			if (refs > 0)
+			{
+				rengine_object_set_release_callback(ptr, IntPtr.Zero);
+				rengine_object_releaseref(ptr);
+			}
+
+			if (ptr != IntPtr.Zero)
 			{
 				lock (pSync)
 				{
-					ObjectRegistry.Unlock(this);
+					ObjectRegistry.Unlock(ptr);
 					pHandle = IntPtr.Zero;
 				}
 

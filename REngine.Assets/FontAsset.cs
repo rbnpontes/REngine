@@ -29,16 +29,32 @@ namespace REngine.Assets
 			private readonly FontAtlasCharData[] pCharData;
 
 			private string pFontName = "Unknow Font";
+			internal Size pAtlasSize;
+
 			public override string Name { get => pFontName; }
 			public override Size CharSize { get; }
+			public override Size AtlasSize { get => pAtlasSize; }
 			public override Image Atlas { get; }
 
 			public FontImpl(Image atlas, Size charSize, FontAtlasCharData[] charData)
 			{
 				pCharData = charData;
+				pAtlasSize = atlas.Size.ToSize();
 				
 				Atlas = atlas;
 				CharSize = charSize;
+			}
+			
+			public FontImpl(FontImpl impl, bool optmized)
+			{
+				pCharData = impl.pCharData;
+				pAtlasSize = impl.pAtlasSize;
+
+				if (optmized)
+					Atlas = Image.Empty();
+				else
+					Atlas = impl.Atlas;
+				CharSize = impl.CharSize;
 			}
 
 			public override Point GetAdvance(byte glyphIndex)
@@ -82,7 +98,7 @@ namespace REngine.Assets
 
 			public override Font Optimize()
 			{
-				return new FontImpl(Image.Empty(), CharSize, pCharData);
+				return new FontImpl(this, true);
 			}
 
 			private FontAtlasCharData GetGlyphData(byte glyphIndex)
