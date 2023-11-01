@@ -43,8 +43,24 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
-		public uint StrongRefs { get => rengine_object_strongref_count(Handle); }
-		public uint WeakRefs { get => rengine_object_weakref_count(Handle); }
+		public uint StrongRefs 
+		{
+			get
+			{
+				if (pHandle == IntPtr.Zero)
+					return 0;
+				return rengine_object_strongref_count(Handle);
+			}
+		}
+		public uint WeakRefs 
+		{
+			get
+			{
+				if (pHandle == IntPtr.Zero)
+					return 0;
+				return rengine_object_weakref_count(Handle);
+			}
+		}
 		
 		public event EventHandler? OnDispose;
 
@@ -62,31 +78,30 @@ namespace REngine.RHI.NativeDriver
 
 		public void Dispose()
 		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing)
-		{
 			if (IsDisposed)
 				return;
 
-			lock(pSync)
+			lock (pSync)
 				pDisposed = true;
 
 			BeforeRelease();
 
 			var refs = Math.Max(StrongRefs, WeakRefs);
-			if (disposing && refs > 0)
+			if (refs > 0)
 				rengine_object_releaseref(pHandle);
 
-			lock (pSync)
+			if (pHandle != IntPtr.Zero)
 			{
-				ObjectRegistry.Unlock(this);
-				pHandle = IntPtr.Zero;
+				lock (pSync)
+				{
+					ObjectRegistry.Unlock(this);
+					pHandle = IntPtr.Zero;
+				}
+
+				OnDispose?.Invoke(this, EventArgs.Empty);
 			}
 
-			OnDispose?.Invoke(this, EventArgs.Empty);
+			GC.SuppressFinalize(this);
 		}
 
 		protected virtual void BeforeRelease()
@@ -95,12 +110,17 @@ namespace REngine.RHI.NativeDriver
 
 		private void OnReleaseObject(IntPtr ptr)
 		{
-			Dispose(false);
+			if (pHandle == IntPtr.Zero)
+				return;
+			ObjectRegistry.Unlock(this);
+			pHandle = IntPtr.Zero;
+
+			OnDispose?.Invoke(this, EventArgs.Empty);
 		}
 
 		internal void AddRef()
 		{
-			if (IsDisposed)
+			if (IsDisposed || pHandle == IntPtr.Zero)
 				return;
 			rengine_object_addref(Handle);
 		}

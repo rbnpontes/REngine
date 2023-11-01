@@ -61,7 +61,7 @@ namespace REngine.RHI.NativeDriver
 			if(texView is null)
 			{
 				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value);
-				texView.AddRef();
+				//texView.AddRef();
 			}
 
 			return texView;
