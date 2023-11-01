@@ -263,29 +263,33 @@ namespace REngine.RPI
 			if (fontEntry?.Font == font)
 				return this;
 
-			if (fontEntry != null)
-				fontEntry.Dispose();
-
-			SdfBuilder builder = new SdfBuilder(font.Atlas);
-			builder.Radius = 4;
-			builder.Cutoff = 0.45f;
-			ITexture texture = AllocateTexture(font, builder.Build());
-
-			IShaderResourceBinding srb;
 			lock (pSync)
 			{
-				if (pPipeline is null)
-					pPipeline = BuildPipeline();
+				if (fontEntry != null)
+					fontEntry.Dispose();
 
-				srb = pPipeline.CreateResourceBinding();
-			}
+				SdfBuilder builder = new SdfBuilder(font.Atlas);
+				builder.Radius = 4;
+				builder.Cutoff = 0.45f;
+				ITexture texture = AllocateTexture(font, builder.Build());
 
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, pBufferProvider.GetBuffer(BufferGroupType.Frame));
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
-			srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+				IShaderResourceBinding srb;
+				lock (pSync)
+				{
+					if (pPipeline is null)
+						pPipeline = BuildPipeline();
 
-			lock(pSync)
+					srb = pPipeline.CreateResourceBinding();
+				}
+
+				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, pBufferProvider.GetBuffer(BufferGroupType.Frame));
+				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
+				srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+
 				pFonts[fontHashCode] = new FontEntry(font, texture, srb);
+
+				GC.Collect();
+			}
 			return this;
 		}
 
