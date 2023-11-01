@@ -256,15 +256,11 @@ namespace REngine.RPI
 				throw new ArgumentNullException(nameof(fontName));
 
 			int fontHashCode = fontName.GetHashCode();
-			FontEntry? fontEntry;
-			lock(pSync)
-				pFonts.TryGetValue(fontHashCode, out fontEntry);
-			
-			if (fontEntry?.Font == font)
-				return this;
-
 			lock (pSync)
 			{
+				FontEntry? fontEntry;
+				pFonts.TryGetValue(fontHashCode, out fontEntry);
+				
 				if (fontEntry != null)
 					fontEntry.Dispose();
 
@@ -286,7 +282,7 @@ namespace REngine.RPI
 				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
 				srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
 
-				pFonts[fontHashCode] = new FontEntry(font, texture, srb);
+				pFonts[fontHashCode] = new FontEntry(font.Optimize(), texture, srb);
 
 				GC.Collect();
 			}
