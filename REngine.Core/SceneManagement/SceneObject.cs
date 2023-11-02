@@ -224,6 +224,7 @@ namespace REngine.Core.SceneManagement
 		{
 			return GetAllComponentsByTags(new string[] { tag });
 		}
+		
 		public IEnumerable<ISceneComponent> GetAllComponentsByTags(IEnumerable<string> tags)
 		{
 			List<SceneObject> children = new List<SceneObject>();
