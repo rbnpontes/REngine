@@ -1,6 +1,7 @@
 ﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.Serialization;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
@@ -22,7 +23,7 @@ namespace REngine.Sandbox
 
 		public ILogger Logger { get; private set; }
 
-		
+
 		public App(Type inheritanceType)
 		{
 			FileLoggerFactory fileLoggerFactory = new FileLoggerFactory(EngineSettings.LoggerPath);
@@ -39,6 +40,27 @@ namespace REngine.Sandbox
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{
+			EngineSettings?		engineSettings		= provider.GetOrDefault<EngineSettings>();
+			RenderSettings?		renderSettings		= provider.GetOrDefault<RenderSettings>();
+			DriverSettings?		driverSettings		= provider.GetOrDefault<DriverSettings>();
+			GraphicsSettings?	graphicsSettings	= provider.GetOrDefault<GraphicsSettings>();
+
+			Logger.Info("Writing Settings Before Exit.");
+			if(engineSettings != null)
+				WriteSettings(EngineSettings.EngineSettingsPath, engineSettings);
+			if(renderSettings != null)
+				WriteSettings(EngineSettings.RenderSettingsPath, renderSettings);
+			if(driverSettings != null)
+				WriteSettings(EngineSettings.DriverSettingsPath, driverSettings);
+			if(graphicsSettings != null)
+				WriteSettings(EngineSettings.GraphicsSettingsPath, graphicsSettings);
+		}
+
+		private void WriteSettings<T>(string path, T data)
+		{
+			using (FileStream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write))
+			using (TextWriter writer = new StreamWriter(stream))
+				writer.Write(data.ToJson());
 		}
 
 		public virtual void OnSetup(IServiceRegistry registry)
@@ -47,17 +69,32 @@ namespace REngine.Sandbox
 			if (!Directory.Exists(EngineSettings.AppDataPath))
 				Directory.CreateDirectory(EngineSettings.AppDataPath);
 
+			registry.Add(() => {
+				using (FileStream stream = new FileStream(EngineSettings.EngineSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
+					return EngineSettings.FromStream(stream);
+			});
+			registry.Add(() =>
+			{
+				using (FileStream stream = new FileStream(EngineSettings.GraphicsSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
+					return GraphicsSettings.FromStream(stream);
+			});
+			registry.Add(() =>
+			{
+				using (FileStream stream = new FileStream(EngineSettings.RenderSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
+					return RenderSettings.FromStream(stream);
+			});
+
 			WindowsModule.Setup(registry);
 			RHIModule.Setup(registry);
 			RPIModule.Setup(registry);
 			ISwapChain? swapChain = null;
 
-			registry.Add(()=> pLoggerFactory);
+			registry.Add(() => pLoggerFactory);
 
 			DriverFactory.OnDriverMessage += HandleGraphicsMessage;
 
-			Logger.Info("OS Version: "+Environment.OSVersion.ToString());
-			Logger.Info("Machine: "+Environment.MachineName.ToString());
+			Logger.Info("OS Version: " + Environment.OSVersion.ToString());
+			Logger.Info("Machine: " + Environment.MachineName.ToString());
 			Logger.Info("TickCount:" + Environment.TickCount.ToString());
 			Logger.Info("ProcessorCount: " + Environment.ProcessorCount.ToString());
 			Logger.Info("UserName: " + Environment.UserName);
@@ -91,7 +128,7 @@ namespace REngine.Sandbox
 					// When format is not supported by the driver
 					// Driver will search for a compatible format
 					// In this case we must update graphics settings
-					if(swapChain != null)
+					if (swapChain != null)
 					{
 						graphicsSettings.DefaultColorFormat = swapChain.Desc.Formats.Color;
 						graphicsSettings.DefaultDepthFormat = swapChain.Desc.Formats.Depth;
@@ -113,9 +150,15 @@ namespace REngine.Sandbox
 				Title = "REngine",
 				Size = new Size(500, 500)
 			});
-		} 
+		}
 
-		protected virtual DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider) => new DriverSettings { };
+		protected virtual DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider) {
+			DriverSettings? settings;
+			using(FileStream stream = new FileStream(EngineSettings.DriverSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
+			using(TextReader reader = new StreamReader(stream))
+				settings = reader.ReadToEnd().FromJson<DriverSettings>();
+			return settings ?? new DriverSettings();
+		}
 
 		private void HandleGraphicsMessage(object? sender, MessageEventArgs args)
 		{

@@ -1,4 +1,4 @@
-﻿using REngine.Core.SceneManagement;
+﻿using REngine.Core.WorldManagement;
 using REngine.RHI;
 using REngine.RPI.Constants;
 using System;
@@ -15,8 +15,8 @@ namespace REngine.RPI.Features
 {
     public interface ICubeRenderFeature : IGraphicsRenderFeature 
 	{ 
-		public Transform Transform { get; }
-		public ICamera? Camera { get; set; }
+		public Transform? Transform { get; set; }
+		public Camera? Camera { get; set; }
 	}
 
 	internal class CubeRenderFeature : GraphicsRenderFeature, ICubeRenderFeature
@@ -80,8 +80,8 @@ namespace REngine.RPI.Features
 
 		public override bool IsDirty { get; protected set; } = true;
 
-		public Transform Transform { get; } = new Transform();
-		public ICamera? Camera { get; set; }
+		public Transform? Transform { get; set; }
+		public Camera? Camera { get; set; }
 
 		public CubeRenderFeature(GraphicsSettings settings) : base()
 		{
@@ -127,13 +127,15 @@ namespace REngine.RPI.Features
 			ITextureView? backbuffer = GetBackBuffer();
 			ITextureView? depthbuffer = GetDepthBuffer();
 
-			if (Camera is null || backbuffer is null || depthbuffer is null)
+			if (Camera is null || Transform is null || backbuffer is null || depthbuffer is null)
 				return;
 			if (pVertexBuffer is null || pIndexBuffer is null || pObjectCBuffer is null || pPipeline is null)
 				return;
 
+			Camera.GetCBufferData(out var camCBufferData);
+
 			UpdateCBuffer(command, pObjectCBuffer, Transform.WorldTransformMatrix);
-			UpdateCBuffer(command, pCamCBuffer, Camera.Data);
+			UpdateCBuffer(command, pCamCBuffer, camCBufferData);
 
 			command
 				.SetRT(backbuffer, depthbuffer)

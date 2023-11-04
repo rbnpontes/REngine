@@ -38,7 +38,7 @@ namespace REngine.Core.DependencyInjection
 					throw new NullReferenceException($"Could not possible to create {typeof(Target).Name} type.");
 				return result;
 			};
-			pConstructors.Add(typeof(Interface), constructor);
+			pConstructors[typeof(Interface)] = constructor;
 			return this;
 		}
 
@@ -52,7 +52,7 @@ namespace REngine.Core.DependencyInjection
 					throw new NullReferenceException($"Could not possible to create {typeof(Target).Name} type.");
 				return result;
 			};
-			pConstructors.Add(typeof(Target), constructor);
+			pConstructors[typeof(Target)] = constructor;
 			return this;
 		}
 

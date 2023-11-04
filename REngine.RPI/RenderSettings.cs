@@ -1,5 +1,6 @@
 ﻿using REngine.Core;
 using REngine.Core.Mathematics;
+using REngine.Core.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +63,14 @@ namespace REngine.RPI
 #if RENGINE_IMGUI
 			ImGuiUpdateRate = settings.ImGuiUpdateRate;
 #endif
+		}
+
+		public static RenderSettings FromStream(Stream stream)
+		{
+			RenderSettings? settings;
+			using(TextReader reader = new StreamReader(stream))
+				settings = reader.ReadToEnd().FromJson<RenderSettings>();
+			return settings ?? new RenderSettings();
 		}
 	}
 }

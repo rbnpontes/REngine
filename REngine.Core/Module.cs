@@ -2,6 +2,7 @@
 using REngine.Core.IO;
 using REngine.Core.SceneManagement;
 using REngine.Core.Threading;
+using REngine.Core.WorldManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,15 +15,17 @@ namespace REngine.Core
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
-			//RenderGraphModule.Setup(registry);
 			registry
+				.Add<EngineSettings>()
+				.Add<EntityManager>()
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, EngineImpl>()
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
 				.Add<ExecutionPipelineNodeRegistry>()
-				.Add<ICameraSystem, CameraSystem>();
+				.Add<TransformSystem>()
+				.Add<CameraSystem>();
 		}
 	}
 }
