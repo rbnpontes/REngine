@@ -155,7 +155,7 @@ namespace REngine.Core.WorldManagement
 			lock(pSync)
 				ValidateComponent(transform);
 #endif
-			GetRotation(transform, out rotation);
+			GetRotation(transform.Id, out rotation);
 		}
 		public void GetRotation(int id, out Quaternion rotation)
 		{
