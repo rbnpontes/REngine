@@ -20,6 +20,7 @@ namespace REngine.Sandbox.Samples
 	internal class CubeSample : ISample
 	{
 		private ICubeRenderFeature? pCubeFeature;
+		private EntityManager? pEntityManager;
 
 		private IRenderer? pRenderer;
 		private IEngine? pEngine;
@@ -32,8 +33,8 @@ namespace REngine.Sandbox.Samples
 		{
 			pRenderer?.RemoveFeature(pCubeFeature);
 
-			pCubeFeature?.Camera?.Dispose();
 			pCubeFeature?.Dispose();
+			pEntityManager?.DestroyAll();
 		}
 
 		public void Load(IServiceProvider provider)
@@ -44,6 +45,8 @@ namespace REngine.Sandbox.Samples
 
 			var entityMgr = provider.Get<EntityManager>();
 			var transformSys = provider.Get<TransformSystem>();
+
+			pEntityManager = entityMgr;
 
 			Transform cameraTransform = transformSys.CreateTransform();
 			Transform objectTransform = transformSys.CreateTransform();

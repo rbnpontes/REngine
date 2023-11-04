@@ -59,6 +59,18 @@ namespace REngine.Core.WorldManagement
 			return this;
 		}
 
+		public EntityManager DestroyAll()
+		{
+			for(int i =0; i < pData.Length; ++i)
+			{
+				var entity = pData[i];
+				if (entity.TargetEntity is null)
+					continue;
+				Destroy(entity.TargetEntity);
+			}
+			return this;
+		}
+
 		public Entity CreateEntity(string? name = null)
 		{
 			int id = Acquire();
