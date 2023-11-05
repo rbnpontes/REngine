@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Serialization;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,11 +31,15 @@ namespace REngine.Core.WorldManagement
 	public sealed class EntityManager : BaseSystem<EntityData>, IEnumerable<Entity>
 	{
 		private readonly int pEntityExpansionLength;
+		private readonly ComponentSerializer pComponentSerializer;
+
 		public EntityManager(
-			EngineSettings engineSettings
+			EngineSettings engineSettings,
+			ComponentSerializer componentSerializer
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
+			pComponentSerializer = componentSerializer;
 		}
 
 		public EntityManager Destroy(Entity entity)
@@ -168,6 +173,62 @@ namespace REngine.Core.WorldManagement
 		{
 			foreach(var entity in this)
 				action(entity);
+		}
+
+		/// <summary>
+		/// Save All Entities and Components to a File
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <returns></returns>
+		public EntityManager Save(string filePath)
+		{
+			using (FileStream stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+				return Save(stream);
+		}
+		public EntityManager Save(Stream stream)
+		{
+			EntitiesDTO entitiesDTO = new EntitiesDTO();
+			entitiesDTO.AllocSize = pData.Length;
+			
+			List<EntityDTO> entities = new List<EntityDTO>();
+			Dictionary<int, ComponentEntry> components = new Dictionary<int, ComponentEntry>();
+
+			foreach(var entity in pData)
+			{
+				if (entity.TargetEntity is null)
+					continue;
+				entities.Add(new EntityDTO
+				{
+					Id = entity.Id,
+					Enabled = entity.Enabled,
+					Name = entity.Name,
+					Tags = entity.Tags.ToArray(),
+					Components = entity.Components.Select(x =>
+					{
+						return new EntityComponentEntry
+						{
+							Type = ComponentSerializer.GetTypeHashCode(x.Key),
+							ComponentId = x.Value.GetHashCode()
+						};
+					}).ToArray()
+				});
+
+				foreach(var component in entity.Components)
+				{
+					components[component.Value.GetHashCode()] = new ComponentEntry
+					{
+						Type = ComponentSerializer.GetTypeHashCode(component.Key),
+						Value = pComponentSerializer.Serialize(component.Value)
+					};
+				}
+			}
+
+			entitiesDTO.Entities = entities.ToArray();
+			entitiesDTO.Components = components;
+
+			using (TextWriter writer = new StreamWriter(stream))
+				writer.Write(entitiesDTO.ToJson());
+			return this;
 		}
 
 		internal void GetEntityData(int index, out EntityData output)

@@ -1,6 +1,7 @@
 ﻿using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.SceneManagement;
+using REngine.Core.Serialization;
 using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
 using System;
@@ -24,6 +25,7 @@ namespace REngine.Core
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
 				.Add<ExecutionPipelineNodeRegistry>()
+				.Add<ComponentSerializer>()
 				.Add<TransformSystem>()
 				.Add<CameraSystem>();
 		}
