@@ -1,4 +1,5 @@
 ﻿using REngine.Core.Mathematics;
+using REngine.Core.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -523,6 +524,46 @@ namespace REngine.Core.WorldManagement
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
+		}
+	}
+
+	internal class TransformSerializer : IComponentSerializer
+	{
+		protected readonly TransformSystem mTransformSystem;
+		struct SerializerData
+		{
+			public Vector3 Position;
+			public Quaternion Rotation;
+			public Vector3 Scale;
+			public int ParentId;
+			public int[] Children;
+		}
+
+		public TransformSerializer(TransformSystem transformSystem)
+		{
+			mTransformSystem = transformSystem;
+		}
+
+		public Component Create()
+		{
+			return mTransformSystem.CreateTransform();
+		}
+
+		public Type GetSerializerType()
+		{
+			return typeof(SerializerData);
+		}
+
+		public IEnumerable<object> OnSerialize(IEnumerable<Component> components)
+		{
+			object[] componentData = new SerializerData[components.Count()];
+
+			throw new NotImplementedException();
+		}
+
+		public IEnumerable<Component> OnDeserialize(IEnumerable<ComponentInfo> components)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

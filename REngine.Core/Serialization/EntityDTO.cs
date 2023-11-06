@@ -18,7 +18,7 @@ namespace REngine.Core.Serialization
 	}
 	public struct ComponentEntry
 	{
-		public int Type;
+		public int Id;
 		public object Value;
 	}
 
@@ -44,6 +44,6 @@ namespace REngine.Core.Serialization
 	{
 		public int AllocSize;
 		public EntityDTO[] Entities;
-		public IDictionary<int, ComponentEntry> Components;
+		public IDictionary<int, ComponentEntry[]> Components;
 	}
 }

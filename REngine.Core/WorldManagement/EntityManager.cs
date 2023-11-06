@@ -1,4 +1,5 @@
-﻿using REngine.Core.Serialization;
+﻿using REngine.Core.IO;
+using REngine.Core.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,14 +33,17 @@ namespace REngine.Core.WorldManagement
 	{
 		private readonly int pEntityExpansionLength;
 		private readonly ComponentSerializer pComponentSerializer;
+		private readonly ILogger<EntityManager> pLogger;
 
 		public EntityManager(
 			EngineSettings engineSettings,
-			ComponentSerializer componentSerializer
+			ComponentSerializer componentSerializer,
+			ILoggerFactory loggerFactory
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
 			pComponentSerializer = componentSerializer;
+			pLogger = loggerFactory.Build<EntityManager>();
 		}
 
 		public EntityManager Destroy(Entity entity)
@@ -191,8 +195,10 @@ namespace REngine.Core.WorldManagement
 			entitiesDTO.AllocSize = pData.Length;
 			
 			List<EntityDTO> entities = new List<EntityDTO>();
-			Dictionary<int, ComponentEntry> components = new Dictionary<int, ComponentEntry>();
+			Dictionary<int, List<Component>> components2Insert = new Dictionary<int, List<Component>>();
+			Dictionary<int, ComponentEntry[]> componentEntries = new Dictionary<int, ComponentEntry[]>();
 
+			// Process Entities
 			foreach(var entity in pData)
 			{
 				if (entity.TargetEntity is null)
@@ -215,19 +221,66 @@ namespace REngine.Core.WorldManagement
 
 				foreach(var component in entity.Components)
 				{
-					components[component.Value.GetHashCode()] = new ComponentEntry
+					int componentKey = ComponentSerializer.GetTypeHashCode(component.Key);
+					if (!components2Insert.TryGetValue(componentKey, out var componentList))
+						components2Insert[componentKey] = componentList = new List<Component>();
+
+					componentList.Add(component.Value);
+				}
+			}
+			// Process Components
+			foreach(var componentPair in components2Insert)
+			{
+				var data = pComponentSerializer.Serialize(componentPair.Key, componentPair.Value);
+				if (data.Count() != componentPair.Value.Count())
+					throw new EntityException($"Invalid Serialization of Component. Serialized Component Data count must be equal to components count.");
+
+				ComponentEntry[] entries = new ComponentEntry[data.Count()];
+				for(int i =0; i< data.Count(); i++)
+				{
+					entries[i] = new ComponentEntry
 					{
-						Type = ComponentSerializer.GetTypeHashCode(component.Key),
-						Value = pComponentSerializer.Serialize(component.Value)
+						Id = componentPair.Value[i].GetHashCode(),
+						Value = data.ElementAt(i)
 					};
 				}
+
+				componentEntries[componentPair.Key] = entries;
 			}
 
 			entitiesDTO.Entities = entities.ToArray();
-			entitiesDTO.Components = components;
+			entitiesDTO.Components = componentEntries;
 
 			using (TextWriter writer = new StreamWriter(stream))
 				writer.Write(entitiesDTO.ToJson());
+			return this;
+		}
+
+		public EntityManager Dump()
+		{
+			StringBuilder output = new();
+			output.AppendLine($"Allocated Entities: {pData.Length}");
+			output.AppendLine($"Used Entities: {pData.Length - pAvailableIdx.Count}");
+			output.AppendLine($"Available Space: {pAvailableIdx.Count}");
+			output.AppendLine("Entities:");
+			for(int i =0; i < pData.Length; ++i)
+			{
+				if (pData[i].TargetEntity is null)
+					continue;
+				var data = pData[i];
+				output.AppendLine($"- [{i}]:");
+				output.AppendLine($"\tEnabled: {data.Enabled}");
+				output.AppendLine($"\tName: {data.Name}");
+				output.AppendLine($"\tTags: {string.Join(",", data.Tags)}");
+				output.AppendLine($"\tComponents:");
+				foreach(var component in data.Components)
+				{
+					Type componentType = component.Value.GetType();
+					output.AppendLine($"\t\t[{component.Value.GetHashCode()}]: {(componentType.FullName ?? componentType.Name)}");
+				}
+			}
+
+			pLogger.Info(output);
 			return this;
 		}
 
