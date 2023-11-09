@@ -1,4 +1,5 @@
 ﻿using REngine.Core.IO;
+using REngine.Core.Mathematics;
 using REngine.Core.Threading.Nodes;
 using System;
 using System.Collections.Generic;
@@ -15,13 +16,13 @@ namespace REngine.Core.Threading
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
 
-        private readonly Dictionary<int, ExecutionPipelineVarImpl> pVars = new Dictionary<int, ExecutionPipelineVarImpl>();
+        private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new Dictionary<ulong, ExecutionPipelineVarImpl>();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
         
         public readonly CancellationTokenSource StopTokenSource = new ();
 
         private IList<EPNode> pNodes = new List<EPNode>();
-        private IDictionary<int, EPNode> pNodesTable = new Dictionary<int, EPNode>();
+        private IDictionary<ulong, EPNode> pNodesTable = new Dictionary<ulong, EPNode>();
         private EPNode? pLastNode;
         private LinkedList<Action> pExecuteScheduledCalls = new();
 
@@ -111,10 +112,10 @@ namespace REngine.Core.Threading
 
         public IExecutionPipeline AddEvent(string eventName, Action<IExecutionPipeline> callback)
         {
-            return AddEvent(eventName.GetHashCode(), callback);
+            return AddEvent(Hash.Digest(eventName), callback);
         }
 
-        public IExecutionPipeline AddEvent(int eventHashCode, Action<IExecutionPipeline> callback)
+        public IExecutionPipeline AddEvent(ulong eventHashCode, Action<IExecutionPipeline> callback)
         {
             if(eventHashCode == pLastNode?.Id)
             {
@@ -129,10 +130,10 @@ namespace REngine.Core.Threading
 
         public IExecutionPipeline RemoveEvent(string eventName, Action<IExecutionPipeline> callback)
         {
-            return RemoveEvent(eventName.GetHashCode(), callback);
+            return RemoveEvent(Hash.Digest(eventName), callback);
         }
 
-        public IExecutionPipeline RemoveEvent(int eventHashCode, Action<IExecutionPipeline> callback)
+        public IExecutionPipeline RemoveEvent(ulong eventHashCode, Action<IExecutionPipeline> callback)
         {
             if(eventHashCode == pLastNode?.Id)
             {
@@ -147,9 +148,9 @@ namespace REngine.Core.Threading
 
         public IExecutionPipeline ClearEvents(string eventName)
         {
-            return ClearEvents(eventName.GetHashCode());
+            return ClearEvents(Hash.Digest(eventName));
         }
-        public IExecutionPipeline ClearEvents(int eventHashCode)
+        public IExecutionPipeline ClearEvents(ulong eventHashCode)
         {
 			if (eventHashCode == pLastNode?.Id)
 			{
@@ -171,15 +172,15 @@ namespace REngine.Core.Threading
         
         public IExecutionPipelineVar GetOrCreateVar(string name)
         {
-            return HandleCreateVar(name.GetHashCode(), name);
+            return HandleCreateVar(Hash.Digest(name), name);
 		}
 
-        public IExecutionPipelineVar GetOrCreateVar(int varHashCode)
+        public IExecutionPipelineVar GetOrCreateVar(ulong varHashCode)
         {
             return HandleCreateVar(varHashCode);
         }
 
-        private ExecutionPipelineVarImpl HandleCreateVar(int varHashCode, string dbgKey = "Unknow")
+        private ExecutionPipelineVarImpl HandleCreateVar(ulong varHashCode, string dbgKey = "Unknow")
         {
             if (pVars.TryGetValue(varHashCode, out var varNode))
                 return varNode;

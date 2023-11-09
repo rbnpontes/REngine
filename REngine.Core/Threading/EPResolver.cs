@@ -1,4 +1,5 @@
-﻿using REngine.Core.Threading.Nodes;
+﻿using REngine.Core.Mathematics;
+using REngine.Core.Threading.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,9 @@ namespace REngine.Core.Threading
 		class UnresolvedTaskNode
 		{
 			public TaskNode Node { get; set; }
-			public int NodeTarget { get; set; }
+			public ulong NodeTarget { get; set; }
 
-			public UnresolvedTaskNode(TaskNode node, int targetNode)
+			public UnresolvedTaskNode(TaskNode node, ulong targetNode)
 			{
 				Node = node;
 				NodeTarget = targetNode;
@@ -33,7 +34,7 @@ namespace REngine.Core.Threading
 		private List<(XmlElement, EPNode)> pCreatedNodes = new();
 
 		public List<EPNode> RootNodes { get; private set; } = new();
-		public Dictionary<int, EPNode> NodesTable { get; private set; } = new ();
+		public Dictionary<ulong, EPNode> NodesTable { get; private set; } = new ();
 
 		public EPResolver(ExecutionPipelineNodeRegistry registry, ExecutionPipelineImpl pipeline)
 		{
@@ -94,7 +95,7 @@ namespace REngine.Core.Threading
 			IsValidTag(element.Name);
 
 			string idValue = element.GetAttribute("id");
-			int id = idValue.GetHashCode();
+			ulong id = Hash.Digest(idValue);
 
 			if (NodesTable.ContainsKey(id))
 				throw new Exception($"Node with '{id}' is already registered.");

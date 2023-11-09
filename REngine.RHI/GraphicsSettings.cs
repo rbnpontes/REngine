@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,13 @@ namespace REngine.RHI
 
 		public byte DefaultTextureAnisotropy { get; set; } = 4;
 		public TextureFilterMode DefaultTextureFilterMode { get; set; } = TextureFilterMode.Trilinear;
+
+		public static GraphicsSettings FromStream(Stream stream)
+		{
+			GraphicsSettings? settings;
+			using(TextReader reader = new StreamReader(stream))
+				settings = reader.ReadToEnd().FromJson<GraphicsSettings>();
+			return settings ?? new GraphicsSettings();
+		}
 	}
 }

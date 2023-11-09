@@ -11,7 +11,7 @@ namespace REngine.Core.Threading
 		private object? pValue;
 		private object pSync = new();
 
-		public int Key { get; private set; }
+		public ulong Key { get; private set; }
 		public object? Value
 		{
 			get
@@ -31,7 +31,7 @@ namespace REngine.Core.Threading
 		public string DebugKey { get; set; } = string.Empty;
 #endif
 
-		public ExecutionPipelineVarImpl(int varKey)
+		public ExecutionPipelineVarImpl(ulong varKey)
 		{
 			Key = varKey;
 		}

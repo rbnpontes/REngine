@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,9 @@ namespace REngine.RPI.RenderGraph
 	{
 		private readonly RenderGraphRegistry pRegistry;
 		
-		private Dictionary<int, RenderGraphNode> pNodes = new();
+		private Dictionary<ulong, RenderGraphNode> pNodes = new();
 		private RootGraphNode pRoot = new();
-		private int idCounter = 0;
+		private ulong idCounter = 0;
 
 		public RenderGraphResolver(
 			RenderGraphRegistry registry
@@ -68,7 +69,7 @@ namespace REngine.RPI.RenderGraph
 				throw new RenderGraphException("Invalid Element Name. Tag name must not be null or empty.");
 			
 			string id = element.GetAttribute("id");
-			int idHashCode = id.GetHashCode();
+			ulong idHashCode = Hash.Digest(id);
 
 			if (pNodes.ContainsKey(idHashCode))
 				throw new RenderGraphException($"Duplicated Id Entry. There´s a node with id {idHashCode}.");

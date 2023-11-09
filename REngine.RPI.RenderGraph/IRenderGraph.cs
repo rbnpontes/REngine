@@ -8,7 +8,7 @@ namespace REngine.RPI.RenderGraph
 {
 	public struct RenderGraphEntry
 	{
-		public Dictionary<int, RenderGraphNode> Nodes;
+		public Dictionary<ulong, RenderGraphNode> Nodes;
 		public RootGraphNode Root;
 	}
 	public interface IRenderGraph
@@ -23,6 +23,6 @@ namespace REngine.RPI.RenderGraph
 		/// <returns>self instance</returns>
 		public IRenderGraph Execute();
 		public RenderGraphNode? FindNode(string nodeName);
-		public RenderGraphNode? FindNode(int nodeId);
+		public RenderGraphNode? FindNode(ulong nodeId);
 	}
 }

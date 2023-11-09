@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,10 +42,10 @@ namespace REngine.RPI.RenderGraph
 
 		public RenderGraphNode? FindNode(string nodeName)
 		{
-			return FindNode(nodeName.GetHashCode());
+			return FindNode(Hash.Digest(nodeName));
 		}
 
-		public RenderGraphNode? FindNode(int nodeId)
+		public RenderGraphNode? FindNode(ulong nodeId)
 		{
 			if (RootEntry is null)
 				throw new NullReferenceException("Is not possible to found Render Graph Node, RootEntry is null.");

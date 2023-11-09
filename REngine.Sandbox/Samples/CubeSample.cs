@@ -2,6 +2,7 @@
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.SceneManagement;
+using REngine.Core.WorldManagement;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Features;
@@ -19,20 +20,21 @@ namespace REngine.Sandbox.Samples
 	internal class CubeSample : ISample
 	{
 		private ICubeRenderFeature? pCubeFeature;
+		private EntityManager? pEntityManager;
 
 		private IRenderer? pRenderer;
 		private IEngine? pEngine;
 
 		public IWindow? Window { get; set; }
 
-		private Vector3 pCameraPos;
+		private Transform? pObjectTransform;
 
 		public void Dispose()
 		{
 			pRenderer?.RemoveFeature(pCubeFeature);
 
-			pCubeFeature?.Camera?.Dispose();
 			pCubeFeature?.Dispose();
+			pEntityManager?.DestroyAll();
 		}
 
 		public void Load(IServiceProvider provider)
@@ -40,22 +42,38 @@ namespace REngine.Sandbox.Samples
 			pCubeFeature = provider.Get<BasicFeaturesFactory>().CreateCubeFeature();
 			pRenderer = provider.Get<IRenderer>().AddFeature(pCubeFeature);
 			pEngine = provider.Get<IEngine>();
-			pCubeFeature.Camera = provider.Get<ICameraSystem>().Build();
-			pCubeFeature.Camera.Transform.Position = pCameraPos = new Vector3(0f, 0f, 5.0f);
+
+			var entityMgr = provider.Get<EntityManager>();
+			var transformSys = provider.Get<TransformSystem>();
+
+			pEntityManager = entityMgr;
+
+			Transform cameraTransform = transformSys.CreateTransform();
+			Transform objectTransform = transformSys.CreateTransform();
+
+			Camera camera = provider.Get<CameraSystem>().CreateCamera();
+
+			Entity cameraEntity = entityMgr.CreateEntity("Main Camera");
+			Entity objectEntity = entityMgr.CreateEntity("Cube Object");
+
+			cameraEntity.AddComponent(cameraTransform).AddComponent(camera);
+			objectEntity.AddComponent(objectTransform);
+
+			pCubeFeature.Camera = camera;
+			pCubeFeature.Transform = objectTransform;
+			cameraTransform.Position = new Vector3(0f, 0f, 5.0f);
+
+			pObjectTransform = objectTransform;
 		}
 
 		public void Update(IServiceProvider provider)
 		{
-			if (pCubeFeature is null)
+			if (pCubeFeature is null || pObjectTransform is null)
 				return;
 
 			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0f) * 0.001f;
 
-			pCubeFeature.Transform.EulerAngles = new Vector3(0.0f, elapsedTime, 0.0f);
-			if(pCubeFeature.Camera != null)
-			{
-				pCubeFeature.Camera.Transform.Position = pCameraPos;
-			}
+			pObjectTransform.EulerAngles = new Vector3(0.0f, elapsedTime, 0.0f);
 		}
 	}
 }

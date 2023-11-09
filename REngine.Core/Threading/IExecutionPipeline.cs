@@ -22,12 +22,12 @@ namespace REngine.Core.Threading
         public IExecutionPipeline ClearAllEvents();
 
         public IExecutionPipeline AddEvent(string eventName, Action<IExecutionPipeline> callback);
-        public IExecutionPipeline AddEvent(int eventHashCode, Action<IExecutionPipeline> callback);
+        public IExecutionPipeline AddEvent(ulong eventHashCode, Action<IExecutionPipeline> callback);
 
         public IExecutionPipeline RemoveEvent(string eventName, Action<IExecutionPipeline> callback);
-        public IExecutionPipeline RemoveEvent(int eventHashCode, Action<IExecutionPipeline> callback);
+        public IExecutionPipeline RemoveEvent(ulong eventHashCode, Action<IExecutionPipeline> callback);
         public IExecutionPipeline ClearEvents(string eventName);
-        public IExecutionPipeline ClearEvents(int eventHashCode);
+        public IExecutionPipeline ClearEvents(ulong eventHashCode);
 
         /// <summary>
         /// Execute call into Begining of Execute call
@@ -40,6 +40,6 @@ namespace REngine.Core.Threading
         public IExecutionPipeline Invoke(Action action);
 
         public IExecutionPipelineVar GetOrCreateVar(string name);
-        public IExecutionPipelineVar GetOrCreateVar(int varHashCode);
+        public IExecutionPipelineVar GetOrCreateVar(ulong varHashCode);
     }
 }

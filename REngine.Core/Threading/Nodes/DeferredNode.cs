@@ -43,7 +43,7 @@ namespace REngine.Core.Threading.Nodes
 			ExecuteChildrens();
 		}
 
-		public override void Define(XmlElement element, Dictionary<int, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
 			string targetValue = element.GetAttribute("target");
 			if (string.IsNullOrEmpty(targetValue))

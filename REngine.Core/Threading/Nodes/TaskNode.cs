@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -88,9 +89,9 @@ namespace REngine.Core.Threading.Nodes
 			task?.Wait(MaxWaitTime);
 		}
 
-		public override void Define(XmlElement element, Dictionary<int, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
-			int targetNodeId = element.GetAttribute("end").GetHashCode();
+			ulong targetNodeId = Hash.Digest(element.GetAttribute("end"));
 			if (targetNodeId == 0)
 				return;
 

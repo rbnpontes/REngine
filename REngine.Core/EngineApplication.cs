@@ -56,6 +56,7 @@ namespace REngine.Core
 			while (!engine.IsStopped)
 				engine.ExecuteFrame();
 			logger.Debug("Exiting");
+			pApp.OnExit(pServiceProvider);
 			return this;
 		}
 
