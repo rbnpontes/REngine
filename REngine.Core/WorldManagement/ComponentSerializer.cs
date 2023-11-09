@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.WorldManagement
 {
-	public abstract class ComponentResolver<T> : BaseComponentResolver where T : Component
+	public abstract class ComponentSerializer<T> : BaseComponentSerializer where T : Component
 	{
-		public ComponentResolver(IServiceProvider serviceProvider) : base(serviceProvider) { }
+		public ComponentSerializer(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
 		protected override Type GetComponentType()
 		{

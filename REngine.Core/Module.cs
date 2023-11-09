@@ -25,7 +25,7 @@ namespace REngine.Core
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
 				.Add<ExecutionPipelineNodeRegistry>()
-				.Add<ComponentSerializer>()
+				.Add<ComponentSerializerFactory>()
 				.Add<TransformSystem>()
 				.Add<CameraSystem>();
 		}

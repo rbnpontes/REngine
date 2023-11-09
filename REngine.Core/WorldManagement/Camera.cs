@@ -19,6 +19,59 @@ namespace REngine.Core.WorldManagement
 		public float FarClip;
 		public Vector2 EmptyData;
 	}
+
+	public sealed class CameraSerializer : ComponentSerializer<Camera>
+	{
+		struct SerializeData
+		{
+			public float NearClip;
+			public float FarClip;
+			public float Zoom;
+			public float AspectRatio;
+			public bool AutoAspectRatio;
+		}
+		private readonly CameraSystem pSystem;
+		public CameraSerializer(IServiceProvider serviceProvider, CameraSystem system) : base(serviceProvider)
+		{
+			pSystem = system;
+		}
+
+		public override Type GetSerializeType()
+		{
+			return typeof(SerializeData);
+		}
+
+		public override object OnSerialize(Component component)
+		{
+			Camera? camera = component as Camera;
+			if (camera is null)
+				throw new InvalidCastException($"Expected '{nameof(Camera)}' type.");
+			return new SerializeData
+			{
+				NearClip = camera.NearClip,
+				FarClip = camera.FarClip,
+				Zoom = camera.Zoom,
+				AspectRatio = camera.AspectRatio,
+				AutoAspectRatio = camera.AutoAspectRatio
+			};
+		}
+
+		public override Component OnDeserialize(object componentData)
+		{
+			SerializeData data = (SerializeData)componentData;
+
+			Camera camera = pSystem.CreateCamera();
+			camera.NearClip = data.NearClip;
+			camera.FarClip = data.FarClip;
+			camera.Zoom = data.Zoom;
+			camera.AspectRatio = data.AspectRatio;
+			camera.AutoAspectRatio = data.AutoAspectRatio;
+
+			return camera;
+		}
+	}
+
+	[ComponentSerializer(typeof(CameraSerializer))]
 	public sealed class Camera : Component
 	{
 		private readonly CameraSystem pSystem;

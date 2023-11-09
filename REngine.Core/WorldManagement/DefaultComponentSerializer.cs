@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.WorldManagement
 {
-	public abstract class BaseComponentResolver : IComponentResolver
+	public abstract class BaseComponentSerializer : IComponentSerializer
 	{
 		protected IServiceProvider mServiceProvider;
-		public BaseComponentResolver(IServiceProvider serviceProvider) 
+		public BaseComponentSerializer(IServiceProvider serviceProvider) 
 		{
 			mServiceProvider = serviceProvider;
 		}
@@ -54,6 +54,13 @@ namespace REngine.Core.WorldManagement
 		{
 		}
 
+		public virtual void OnAfterDeserialize()
+		{
+		}
+		public virtual void OnBeforeDeserialize()
+		{
+		}
+
 		public abstract Component OnDeserialize(object componentData);
 
 		public abstract object OnSerialize(Component component);
@@ -61,11 +68,11 @@ namespace REngine.Core.WorldManagement
 		protected abstract Type GetComponentType();
 	}
 
-	public sealed class DefaultComponentResolver : BaseComponentResolver
+	public sealed class DefaultComponentSerializer : BaseComponentSerializer
 	{
 		private Type? pTargetComponent;
 
-		public DefaultComponentResolver(IServiceProvider provider) : base(provider)
+		public DefaultComponentSerializer(IServiceProvider provider) : base(provider)
 		{
 		}
 
@@ -78,7 +85,7 @@ namespace REngine.Core.WorldManagement
 
 		public void SetComponentType(Type componentType)
 		{
-			if (componentType.IsAssignableTo(typeof(Component)))
+			if (!componentType.IsAssignableTo(typeof(Component)))
 				throw new Exception($"Invalid Component Type. Type must inherit {nameof(Component)} type.");
 			pTargetComponent = componentType;
 		}

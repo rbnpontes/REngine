@@ -8,6 +8,78 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.WorldManagement
 {
+	public sealed class TransformSerializer : ComponentSerializer<Transform>
+	{
+		struct SerializeData
+		{
+			public int RefId;
+			public Vector3 Position;
+			public Quaternion Rotation;
+			public Vector3 Scale;
+			public int ParentId;
+		}
+
+		private readonly TransformSystem pSystem;
+
+		public TransformSerializer(
+			IServiceProvider serviceProvider,
+			TransformSystem system
+		) : base(serviceProvider)
+		{
+			pSystem = system;
+		}
+
+		public override Type GetSerializeType()
+		{
+			return typeof(SerializeData);
+		}
+
+		public override object OnSerialize(Component component)
+		{
+			Transform? transform = component as Transform;
+			if (transform is null)
+				throw new InvalidCastException($"Expected '{nameof(Transform)}' type.");
+
+			return new SerializeData
+			{
+				RefId = component.GetHashCode(),
+				Position = transform.Position,
+				Rotation = transform.Rotation,
+				Scale = transform.Scale,
+				ParentId = transform.Parent != null ? transform.Parent.GetHashCode() : 0
+			};
+		}
+
+		private Dictionary<int, Transform> pTransformLookup = new Dictionary<int, Transform>();
+		private Queue<SerializeData> pUnresolvedParents = new Queue<SerializeData>();
+		public override Component OnDeserialize(object componentData)
+		{
+			SerializeData data = (SerializeData)componentData;
+			Transform transform = pSystem.CreateTransform();
+			transform.Position = data.Position;
+			transform.Rotation = data.Rotation;
+			transform.Scale = data.Scale;
+			pTransformLookup[data.RefId] = transform;
+			pUnresolvedParents.Enqueue(data);
+			return transform;
+		}
+
+		public override void OnAfterDeserialize()
+		{
+			// Resolve Parents
+			while(pUnresolvedParents.TryDequeue(out var data))
+			{
+				if (data.ParentId == 0)
+					continue;
+				Transform transform = pTransformLookup[data.RefId];
+				Transform parent = pTransformLookup[data.ParentId];
+				parent.AddChild(transform);
+			}
+			pTransformLookup.Clear();
+		}
+	}
+
+	[ComponentSerializer(typeof(TransformSerializer))]
 	public sealed class Transform : Component
 	{
 		private readonly TransformSystem pSystem;
@@ -17,6 +89,11 @@ namespace REngine.Core.WorldManagement
 		public Transform? Parent
 		{
 			get => pSystem.GetParent(this);
+		}
+
+		public IEnumerable<Transform> Children
+		{
+			get => pSystem.GetChildren(this);
 		}
 
 		public Vector3 Position
@@ -124,6 +201,15 @@ namespace REngine.Core.WorldManagement
 		protected override void OnDispose()
 		{
 			pSystem.Destroy(Id);
+		}
+
+		public void AddChild(Transform child)
+		{
+			pSystem.AddChild(this, child);
+		}
+		public void RemoveChild(Transform child)
+		{
+			pSystem.RemoveChild(this, child);
 		}
 	}
 }

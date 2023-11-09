@@ -111,6 +111,8 @@ namespace REngine.Core.WorldManagement
 			component.Owner = this;
 
 			pEntityManager.SetEntityData(Id, data);
+
+			component.OnSetup();
 			return this;
 		}
 		

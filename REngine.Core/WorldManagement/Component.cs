@@ -83,6 +83,8 @@ namespace REngine.Core.WorldManagement
 		protected virtual void OnAttach(Entity? target) { }
 		protected virtual void OnChangeVisibility(bool value) { }
 
+		public virtual void OnSetup() { }
+
 		protected void ValidateDispose()
 		{
 			if (pDisposed)

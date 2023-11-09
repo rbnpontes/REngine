@@ -32,7 +32,9 @@ namespace REngine.Core.WorldManagement
 
 		protected void Expand(int newSlots)
 		{
-			newSlots = Math.Max(newSlots, 1);
+			newSlots = Math.Max(newSlots, 0);
+			if (newSlots == 0)
+				return;
 			for (int i = 0; i < newSlots; ++i)
 				pAvailableIdx.Enqueue(pData.Length + i);
 

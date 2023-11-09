@@ -1,4 +1,7 @@
-﻿using REngine.Core.IO;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using REngine.Core.IO;
 using REngine.Core.Serialization;
 using System;
 using System.Collections;
@@ -11,7 +14,6 @@ namespace REngine.Core.WorldManagement
 {
 	public struct EntityData
 	{
-		public int Id;
 		public bool Enabled;
 		public string Name;
 		public HashSet<string> Tags;
@@ -20,7 +22,6 @@ namespace REngine.Core.WorldManagement
 
 		public EntityData()
 		{
-			Id = 0;
 			Enabled = true;
 			Name = string.Empty;
 			Tags = new HashSet<string>();
@@ -32,17 +33,17 @@ namespace REngine.Core.WorldManagement
 	public sealed class EntityManager : BaseSystem<EntityData>, IEnumerable<Entity>
 	{
 		private readonly int pEntityExpansionLength;
-		private readonly ComponentSerializer pComponentSerializer;
+		private readonly ComponentSerializerFactory pSerializerFactory;
 		private readonly ILogger<EntityManager> pLogger;
 
 		public EntityManager(
 			EngineSettings engineSettings,
-			ComponentSerializer componentSerializer,
-			ILoggerFactory loggerFactory
+			ILoggerFactory loggerFactory,
+			ComponentSerializerFactory serializerFactory
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
-			pComponentSerializer = componentSerializer;
+			pSerializerFactory = serializerFactory;
 			pLogger = loggerFactory.Build<EntityManager>();
 		}
 
@@ -186,73 +187,164 @@ namespace REngine.Core.WorldManagement
 		/// <returns></returns>
 		public EntityManager Save(string filePath)
 		{
-			using (FileStream stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+			if(File.Exists(filePath))
+				File.Delete(filePath);
+
+			using (FileStream stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write))
 				return Save(stream);
 		}
+		public EntityManager Load(string filePath)
+		{
+			if (!File.Exists(filePath))
+				throw new FileNotFoundException();
+			using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				return Load(stream);
+		}
+
 		public EntityManager Save(Stream stream)
 		{
-			EntitiesDTO entitiesDTO = new EntitiesDTO();
-			entitiesDTO.AllocSize = pData.Length;
-			
-			List<EntityDTO> entities = new List<EntityDTO>();
-			Dictionary<int, List<Component>> components2Insert = new Dictionary<int, List<Component>>();
-			Dictionary<int, ComponentEntry[]> componentEntries = new Dictionary<int, ComponentEntry[]>();
+			EntitySerializationData<object> serializerData = new ();
 
-			// Process Entities
-			foreach(var entity in pData)
+			List<EntityDTO> entities = new();
+			Dictionary<ulong, List<object>> componentsData = new ();
+			HashSet<IComponentSerializer> usedSerializers = new ();
+
+			for(int i =0; i < pData.Length; ++i)
 			{
+				var entity = pData[i];
 				if (entity.TargetEntity is null)
 					continue;
-				entities.Add(new EntityDTO
-				{
-					Id = entity.Id,
-					Enabled = entity.Enabled,
-					Name = entity.Name,
-					Tags = entity.Tags.ToArray(),
-					Components = entity.Components.Select(x =>
-					{
-						return new EntityComponentEntry
-						{
-							Type = ComponentSerializer.GetTypeHashCode(x.Key),
-							ComponentId = x.Value.GetHashCode()
-						};
-					}).ToArray()
-				});
 
+				var componentEntries = new List<EntityComponentEntry>();
 				foreach(var component in entity.Components)
 				{
-					int componentKey = ComponentSerializer.GetTypeHashCode(component.Key);
-					if (!components2Insert.TryGetValue(componentKey, out var componentList))
-						components2Insert[componentKey] = componentList = new List<Component>();
-
-					componentList.Add(component.Value);
-				}
-			}
-			// Process Components
-			foreach(var componentPair in components2Insert)
-			{
-				var data = pComponentSerializer.Serialize(componentPair.Key, componentPair.Value);
-				if (data.Count() != componentPair.Value.Count())
-					throw new EntityException($"Invalid Serialization of Component. Serialized Component Data count must be equal to components count.");
-
-				ComponentEntry[] entries = new ComponentEntry[data.Count()];
-				for(int i =0; i< data.Count(); i++)
-				{
-					entries[i] = new ComponentEntry
+					var componentCode = ComponentSerializerFactory.GetTypeCode(component.Key);
+					if(!componentsData.TryGetValue(componentCode, out var data))
 					{
-						Id = componentPair.Value[i].GetHashCode(),
-						Value = data.ElementAt(i)
-					};
+						data = new List<object>();
+						componentsData[componentCode] = data;
+					}
+
+					var serializer = pSerializerFactory.GetSerializer(component.Key);
+					if (!usedSerializers.Contains(serializer))
+					{
+						serializer.OnBeforeSerialize();
+						usedSerializers.Add(serializer);
+					}
+
+					data.Add(serializer.OnSerialize(component.Value));
+
+					componentEntries.Add(new EntityComponentEntry
+					{
+						ComponentId = data.Count - 1,
+						Type = componentCode,
+						Enabled = component.Value.Enabled
+					});
 				}
 
-				componentEntries[componentPair.Key] = entries;
+				entities.Add(new EntityDTO { 
+					Components = componentEntries.ToArray(),
+					Enabled = entity.Enabled,
+					Id = i,
+					Name = entity.Name,
+					Tags = entity.Tags.ToArray()
+				});
 			}
 
-			entitiesDTO.Entities = entities.ToArray();
-			entitiesDTO.Components = componentEntries;
+			serializerData.Entities = entities.ToArray();
+			serializerData.Components = componentsData;
+
+			foreach (var serializer in usedSerializers)
+				serializer.OnAfterSerialize();
 
 			using (TextWriter writer = new StreamWriter(stream))
-				writer.Write(entitiesDTO.ToJson());
+			{
+				MemoryTraceWriter traceWritter = new();
+				writer.Write(
+					JsonConvert.SerializeObject(serializerData, new JsonSerializerSettings 
+					{
+						Formatting = Formatting.Indented,
+						ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+						TraceWriter = traceWritter
+					})
+				);
+				pLogger.Debug(traceWritter);
+			}
+
+			serializerData.Entities = Array.Empty<EntityDTO>();
+			componentsData.Clear();
+			entities.Clear();
+			usedSerializers.Clear();
+
+			GC.Collect();
+			return this;
+		}
+
+		public EntityManager Load(Stream stream)
+		{
+			string json = string.Empty;
+			using (TextReader reader = new StreamReader(stream))
+				json = reader.ReadToEnd();
+
+			MemoryTraceWriter traceWriter = new();
+			EntitySerializationData<JObject> serializerData = JsonConvert.DeserializeObject<EntitySerializationData<JObject>>(json, new JsonSerializerSettings { 
+				TraceWriter = traceWriter
+			});
+			pLogger.Debug(traceWriter);
+
+			Expand(serializerData.Entities.Length - pAvailableIdx.Count);
+
+			Dictionary<ulong, Component[]> createdComponents = new();
+			foreach(var componentPair in serializerData.Components)
+			{
+				var serializer = pSerializerFactory.FindSerializer(componentPair.Key);
+				if (serializer is null)
+					serializer = pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
+
+				if (serializer is null)
+					throw new EntityException("Not found serializer while is deserializing components");
+
+				serializer.OnBeforeDeserialize();
+
+				Component[] components = new Component[componentPair.Value.Count];
+				for(int i =0; i < componentPair.Value.Count; i++)
+				{
+					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType());
+					if (data is null)
+						throw new NullReferenceException($"Can´t deserialize component data type '{serializer.GetSerializeType().Name}'");
+					components[i] = serializer.OnDeserialize(data);
+				}
+
+				serializer.OnAfterDeserialize();
+
+				createdComponents[componentPair.Key] = components;
+			}
+
+			foreach(var entityItem in serializerData.Entities)
+			{
+				Entity entity = CreateEntity(entityItem.Name);
+				foreach (var tag in entityItem.Tags)
+					entity.AddTag(tag);
+
+				entity.Enabled = entityItem.Enabled;
+
+				var entityData = pData[entity.Id];
+				foreach(var componentEntry in entityItem.Components)
+				{
+					var component = createdComponents[componentEntry.Type][componentEntry.ComponentId];
+					component.Enabled = componentEntry.Enabled;
+
+					entityData.Components[component.GetType()] = component;
+					
+					component.Owner = entity;
+				}
+				pData[entity.Id] = entityData;
+
+				// Execute Setup
+				foreach (var pair in entityData.Components)
+					pair.Value.OnSetup();
+			}
+
 			return this;
 		}
 

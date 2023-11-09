@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,16 @@ namespace REngine.Core.Serialization
 {
 	public struct EntityComponentEntry
 	{
-		public int Type;
+		public ulong Type;
 		public int ComponentId;
+		public bool Enabled;
 
 		public EntityComponentEntry()
 		{
-			Type = ComponentId = 0;
+			Type = 0;
+			ComponentId = 0;
+			Enabled = false;
 		}
-	}
-	public struct ComponentEntry
-	{
-		public int Id;
-		public object Value;
 	}
 
 	public struct EntityDTO
@@ -40,10 +39,9 @@ namespace REngine.Core.Serialization
 		}
 	}
 
-	public struct EntitiesDTO
+	public struct EntitySerializationData<ComponentType>
 	{
-		public int AllocSize;
 		public EntityDTO[] Entities;
-		public IDictionary<int, ComponentEntry[]> Components;
+		public IDictionary<ulong, List<ComponentType>> Components;
 	}
 }

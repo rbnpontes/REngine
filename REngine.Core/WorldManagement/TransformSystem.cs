@@ -527,43 +527,4 @@ namespace REngine.Core.WorldManagement
 		}
 	}
 
-	internal class TransformSerializer : IComponentSerializer
-	{
-		protected readonly TransformSystem mTransformSystem;
-		struct SerializerData
-		{
-			public Vector3 Position;
-			public Quaternion Rotation;
-			public Vector3 Scale;
-			public int ParentId;
-			public int[] Children;
-		}
-
-		public TransformSerializer(TransformSystem transformSystem)
-		{
-			mTransformSystem = transformSystem;
-		}
-
-		public Component Create()
-		{
-			return mTransformSystem.CreateTransform();
-		}
-
-		public Type GetSerializerType()
-		{
-			return typeof(SerializerData);
-		}
-
-		public IEnumerable<object> OnSerialize(IEnumerable<Component> components)
-		{
-			object[] componentData = new SerializerData[components.Count()];
-
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<Component> OnDeserialize(IEnumerable<ComponentInfo> components)
-		{
-			throw new NotImplementedException();
-		}
-	}
 }

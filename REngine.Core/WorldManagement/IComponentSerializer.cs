@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.WorldManagement
 {
-	public interface IComponentResolver
+	public interface IComponentSerializer
 	{
 		public Component Create();
 		public Type GetSerializeType();
@@ -14,5 +14,8 @@ namespace REngine.Core.WorldManagement
 		public Component OnDeserialize(object componentData);
 		public void OnBeforeSerialize();
 		public void OnAfterSerialize();
+
+		public void OnBeforeDeserialize();
+		public void OnAfterDeserialize();
 	}
 }
