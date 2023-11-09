@@ -19,7 +19,7 @@ namespace REngine.RPI.RenderGraph
 
 	public interface IVar
 	{
-		public int Id { get; }
+		public ulong Id { get; }
 		public object? Value { get; set; }
 		public event EventHandler<VarChangeEventArgs>? Change;
 	}
@@ -31,7 +31,7 @@ namespace REngine.RPI.RenderGraph
 #if DEBUG
 		public string DebugName { get; internal set; }
 #endif
-		public int Id { get; internal set; }
+		public ulong Id { get; internal set; }
 		
 		public object? Value
 		{
@@ -48,7 +48,7 @@ namespace REngine.RPI.RenderGraph
 		}
 		public event EventHandler<VarChangeEventArgs>? Change;
 
-		public VarImpl(int varid)
+		public VarImpl(ulong varid)
 		{
 			Id = varid;
 #if DEBUG

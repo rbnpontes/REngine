@@ -1,4 +1,5 @@
-﻿using REngine.RHI;
+﻿using REngine.Core.Mathematics;
+using REngine.RHI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace REngine.RPI.RenderGraph
 {
 	internal class ResourceManagerImpl : IResourceManager
 	{
-		private Dictionary<int, ResourceImpl> pResources = new();
+		private Dictionary<ulong, ResourceImpl> pResources = new();
 
 		public IResourceManager AddResource(in ResourceInsertInfo resource)
 		{
@@ -29,21 +30,21 @@ namespace REngine.RPI.RenderGraph
 
 		public IResource GetResource(string name)
 		{
-			var res = GetOrCreateResource(name.GetHashCode());
+			var res = GetOrCreateResource(Hash.Digest(name));
 #if DEBUG
 			res.DebugName = name;
 #endif
 			return res;
 		}
 
-		public IResource GetResource(int resourceId)
+		public IResource GetResource(ulong resourceId)
 		{
 			return GetOrCreateResource(resourceId);
 		}
 
 		public IResourceManager UpdateResource(string resourceName, IGPUObject resource)
 		{
-			ResourceImpl res = GetOrCreateResource(resourceName.GetHashCode());
+			ResourceImpl res = GetOrCreateResource(Hash.Digest(resourceName));
 #if DEBUG
 			res.DebugName = resourceName;
 #endif
@@ -51,14 +52,14 @@ namespace REngine.RPI.RenderGraph
 			return this;
 		}
 
-		public IResourceManager UpdateResource(int resourceId, IGPUObject resource)
+		public IResourceManager UpdateResource(ulong resourceId, IGPUObject resource)
 		{
 			ResourceImpl res = GetOrCreateResource(resourceId);
 			res.Mutate(resource);
 			return this;
 		}
 
-		private ResourceImpl GetOrCreateResource(int resourceId)
+		private ResourceImpl GetOrCreateResource(ulong resourceId)
 		{
 			if(!pResources.TryGetValue(resourceId, out ResourceImpl? res))
 			{

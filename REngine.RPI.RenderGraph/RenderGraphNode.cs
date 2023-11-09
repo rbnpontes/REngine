@@ -18,7 +18,7 @@ namespace REngine.RPI.RenderGraph
 		public string DebugName { get; private set; }
 		public string Xml { get; internal set; } = string.Empty;
 #endif
-		public int Id { get; internal set; }
+		public ulong Id { get; internal set; }
 		public bool IsDisposed { get; private set; }
 		public IReadOnlyList<RenderGraphNode> Children { get => pChildren.AsReadOnly(); }
 		public RenderGraphNode? Parent { get; private set; }

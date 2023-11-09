@@ -24,7 +24,7 @@ namespace REngine.RPI.RenderGraph
 
 	public interface IResource
 	{
-		public int Id { get; }
+		public ulong Id { get; }
 		/// <summary>
 		/// Return Resource Value
 		/// If resource has not been set, this value will be null
@@ -49,7 +49,7 @@ namespace REngine.RPI.RenderGraph
 			}
 		}
 
-		public int Id { get; internal set; }
+		public ulong Id { get; internal set; }
 
 #if DEBUG
 		public string DebugName { get; internal set; } = string.Empty;
