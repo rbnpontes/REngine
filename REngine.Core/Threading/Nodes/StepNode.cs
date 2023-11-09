@@ -14,7 +14,7 @@ namespace REngine.Core.Threading.Nodes
 		{
 		}
 
-		public override void Define(XmlElement element, Dictionary<int, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
 		}
 

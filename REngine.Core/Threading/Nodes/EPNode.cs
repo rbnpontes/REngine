@@ -14,7 +14,7 @@ namespace REngine.Core.Threading.Nodes
 		protected readonly ExecutionPipelineImpl ExecutionPipeline;
 		protected readonly IServiceProvider ServiceProvider;
 
-		public int Id { get; set; } = 0;
+		public ulong Id { get; set; } = 0;
 #if DEBUG
 		public string DebugName { get; set; } = string.Empty;
 		public string Xml { get; set; } = string.Empty;
@@ -66,7 +66,7 @@ namespace REngine.Core.Threading.Nodes
 		/// </summary>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		public abstract void Define(XmlElement element, Dictionary<int, EPNode> nodesList);
+		public abstract void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList);
 
 		protected void ExecuteEvents()
 		{

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using REngine.Core.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,7 @@ namespace REngine.Core.Threading.Nodes
 	{
 		private IExecutionPipelineVar? pVar;
 
-		public int VarKey { get; set; } = 0;
+		public ulong VarKey { get; set; } = 0;
 		public IfNodeCmp Cmp { get; set; } = IfNodeCmp.Equal;
 		
 		public IfNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
@@ -60,9 +61,9 @@ namespace REngine.Core.Threading.Nodes
 			return result;
 		}
 
-		public override void Define(XmlElement element, Dictionary<int, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
-			VarKey = element.GetAttribute("test").GetHashCode();
+			VarKey = Hash.Digest(element.GetAttribute("test"));
 			string cmpValue = element.GetAttribute("compare");
 			if (Enum.TryParse(cmpValue, out IfNodeCmp cmp))
 				Cmp = cmp;
