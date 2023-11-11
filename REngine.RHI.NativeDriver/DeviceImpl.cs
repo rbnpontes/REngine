@@ -168,6 +168,34 @@ namespace REngine.RHI.NativeDriver
 			return new GraphicsPipelineImpl(desc, result.value);
 		}
 
+		public IPipelineStateCache CreatePipelineStateCache()
+		{
+			return CreatePipelineStateCache(Array.Empty<byte>());
+		}
+
+		public unsafe IPipelineStateCache CreatePipelineStateCache(byte[] initialData)
+		{
+			if (!(pBackend == GraphicsBackend.Vulkan || pBackend == GraphicsBackend.D3D12))
+				throw new NotSupportedException("Pipeline State Cache is only supported on modern backends (Vulkan or D3D12)");
+
+			ResultNative result = new();
+			ReadOnlySpan<byte> buffer = new(initialData);
+
+			fixed(byte* bufferPtr = buffer)
+			{
+				rengine_device_create_pscache(
+					Handle,
+					initialData.Length > 0 ? new IntPtr(bufferPtr) : IntPtr.Zero,
+					(ulong)initialData.Length,
+					ref result
+				);
+			}
+
+			if (result.error != IntPtr.Zero)
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible to create Pipeline State Cache");
+			return new PipelineStateCacheImpl(result.value);
+		}
+
 		public IShader CreateShader(in ShaderCreateInfo createInfo)
 		{
 			List<IDisposable> disposables = new();

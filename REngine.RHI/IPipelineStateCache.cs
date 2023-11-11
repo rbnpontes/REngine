@@ -8,6 +8,6 @@ namespace REngine.RHI
 {
 	public interface IPipelineStateCache : IGPUObject
 	{
-		public void WriteToStream(Stream stream);
+		public void GetData(out byte[] data);
 	}
 }

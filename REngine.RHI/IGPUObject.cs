@@ -25,6 +25,7 @@ namespace REngine.RHI
 		GraphicsPipeline = 1 << 11,
 		ComputePipeline = 1 << 12,
 		Shader = 1 << 13,
+		PipelineStateCache = 1 << 14,
 		Texture = Texture1D | Texture2D | Texture3D | TextureArray | RenderTarget,
 		Buffer = VertexBuffer | IndexBuffer | ConstantBuffer,
 		PipelineState = GraphicsPipeline | ComputePipeline,

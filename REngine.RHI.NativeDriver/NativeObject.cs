@@ -132,5 +132,11 @@ namespace REngine.RHI.NativeDriver
 				return;
 			rengine_object_addref(Handle);
 		}
+
+		protected void AssertDispose()
+		{
+			if (IsDisposed)
+				throw new ObjectDisposedException("Native Object has been already disposed");
+		}
 	}
 }
