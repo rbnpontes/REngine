@@ -1,5 +1,6 @@
 ﻿using REngine.Core.Collections;
 using REngine.Core.Mathematics;
+using REngine.Core.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace REngine.RHI
 
 		public ulong ToHash()
 		{
-			ulong hash = ColorWriteEnabled ? 1UL : 0UL;
+			var hash = ColorWriteEnabled ? 1UL : 0UL;
 			hash = Hash.Combine(hash, (ulong)BlendMode);
 			return Hash.Combine(hash, AlphaToCoverageEnabled ? 1UL : 0UL);
 		}
@@ -40,11 +41,11 @@ namespace REngine.RHI
 
 		public unsafe ulong ToHash()
 		{
-			ulong hash = (ulong)FillMode;
+			var hash = (ulong)FillMode;
 			hash = Hash.Combine(hash, (ulong)CullMode);
 
 			{
-				float x = ConstantDepthBias;
+				var x = ConstantDepthBias;
 				hash = Hash.Combine(hash, *((ulong*)(&x)));
 				x = SlopeScaledDepthBias;
 				hash = Hash.Combine(hash, *((ulong*)(&x)));
@@ -77,7 +78,7 @@ namespace REngine.RHI
 
 		public ulong ToHash()
 		{
-			ulong hash = EnableDepth ? 1UL : 0UL;
+			var hash = EnableDepth ? 1UL : 0UL;
 			hash = Hash.Combine(hash, DepthWriteEnabled ? 1UL : 0UL);
 			hash = Hash.Combine(hash, StencilTestEnabled ? 1UL : 0UL);
 			hash = Hash.Combine(hash, (ulong)DepthCompareFunction);
@@ -105,7 +106,7 @@ namespace REngine.RHI
 
 		public ulong ToHash()
 		{
-			ulong hash = (ulong)DepthStencilFormat;
+			var hash = (ulong)DepthStencilFormat;
 			foreach (var fmt in RenderTargetFormats)
 				hash = Hash.Combine(hash, (ulong)fmt);
 			return Hash.Combine(hash, (ulong)MultiSample);
@@ -131,7 +132,7 @@ namespace REngine.RHI
 		public IShader? HullShader;
 		public IShader? GeometryShader;
 
-		public ulong ToHash()
+		public readonly ulong ToHash()
 		{
 			ulong hash = 0;
 			if (VertexShader != null)
@@ -159,8 +160,11 @@ namespace REngine.RHI
 		public PipelineStateOutputDesc Output;
 		public IList<ImmutableSamplerDesc> Samplers;
 
+		[SerializationIgnore]
 		public GraphicsPipelineShaders Shaders;
 
+		[SerializationIgnore]
+		public IPipelineStateCache? PSCache;
 		public GraphicsPipelineDesc()
 		{
 			Name = string.Empty;
@@ -172,20 +176,19 @@ namespace REngine.RHI
 			Samplers = new List<ImmutableSamplerDesc>();
 			Output = new PipelineStateOutputDesc();
 			Shaders = new GraphicsPipelineShaders();
+			PSCache = null;
 		}
 
-		public ulong ToHash()
+		public readonly ulong ToHash()
 		{
-			ulong hash = Hash.Digest(Name);
+			var hash = Hash.Digest(Name);
 			hash = Hash.Combine(hash, BlendState.ToHash());
 			hash = Hash.Combine(hash, RasterizerState.ToHash());
 			hash = Hash.Combine(hash, DepthStencilState.ToHash());
 			hash = Hash.Combine(hash, (ulong)PrimitiveType);
-			foreach (var input in InputLayouts)
-				hash = Hash.Combine(hash, input.ToHash());
+			hash = InputLayouts.Aggregate(hash, (current, input) => Hash.Combine(current, input.ToHash()));
 			hash = Hash.Combine(hash, Output.ToHash());
-			foreach (var smpl in Samplers)
-				hash = Hash.Combine(hash, smpl.ToHash());
+			hash = Samplers.Aggregate(hash, (current, sample) => Hash.Combine(current, sample.ToHash()));
 			return Hash.Combine(hash, Shaders.ToHash());
 		}
 	}
@@ -194,6 +197,7 @@ namespace REngine.RHI
 	{
 		public string Name;
 		public IList<ImmutableSamplerDesc> Samplers;
+		[SerializationIgnore]
 		public IShader? ComputeShader;
 
 		public ComputePipelineDesc()
@@ -203,11 +207,10 @@ namespace REngine.RHI
 			ComputeShader = null;
 		}
 
-		public ulong ToHash()
+		public readonly ulong ToHash()
 		{
-			ulong hash = Hash.Digest(Name);
-			foreach(var imtSmpl in Samplers)
-				hash = Hash.Combine(hash, imtSmpl.ToHash());
+			var hash = Hash.Digest(Name);
+			hash = Samplers.Aggregate(hash, (current, immutableSampler) => Hash.Combine(current, immutableSampler.ToHash()));
 			if(ComputeShader != null)
 				hash = ComputeShader.ToHash();
 			return hash;

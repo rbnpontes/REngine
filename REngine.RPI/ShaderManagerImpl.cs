@@ -75,6 +75,8 @@ namespace REngine.RPI
 
 		public IShader? FindByHash(ulong hash)
 		{
+			if (hash == 0)
+				return null;
 			pShaders.TryGetValue(hash, out var shader);
 			return shader;
 		}
@@ -86,7 +88,7 @@ namespace REngine.RPI
 			if(shader != null) return shader;
 
 			pShaders[hash] = shader = CreateShader(createInfo);
-			pLogger.Debug($"Created Shader #{hash.ToString("X16")}");
+			pLogger.Debug($"Created Shader #{hash:X16}");
 			SaveShader(hash, createInfo);
 			return shader;
 		}
