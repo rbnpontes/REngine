@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 using REngine.RHI;
 
 namespace REngine.RPI.Serialization
@@ -32,7 +33,8 @@ namespace REngine.RPI.Serialization
 		{
 			if(pDisposed) return;
 
-			var hashBytes = BitConverter.GetBytes(driver.AdapterInfo.ToHash());
+			var hash = Hash.Combine(driver.AdapterInfo.ToHash(), (ulong)driver.Backend);
+			var hashBytes = BitConverter.GetBytes(hash);
 			pCache.GetData(out var pipelineBytes);
 
 			var buffer = new byte[hashBytes.Length + pipelineBytes.Length];
@@ -77,7 +79,7 @@ namespace REngine.RPI.Serialization
 			}
 
 			var hash = BitConverter.ToUInt64(buffer, 0);
-			var expectedHash = driver.AdapterInfo.ToHash();
+			var expectedHash = Hash.Combine(driver.AdapterInfo.ToHash(), (ulong)driver.Backend);
 			// Pipeline State Cache contents must be of the same
 			// Graphics Device on Vulkan Backend, D3D12 does not care
 			// but Graphics Card Driver(user gpu) must not or does not
