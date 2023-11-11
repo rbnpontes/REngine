@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	internal class BufferProvider : IDisposable, IBufferProvider
+	internal class BufferManager : IDisposable, IBufferManager
 	{
-		private ILogger<IBufferProvider> pLogger;
+		private ILogger<IBufferManager> pLogger;
 		private bool pDisposed = false;
 
 		private IGraphicsDriver? pDriver;
@@ -24,10 +24,10 @@ namespace REngine.RPI
 
 		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
 
-		public BufferProvider(
+		public BufferManager(
 			EngineEvents engineEvents, 
 			RPIEvents rpiEvents,
-			ILogger<IBufferProvider> logger,
+			ILogger<IBufferManager> logger,
 			RenderSettings settings)
 		{
 			pRenderSettings = settings;
@@ -62,7 +62,7 @@ namespace REngine.RPI
 			if (pDisposed)
 				return;
 
-			pLogger.Info($"Disposing {nameof(IBufferProvider)}.");
+			pLogger.Info($"Disposing {nameof(IBufferManager)}.");
 			foreach(var cbuffer in pCBuffers)
 			{
 				cbuffer?.Dispose();
@@ -74,7 +74,7 @@ namespace REngine.RPI
 		public IBuffer GetBuffer(BufferGroupType groupType)
 		{
 			if (pDisposed)
-				throw new ObjectDisposedException(nameof(IBufferProvider));
+				throw new ObjectDisposedException(nameof(IBufferManager));
 
 			IBuffer buffer = pCBuffers[GetBufferGroupIndex(groupType)];
 			if (buffer is null)
@@ -85,7 +85,7 @@ namespace REngine.RPI
 		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic)
 		{
 			if (pDisposed)
-				throw new ObjectDisposedException(nameof(IBufferProvider));
+				throw new ObjectDisposedException(nameof(IBufferManager));
 			if (pDriver is null)
 				throw new NullReferenceException("Driver is required.");
 			
@@ -139,7 +139,7 @@ namespace REngine.RPI
 
 				pLogger.Info($"Building {type} Buffer");
 
-				desc.Name = $"{nameof(IBufferProvider)} - {type} CBuffer";
+				desc.Name = $"{nameof(IBufferManager)} - {type} CBuffer";
 				desc.Size = bufferSizes[i];
 
 				pCBuffers[i] = pDriver.Device.CreateBuffer(desc);

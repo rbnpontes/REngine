@@ -11,13 +11,19 @@ namespace REngine.RPI
 	{
 		public IGraphicsDriver Driver;
 		public IRenderer Renderer;
-		public IBufferProvider BufferProvider;
+		public IBufferManager BufferManager;
+		public IPipelineStateManager PipelineStateManager;
 
-		public RenderFeatureSetupInfo(IGraphicsDriver driver, IRenderer renderer, IBufferProvider provider)
+		public RenderFeatureSetupInfo(
+			IGraphicsDriver driver, 
+			IRenderer renderer, 
+			IBufferManager bufferMgr,
+			IPipelineStateManager pipelineStateMgr)
 		{
 			Driver = driver;
 			Renderer = renderer;
-			BufferProvider = provider;
+			BufferManager = bufferMgr;
+			PipelineStateManager = pipelineStateMgr;
 		}
 	}
 

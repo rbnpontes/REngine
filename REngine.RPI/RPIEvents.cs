@@ -65,7 +65,7 @@ namespace REngine.RPI
 			OnChangeSwapChain?.Invoke(this, new RenderEventArgs(renderer));
 			return this;
 		}
-		public RPIEvents ExecuteChangeBuffers(IBufferProvider provider)
+		public RPIEvents ExecuteChangeBuffers(IBufferManager provider)
 		{
 			OnChangeBuffers?.Invoke(provider, EventArgs.Empty);
 			return this;

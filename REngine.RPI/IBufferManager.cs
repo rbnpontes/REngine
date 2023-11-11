@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	public interface IBufferProvider
+	public interface IBufferManager
 	{
 		/// <summary>
 		/// Return a Constant Buffer by Group Frequency type
