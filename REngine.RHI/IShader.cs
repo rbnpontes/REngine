@@ -30,9 +30,9 @@ namespace REngine.RHI
 			ulong hash = Hash.Digest(Name);
 			hash = Hash.Combine(hash, (ulong)Type);
 			if (string.IsNullOrEmpty(SourceCode))
-				hash = Hash.Combine(hash, Hash.Digest(SourceCode));
-			else
 				hash = Hash.Combine(hash, Hash.Digest(ByteCode));
+			else
+				hash = Hash.Combine(hash, Hash.Digest(SourceCode));
 			foreach (var pair in Macros)
 				hash = Hash.Combine(hash, Hash.Combine(Hash.Digest(pair.Key), Hash.Digest(pair.Value)));
 			return hash;
