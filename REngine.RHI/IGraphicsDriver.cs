@@ -26,17 +26,18 @@ namespace REngine.RHI
 		Discrete
 	}
 
-	public class GraphicsAdapter
+	public interface IGraphicsAdapter : IHashable
 	{
-		public uint Id { get; set; }
-		public uint DeviceId { get; set; }
-		public uint VendorId { get; set; }
-		public string Name { get; set; } = string.Empty;
-		public AdapterType AdapterType { get; set; }
+		public uint Id { get; }
+		public uint DeviceId { get; }
+		public uint VendorId { get; }
+		public string Name { get; }
+		public AdapterType AdapterType { get; }
 	}
 
 	public interface IGraphicsDriver : IDisposable
 	{
+		public IGraphicsAdapter AdapterInfo { get; }
 		public GraphicsBackend Backend { get; }
 		public string DriverName { get; }
 		public IReadOnlyList<ICommandBuffer> Commands { get; }

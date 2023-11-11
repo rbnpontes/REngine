@@ -34,12 +34,7 @@ namespace REngine.RHI.NativeDriver
 
 		public static event EventHandler<MessageEventArgs>? OnDriverMessage;
 
-		public DriverFactory()
-		{
-
-		}
-
-		public static unsafe GraphicsAdapter[] GetAdapters(GraphicsBackend backend)
+		public static unsafe IGraphicsAdapter[] GetAdapters(GraphicsBackend backend)
 		{
 			ResultNative result = new();
 			uint adaptersCount = 0;
@@ -67,7 +62,7 @@ namespace REngine.RHI.NativeDriver
 						Id = adapter.id,
 						DeviceId = adapter.deviceId,
 						AdapterType = (AdapterType)adapter.adapterType,
-						Name = Marshal.PtrToStringAnsi(adapter.name) ?? "Unknow Device",
+						Name = Marshal.PtrToStringAnsi(adapter.name) ?? "Unknown Device",
 						VendorId = adapter.vendorId
 					};
 				}
@@ -90,6 +85,9 @@ namespace REngine.RHI.NativeDriver
 
 			if (driverSettings.Backend == GraphicsBackend.OpenGL)
 				settings.numDeferredCtx = 0;
+
+			IGraphicsAdapter adapter = FindBestAdapter(GetAdapters(driverSettings.Backend), settings.adapterId);
+			settings.adapterId = adapter.Id;
 
 #if WINDOWS
 			D3D12SettingsNative d3d12Settings = new();
@@ -164,7 +162,7 @@ namespace REngine.RHI.NativeDriver
 			disposables.ForEach(x => x.Dispose());
 
 			if(result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Fatal Error. Error Unknow!");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Fatal Error. Error Unknown!");
 
 			DriverNative driverNative = new();
 			long driverNativeSize = Unsafe.SizeOf<DriverNative>();
@@ -213,24 +211,42 @@ namespace REngine.RHI.NativeDriver
 			NativeUtils.rengine_free(result.driver);
 			NativeUtils.rengine_free_block(driverNative.contexts);
 
+
 			return new DriverImpl(
 				immediateCmd,
 				commands,
 				device,
-				driverNative.factory
-			);
+				driverNative.factory,
+				adapter
+			) { Backend = driverSettings.Backend };
 		}
 
 		private static void MessageEvent(DbgMsgSeverity severity, IntPtr msgPtr, IntPtr funcPtr, IntPtr filePtr, int line)
 		{
 			OnDriverMessage?.Invoke(null, new MessageEventArgs
 			{
-				File = Marshal.PtrToStringAnsi(filePtr) ?? "UnkowFile",
-				Function = Marshal.PtrToStringAnsi(funcPtr) ?? "UnknowFunction()",
+				File = Marshal.PtrToStringAnsi(filePtr) ?? "UnknownFile",
+				Function = Marshal.PtrToStringAnsi(funcPtr) ?? "UnknownFunction()",
 				Message = Marshal.PtrToStringAnsi(msgPtr) ?? string.Empty,
 				Line = line,
 				Severity = severity
 			});
+		}
+
+		private static IGraphicsAdapter FindBestAdapter(IGraphicsAdapter[] adapters, uint adapterId)
+		{
+			if (adapterId == uint.MaxValue)
+			{
+				var adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Dedicated);
+				if (adapter != null)
+					return adapter;
+				adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Integrated);
+				return adapter ?? adapters.First();
+			}
+
+			if (adapterId >= adapters.Length)
+				throw new IndexOutOfRangeException("Adapter Id value is greater than available adapters on your system");
+			return adapters[adapterId];
 		}
 	}
 }

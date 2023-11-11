@@ -53,7 +53,7 @@ namespace REngine.RPI
 				return;
 			}
 
-			SavePSCache();
+			SavePSCache(pServiceProvider.Get<IGraphicsDriver>());
 
 			pSerializer?.Dispose();
 			pSerializer = null;
@@ -72,9 +72,9 @@ namespace REngine.RPI
 
 		private void HandleEngineStop(object? sender, EventArgs e)
 		{
+			pEngineEvents.OnStop -= HandleEngineStop;
 			pLogger.Info("Stopping Pipeline State Manager");
 			Dispose();
-			pEngineEvents.OnStop -= HandleEngineStop;
 		}
 
 		private void HandleEngineStart(object? sender, EventArgs e)
@@ -83,7 +83,7 @@ namespace REngine.RPI
 			var driver = pServiceProvider.Get<IGraphicsDriver>();
 			pDevice = driver.Device;
 
-			LoadPSCache(driver.Backend);
+			LoadPSCache(driver);
 			LoadCacheItems();
 
 			pLogger.Info("Pipeline State Manager is Initialized");
@@ -137,9 +137,21 @@ namespace REngine.RPI
 			return pipeline;
 		}
 
-		private void LoadPSCache(GraphicsBackend backend)
+		private IPipelineState CreatePipeline(GraphicsPipelineDesc desc)
 		{
-			if (backend is not (GraphicsBackend.D3D12 or GraphicsBackend.Vulkan))
+			desc.PSCache ??= PSCache;
+			return GetDevice().CreateGraphicsPipeline(desc);
+		}
+
+		private IComputePipelineState CreatePipeline(ComputePipelineDesc desc)
+		{
+			desc.PSCache ??= PSCache;
+			return GetDevice().CreateComputePipeline(desc);
+		}
+
+		private void LoadPSCache(IGraphicsDriver driver)
+		{
+			if (driver.Backend is not (GraphicsBackend.D3D12 or GraphicsBackend.Vulkan))
 				return;
 
 			if (!File.Exists(EngineSettings.PipelineCachePath))
@@ -149,37 +161,36 @@ namespace REngine.RPI
 			}
 
 			pLogger.Info("Loading Pipeline State Cache");
-			var data = File.ReadAllBytes(EngineSettings.PipelineCachePath);
+
+			byte[] data;
+			using (var stream = new FileStream(EngineSettings.PipelineCachePath, FileMode.Open, FileAccess.Read))
+			{
+				using PipelineStateCacheDeserializer deserializer = new(stream);
+				deserializer.Deserialize(driver, out data);
+			}
+
 			PSCache = GetDevice().CreatePipelineStateCache(data);
 			pLogger.Info("Loaded Pipeline State Cache");
 		}
-	
-		private void SavePSCache()
+
+		private void SavePSCache(IGraphicsDriver driver)
 		{
 			if (PSCache is null)
 				return;
 
 			pLogger.Info("Saving Pipeline State Cache");
 
-			PSCache.GetData(out var data);
 
-			if(File.Exists(EngineSettings.PipelineCachePath))
+			if (File.Exists(EngineSettings.PipelineCachePath))
 				File.Delete(EngineSettings.PipelineCachePath);
 
-			File.WriteAllBytes(EngineSettings.PipelineCachePath, data);
+			using (FileStream stream = new(EngineSettings.PipelineCachePath, FileMode.CreateNew, FileAccess.Write))
+			{
+				using PipelineStateCacheSerializer serializer = new(PSCache, stream);
+				serializer.Serialize(driver);
+			}
+
 			pLogger.Success("Pipeline State Cache has been saved");
-		}
-
-		private IPipelineState CreatePipeline(GraphicsPipelineDesc desc)
-		{
-			desc.PSCache = desc.PSCache ?? PSCache;
-			return GetDevice().CreateGraphicsPipeline(desc);
-		}
-
-		private IComputePipelineState CreatePipeline(ComputePipelineDesc desc)
-		{
-			desc.PSCache = desc.PSCache ?? PSCache;
-			return GetDevice().CreateComputePipeline(desc);
 		}
 
 		private void LoadCacheItems()

@@ -47,13 +47,15 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
+		public IGraphicsAdapter AdapterInfo { get; private set; }
 
-		public DriverImpl(ICommandBuffer immediateCmd, ICommandBuffer[] commands, IDevice device, IntPtr factory)
+		public DriverImpl(ICommandBuffer immediateCmd, ICommandBuffer[] commands, IDevice device, IntPtr factory, IGraphicsAdapter adapter)
 		{
 			Commands = commands;
 			pImmediateCmd = immediateCmd;
 			pDevice = device;
 			pFactory = factory;
+			AdapterInfo = adapter;
 		}
 
 		public void Dispose()
