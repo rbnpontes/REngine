@@ -172,11 +172,13 @@ namespace REngine.RPI
 
 		private IPipelineState CreatePipeline(GraphicsPipelineDesc desc)
 		{
+			desc.PSCache = desc.PSCache ?? PSCache;
 			return GetDevice().CreateGraphicsPipeline(desc);
 		}
 
 		private IComputePipelineState CreatePipeline(ComputePipelineDesc desc)
 		{
+			desc.PSCache = desc.PSCache ?? PSCache;
 			return GetDevice().CreateComputePipeline(desc);
 		}
 

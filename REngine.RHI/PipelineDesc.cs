@@ -199,12 +199,15 @@ namespace REngine.RHI
 		public IList<ImmutableSamplerDesc> Samplers;
 		[SerializationIgnore]
 		public IShader? ComputeShader;
+		[SerializationIgnore]
+		public IPipelineStateCache? PSCache;
 
 		public ComputePipelineDesc()
 		{
 			Name = string.Empty;
 			Samplers = new List<ImmutableSamplerDesc>();
 			ComputeShader = null;
+			PSCache = null;
 		}
 
 		public readonly ulong ToHash()

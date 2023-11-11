@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
+// ReSharper disable All
 namespace REngine.RHI.NativeDriver.NativeStructs
 {
 	internal struct GraphicsPipelineDescDTO
@@ -52,6 +52,8 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		public IntPtr shader_hs;
 		public IntPtr shader_gs;
 
+		public IntPtr pscache;
+
 		public static void Fill(in GraphicsPipelineDesc desc, out GraphicsPipelineDescDTO output)
 		{
 			output = new GraphicsPipelineDescDTO()
@@ -95,6 +97,8 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 				shader_ds = desc.Shaders.DomainShader?.Handle ?? IntPtr.Zero,
 				shader_hs = desc.Shaders.HullShader?.Handle ?? IntPtr.Zero,
 				shader_gs = desc.Shaders.GeometryShader?.Handle ?? IntPtr.Zero,
+
+				pscache =  desc.PSCache?.Handle ?? IntPtr.Zero,
 			};
 		}
 	}
