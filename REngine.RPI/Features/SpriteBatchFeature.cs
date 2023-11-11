@@ -96,7 +96,7 @@ namespace REngine.RPI.Features
 
 		private IBuffer? pVBuffer;
 		private IBuffer? pInstanceBuffer;
-		private IBufferProvider? pBufferProvider;
+		private IBufferManager? pBufferProvider;
 
 		private DirtyFlags pDirtyFlags = DirtyFlags.All;
 
@@ -159,10 +159,10 @@ namespace REngine.RPI.Features
 		{
 			pRenderer = setupInfo.Renderer;
 			pDriver = setupInfo.Driver;
-			pCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
-			pBufferProvider = setupInfo.BufferProvider;
+			pCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Object);
+			pBufferProvider = setupInfo.BufferManager;
 
-			IBuffer fixedCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Frame);
+			IBuffer fixedCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
 			IDevice device = setupInfo.Driver.Device;
 
 			if((pDirtyFlags & DirtyFlags.Pipeline) != 0)
@@ -173,15 +173,15 @@ namespace REngine.RPI.Features
 				pTexturedPipeline?.Dispose();
 				pVBuffer?.Dispose();
 
-				IShader vertexShader = LoadShader(device, ShaderType.Vertex, false, false);
-				IShader instancedVertexShader = LoadShader(device, ShaderType.Vertex, false, true);
-				IShader pixelShader = LoadShader(device, ShaderType.Pixel, false, false);
-				IShader texturedPixelShader = LoadShader(device, ShaderType.Pixel, true, false);
+				IShader vertexShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex, false, false);
+				IShader instancedVertexShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex, false, true);
+				IShader pixelShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel, false, false);
+				IShader texturedPixelShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel, true, false);
 
-				IPipelineState defaultPipeline = CreatePipeline(device, vertexShader, pixelShader, false);
-				IPipelineState texturedPipeline = CreatePipeline(device, vertexShader, texturedPixelShader, false);
-				IPipelineState instancedPipeline = CreatePipeline(device, instancedVertexShader, pixelShader, true);
-				IPipelineState instancedTexturedPipeline = CreatePipeline(device, instancedVertexShader, texturedPixelShader, true);
+				IPipelineState defaultPipeline = CreatePipeline(setupInfo.PipelineStateManager, vertexShader, pixelShader, false);
+				IPipelineState texturedPipeline = CreatePipeline(setupInfo.PipelineStateManager, vertexShader, texturedPixelShader, false);
+				IPipelineState instancedPipeline = CreatePipeline(setupInfo.PipelineStateManager, instancedVertexShader, pixelShader, true);
+				IPipelineState instancedTexturedPipeline = CreatePipeline(setupInfo.PipelineStateManager, instancedVertexShader, texturedPixelShader, true);
 
 				pVBuffer = CreateVertexBuffer(device);
 				pDefaultPipeline = defaultPipeline;
@@ -189,11 +189,6 @@ namespace REngine.RPI.Features
 
 				pInstancedPipeline = instancedPipeline;
 				pTexturedInstancedPipeline = instancedTexturedPipeline;
-
-				vertexShader.Dispose();
-				instancedVertexShader.Dispose();
-				pixelShader.Dispose();
-				texturedPixelShader.Dispose();
 			}
 
 			IShaderResourceBinding?[][] bindingArray = new IShaderResourceBinding?[][]
@@ -435,7 +430,7 @@ namespace REngine.RPI.Features
 			return transform * Matrix4x4.CreateRotationZ(rotation) * Matrix4x4.CreateTranslation(new Vector3(position, 0.0f));
 		}
 
-		private IPipelineState CreatePipeline(IDevice device, IShader vshader, IShader pshader, bool instanced) 
+		private IPipelineState CreatePipeline(IPipelineStateManager pipelineMgr, IShader vshader, IShader pshader, bool instanced) 
 		{
 			GraphicsPipelineDesc desc = new();
 			desc.Name = "Spritebatch PSO";
@@ -504,10 +499,10 @@ namespace REngine.RPI.Features
 				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Clamp)
 			});
 
-			return device.CreateGraphicsPipeline(desc);
+			return pipelineMgr.GetOrCreate(desc);
 		}
 
-		private static IShader LoadShader(IDevice device, ShaderType type, bool hasTexture, bool instanced)
+		private static IShader LoadShader(IShaderManager shaderMgr, ShaderType type, bool hasTexture, bool instanced)
 		{
 			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
 			ShaderCreateInfo shaderCI = new ShaderCreateInfo
@@ -545,7 +540,7 @@ namespace REngine.RPI.Features
 				shaderCI.Macros.Add("RENGINE_INSTANCED", "1");
 			}
 
-			return device.CreateShader(shaderCI);
+			return shaderMgr.GetOrCreate(shaderCI);
 		}
 	
 		private static IBuffer CreateVertexBuffer(IDevice device)

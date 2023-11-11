@@ -61,7 +61,7 @@ namespace REngine.RPI
 		{
 			pEngineEvents.OnStart -= HandleEngineStart;
 
-			pDevice = pProvider.Get<IDevice>();
+			pDevice = pProvider.Get<IGraphicsDriver>().Device;
 			
 			LoadCache();
 

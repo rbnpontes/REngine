@@ -12,9 +12,11 @@ namespace REngine.RPI.RenderGraph
 {
 	public abstract class RenderFeatureNode : ExecutableGraphNode
 	{
-		private IBufferProvider? pBufferProvider;
+		private IBufferManager? pBufferProvider;
 		private IRenderer? pRenderer;
 		private IRenderFeature? pFeature;
+		private IPipelineStateManager? pPipelineMgr;
+		private IShaderManager? pShaderMgr;
 
 		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
@@ -27,23 +29,29 @@ namespace REngine.RPI.RenderGraph
 			if(pFeature is null)
 				pFeature = GetFeature();
 			if (pBufferProvider is null)
-				pBufferProvider = provider.Get<IBufferProvider>();
+				pBufferProvider = provider.Get<IBufferManager>();
 			if(pRenderer is null)
 				pRenderer = provider.Get<IRenderer>();
+			if(pPipelineMgr is null)
+				pPipelineMgr = provider.Get<IPipelineStateManager>();
+			if (pShaderMgr is null)
+				pShaderMgr = provider.Get<IShaderManager>();
 
 			base.OnRun(provider);
 		}
 
 		protected override void OnCompile(IDevice device, ICommandBuffer command)
 		{
-			if (pBufferProvider is null || pRenderer is null)
+			if (pBufferProvider is null || pRenderer is null || pPipelineMgr is null || pShaderMgr is null)
 				return;
 
 			RenderFeatureSetupInfo setupInfo = new()
 			{
 				Driver = Driver,
-				BufferProvider = pBufferProvider,
-				Renderer = pRenderer
+				BufferManager = pBufferProvider,
+				Renderer = pRenderer,
+				PipelineStateManager = pPipelineMgr,
+				ShaderManager = pShaderMgr
 			};
 
 			var feature = pFeature;
