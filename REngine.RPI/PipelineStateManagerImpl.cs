@@ -26,7 +26,7 @@ namespace REngine.RPI
 		private readonly Dictionary<ulong, IComputePipelineState> pComputePipelines = new();
 
 		private PipelineSerializer? pSerializer;
-		private Stream? pSerializerStream;
+		private bool pSaveCache;
 		public IPipelineStateCache? PSCache { get; private set; }
 
 		public PipelineStateManagerImpl(
@@ -53,13 +53,13 @@ namespace REngine.RPI
 				return;
 			}
 
-			SavePSCache(pServiceProvider.Get<IGraphicsDriver>());
-
-			pSerializer?.Dispose();
-			pSerializer = null;
-
-			pSerializerStream?.Dispose();
-			pSerializerStream = null;
+			// Only save cache if pipeline state list has been changed, this means that new items have been added
+			// only writes to disk if it needed
+			if (pSaveCache)
+			{
+				SavePSCache(pServiceProvider.Get<IGraphicsDriver>());
+				SaveCachedItems();
+			}
 
 			foreach(var pair in pPipelines)
 				pair.Value.Dispose();
@@ -101,6 +101,7 @@ namespace REngine.RPI
 			if(pipeline != null)
 				return pipeline;
 
+			pSaveCache = true;
 			pipeline = CreatePipeline(desc);
 			pPipelines[hash] = pipeline;
 
@@ -117,6 +118,7 @@ namespace REngine.RPI
 			if (pipeline != null)
 				return pipeline;
 
+			pSaveCache = true;
 			pipeline = CreatePipeline(desc);
 			pComputePipelines[hash] = pipeline;
 
@@ -234,11 +236,18 @@ namespace REngine.RPI
 			pLogger.Success("Success at loading cached pipelines");
 		}
 
+		private void SaveCachedItems()
+		{
+			if(File.Exists(EngineSettings.PipelineItemsPath))
+				File.Delete(EngineSettings.PipelineItemsPath);
+
+			using FileStream stream = new(EngineSettings.PipelineItemsPath, FileMode.CreateNew, FileAccess.Write);
+			pSerializer?.Serialize(stream);
+		}
 		private PipelineSerializer InitSerializer()
 		{
-			if (File.Exists(EngineSettings.PipelineItemsPath))
-				File.Delete(EngineSettings.PipelineItemsPath);
-			return pSerializer = new PipelineSerializer(pSerializerStream = new FileStream(EngineSettings.PipelineItemsPath, FileMode.Create, FileAccess.Write));
+			return pSerializer = new PipelineSerializer();
 		}
+
 	}
 }

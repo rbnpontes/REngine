@@ -26,26 +26,24 @@ namespace REngine.RPI.Serialization
 	}
 	public sealed class PipelineSerializer : IDisposable
 	{
-
-		private readonly Stream pStream;
 		private readonly List<PipelineSerializationData> pData = new();
 		private bool pDisposed = false;
-		public PipelineSerializer(Stream stream) 
-		{
-			pStream = stream;
-		}
-
 		public void Dispose()
 		{
 			if (pDisposed)
 				return;
-
-			using (TextWriter writer = new StreamWriter(pStream))
-				writer.Write(pData.ToJson());
-
 			pDisposed = true;
 		}
 
+		public void Serialize(Stream stream)
+		{
+			if (pDisposed)
+				return;
+			using(TextWriter writer = new StreamWriter(stream))
+				writer.Write(pData.ToJson());
+
+			pData.Clear();
+		}
 		public PipelineSerializer AddDesc(GraphicsPipelineDesc desc)
 		{
 			pData.Add(new PipelineSerializationData
