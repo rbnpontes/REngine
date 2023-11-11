@@ -92,7 +92,6 @@ namespace REngine.RPI.Features
 		{
 			pVertexBuffer?.Dispose();
 			pIndexBuffer?.Dispose();
-			pPipeline?.Dispose();
 
 			pVertexBuffer = pIndexBuffer = null;
 			pPipeline = null;

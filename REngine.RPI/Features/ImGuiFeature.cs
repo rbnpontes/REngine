@@ -96,8 +96,6 @@ namespace REngine.RPI.Features
 
 		protected override void OnDispose()
 		{
-			pResourceBinding?.Dispose();
-			pPipeline?.Dispose();
 			pFontTexture?.Dispose();
 
 			pVBuffer?.Dispose();

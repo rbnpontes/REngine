@@ -136,10 +136,6 @@ namespace REngine.RPI.Features
 
 			pBindings = pInstancedBindings = Array.Empty<IShaderResourceBinding?>();
 
-			pDefaultPipeline?.Dispose();
-			pTexturedPipeline?.Dispose();
-			pInstancedPipeline?.Dispose();
-			pTexturedInstancedPipeline?.Dispose();
 			pVBuffer?.Dispose();
 			pInstanceBuffer?.Dispose();
 

@@ -28,7 +28,7 @@ namespace REngine.RPI.Serialization
 	{
 
 		private readonly Stream pStream;
-		private readonly List<object> pData = new();
+		private readonly List<PipelineSerializationData> pData = new();
 		private bool pDisposed = false;
 		public PipelineSerializer(Stream stream) 
 		{

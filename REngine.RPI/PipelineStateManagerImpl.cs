@@ -86,10 +86,6 @@ namespace REngine.RPI
 			LoadPSCache(driver.Backend);
 			LoadCacheItems();
 
-			if(File.Exists(EngineSettings.PipelineItemsPath))
-				File.Delete(EngineSettings.PipelineItemsPath);
-
-			pSerializer = new PipelineSerializer(pSerializerStream = new FileStream(EngineSettings.PipelineItemsPath, FileMode.Create, FileAccess.Write));
 			pLogger.Info("Pipeline State Manager is Initialized");
 		}
 
@@ -187,14 +183,23 @@ namespace REngine.RPI
 		private void LoadCacheItems()
 		{
 			if (!File.Exists(EngineSettings.PipelineItemsPath))
+			{
+				InitSerializer();
 				return;
+			}
 
-			using FileStream stream = new (EngineSettings.PipelineItemsPath, FileMode.Open, FileAccess.Read);
-			using PipelineDeserializer deserializer = new(stream);
-			deserializer.Deserialize(pShaderManager);
+			GraphicsPipelineDesc[] graphics2Create;
+			ComputePipelineDesc[] compute2Create;
+			using (FileStream stream = new(EngineSettings.PipelineItemsPath, FileMode.Open, FileAccess.Read))
+			{
+				using PipelineDeserializer deserializer = new(stream);
+				deserializer.Deserialize(pShaderManager);
 
-			var graphics2Create = deserializer.GetGraphicsDescriptions();
-			var compute2Create = deserializer.GetComputeDescriptions();
+				graphics2Create = deserializer.GetGraphicsDescriptions();
+				compute2Create = deserializer.GetComputeDescriptions();
+			}
+			
+			var serializer = InitSerializer();
 
 			pLogger.Info(
 				$"Building Cached Pipelines. Graphics Pipelines ({graphics2Create.Length}), Compute Pipelines ({compute2Create.Length})");
@@ -203,15 +208,24 @@ namespace REngine.RPI
 			{
 				var hash = graphicsPipelineDesc.ToHash();
 				pPipelines[hash] = CreatePipeline(graphicsPipelineDesc);
+				serializer.AddDesc(graphicsPipelineDesc);
 			}
 
 			foreach (var computePipelineDesc in compute2Create)
 			{
 				var hash = computePipelineDesc.ToHash();
 				pComputePipelines[hash] = CreatePipeline(computePipelineDesc);
+				serializer.AddDesc(computePipelineDesc);
 			}
 
 			pLogger.Success("Success at loading cached pipelines");
+		}
+
+		private PipelineSerializer InitSerializer()
+		{
+			if (File.Exists(EngineSettings.PipelineItemsPath))
+				File.Delete(EngineSettings.PipelineItemsPath);
+			return pSerializer = new PipelineSerializer(pSerializerStream = new FileStream(EngineSettings.PipelineItemsPath, FileMode.Create, FileAccess.Write));
 		}
 	}
 }
