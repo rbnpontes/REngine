@@ -22,6 +22,8 @@ namespace REngine.RPI
 		private Dictionary<ulong, IPipelineState> pPipelines = new();
 		private Dictionary<ulong, IComputePipelineState> pComputePipelines = new();
 
+		public IPipelineStateCache? PSCache { get; private set; }
+
 		public PipelineStateManagerImpl(
 			EngineEvents engineEvents, 
 			ILoggerFactory loggerFactory,
@@ -44,6 +46,8 @@ namespace REngine.RPI
 				return;
 			}
 
+			SavePSCache();
+
 			foreach(var pair in pPipelines)
 				pair.Value.Dispose();
 			pPipelines.Clear();
@@ -64,8 +68,10 @@ namespace REngine.RPI
 		private void HandleEngineStart(object? sender, EventArgs e)
 		{
 			pEngineEvents.OnStart -= HandleEngineStart;
-			pDevice = pServiceProvider.Get<IGraphicsDriver>().Device;
+			var driver = pServiceProvider.Get<IGraphicsDriver>();
+			pDevice = driver.Device;
 
+			LoadPSCache(driver.Backend);
 			pLogger.Info("Pipeline State Manager is Initialized");
 		}
 
@@ -111,6 +117,39 @@ namespace REngine.RPI
 		{
 			pComputePipelines.TryGetValue(hash, out var pipeline);
 			return pipeline;
+		}
+
+		private void LoadPSCache(GraphicsBackend backend)
+		{
+			if (!(backend == GraphicsBackend.D3D12 || backend == GraphicsBackend.Vulkan))
+				return;
+
+			if (!File.Exists(EngineSettings.PipelineCachePath))
+			{
+				PSCache = GetDevice().CreatePipelineStateCache();
+				return;
+			}
+
+			pLogger.Info("Loading Pipeline State Cache");
+			byte[] data = File.ReadAllBytes(EngineSettings.PipelineCachePath);
+			PSCache = GetDevice().CreatePipelineStateCache(data);
+			pLogger.Info("Loaded Pipeline State Cache");
+		}
+	
+		private void SavePSCache()
+		{
+			if (PSCache is null)
+				return;
+
+			pLogger.Info("Saving Pipeline State Cache");
+
+			PSCache.GetData(out var data);
+
+			if(File.Exists(EngineSettings.PipelineCachePath))
+				File.Delete(EngineSettings.PipelineCachePath);
+
+			File.WriteAllBytes(EngineSettings.PipelineCachePath, data);
+			pLogger.Success("Pipeline State Cache has been saved");
 		}
 	}
 }
