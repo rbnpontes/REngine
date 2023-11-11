@@ -1,4 +1,5 @@
 ﻿using REngine.Core.Collections;
+using REngine.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,13 @@ namespace REngine.RHI
 			BlendMode = BlendMode.Replace;
 			AlphaToCoverageEnabled = false;
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = ColorWriteEnabled ? 1UL : 0UL;
+			hash = Hash.Combine(hash, (ulong)BlendMode);
+			return Hash.Combine(hash, AlphaToCoverageEnabled ? 1UL : 0UL);
+		}
 	}
 
 	public struct PipelineRasterizerState
@@ -29,6 +37,23 @@ namespace REngine.RHI
 		public float SlopeScaledDepthBias;
 		public bool ScissorTestEnabled;
 		public bool LineAntiAlias;
+
+		public unsafe ulong ToHash()
+		{
+			ulong hash = (ulong)FillMode;
+			hash = Hash.Combine(hash, (ulong)CullMode);
+
+			{
+				float x = ConstantDepthBias;
+				hash = Hash.Combine(hash, *((ulong*)(&x)));
+				x = SlopeScaledDepthBias;
+				hash = Hash.Combine(hash, *((ulong*)(&x)));
+			}
+
+			hash = Hash.Combine(hash, ScissorTestEnabled ? 1UL : 0UL);
+			hash = Hash.Combine(hash, LineAntiAlias ? 1UL : 0UL);
+			return hash;
+		}
 	}
 	
 	public struct PipelineDepthStencilState
@@ -49,6 +74,20 @@ namespace REngine.RHI
 			this = default(PipelineDepthStencilState);
 			EnableDepth = true;
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = EnableDepth ? 1UL : 0UL;
+			hash = Hash.Combine(hash, DepthWriteEnabled ? 1UL : 0UL);
+			hash = Hash.Combine(hash, StencilTestEnabled ? 1UL : 0UL);
+			hash = Hash.Combine(hash, (ulong)DepthCompareFunction);
+			hash = Hash.Combine(hash, (ulong)StencilCompareFunction);
+			hash = Hash.Combine(hash, (ulong)StencilOpOnPassed);
+			hash = Hash.Combine(hash, (ulong)StencilOpOnStencilFailed);
+			hash = Hash.Combine(hash, (ulong)StencilOpOnDepthFailed);
+			hash = Hash.Combine(hash, (ulong)StencilCompareMask);
+			return Hash.Combine(hash, (ulong)StencilWriteMask);
+		}
 	}
 
 	public struct PipelineStateOutputDesc
@@ -63,12 +102,25 @@ namespace REngine.RHI
 			RenderTargetFormats = new List<TextureFormat>() { TextureFormat.Unknown };
 			MultiSample = 1;
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = (ulong)DepthStencilFormat;
+			foreach (var fmt in RenderTargetFormats)
+				hash = Hash.Combine(hash, (ulong)fmt);
+			return Hash.Combine(hash, (ulong)MultiSample);
+		}
 	}
 
 	public struct PipelineInputLayoutElementDesc
 	{
 		public uint InputIndex;
 		public InputLayoutElementDesc Input;
+
+		public ulong ToHash()
+		{
+			return Hash.Combine(InputIndex, Input.ToHash());
+		}
 	}
 
 	public struct GraphicsPipelineShaders
@@ -78,6 +130,22 @@ namespace REngine.RHI
 		public IShader? DomainShader;
 		public IShader? HullShader;
 		public IShader? GeometryShader;
+
+		public ulong ToHash()
+		{
+			ulong hash = 0;
+			if (VertexShader != null)
+				hash = VertexShader.ToHash();
+			if (PixelShader != null)
+				hash = Hash.Combine(hash, PixelShader.ToHash());
+			if (DomainShader != null)
+				hash = Hash.Combine(hash, DomainShader.ToHash());
+			if (HullShader != null)
+				hash = Hash.Combine(hash, HullShader.ToHash());
+			if (GeometryShader != null)
+				hash = Hash.Combine(hash, GeometryShader.ToHash());
+			return hash;
+		}
 	}
 
 	public struct GraphicsPipelineDesc
@@ -105,6 +173,21 @@ namespace REngine.RHI
 			Output = new PipelineStateOutputDesc();
 			Shaders = new GraphicsPipelineShaders();
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = Hash.Digest(Name);
+			hash = Hash.Combine(hash, BlendState.ToHash());
+			hash = Hash.Combine(hash, RasterizerState.ToHash());
+			hash = Hash.Combine(hash, DepthStencilState.ToHash());
+			hash = Hash.Combine(hash, (ulong)PrimitiveType);
+			foreach (var input in InputLayouts)
+				hash = Hash.Combine(hash, input.ToHash());
+			hash = Hash.Combine(hash, Output.ToHash());
+			foreach (var smpl in Samplers)
+				hash = Hash.Combine(hash, smpl.ToHash());
+			return Hash.Combine(hash, Shaders.ToHash());
+		}
 	}
 
 	public struct ComputePipelineDesc
@@ -118,6 +201,16 @@ namespace REngine.RHI
 			Name = string.Empty;
 			Samplers = new List<ImmutableSamplerDesc>();
 			ComputeShader = null;
+		}
+
+		public ulong ToHash()
+		{
+			ulong hash = Hash.Digest(Name);
+			foreach(var imtSmpl in Samplers)
+				hash = Hash.Combine(hash, imtSmpl.ToHash());
+			if(ComputeShader != null)
+				hash = ComputeShader.ToHash();
+			return hash;
 		}
 	}
 }

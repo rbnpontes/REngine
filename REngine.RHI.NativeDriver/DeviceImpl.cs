@@ -193,7 +193,7 @@ namespace REngine.RHI.NativeDriver
 			if (result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create shader");
 
-			return new ShaderImpl(result.value);
+			return new ShaderImpl(result.value, createInfo);
 		}
 
 		public ITexture CreateTexture(in TextureDesc desc)

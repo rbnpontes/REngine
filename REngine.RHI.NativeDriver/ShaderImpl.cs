@@ -12,6 +12,8 @@ namespace REngine.RHI.NativeDriver
 		[DllImport(Constants.Lib)]
 		static extern byte rengine_shader_gettype(IntPtr shader);
 
+		private readonly ulong pHash;
+
 		public ShaderType Type => (ShaderType)rengine_shader_gettype(Handle);
 
 		public string Name
@@ -21,9 +23,14 @@ namespace REngine.RHI.NativeDriver
 
 		public GPUObjectType ObjectType => GPUObjectType.Shader;
 
-		public ShaderImpl(IntPtr handle) : base(handle)
+		public ShaderImpl(IntPtr handle, ShaderCreateInfo createInfo) : base(handle)
 		{
+			pHash = createInfo.ToHash();
 		}
 
+		public ulong ToHash()
+		{
+			return pHash;
+		}
 	}
 }

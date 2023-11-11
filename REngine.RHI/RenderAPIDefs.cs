@@ -1,4 +1,5 @@
 ﻿using REngine.Core.Collections;
+using REngine.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,14 @@ namespace REngine.RHI
 			ElementOffset = uint.MaxValue;
 			IsNormalized = false;
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = (BufferIndex << 32) | BufferStride;
+			hash = Hash.Combine(hash, ((ulong)ElementOffset << 32) | InstanceStepRate);
+			hash = Hash.Combine(hash, (ulong)ElementType);
+			return Hash.Combine(hash, IsNormalized ? 1UL : 0UL);
+		}
 	}
 
 	public struct TextureAddressModes
@@ -44,6 +53,11 @@ namespace REngine.RHI
 		public TextureAddressModes(TextureAddressMode mode)
 		{
 			U = V = W = mode;
+		}
+
+		public ulong ToHash()
+		{
+			return Hash.Combine((byte)U, (byte)V, (byte)W);
 		}
 	}
 
@@ -68,6 +82,12 @@ namespace REngine.RHI
 			ShadowCompare = false;
 			AddressModes = new TextureAddressModes(addressMode);
 		}
+
+		public ulong ToHash()
+		{
+			ulong hash = Hash.Combine((byte)FilterMode, Anisotropy, ShadowCompare ? 1U : 0U);
+			return Hash.Combine(hash, AddressModes.ToHash());
+		}
 	}
 
 	public struct ImmutableSamplerDesc
@@ -84,6 +104,11 @@ namespace REngine.RHI
 		{
 			Name = name;
 			Sampler = sampler;
+		}
+
+		public ulong ToHash()
+		{
+			return Hash.Combine(Hash.Digest(Name), Sampler.ToHash());
 		}
 	}
 }

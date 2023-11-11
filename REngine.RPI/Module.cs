@@ -38,6 +38,7 @@ namespace REngine.RPI
 					(deps) => ((ILoggerFactory)deps[0]).Build<IBufferProvider>(),
 					new Type[] { typeof(ILoggerFactory) }
 				)
+				.Add<IPipelineStateManager, PipelineStateManagerImpl>()
 				.Add<IBufferProvider, BufferProvider>()
 				.Add<IRenderer, RendererImpl>()
 				.Add<ITextRenderer, TextRendererImpl>()
