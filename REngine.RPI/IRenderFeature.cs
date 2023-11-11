@@ -13,17 +13,20 @@ namespace REngine.RPI
 		public IRenderer Renderer;
 		public IBufferManager BufferManager;
 		public IPipelineStateManager PipelineStateManager;
+		public IShaderManager ShaderManager;
 
 		public RenderFeatureSetupInfo(
 			IGraphicsDriver driver, 
 			IRenderer renderer, 
 			IBufferManager bufferMgr,
-			IPipelineStateManager pipelineStateMgr)
+			IPipelineStateManager pipelineStateMgr,
+			IShaderManager shaderMgr)
 		{
 			Driver = driver;
 			Renderer = renderer;
 			BufferManager = bufferMgr;
 			PipelineStateManager = pipelineStateMgr;
+			ShaderManager = shaderMgr;
 		}
 	}
 

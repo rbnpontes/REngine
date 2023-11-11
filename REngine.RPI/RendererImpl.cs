@@ -46,6 +46,7 @@ namespace REngine.RPI
 		private readonly RenderState pRenderState;
 		private readonly IBufferManager pBufferProvider;
 		private readonly IPipelineStateManager pPipelineMgr;
+		private readonly IShaderManager pShaderMgr;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly IEngine pEngine;
@@ -89,6 +90,7 @@ namespace REngine.RPI
 			RenderState renderState,
 			IBufferManager bufferProvider,
 			IPipelineStateManager pipelineMgr,
+			IShaderManager shaderMgr,
 			IExecutionPipeline pipeline,
 			IEngine engine)
 		{
@@ -99,6 +101,7 @@ namespace REngine.RPI
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
 			pPipelineMgr = pipelineMgr;
+			pShaderMgr = shaderMgr;
 			pExecutionPipeline = pipeline;
 			pEngine = engine;
 
@@ -163,7 +166,8 @@ namespace REngine.RPI
 				pDriver,
 				this,
 				pBufferProvider,
-				pPipelineMgr
+				pPipelineMgr,
+				pShaderMgr
 			);
 
 			foreach(var feature in pFeatureCollection)
