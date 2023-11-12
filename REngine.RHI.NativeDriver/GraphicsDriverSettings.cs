@@ -160,6 +160,7 @@ namespace REngine.RHI.DiligentDriver
 #if WINDOWS
 		public D3D12Settings D3D12 { get; set; } = new D3D12Settings();
 #endif
+		// ReSharper disable once IdentifierTypo
 		public VulkanSettings Vulkan { get; set; } = new VulkanSettings();
 		public uint AdapterId { get; set; } = uint.MaxValue;
 #if DEBUG

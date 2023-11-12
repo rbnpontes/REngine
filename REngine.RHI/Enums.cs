@@ -62,7 +62,8 @@ namespace REngine.RHI
 		Compute,
 		Mesh,
 		RayTracing,
-		Tile
+		Tile,
+		Unknow
 	}
 	public enum ElementType
 	{

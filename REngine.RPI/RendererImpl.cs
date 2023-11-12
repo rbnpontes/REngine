@@ -44,7 +44,9 @@ namespace REngine.RPI
 		private readonly ILogger<IRenderer> pLogger;
 		private readonly RPIEvents pRenderEvents;
 		private readonly RenderState pRenderState;
-		private readonly IBufferProvider pBufferProvider;
+		private readonly IBufferManager pBufferProvider;
+		private readonly IPipelineStateManager pPipelineMgr;
+		private readonly IShaderManager pShaderMgr;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly IEngine pEngine;
@@ -86,7 +88,9 @@ namespace REngine.RPI
 			EngineEvents events,
 			RPIEvents rendererEvts,
 			RenderState renderState,
-			IBufferProvider bufferProvider,
+			IBufferManager bufferProvider,
+			IPipelineStateManager pipelineMgr,
+			IShaderManager shaderMgr,
 			IExecutionPipeline pipeline,
 			IEngine engine)
 		{
@@ -96,6 +100,8 @@ namespace REngine.RPI
 			pRenderState = renderState;
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
+			pPipelineMgr = pipelineMgr;
+			pShaderMgr = shaderMgr;
 			pExecutionPipeline = pipeline;
 			pEngine = engine;
 
@@ -159,7 +165,9 @@ namespace REngine.RPI
 			RenderFeatureSetupInfo setupInfo = new RenderFeatureSetupInfo(
 				pDriver,
 				this,
-				pBufferProvider
+				pBufferProvider,
+				pPipelineMgr,
+				pShaderMgr
 			);
 
 			foreach(var feature in pFeatureCollection)

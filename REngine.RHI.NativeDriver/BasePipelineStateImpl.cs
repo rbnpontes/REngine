@@ -56,5 +56,7 @@ namespace REngine.RHI.NativeDriver
 				return;
 			pDefaultSRB.Dispose();
 		}
+
+		public abstract ulong ToHash();
 	}
 }

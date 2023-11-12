@@ -406,7 +406,7 @@ namespace REngine.RPI
 
 		private ImGuiFeature AllocateFeature()
 		{
-			return new ImGuiFeature(this, pGraphicsSettings, pRenderer);
+			return new ImGuiFeature(this, pGraphicsSettings);
 		}
 	}
 #endif

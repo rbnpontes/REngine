@@ -92,7 +92,6 @@ namespace REngine.RPI.Features
 		{
 			pVertexBuffer?.Dispose();
 			pIndexBuffer?.Dispose();
-			pPipeline?.Dispose();
 
 			pVertexBuffer = pIndexBuffer = null;
 			pPipeline = null;
@@ -114,10 +113,10 @@ namespace REngine.RPI.Features
 
 			pVertexBuffer = CreateVertexBuffer(setupInfo.Driver.Device);
 			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
-			pPipeline = CreatePipeline(setupInfo.Driver.Device, setupInfo.BufferProvider);
+			pPipeline = CreatePipeline(setupInfo.PipelineStateManager, setupInfo.ShaderManager, setupInfo.BufferManager);
 			pSwapChain = setupInfo.Renderer.SwapChain;
-			pObjectCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Object);
-			pCamCBuffer = setupInfo.BufferProvider.GetBuffer(BufferGroupType.Camera);
+			pObjectCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Object);
+			pCamCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Camera);
 
 			IsDirty = false;
 		}
@@ -156,7 +155,7 @@ namespace REngine.RPI.Features
 			command.Unmap(buffer, MapType.Write);
 		}
 
-		protected virtual IShader LoadShader(IDevice device, ShaderType type)
+		protected virtual IShader LoadShader(IShaderManager shaderMgr, ShaderType type)
 		{
 			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
 			ShaderCreateInfo shaderCI = new ShaderCreateInfo
@@ -184,13 +183,13 @@ namespace REngine.RPI.Features
 
 			shaderCI.SourceCode = File.ReadAllText(shaderPath);
 
-			return device.CreateShader(shaderCI);
+			return shaderMgr.GetOrCreate(shaderCI);
 		}
 
-		protected virtual IPipelineState CreatePipeline(IDevice device, IBufferProvider bufferProvider)
+		protected virtual IPipelineState CreatePipeline(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr, IBufferManager bufferMgr)
 		{
-			IShader vsShader = LoadShader(device, ShaderType.Vertex);
-			IShader psShader = LoadShader(device, ShaderType.Pixel);
+			IShader vsShader = LoadShader(shaderMgr, ShaderType.Vertex);
+			IShader psShader = LoadShader(shaderMgr, ShaderType.Pixel);
 
 			pPipelineDesc.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
 			pPipelineDesc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
@@ -204,14 +203,11 @@ namespace REngine.RPI.Features
 
 			SetupInputLayout(pPipelineDesc.InputLayouts);
 
-			var pipeline = device.CreateGraphicsPipeline(pPipelineDesc);
+			var pipeline = pipelineMgr.GetOrCreate(pPipelineDesc);
 
 			var srb = pipeline.GetResourceBinding();
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Camera, bufferProvider.GetBuffer(BufferGroupType.Camera));
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferProvider.GetBuffer(BufferGroupType.Object));
-
-			vsShader.Dispose();
-			psShader.Dispose();
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Camera, bufferMgr.GetBuffer(BufferGroupType.Camera));
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferMgr.GetBuffer(BufferGroupType.Object));
 
 			pPipelineDesc.Shaders.VertexShader = pPipelineDesc.Shaders.PixelShader = null;
 

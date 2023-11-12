@@ -39,6 +39,13 @@ namespace REngine.RHI.NativeDriver
 			ref ResultNative result
 		);
 		[DllImport(Constants.Lib)]
+		static extern void rengine_device_create_pscache(
+			IntPtr device,
+			IntPtr data,
+			ulong dataSize,
+			ref ResultNative result
+		);
+		[DllImport(Constants.Lib)]
 		static extern void rengine_device_create_texture(
 			IntPtr device,
 			ref TextureDescDTO desc,

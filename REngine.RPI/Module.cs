@@ -35,10 +35,12 @@ namespace REngine.RPI
 					new Type[] { typeof(ILoggerFactory) }
 				)
 				.Add(
-					(deps) => ((ILoggerFactory)deps[0]).Build<IBufferProvider>(),
+					(deps) => ((ILoggerFactory)deps[0]).Build<IBufferManager>(),
 					new Type[] { typeof(ILoggerFactory) }
 				)
-				.Add<IBufferProvider, BufferProvider>()
+				.Add<IShaderManager, ShaderManagerImpl>()
+				.Add<IPipelineStateManager, PipelineStateManagerImpl>()
+				.Add<IBufferManager, BufferManager>()
 				.Add<IRenderer, RendererImpl>()
 				.Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH

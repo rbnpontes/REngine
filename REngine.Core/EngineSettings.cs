@@ -15,8 +15,9 @@ namespace REngine.Core
 		public static readonly string RenderSettingsPath = Path.Combine(AppDataPath, "render.rcfgs");
 		public static readonly string GraphicsSettingsPath = Path.Combine(AppDataPath, "graphics.rcfgs");
 		public static readonly string DriverSettingsPath = Path.Combine(AppDataPath, "driver.rcfgs");
-
-		public EngineSettings() { }
+		public static readonly string ShaderCachePath = Path.Combine(AppDataPath, "shader-cache");
+		public static readonly string PipelineCachePath = Path.Combine(AppDataPath, "pipeline-cache.bin");
+		public static readonly string PipelineItemsPath = Path.Combine(AppDataPath, "pipelines.rcache");
 
 		/// <summary>
 		/// Defines initial available entity slots

@@ -25,8 +25,7 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnRun(IServiceProvider provider)
 		{
-			if (pFeature is null)
-				pFeature = provider.Get<ISpriteBatch>().Feature;
+			pFeature ??= provider.Get<ISpriteBatch>().Feature;
 			base.OnRun(provider);
 		}
 

@@ -17,7 +17,8 @@ namespace REngine.RHI
 		public IShader CreateShader(in ShaderCreateInfo createInfo);
 		public IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc);
 		public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc);
-
+		public IPipelineStateCache CreatePipelineStateCache();
+		public IPipelineStateCache CreatePipelineStateCache(byte[] initialData);
 		public ITexture CreateTexture(in TextureDesc desc);
 		public ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources);
 	}

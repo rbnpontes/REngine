@@ -73,7 +73,7 @@ namespace REngine.RPI
 			}
 		}
 
-		private readonly IBufferProvider pBufferProvider;
+		private readonly IBufferManager pBufferProvider;
 		private readonly ILogger<ITextRenderer> pLogger;
 		private readonly GraphicsSettings pGraphicsSettings;
 		private readonly EngineEvents pEngineEvents;
@@ -90,7 +90,7 @@ namespace REngine.RPI
 		private IPipelineState? pPipeline;
 
 		public TextRendererImpl(
-			IBufferProvider bufferProvider,
+			IBufferManager bufferProvider,
 			ILoggerFactory loggerFactory,
 			GraphicsSettings graphicsSettings,
 			EngineEvents engineEvents,

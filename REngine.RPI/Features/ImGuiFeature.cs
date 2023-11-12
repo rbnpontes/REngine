@@ -67,7 +67,6 @@ namespace REngine.RPI.Features
 
 		private readonly ImGuiSystem pSystem;
 		private readonly GraphicsSettings pSettings;
-		private IRenderer pRenderer;
 
 		private ITexture? pFontTexture;
 		private ITextureView? pFontTextureView;
@@ -88,18 +87,15 @@ namespace REngine.RPI.Features
 
 		public ImGuiFeature(
 			ImGuiSystem system, 
-			GraphicsSettings settings,
-			IRenderer renderer) : base()
+			GraphicsSettings settings
+		) : base()
 		{
 			pSystem = system;
 			pSettings = settings;
-			pRenderer = renderer;
 		}
 
 		protected override void OnDispose()
 		{
-			pResourceBinding?.Dispose();
-			pPipeline?.Dispose();
 			pFontTexture?.Dispose();
 
 			pVBuffer?.Dispose();
@@ -128,7 +124,7 @@ namespace REngine.RPI.Features
 
 		protected override void OnSetup(in RenderFeatureSetupInfo execInfo)
 		{
-			var buffer = execInfo.BufferProvider.GetBuffer(BufferGroupType.Frame);
+			var buffer = execInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
 
 			if(pFontTexture is null || (pDirtyFlags & DirtyFlags.FontTexture) != 0)
 			{
@@ -146,7 +142,7 @@ namespace REngine.RPI.Features
 				pResourceBinding?.Dispose();
 				pPipeline?.Dispose();
 
-				var pipeline = CreatePipelineState(execInfo.Driver.Device);
+				var pipeline = CreatePipelineState(execInfo.PipelineStateManager, execInfo.ShaderManager);
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
@@ -247,10 +243,10 @@ namespace REngine.RPI.Features
 				.SetBlendFactors(Color.Black);
 		}
 
-		private IPipelineState CreatePipelineState(IDevice device)
+		private IPipelineState CreatePipelineState(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr)
 		{
-			IShader vs = CreateShader(device, ShaderType.Vertex);
-			IShader ps = CreateShader(device, ShaderType.Pixel);
+			IShader vs = CreateShader(shaderMgr, ShaderType.Vertex);
+			IShader ps = CreateShader(shaderMgr, ShaderType.Pixel);
 
 			GraphicsPipelineDesc ci = new();
 			ci.Name = "ImGui PSO";
@@ -270,15 +266,12 @@ namespace REngine.RPI.Features
 			ci.Shaders.VertexShader = vs;
 			ci.Shaders.PixelShader = ps;
 
-			var pipeline = device.CreateGraphicsPipeline(ci);
-
-			vs.Dispose();
-			ps.Dispose();
+			var pipeline = pipelineMgr.GetOrCreate(ci);
 
 			return pipeline;
 		}
 		
-		private IShader CreateShader(IDevice device, ShaderType shaderType)
+		private IShader CreateShader(IShaderManager shaderMgr, ShaderType shaderType)
 		{
 			string shaderPath = Path.Join(
 				AppDomain.CurrentDomain.BaseDirectory,
@@ -296,7 +289,7 @@ namespace REngine.RPI.Features
 					throw new NotSupportedException();
 			}
 
-			return device.CreateShader(new ShaderCreateInfo
+			return shaderMgr.GetOrCreate(new ShaderCreateInfo
 			{
 				Type = shaderType,
 				SourceCode = File.ReadAllText(shaderPath),
