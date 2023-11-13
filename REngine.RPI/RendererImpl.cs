@@ -340,8 +340,8 @@ namespace REngine.RPI
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)
 		{
+			pLogger.Info("SwapChain resized. Updating Fixed Buffer and Viewport");
 			UpdateFixedBufferData(e.Size);
-
 			pRenderState.Viewport = new Viewport
 			{
 				Size = new Vector2(e.Size.Width, e.Size.Height)
