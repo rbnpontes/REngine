@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -25,6 +26,7 @@ namespace REngine.RHI.NativeDriver
 
 		private readonly object pSync = new();
 
+		private SwapChainSize pLastSize;
 		public SwapChainDesc Desc 
 		{ 
 			get
@@ -81,6 +83,8 @@ namespace REngine.RHI.NativeDriver
 			if(ptr != IntPtr.Zero)
 				pDepthBuffer = new TextureViewWrapper(ptr);
 			pColorBuffer = new TextureViewWrapper(rengine_swapchain_get_backbuffer(Handle));
+
+			pLastSize = Size;
 		}
 
 		public ISwapChain Present(bool vsync)
@@ -104,7 +108,19 @@ namespace REngine.RHI.NativeDriver
 		{
 			var currSize = Size;
 			if (currSize.Width == width && currSize.Height == height)
+			{
+				// Vulkan resizes automatically swapchain, when this occurs
+				// Resize event is not called
+				if (pLastSize.Width == width && pLastSize.Height == height) 
+					return this;
+				pLastSize = currSize;
+				OnResize?.Invoke(this, new SwapChainResizeEventArgs(
+						currSize,
+						transform
+					)
+				);
 				return this;
+			}
 
 			width = Math.Max(width, 1);
 			height = Math.Max(height, 1);
@@ -115,6 +131,7 @@ namespace REngine.RHI.NativeDriver
 				CollectBuffers();
 			}
 
+			pLastSize = currSize;
 			OnResize?.Invoke(this, 
 				new SwapChainResizeEventArgs(
 					new SwapChainSize(width, height),
