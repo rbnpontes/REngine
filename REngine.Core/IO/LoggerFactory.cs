@@ -285,6 +285,7 @@ namespace REngine.Core.IO
 			switch (severity)
 			{
 				case LogSeverity.Error:
+				case LogSeverity.Critical:
 					Console.ForegroundColor = ConsoleColor.DarkRed;
 					break;
 				case LogSeverity.Warning:
@@ -389,7 +390,7 @@ namespace REngine.Core.IO
 			public ILogger<T> Success(params object[] args)
 			{
 				foreach (var logger in pLoggers)
-					logger.Critical(args);
+					logger.Success(args);
 				return this;
 			}
 
