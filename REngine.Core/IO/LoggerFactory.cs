@@ -285,6 +285,7 @@ namespace REngine.Core.IO
 			switch (severity)
 			{
 				case LogSeverity.Error:
+				case LogSeverity.Critical:
 					Console.ForegroundColor = ConsoleColor.DarkRed;
 					break;
 				case LogSeverity.Warning:
