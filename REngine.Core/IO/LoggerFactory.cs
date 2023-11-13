@@ -390,7 +390,7 @@ namespace REngine.Core.IO
 			public ILogger<T> Success(params object[] args)
 			{
 				foreach (var logger in pLoggers)
-					logger.Critical(args);
+					logger.Success(args);
 				return this;
 			}
 
