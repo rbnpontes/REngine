@@ -37,6 +37,8 @@ namespace REngine.Sandbox
 			pLoggerFactory = fileLoggerFactory;
 #endif
 			Logger = pLoggerFactory.Build(inheritanceType);
+
+			NativeReferences.PreloadNativeLibs(pLoggerFactory.Build(typeof(NativeReferences)));
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{
