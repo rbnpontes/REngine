@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace REngine.Sandbox
 {
-	internal partial class SampleWindow
+	internal class SampleWindow
 	{
 		class SampleItem 
 		{
@@ -37,15 +37,6 @@ namespace REngine.Sandbox
 		private RenderState? pRenderState;
 
 		private int pSelectedItemIdx = -1;
-
-		public SampleWindow() : base() 
-		{
-		}
-
-		public void Init()
-		{
-			CollectSamples();
-		}
 
 		private void CollectSamples()
 		{
@@ -105,6 +96,12 @@ namespace REngine.Sandbox
 		public void EngineUpdate(IServiceProvider provider) 
 		{
 			pLastSample?.Update(provider);
+		}
+
+		public void EngineStop()
+		{
+			pLastSample?.Dispose();
+			pLastSample = null;
 		}
 
 		private void OnGui(object? sender, EventArgs e)
