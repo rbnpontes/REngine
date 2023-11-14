@@ -41,7 +41,13 @@ namespace REngine.Sandbox
 
 			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
+			provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
 			pSampleWindow?.EngineStart(provider);
+		}
+
+		private void OnBeforeStop(object? sender, EventArgs e)
+		{
+			pSampleWindow?.EngineStop();
 		}
 
 		public override void OnUpdate(IServiceProvider provider)

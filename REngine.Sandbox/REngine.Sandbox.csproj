@@ -42,6 +42,12 @@
 		<None Remove="bin\**" />
 	</ItemGroup>
 	<ItemGroup>
+		<None Update="Assets\Sounds\LICENSE.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Sounds\silent_wood_by_purrplecat.ogg">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\Textures\doge.jpg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
