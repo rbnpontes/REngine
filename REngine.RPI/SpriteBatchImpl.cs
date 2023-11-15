@@ -15,13 +15,6 @@ namespace REngine.RPI
 #if RENGINE_SPRITEBATCH
 	internal class SpriteBatchImpl : ISpriteBatch
 	{
-		enum Step
-		{
-			Begin,
-			Draw,
-			End
-		}
-
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
 		private readonly RenderSettings pRenderSettings;
@@ -29,22 +22,14 @@ namespace REngine.RPI
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly EngineEvents pEngineEvents;
 		private readonly RPIEvents pRenderEvents;
+		private readonly IServiceProvider pServiceProvider;
 
 		private SpriteBatchFeature? pFeature;
 
-		public IGraphicsRenderFeature Feature 
-		{ 
-			get
-			{
-				return GetFeature();
-			}
-		}
+		public IGraphicsRenderFeature Feature => GetFeature();
 		public event EventHandler? OnDraw;
 
-		public bool IsReady
-		{
-			get => pTextureManager.IsReady;
-		}
+		public bool IsReady => pTextureManager.IsReady;
 
 		public SpriteBatchImpl(
 			SpriteTextureManager texManager,
@@ -53,7 +38,8 @@ namespace REngine.RPI
 			EngineEvents engineEvents,
 			RPIEvents rpiEvents,
 			RenderSettings renderSettings,
-			IExecutionPipeline execPipeline
+			IExecutionPipeline execPipeline,
+			IServiceProvider provider
 		)
 		{
 			pTextureManager = texManager;
@@ -63,6 +49,7 @@ namespace REngine.RPI
 			pEngineEvents = engineEvents;
 			pRenderEvents = rpiEvents;
 			pExecutionPipeline = execPipeline;
+			pServiceProvider = provider;
 
 			engineEvents.OnStart += HandleStart;
 			engineEvents.OnStop += HandleStop;
@@ -118,9 +105,9 @@ namespace REngine.RPI
 
 		private SpriteBatchFeature GetFeature()
 		{
-			pFeature ??= new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
+			pFeature ??= new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings, pServiceProvider);
 			if (pFeature.IsDisposed)
-				pFeature = new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings);
+				pFeature = new SpriteBatchFeature(pBatcher, pTextureManager, pGraphicsSettings, pServiceProvider);
 			return pFeature;
 		}
 
