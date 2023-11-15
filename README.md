@@ -54,6 +54,9 @@ Perform the same steps on Linux, copy the published or built project, and transf
 
 ![REngine Sandbox](https://github.com/rbnpontes/REngine/blob/main/doc/doge_sandbox.gif)
 
+### Sprite Effect
+![Doge Rounded](https://github.com/rbnpontes/REngine/blob/main/doc/sprite_effect_sample.gif)
+
 ### Sprite Instanced
 ![Doge Kaleidoscope](https://github.com/rbnpontes/REngine/blob/main/doc/doge_kaleidoscope.gif)
 
@@ -65,3 +68,6 @@ Perform the same steps on Linux, copy the published or built project, and transf
 
 ### Render Graph
 ![Render Graph](https://github.com/rbnpontes/REngine/blob/main/doc/render_graph_sample.gif)
+
+### Sound Sample
+![Sound Sample](https://github.com/rbnpontes/REngine/blob/main/doc/sound_sample.gif)
