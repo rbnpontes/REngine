@@ -150,7 +150,8 @@ namespace REngine.RPI
 
 		public IRenderer RemoveFeature(IRenderFeature feature)
 		{
-			AssertDispose();
+			if (pDisposed)
+				return this;
 			pFeatureCollection.RemoveFeature(feature);
 			return this;
 		}

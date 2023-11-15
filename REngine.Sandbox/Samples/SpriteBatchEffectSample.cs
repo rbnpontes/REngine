@@ -61,6 +61,7 @@ namespace REngine.Sandbox.Samples
 			{
 				Effect = pSpriteEffect,
 				Anchor = new Vector2(0.5f, 0.5f),
+				Size = new Vector2(200, 200),
 				Position = size.ToVector2() * new Vector2(0.5f, 0.5f),
 				TextureSlot = 0
 			});
