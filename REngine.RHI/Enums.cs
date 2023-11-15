@@ -235,6 +235,7 @@ namespace REngine.RHI
 		Domain
 	}
 
+	[Flags]
 	public enum ShaderTypeFlags
 	{
 		None = 0,

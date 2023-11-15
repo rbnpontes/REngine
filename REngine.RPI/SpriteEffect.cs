@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.RHI;
+using REngine.RPI.Constants;
 
 namespace REngine.RPI
 {
 	public abstract class SpriteEffect : IDisposable
 	{
+		public abstract bool IsDisposed { get; }
 		public abstract string EffectName { get; }
 		public abstract void Dispose();
 		public abstract void OnSetMainTexture(ITexture? texture);
@@ -28,11 +30,14 @@ namespace REngine.RPI
 		private ShaderStream? pVertexShaderStream;
 		private ShaderStream? pPixelShaderStream;
 
+		public override bool IsDisposed => pDisposed;
+
 		public ShaderStream? VertexShader
 		{
 			get => pVertexShaderStream;
 			set
 			{
+				AssertDispose();
 				if (value == pVertexShaderStream) return;
 				pPipelineState = null;
 				pVertexShaderStream?.Dispose();
@@ -45,6 +50,7 @@ namespace REngine.RPI
 			get => pPixelShaderStream;
 			set
 			{
+				AssertDispose();
 				if (value == pPixelShaderStream) return;
 				pPipelineState = null;
 				pPixelShaderStream?.Dispose();
@@ -113,6 +119,7 @@ namespace REngine.RPI
 
 		public override void OnSetMainTexture(ITexture? texture)
 		{
+			AssertDispose();
 			if (pMainTexture == texture)
 				return;
 
@@ -139,7 +146,8 @@ namespace REngine.RPI
 
 		public override IPipelineState OnBuildPipeline(IServiceProvider serviceProvider)
 		{
-			if(pPipelineState != null)
+			AssertDispose();
+			if (pPipelineState != null)
 				return pPipelineState;
 
 			var psMgr = serviceProvider.Get<IPipelineStateManager>();
@@ -148,6 +156,7 @@ namespace REngine.RPI
 			var result = psMgr.GetOrCreate(pipelineDesc);
 			var srb = result.CreateResourceBinding();
 
+			SetConstantBuffers(serviceProvider, srb);
 			if(pMainTexture != null)
 				srb.Set(ShaderTypeFlags.Pixel, "g_texture", pMainTexture.GetDefaultView(TextureViewType.ShaderResource));
 
@@ -159,6 +168,7 @@ namespace REngine.RPI
 
 		public override IShaderResourceBinding OnGetSRB()
 		{
+			AssertDispose();
 			if (pShaderResourceBinding is null)
 				throw new NullReferenceException(
 					"Shader Resource Binding is null. Did you initialized PipelineState ?");
@@ -230,6 +240,20 @@ namespace REngine.RPI
 
 			return shaderManager.GetOrCreate(shaderCI);
 		}
+
+		protected virtual void SetConstantBuffers(IServiceProvider provider, IShaderResourceBinding srb)
+		{
+			var bufferManager = provider.Get<IBufferManager>();
+			srb.Set(ShaderTypeFlags.Vertex | ShaderTypeFlags.Pixel, ConstantBufferNames.Frame, bufferManager.GetBuffer(BufferGroupType.Frame));
+			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferManager.GetBuffer(BufferGroupType.Object));
+		}
+
+		private void AssertDispose()
+		{
+			if (pDisposed)
+				throw new ObjectDisposedException(nameof(SpriteEffect));
+		}
+
 	}
 
 	public sealed class DefaultSpriteEffect : BasicSpriteEffect

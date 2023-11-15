@@ -25,6 +25,10 @@ namespace REngine.Core.Mathematics
 			};
 		}
 
+		public static Vector2 ToVector2(this Size size)
+		{
+			return new Vector2(size.Width, size.Height);
+		}
 		public static Vector3 ToVector3(this Color color)
 		{
 			return new Vector3(

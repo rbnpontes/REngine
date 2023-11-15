@@ -42,6 +42,9 @@
 		<None Remove="bin\**" />
 	</ItemGroup>
 	<ItemGroup>
+		<None Update="Assets\Shaders\sprite_smpl_effect_ps.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\Sounds\LICENSE.txt">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
@@ -54,5 +57,8 @@
 		<None Update="cube_ps.hlsl">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Assets\Shaders\" />
 	</ItemGroup>
 </Project>
