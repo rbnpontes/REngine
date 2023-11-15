@@ -19,7 +19,7 @@ namespace REngine.RPI
 		public float Angle;
 		public byte TextureSlot;
 		public Color Color;
-
+		public BasicSpriteEffect? Effect;
 		public SpriteBatchInfo()
 		{
 			Position = Vector2.Zero;
@@ -29,6 +29,7 @@ namespace REngine.RPI
 			Angle = 0;
 			TextureSlot = byte.MaxValue;
 			Color = Color.White;
+			Effect = null;
 		}
 	}
 	public struct SpriteInstancedBatchInfo

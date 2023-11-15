@@ -49,24 +49,6 @@ namespace REngine.RPI.Features
 			}
 		}
 
-		class TextureCache : IDisposable
-		{
-			public ITexture Texture;
-			public IShaderResourceBinding ResourceBinding;
-
-			public TextureCache(ITexture texture, IShaderResourceBinding resourceBinding)
-			{
-				Texture = texture;
-				ResourceBinding = resourceBinding;
-			}
-
-			public void Dispose()
-			{
-				Texture.Dispose();
-				ResourceBinding.Dispose();
-			}
-		}
-
 		private static readonly Vector4[] sVertices = new Vector4[] 
 		{ 
 			new Vector4(0, 1, 0, 1),
@@ -78,6 +60,7 @@ namespace REngine.RPI.Features
 			new Vector4(1, 0, 1, 0)
 		};
 
+		private readonly IServiceProvider pProvider;
 		private readonly GraphicsSettings pSettings;
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
@@ -85,15 +68,13 @@ namespace REngine.RPI.Features
 		private IShaderResourceBinding?[] pBindings = Array.Empty<IShaderResourceBinding?>();
 		private IShaderResourceBinding?[] pInstancedBindings = Array.Empty<IShaderResourceBinding?>();
 
+
 		private IPipelineState? pDefaultPipeline;
 		private IPipelineState? pTexturedPipeline;
 		private IPipelineState? pInstancedPipeline;
 		private IPipelineState? pTexturedInstancedPipeline;
 
 		private IBuffer? pCBuffer;
-		private IRenderer? pRenderer;
-		private IGraphicsDriver? pDriver;
-
 		private IBuffer? pVBuffer;
 		private IBuffer? pInstanceBuffer;
 		private IBufferManager? pBufferProvider;
@@ -105,12 +86,14 @@ namespace REngine.RPI.Features
 		public SpriteBatchFeature(
 			SpriteBatcher batcher,
 			SpriteTextureManager texManager,
-			GraphicsSettings settings
-		): base()
+			GraphicsSettings settings,
+			IServiceProvider provider
+		) 
 		{
 			pBatcher = batcher;
 			pTextureManager = texManager;
 			pSettings = settings;
+			pProvider = provider;
 		}
 
 		public void UpdateTextures()
@@ -125,14 +108,11 @@ namespace REngine.RPI.Features
 
 		protected override void OnDispose()
 		{
-			IShaderResourceBinding?[][] bindingArray = new IShaderResourceBinding?[][] { pBindings, pInstancedBindings };
-			foreach(var binding in bindingArray)
-			{
-				for(int i = 0; i < binding.Length; ++i)
-				{
-					binding[i]?.Dispose();
-				}
-			}
+			IShaderResourceBinding?[][] bindingArray = new[] { pBindings, pInstancedBindings };
+
+			foreach(var bindingPart in bindingArray)
+			foreach (var binding in bindingPart)
+				binding?.Dispose();
 
 			pBindings = pInstancedBindings = Array.Empty<IShaderResourceBinding?>();
 
@@ -153,8 +133,6 @@ namespace REngine.RPI.Features
 
 		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
 		{
-			pRenderer = setupInfo.Renderer;
-			pDriver = setupInfo.Driver;
 			pCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Object);
 			pBufferProvider = setupInfo.BufferManager;
 
@@ -298,7 +276,21 @@ namespace REngine.RPI.Features
 			{
 				var item = items[i];
 				byte textureSlot = item.TextureSlot;
+				
 				var pipeline = textureSlot == byte.MaxValue ? defaultPipeline : texturedPipeline;
+				var binding = textureSlot != byte.MaxValue ? pBindings[textureSlot] : defaultPipeline.GetResourceBinding();
+				binding ??= defaultPipeline.GetResourceBinding();
+
+
+				if (item.Effect != null)
+				{
+					var effect = item.Effect;
+					effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
+
+					pipeline = effect.OnBuildPipeline(pProvider);
+					binding = effect.OnGetSRB();
+				}
+
 				FillBufferData(item, ref cbufferData);
 
 				var mappedData = cmd.Map<BufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
@@ -307,20 +299,16 @@ namespace REngine.RPI.Features
 
 				cmd
 					.SetVertexBuffer(vertexBuffer)
-					.SetPipeline(pipeline);
-
-				var binding = textureSlot != byte.MaxValue ? pBindings[textureSlot] : defaultPipeline.GetResourceBinding();
-				binding ??= defaultPipeline.GetResourceBinding();
-
-				cmd.CommitBindings(binding);
+					.SetPipeline(pipeline)
+					.CommitBindings(binding);
 
 				cmd.Draw(new DrawArgs { NumVertices = 6 });
 			}
 
 			// Render Texts
 			var textBatches = pBatcher.TextBatches;
-			for (int i = 0; i < textBatches.Count; ++i)
-				textBatches[i].Draw(cmd);
+			foreach (var t in textBatches)
+				t.Draw(cmd);
 		}
 
 		private unsafe void ExecuteInstanced(

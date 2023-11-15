@@ -23,11 +23,30 @@ namespace REngine.RHI.NativeDriver
 
 		public void Set(ShaderTypeFlags flags, string resourceName, IGPUObject resource)
 		{
-			IntPtr resourceNamePtr = Marshal.StringToHGlobalAnsi(resourceName);
+			if (TestFlags(flags, ShaderTypeFlags.Vertex))
+				SetShaderRes((uint)ShaderTypeFlags.Vertex, resourceName, resource);
+			if(TestFlags(flags, ShaderTypeFlags.Pixel))
+				SetShaderRes((uint)ShaderTypeFlags.Pixel, resourceName, resource);
+			if(TestFlags(flags, ShaderTypeFlags.Compute))
+				SetShaderRes((uint)ShaderTypeFlags.Compute, resourceName, resource);
+			if(TestFlags(flags, ShaderTypeFlags.Domain))
+				SetShaderRes((uint)ShaderTypeFlags.Domain, resourceName, resource);
+			if(TestFlags(flags, ShaderTypeFlags.Hull))
+				SetShaderRes((uint)ShaderTypeFlags.Hull, resourceName, resource);
+			if(TestFlags(flags, ShaderTypeFlags.Geometry))
+				SetShaderRes((uint)ShaderTypeFlags.Geometry, resourceName, resource);
+		}
 
-			rengine_srb_set(Handle, (uint)flags, resourceNamePtr, resource.Handle);
-			
+		private void SetShaderRes(uint type, string resourceName, IGPUObject resource)
+		{
+			IntPtr resourceNamePtr = Marshal.StringToHGlobalAnsi(resourceName);
+			rengine_srb_set(Handle, type, resourceNamePtr, resource.Handle);
 			Marshal.FreeHGlobal(resourceNamePtr);
+		}
+
+		private bool TestFlags(ShaderTypeFlags flags, ShaderTypeFlags expected)
+		{
+			return (flags & expected) != 0;
 		}
 	}
 }
