@@ -14,17 +14,19 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Assets;
+using REngine.Core.Native;
 
 namespace REngine.Sandbox
 {
 	public abstract class App : IEngineApplication
 	{
-		private ILoggerFactory pLoggerFactory;
+		private readonly ILoggerFactory pLoggerFactory;
 
 		public ILogger Logger { get; private set; }
 
 
-		public App(Type inheritanceType)
+		protected App(Type inheritanceType)
 		{
 			FileLoggerFactory fileLoggerFactory = new FileLoggerFactory(EngineSettings.LoggerPath);
 #if DEBUG
@@ -38,10 +40,13 @@ namespace REngine.Sandbox
 #endif
 			Logger = pLoggerFactory.Build(inheritanceType);
 
-			NativeReferences.PreloadNativeLibs(pLoggerFactory.Build(typeof(NativeReferences)));
+			NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
+			NativeReferences.PreloadLibs();
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{
+			NativeReferences.UnloadLibs();
+
 			EngineSettings?		engineSettings		= provider.GetOrDefault<EngineSettings>();
 			RenderSettings?		renderSettings		= provider.GetOrDefault<RenderSettings>();
 			DriverSettings?		driverSettings		= provider.GetOrDefault<DriverSettings>();
@@ -71,21 +76,23 @@ namespace REngine.Sandbox
 			if (!Directory.Exists(EngineSettings.AppDataPath))
 				Directory.CreateDirectory(EngineSettings.AppDataPath);
 
-			registry.Add(() => {
-				using (FileStream stream = new FileStream(EngineSettings.EngineSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
-					return EngineSettings.FromStream(stream);
+			registry.Add(() =>
+			{
+				using FileStream stream = new FileStream(EngineSettings.EngineSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);
+				return EngineSettings.FromStream(stream);
 			});
 			registry.Add(() =>
 			{
-				using (FileStream stream = new FileStream(EngineSettings.GraphicsSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
-					return GraphicsSettings.FromStream(stream);
+				using FileStream stream = new FileStream(EngineSettings.GraphicsSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);
+				return GraphicsSettings.FromStream(stream);
 			});
 			registry.Add(() =>
 			{
-				using (FileStream stream = new FileStream(EngineSettings.RenderSettingsPath, FileMode.OpenOrCreate, FileAccess.Read))
-					return RenderSettings.FromStream(stream);
+				using FileStream stream = new FileStream(EngineSettings.RenderSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);
+				return RenderSettings.FromStream(stream);
 			});
 
+			AssetsModule.Setup(registry);
 			WindowsModule.Setup(registry);
 			RHIModule.Setup(registry);
 			RPIModule.Setup(registry);
@@ -109,7 +116,7 @@ namespace REngine.Sandbox
 					(deps) => OnSetupWindow((IWindowManager)deps[0]),
 					new Type[] { typeof(IWindowManager) }
 				)
-				.Add((IServiceProvider provider) =>
+				.Add((provider) =>
 				{
 					var graphicsSettings = provider.Get<GraphicsSettings>();
 					var window = provider.Get<IWindow>();
@@ -137,7 +144,7 @@ namespace REngine.Sandbox
 					}
 					return driver;
 				})
-				.Add((IServiceProvider provider) =>
+				.Add((_) =>
 				{
 					if (swapChain is null)
 						throw new NullReferenceException("SwapChain must be created");

@@ -16,6 +16,9 @@ Build and Run.
 If you are under windows, you just need to build and run `REngine.Sandbox` project. (Again, you can do easily with Visual Studio.)
 
 ## Linux Build
+Before Build, you must have the follow libraries on your system:
+`libFLAC.so.8, libdl.so`
+
 If you are using Linux, you will need to build the graphics engine driver first. To accomplish this, clone the driver repository and build it using CMake. 
 
 > Ensure that you have CMake and C++ tools installed on your Linux

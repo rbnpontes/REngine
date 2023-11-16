@@ -136,14 +136,16 @@ namespace REngine.RPI
 
 		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
 		{
-			AssertDispose();
+			if (pDisposed)
+				return this;
 			pFeatureCollection.AddFeature(feature, zindex);
 			return this;
 		}
 
 		public IRenderer AddFeature(IEnumerable<IRenderFeature> features, int zindex = -1)
 		{
-			AssertDispose();
+			if (pDisposed)
+				return this;
 			pFeatureCollection.AddFeatures(features, zindex);
 			return this;
 		}

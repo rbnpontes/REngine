@@ -7,6 +7,7 @@ using REngine.Core.WorldManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace REngine.Core
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
+
 			registry
 				.Add<EngineSettings>()
 				.Add<EntityManager>()

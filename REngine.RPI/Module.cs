@@ -5,15 +5,21 @@ using REngine.RPI.RenderGraph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
+using REngine.Core.Native;
 
 namespace REngine.RPI
 {
+	// ReSharper disable once InconsistentNaming
 	public static class RPIModule
 	{
 		public static void Setup(IServiceRegistry registry)
 		{
+
+			NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, NativeReferences.DefaultDllImportResolver);
 #if RENGINE_RENDERGRAPH
 			RenderGraphModule.Setup(registry);
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();

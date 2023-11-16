@@ -23,6 +23,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
 		<ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
 		<ProjectReference Include="..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
