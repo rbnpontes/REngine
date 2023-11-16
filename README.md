@@ -17,7 +17,7 @@ If you are under windows, you just need to build and run `REngine.Sandbox` proje
 
 ## Linux Build
 Before Build, you must have the follow libraries on your system:
-`libFLAC.so.8, libdl.so`
+`libFLAC.so.8, libdl.so, vulkan(LIB or SDK)`
 
 If you are using Linux, you will need to build the graphics engine driver first. To accomplish this, clone the driver repository and build it using CMake. 
 
