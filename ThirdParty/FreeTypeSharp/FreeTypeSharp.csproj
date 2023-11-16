@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('linux'))">
+		<TargetFrameworks>net7.0</TargetFrameworks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">
+		<TargetFrameworks>net5.0;net6.0;</TargetFrameworks>
+		<!--<TargetFrameworks>net5.0;net6.0;net6.0-android;</TargetFrameworks>-->
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('osx'))">
+		<TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+		<!--<TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0;net6.0;net6.0-android;net6.0-ios;net6.0-tvos</TargetFrameworks>-->
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<RootNamespace>FreeTypeSharp</RootNamespace>
+		<AssemblyName>FreeTypeSharp</AssemblyName>
+		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
+
+		<Description>A modern cross-platform managed FreeType2 library.</Description>
+		<PackageTags>freetype2;.net6.0;</PackageTags>
+		<PackageId>FreeTypeSharp</PackageId>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-ios' or '$(TargetFramework)' == 'net6.0-tvos'">
+		<IsBindingProject>true</IsBindingProject>
+		<SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net5.0'">
+		<Content Include=".\Dependencies\FreeType2\windows\x86\freetype.dll">
+			<Link>runtimes\win-x86\native\freetype.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+
+		<Content Include=".\Dependencies\FreeType2\windows\x64\freetype.dll">
+			<Link>runtimes\win-x64\native\freetype.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+
+		<Content Include=".\Dependencies\FreeType2\osx\libfreetype.dylib">
+			<Link>runtimes\osx\native\libfreetype.dylib</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+
+		<Content Include=".\Dependencies\FreeType2\linux\x64\libfreetype.so">
+			<Link>runtimes\linux-x64\native\libfreetype.so</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
+		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\arm64-v8a\libfreetype.so" Link="libs\arm64-v8a\libfreetype.so" />
+		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\armeabi-v7a\libfreetype.so" Link="libs\armeabi-v7a\libfreetype.so" />
+		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\x86\libfreetype.so" Link="libs\x86\libfreetype.so" />
+		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\x86_64\libfreetype.so" Link="libs\x86_64\libfreetype.so" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-ios' or '$(TargetFramework)' == 'net6.0-tvos'">
+		<NativeReference Include="..\Dependencies\FreeType2\FreeType2.xcframework">
+			<Kind>Static</Kind>
+			<SmartLink>False</SmartLink>
+			<ForceLoad>True</ForceLoad>
+		</NativeReference>
+
+		<ObjcBindingApiDefinition Include="DummyApiDefinition.cs" />
+		<ObjcBindingCoreSource Include="**\*.cs" Exclude="obj\**\*.cs" />
+	</ItemGroup>
+
+</Project>
