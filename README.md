@@ -74,3 +74,10 @@ Perform the same steps on Linux, copy the published or built project, and transf
 
 ### Sound Sample
 ![Sound Sample](https://github.com/rbnpontes/REngine/blob/main/doc/sound_sample.gif)
+
+### Huge Thanks to Support JetBrains
+
+I want to express my heartfelt gratitude to JetBrains for providing a full license of their products and making my hobby become a reality.
+Purchase JetBrains; it's an incredible product, and as a developer, you won't regret it.
+https://jb.gg/OpenSourceSupport.
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png)
