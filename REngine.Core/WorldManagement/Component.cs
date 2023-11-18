@@ -8,8 +8,8 @@ namespace REngine.Core.WorldManagement
 {
 	public abstract class Component : IDisposable
 	{
-		private bool pEnabled = false;
-		private bool pDisposed = false;
+		private bool pEnabled = true;
+		private bool pDisposed;
 		private Entity? pOwner;
 
 		public bool Enabled 

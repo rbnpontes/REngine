@@ -123,6 +123,24 @@ namespace REngine.Core.WorldManagement
 			set => pSystem.SetScale(this, value);
 		}
 
+		public Vector2 WorldPosition
+		{
+			get
+			{
+				pSystem.GetWorldPosition(this, out var pos);
+				return pos;
+			}
+		}
+
+		public float WorldRotation
+		{
+			get
+			{
+				pSystem.GetWorldRotation(this, out var value);
+				return value;
+			}
+		}
+		
 		public Matrix4x4 TransformMatrix
 		{
 			get
