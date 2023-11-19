@@ -22,8 +22,13 @@ namespace REngine.Sandbox.Samples
 		private readonly Random pRandom = new();
 		private readonly object pSync = new();
 
+		private readonly string pSceneFilePath =
+			Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Scenes/sprite_scene.rscene");
+
 		private readonly Queue<SpriteComponent> pComponents2Remove = new();
 
+		private bool pHasSceneFile;
+		
 		private EntityManager? pEntityManager;
 
 		private IRenderer? pRenderer;
@@ -32,6 +37,12 @@ namespace REngine.Sandbox.Samples
 		private IServiceProvider? pServiceProvider;
 
 		public IWindow? Window { get; set; }
+
+		public EntityComponentSystemSample()
+		{
+			pHasSceneFile = File.Exists(pSceneFilePath);
+		}
+
 		public void Dispose()
 		{
 			pComponents.ForEach(x => x.Owner?.Dispose());
@@ -109,8 +120,10 @@ namespace REngine.Sandbox.Samples
 			ImGui.Begin("Entity Component System Sample");
 
 			RenderSpriteItems();
+			ImGui.Separator();
 			RenderCreateNewSpriteButton();
-
+			ImGui.Separator();
+			RenderEcsSerializerButtons();
 			ImGui.End();
 		}
 
@@ -120,7 +133,7 @@ namespace REngine.Sandbox.Samples
 			lock (pSync)
 			{
 				var components = pComponents.Where(x => x.Owner is not null)
-					.Where(x => ImGui.CollapsingHeader(x.Owner?.Name ?? string.Empty));
+					.Where(x => ImGui.CollapsingHeader((x.Owner?.Name ?? string.Empty) + $" - #EntityID: {x.Owner?.Id ?? -1}"));
 				foreach (var component in components)
 					RenderSpriteProperties(component);
 
@@ -130,16 +143,19 @@ namespace REngine.Sandbox.Samples
 		}
 		private void RenderSpriteProperties(SpriteComponent spriteComponent)
 		{
+			var enabled = spriteComponent.Owner?.Enabled ?? true;
 			var position = spriteComponent.Transform.Position;
 			var rotation = spriteComponent.Transform.Rotation;
 			var scale = spriteComponent.Transform.Scale;
 			var color = spriteComponent.Color.ToVector4();
 
-			ImGui.InputFloat2("Position", ref position);
-			ImGui.InputFloat("Rotation", ref rotation);
-			ImGui.InputFloat2("Scale", ref scale);
+			ImGui.Checkbox("Enabled", ref enabled);
+			ImGui.DragFloat2("Position", ref position);
+			ImGui.DragFloat("Rotation", ref rotation, 0.01f);
+			ImGui.DragFloat2("Scale", ref scale);
 			ImGui.ColorPicker4("Color", ref color);
 
+			if (spriteComponent.Owner != null) spriteComponent.Owner.Enabled = enabled;
 			spriteComponent.Transform.Position = position;
 			spriteComponent.Transform.Rotation = rotation;
 			spriteComponent.Transform.Scale = scale;
@@ -164,6 +180,53 @@ namespace REngine.Sandbox.Samples
 			var rotation = (float)pRandom.NextDouble();
 
 			InstantiateSpriteComponent(new Vector2(x, y), rotation);
+		}
+
+		private void RenderEcsSerializerButtons()
+		{
+			if (pHasSceneFile)
+			{
+				if(ImGui.Button("Load Scene 'sprite_scene.rscene'"))
+					LoadScene();
+			}
+
+			if(ImGui.Button("Save Scene 'sprite_scene.rscene'"))
+				SaveScene();
+		}
+
+		private void LoadScene()
+		{
+			lock (pSync)
+			{
+				pEntityManager?.DestroyAll();
+				pEntityManager?.Load(pSceneFilePath);
+				pComponents.Clear();
+
+				var entities = pEntityManager?.GetEntities() ?? Array.Empty<Entity>();
+				foreach (var entity in entities)
+				{
+					var component = entity.GetComponent<SpriteComponent>();
+					if(component != null)
+						pComponents.Add(component);
+				}
+			}
+		}
+
+		private void SaveScene()
+		{
+			if (!pHasSceneFile)
+			{
+				var dir = Path.GetDirectoryName(pSceneFilePath) ?? string.Empty;
+				if(!Directory.Exists(dir))
+					Directory.CreateDirectory(dir);
+			}
+
+			lock (pSync)
+			{
+				pEntityManager?.Save(pSceneFilePath);
+				if(!pHasSceneFile)
+					pHasSceneFile = true;
+			}
 		}
 
 		public void Update(IServiceProvider provider)

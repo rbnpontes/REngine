@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Resources;
+using REngine.Core.Serialization;
 using REngine.Core.WorldManagement;
 
 namespace REngine.RPI.Components
@@ -17,6 +18,7 @@ namespace REngine.RPI.Components
 		protected readonly Transform2DSystem mTransformSystem;
 
 		protected Transform2D? mTransform;
+		[SerializationIgnore]
 		public Transform2D Transform
 		{
 			get
@@ -59,6 +61,7 @@ namespace REngine.RPI.Components
 	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
 	{
 		public byte TextureSlot { get; set; } = byte.MaxValue;
+		[SerializationIgnore]
 		public BasicSpriteEffect? Effect { get; set; }
 		public Vector2 Anchor { get; set; }
 		public Vector2 Offset { get; set; }
