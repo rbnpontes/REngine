@@ -10,7 +10,7 @@ namespace REngine.Core.WorldManagement
 {
 	public sealed class TransformSerializer : ComponentSerializer<Transform>
 	{
-		struct SerializeData
+		private struct SerializeData
 		{
 			public int RefId;
 			public Vector3 Position;
@@ -36,8 +36,7 @@ namespace REngine.Core.WorldManagement
 
 		public override object OnSerialize(Component component)
 		{
-			Transform? transform = component as Transform;
-			if (transform is null)
+			if (component is not Transform transform)
 				throw new InvalidCastException($"Expected '{nameof(Transform)}' type.");
 
 			return new SerializeData
@@ -46,16 +45,16 @@ namespace REngine.Core.WorldManagement
 				Position = transform.Position,
 				Rotation = transform.Rotation,
 				Scale = transform.Scale,
-				ParentId = transform.Parent != null ? transform.Parent.GetHashCode() : 0
+				ParentId = transform.Parent?.GetHashCode() ?? 0
 			};
 		}
 
-		private Dictionary<int, Transform> pTransformLookup = new Dictionary<int, Transform>();
-		private Queue<SerializeData> pUnresolvedParents = new Queue<SerializeData>();
+		private readonly Dictionary<int, Transform> pTransformLookup = new Dictionary<int, Transform>();
+		private readonly Queue<SerializeData> pUnresolvedParents = new Queue<SerializeData>();
 		public override Component OnDeserialize(object componentData)
 		{
-			SerializeData data = (SerializeData)componentData;
-			Transform transform = pSystem.CreateTransform();
+			var data = (SerializeData)componentData;
+			var transform = pSystem.CreateTransform();
 			transform.Position = data.Position;
 			transform.Rotation = data.Rotation;
 			transform.Scale = data.Scale;
@@ -71,8 +70,8 @@ namespace REngine.Core.WorldManagement
 			{
 				if (data.ParentId == 0)
 					continue;
-				Transform transform = pTransformLookup[data.RefId];
-				Transform parent = pTransformLookup[data.ParentId];
+				var transform = pTransformLookup[data.RefId];
+				var parent = pTransformLookup[data.ParentId];
 				parent.AddChild(transform);
 			}
 			pTransformLookup.Clear();
@@ -86,15 +85,9 @@ namespace REngine.Core.WorldManagement
 
 		public int Id { get; private set; }
 
-		public Transform? Parent
-		{
-			get => pSystem.GetParent(this);
-		}
+		public Transform? Parent => pSystem.GetParent(this);
 
-		public IEnumerable<Transform> Children
-		{
-			get => pSystem.GetChildren(this);
-		}
+		public IEnumerable<Transform> Children => pSystem.GetChildren(this);
 
 		public Vector3 Position
 		{
@@ -103,10 +96,7 @@ namespace REngine.Core.WorldManagement
 				pSystem.GetPosition(this, out var position);
 				return position;
 			}
-			set
-			{
-				pSystem.SetPosition(this, value);
-			}
+			set => pSystem.SetPosition(this, value);
 		}
 
 		public Quaternion Rotation
@@ -116,10 +106,7 @@ namespace REngine.Core.WorldManagement
 				pSystem.GetRotation(this, out var rotation);
 				return rotation;
 			}
-			set
-			{
-				pSystem.SetRotation(this, value);
-			}
+			set => pSystem.SetRotation(this, value);
 		}
 
 		public Vector3 EulerAngles
@@ -129,10 +116,7 @@ namespace REngine.Core.WorldManagement
 				pSystem.GetEulerAngles(this, out var eulerAngles);
 				return eulerAngles;
 			}
-			set
-			{
-				pSystem.SetEulerAngles(this, value);
-			}
+			set => pSystem.SetEulerAngles(this, value);
 		}
 
 		public Vector3 Scale
@@ -142,10 +126,7 @@ namespace REngine.Core.WorldManagement
 				pSystem.GetScale(this, out var scale);
 				return scale;
 			}
-			set
-			{
-				pSystem.SetScale(this, value);
-			}
+			set => pSystem.SetScale(this, value);
 		}
 
 		public Matrix4x4 TransformMatrix
@@ -166,30 +147,17 @@ namespace REngine.Core.WorldManagement
 			}
 		}
 
-		public Vector3 Forward
-		{
-			get => Vector3.Transform(new Vector3(0, 0, +1), Rotation);
-		}
-		public Vector3 Backward
-		{
-			get => Vector3.Transform(new Vector3(0, 0, -1), Rotation);
-		}
-		public Vector3 Up
-		{
-			get => Vector3.Transform(new Vector3(0, +1, 0), Rotation);
-		}
-		public Vector3 Down
-		{
-			get => Vector3.Transform(new Vector3(0, -1, 0), Rotation);
-		}
-		public Vector3 Left
-		{
-			get => Vector3.Transform(new Vector3(-1, 0, 0), Rotation);
-		}
-		public Vector3 Right
-		{
-			get => Vector3.Transform(new Vector3(+1, 0, 0), Rotation);
-		}
+		public Vector3 Forward => Vector3.Transform(new Vector3(0, 0, +1), Rotation);
+
+		public Vector3 Backward => Vector3.Transform(new Vector3(0, 0, -1), Rotation);
+
+		public Vector3 Up => Vector3.Transform(new Vector3(0, +1, 0), Rotation);
+
+		public Vector3 Down => Vector3.Transform(new Vector3(0, -1, 0), Rotation);
+
+		public Vector3 Left => Vector3.Transform(new Vector3(-1, 0, 0), Rotation);
+
+		public Vector3 Right => Vector3.Transform(new Vector3(+1, 0, 0), Rotation);
 
 		internal Transform(TransformSystem transformSystem, int id)
 		{

@@ -48,9 +48,7 @@ namespace REngine.Core.WorldManagement
 
 		public TransformSystem Destroy(Transform transform)
 		{
-			if (transform.IsDisposed)
-				return this;
-			return Destroy(transform.Id);
+			return transform.IsDisposed ? this : Destroy(transform.Id);
 		}
 		public TransformSystem Destroy(int id)
 		{
@@ -72,8 +70,8 @@ namespace REngine.Core.WorldManagement
 					pData[data.ParentId] = parent;
 				}
 
-				var childlist = data.Children;
-				foreach (var child in childlist)
+				var childList = data.Children;
+				foreach (var child in childList)
 				{
 					var childItem = pData[child];
 					// Move child to current parent
@@ -94,10 +92,12 @@ namespace REngine.Core.WorldManagement
 			Transform transform;
 			lock (pSync)
 			{
-				int id = Acquire();
+				var id = Acquire();
 				transform = new Transform(this, id);
-				TransformData data = new TransformData();
-				data.Component = transform;
+				TransformData data = new ()
+				{
+					Component = transform
+				};
 				pData[id] = data;
 			}
 
@@ -344,7 +344,7 @@ namespace REngine.Core.WorldManagement
 #endif
 				var data = pData[id];
 				if (data.ParentId != -1)
-					parent = pData[id].Component;
+					parent = pData[data.ParentId].Component;
 			}
 
 			return parent;
@@ -470,7 +470,7 @@ namespace REngine.Core.WorldManagement
 			ValidateComponent(transform.Id);
 			if (transform.IsDisposed)
 				throw new ObjectDisposedException(nameof(Transform));
-			else if (pData[transform.Id].Component != transform)
+			if (pData[transform.Id].Component != transform)
 				throw new Exception("Invalid Component");
 		}
 
@@ -510,14 +510,17 @@ namespace REngine.Core.WorldManagement
 
 		public IEnumerator<Transform> GetEnumerator()
 		{
-			if (pAvailableIdx.Count == pAvailableIdx.Count)
-				yield break;
-
-			foreach(var data in pData)
+			lock (pSync)
 			{
-				if (data.Component is null)
-					continue;
-				yield return data.Component;
+				if (pAvailableIdx.Count == pData.Length)
+					yield break;
+
+				foreach(var data in pData)
+				{
+					if (data.Component is null)
+						continue;
+					yield return data.Component;
+				}
 			}
 		}
 

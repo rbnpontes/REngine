@@ -29,6 +29,7 @@ namespace REngine.Core
 				.Add<ExecutionPipelineNodeRegistry>()
 				.Add<ComponentSerializerFactory>()
 				.Add<TransformSystem>()
+				.Add<Transform2DSystem>()
 				.Add<CameraSystem>();
 		}
 	}
