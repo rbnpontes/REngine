@@ -35,16 +35,19 @@ namespace REngine.Core.WorldManagement
 		private readonly int pEntityExpansionLength;
 		private readonly ComponentSerializerFactory pSerializerFactory;
 		private readonly ILogger<EntityManager> pLogger;
+		private readonly IServiceProvider pServiceProvider;
 
 		public EntityManager(
 			EngineSettings engineSettings,
 			ILoggerFactory loggerFactory,
-			ComponentSerializerFactory serializerFactory
+			ComponentSerializerFactory serializerFactory,
+			IServiceProvider serviceProvider
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
 			pSerializerFactory = serializerFactory;
 			pLogger = loggerFactory.Build<EntityManager>();
+			pServiceProvider = serviceProvider;
 		}
 
 		public EntityManager Destroy(Entity entity)
@@ -203,6 +206,12 @@ namespace REngine.Core.WorldManagement
 
 		public EntityManager Save(Stream stream)
 		{
+			var jsonSerializer = new JsonSerializerSettings()
+			{
+				Formatting = Formatting.Indented,
+				ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+				ContractResolver = new EntityContractResolver(pServiceProvider)
+			};
 			EntitySerializationData<object> serializerData = new ();
 
 			List<EntityDTO> entities = new();
@@ -259,16 +268,12 @@ namespace REngine.Core.WorldManagement
 
 			using (TextWriter writer = new StreamWriter(stream))
 			{
-				MemoryTraceWriter traceWritter = new();
+				MemoryTraceWriter traceWriter = new();
+				jsonSerializer.TraceWriter = traceWriter;
 				writer.Write(
-					JsonConvert.SerializeObject(serializerData, new JsonSerializerSettings 
-					{
-						Formatting = Formatting.Indented,
-						ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-						TraceWriter = traceWritter
-					})
+					JsonConvert.SerializeObject(serializerData, jsonSerializer)
 				);
-				pLogger.Debug(traceWritter);
+				pLogger.Debug(traceWriter);
 			}
 
 			serializerData.Entities = Array.Empty<EntityDTO>();
@@ -282,12 +287,18 @@ namespace REngine.Core.WorldManagement
 
 		public EntityManager Load(Stream stream)
 		{
-			string json = string.Empty;
+			var jsonSerializer = new JsonSerializer()
+			{
+				ContractResolver = new EntityContractResolver(pServiceProvider),
+				NullValueHandling = NullValueHandling.Ignore,
+			};
+
+			string json;
 			using (TextReader reader = new StreamReader(stream))
 				json = reader.ReadToEnd();
 
 			MemoryTraceWriter traceWriter = new();
-			EntitySerializationData<JObject> serializerData = JsonConvert.DeserializeObject<EntitySerializationData<JObject>>(json, new JsonSerializerSettings { 
+			var serializerData = JsonConvert.DeserializeObject<EntitySerializationData<JObject>>(json, new JsonSerializerSettings { 
 				TraceWriter = traceWriter
 			});
 			pLogger.Debug(traceWriter);
@@ -297,9 +308,7 @@ namespace REngine.Core.WorldManagement
 			Dictionary<ulong, Component[]> createdComponents = new();
 			foreach(var componentPair in serializerData.Components)
 			{
-				var serializer = pSerializerFactory.FindSerializer(componentPair.Key);
-				if (serializer is null)
-					serializer = pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
+				var serializer = pSerializerFactory.FindSerializer(componentPair.Key) ?? pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
 
 				if (serializer is null)
 					throw new EntityException("Not found serializer while is deserializing components");
@@ -309,7 +318,7 @@ namespace REngine.Core.WorldManagement
 				Component[] components = new Component[componentPair.Value.Count];
 				for(int i =0; i < componentPair.Value.Count; i++)
 				{
-					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType());
+					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType(), jsonSerializer);
 					if (data is null)
 						throw new NullReferenceException($"Can´t deserialize component data type '{serializer.GetSerializeType().Name}'");
 					components[i] = serializer.OnDeserialize(data);
