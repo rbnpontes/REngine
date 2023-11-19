@@ -12,5 +12,7 @@ namespace REngine.RPI
 		public ITexture GetDummyTexture();
 		public ITexture Allocate(uint width, uint height);
 		public ITexture Allocate(uint width, uint height, TextureFormat format);
+		public ITexture AllocateDepth(uint width, uint height);
+		public ITexture AllocateDepth(uint width, uint height, TextureFormat format);
 	}
 }

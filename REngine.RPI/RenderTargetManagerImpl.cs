@@ -136,6 +136,22 @@ namespace REngine.RPI
 			return wrapper;
 		}
 
+		public ITexture AllocateDepth(uint width, uint height)
+		{
+			return Allocate(width, height, pGraphicsSettings.DefaultColorFormat);
+		}
+		public ITexture AllocateDepth(uint width, uint height, TextureFormat format)
+		{
+			GetDesc(width, height, format, out var desc);
+			desc.BindFlags = BindFlags.ShaderResource | BindFlags.DepthStencil;
+			var texture = GetDevice().CreateTexture(desc);
+			var wrapper = new TextureWrapper(texture, this);
+			var node = pRenderTargets.AddLast(wrapper);
+			wrapper.Node = node;
+
+			pLogger.Info($"Allocated Depth Buffer({width}x{height}:{format})");
+			return wrapper;
+		}
 		private ITexture AllocateDummyTexture()
 		{
 			GetDesc(1, 1, pGraphicsSettings.DefaultColorFormat, out var desc);

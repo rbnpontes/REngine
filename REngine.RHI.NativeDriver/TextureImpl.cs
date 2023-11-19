@@ -54,7 +54,9 @@ namespace REngine.RHI.NativeDriver
 			rengine_texture_getdefaultview(Handle, (byte)view, ref result);
 			
 			if(result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default view {view}. Texture View is null");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default viewType {view}. Texture View is null");
+
+			ValidateTextureView(view, result.value);
 
 			texView = ObjectRegistry.Acquire(result.value) as TextureViewImpl;
 
@@ -90,6 +92,11 @@ namespace REngine.RHI.NativeDriver
 			return result;
 		}
 
+		public static void ValidateTextureView(TextureViewType viewType, IntPtr texView)
+		{
+			if(texView == IntPtr.Zero)
+				throw new NullReferenceException($"There´s no default viewType for '{viewType}'.");
+		}
 		public static TextureDesc GetObjectDesc(IntPtr ptr)
 		{
 			TextureDescDTO desc = new();

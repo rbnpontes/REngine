@@ -58,7 +58,7 @@ namespace REngine.RPI.RenderGraph
 			var value = DepthBufferResource?.Value;
 			feature.DepthBuffer = value switch
 			{
-				ITexture texture => texture.GetDefaultView(TextureViewType.RenderTarget),
+				ITexture texture => texture.GetDefaultView(TextureViewType.DepthStencil),
 				ITextureView textureView => textureView,
 				_ => feature.DepthBuffer
 			};
