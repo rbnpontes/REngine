@@ -19,6 +19,8 @@ namespace REngine.Core
 		public static readonly string PipelineCachePath = Path.Combine(AppDataPath, "pipeline-cache.bin");
 		public static readonly string PipelineItemsPath = Path.Combine(AppDataPath, "pipelines.rcache");
 
+		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+		public static readonly string AssetsShadersPath = Path.Join(AssetsPath, "Shaders");
 		/// <summary>
 		/// Defines initial available entity slots
 		/// </summary>
