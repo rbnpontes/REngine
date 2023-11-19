@@ -122,15 +122,15 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		protected override void OnSetup(in RenderFeatureSetupInfo execInfo)
+		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
 		{
-			var buffer = execInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
+			var buffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
 
 			if(pFontTexture is null || (pDirtyFlags & DirtyFlags.FontTexture) != 0)
 			{
 				pFontTexture?.Dispose();
 				
-				var fontTexture = CreateFontTexture(execInfo.Driver.Device);
+				var fontTexture = CreateFontTexture(setupInfo.Driver.Device);
 				pFontTexture = fontTexture;
 				pFontTextureView = fontTexture.GetDefaultView(TextureViewType.ShaderResource);
 				
@@ -142,7 +142,7 @@ namespace REngine.RPI.Features
 				pResourceBinding?.Dispose();
 				pPipeline?.Dispose();
 
-				var pipeline = CreatePipelineState(execInfo.PipelineStateManager, execInfo.ShaderManager);
+				var pipeline = CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager);
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
@@ -152,7 +152,7 @@ namespace REngine.RPI.Features
 				pDirtyFlags ^= DirtyFlags.Pipeline;
 			}
 
-			pDevice = execInfo.Driver.Device;
+			pDevice = setupInfo.Driver.Device;
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
