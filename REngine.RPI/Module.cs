@@ -32,6 +32,7 @@ namespace REngine.RPI
 				.Register<RenderTargetNode>()
 				.Register<ColorBufferNode>()
 				.Register<DepthBufferNode>()
+				.Register<ClearNode>()
 				.Register<CopyRenderTargetNode>()
 				.Register<GrayScalePostProcessNode>();
 #endif
