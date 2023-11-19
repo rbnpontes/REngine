@@ -8,7 +8,7 @@ using REngine.RPI.RenderGraph.Annotations;
 
 namespace REngine.RPI.RenderGraph
 {
-	[NodeTag("copy-rt")]
+	[NodeTag("copy")]
 	public class CopyRenderTargetNode : PostProcessNode
 	{
 		private readonly CopyRenderTargetFeature pFeature = new();
