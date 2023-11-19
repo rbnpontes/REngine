@@ -10,19 +10,11 @@ namespace REngine.RPI.Features
 {
 	public class CopyRenderTargetFeature : PostProcessFeature
 	{
-		private readonly ShaderStream pShaderCode = new FileShaderStream(
-			Path.Join(EngineSettings.AssetsShadersPath, "copy_rt_ps.hlsl")
-		);
-
-		protected override void OnDispose()
-		{
-			base.OnDispose();
-			pShaderCode.Dispose();
-		}
-
 		protected override ShaderStream OnGetShaderCode()
 		{
-			return pShaderCode;
+			return new FileShaderStream(
+				Path.Join(EngineSettings.AssetsShadersPath, "copy_rt_ps.hlsl")
+			);
 		}
 	}
 }

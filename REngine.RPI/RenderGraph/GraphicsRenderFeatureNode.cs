@@ -34,14 +34,34 @@ namespace REngine.RPI.RenderGraph
 
 			if(GetFeature() is IGraphicsRenderFeature feature)
 			{
-				if (BackBufferResource != null && BackBufferResource.Value?.ObjectType == GPUObjectType.TextureView)
-					feature.BackBuffer = (ITextureView)BackBufferResource.Value;
-				if(DepthBufferResource != null && DepthBufferResource.Value?.ObjectType == GPUObjectType.TextureView)
-					feature.DepthBuffer = (ITextureView)DepthBufferResource.Value;
+				TrySetBackBuffer(feature);
+				TrySetDepthBuffer(feature);
 				pDirtyBindings = false;
 			}
 
 			base.OnExecute(command);
+		}
+
+		private void TrySetBackBuffer(IGraphicsRenderFeature feature)
+		{
+			var value = BackBufferResource?.Value;
+			feature.BackBuffer = value switch
+			{
+				ITexture texture => texture.GetDefaultView(TextureViewType.RenderTarget),
+				ITextureView textureView => textureView,
+				_ => feature.BackBuffer
+			};
+		}
+
+		private void TrySetDepthBuffer(IGraphicsRenderFeature feature)
+		{
+			var value = DepthBufferResource?.Value;
+			feature.DepthBuffer = value switch
+			{
+				ITexture texture => texture.GetDefaultView(TextureViewType.RenderTarget),
+				ITextureView textureView => textureView,
+				_ => feature.DepthBuffer
+			};
 		}
 
 		protected override void OnAddWriteResource(ulong resourceSlotId, IResource resource)

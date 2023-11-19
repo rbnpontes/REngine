@@ -130,7 +130,8 @@ namespace REngine.Sandbox
 						nativeWindow,
 						new SwapChainDesc(graphicsSettings)
 						{
-							Size = new SwapChainSize(window.Size)
+							Size = new SwapChainSize(window.Size),
+							Usage = SwapChainUsage.RenderTarget
 						}, out swapChain);
 
 					Logger.Info("GraphicsBackend: " + driverSettings.Backend);

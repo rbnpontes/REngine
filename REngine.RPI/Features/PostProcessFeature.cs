@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.Core.IO;
 using REngine.RHI;
 using REngine.RPI.Constants;
@@ -11,26 +12,23 @@ namespace REngine.RPI.Features
 {
 	public abstract class PostProcessFeature : BaseRenderFeature
 	{
-		private static readonly ShaderStream sVertexShaderCode = new FileShaderStream(
-			Path.Join(AppDomain.CurrentDomain.BaseDirectory,"Assets/Shaders/postprocess_vs.hlsl")	
-		);
-
-		private ITexture? pReadTexture;
+		private ITextureView? pReadTexture;
 		private ITextureView? pWriteRenderTarget;
 		private ITextureView? pDepthStencil;
 
 		private IPipelineState? pPipeline;
 		private IShaderResourceBinding? pBinding;
 
-		public ITexture? ReadTexture
+		public ITextureView? ReadTexture
 		{
 			get => pReadTexture;
 			set
 			{
-				if(value == pReadTexture) return;
+				if(value == pReadTexture) 
+					return;
 
 				if(value != null)
-					pBinding?.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, value.GetDefaultView(TextureViewType.ShaderResource));
+					pBinding?.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, value);
 				pReadTexture = value;
 			}
 		}
@@ -45,7 +43,7 @@ namespace REngine.RPI.Features
 			}
 		}
 
-		public override bool IsDirty { get; protected set; }
+		public override bool IsDirty { get; protected set; } = true;
 
 		public override IRenderFeature MarkAsDirty()
 		{
@@ -66,11 +64,13 @@ namespace REngine.RPI.Features
 			pPipeline = OnBuildPipelineState(setupInfo);
 			pBinding = pPipeline.CreateResourceBinding();
 
-			pReadTexture ??= setupInfo.RenderTargetManager.GetDummyTexture();
+			pReadTexture ??= setupInfo.RenderTargetManager.GetDummyTexture().GetDefaultView(TextureViewType.ShaderResource);
 			pWriteRenderTarget ??= setupInfo.Renderer.SwapChain?.ColorBuffer;
 			pDepthStencil = setupInfo.Renderer.SwapChain?.DepthBuffer;
 
 			OnSetBindings(pBinding, setupInfo.BufferManager);
+
+			IsDirty = false;
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
@@ -104,7 +104,7 @@ namespace REngine.RPI.Features
 			desc.Output.DepthStencilFormat = setupInfo.GraphicsSettings.DefaultDepthFormat;
 			desc.BlendState.BlendMode = BlendMode.Replace;
 			desc.PrimitiveType = PrimitiveType.TriangleList;
-			desc.RasterizerState.CullMode = CullMode.Front;
+			desc.RasterizerState.CullMode = CullMode.Back;
 			desc.DepthStencilState.EnableDepth = false;
 
 			desc.Shaders.VertexShader = vsShader;
@@ -121,19 +121,22 @@ namespace REngine.RPI.Features
 			{
 				Type = shaderType
 			};
+			ShaderStream shaderStream; 
 
 			switch (shaderType)
 			{
 				case ShaderType.Vertex:
 				{
 					shaderCI.Name = "PostProcess Vertex Shader";
-					shaderCI.SourceCode = sVertexShaderCode.GetShaderCode();
+					shaderStream = new FileShaderStream(
+						Path.Join(EngineSettings.AssetsShadersPath, "postprocess_vs.hlsl")
+					);
 				}
 					break;
 				case ShaderType.Pixel:
 				{
 					shaderCI.Name = "PostProcess Pixel Shader";
-					shaderCI.SourceCode = OnGetShaderCode().GetShaderCode();
+					shaderStream = OnGetShaderCode();
 				}
 					break;
 				case ShaderType.Compute:
@@ -143,6 +146,9 @@ namespace REngine.RPI.Features
 				default:
 					throw new NotImplementedException(shaderType.ToString());
 			}
+
+			shaderCI.SourceCode = shaderStream.GetShaderCode();
+			shaderStream.Dispose();
 
 			return shaderManager.GetOrCreate(shaderCI);
 		}
@@ -160,7 +166,7 @@ namespace REngine.RPI.Features
 		{
 			binding.Set(ShaderTypeFlags.Vertex,ConstantBufferNames.Frame, bufferManager.GetBuffer(BufferGroupType.Frame));
 			if(pReadTexture != null)
-				binding.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pReadTexture.GetDefaultView(TextureViewType.ShaderResource));
+				binding.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pReadTexture);
 		}
 		protected abstract ShaderStream OnGetShaderCode();
 	}

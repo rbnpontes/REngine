@@ -48,6 +48,8 @@ namespace REngine.RHI.NativeDriver
 
 			if (result.error != IntPtr.Zero)
 				throw new NullReferenceException(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default view {view}. Texture View is null");
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException($"There´s no default view for '{view}'.");
 			return new TextureViewWrapper(result.value);
 		}
 	}

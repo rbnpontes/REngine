@@ -26,8 +26,35 @@ namespace REngine.RPI.RenderGraph
 		protected override void OnRun(IServiceProvider provider)
 		{
 			pFeature ??= GetPostProcessFeature();
-			pFeature.ReadTexture = (ITexture?)pReadTexture?.Value;
-			pFeature.WriteRT = (ITextureView?)BackBufferResource?.Value;
+			if (pReadTexture?.Value != null)
+			{
+				var readTexture = pReadTexture.Value switch
+				{
+					ITexture value => value.GetDefaultView(TextureViewType.ShaderResource),
+					ITextureView valueView => valueView,
+					_ => null
+				};
+
+				pFeature.ReadTexture = readTexture;
+			}
+
+			if (BackBufferResource?.Value != null)
+			{
+				var writeRt = BackBufferResource.Value switch
+				{
+					ITexture value => value.GetDefaultView(TextureViewType.RenderTarget),
+					ITextureView valueView => valueView,
+					_ => null
+				};
+
+				// Same case of Read Texture
+				// In this case, we must get RenderTarget view type instead
+				if(writeRt?.ViewType != TextureViewType.RenderTarget)
+					writeRt = writeRt?.Parent.GetDefaultView(TextureViewType.RenderTarget);
+
+				pFeature.WriteRT = writeRt;
+			}
+
 			base.OnRun(provider);
 		}
 
@@ -37,7 +64,43 @@ namespace REngine.RPI.RenderGraph
 				return;
 
 			pReadTexture = resource;
+			if (resource.Value == null) 
+				return;
+			var value = resource.Value;
+			switch (value)
+			{
+				case ITexture tex:
+				{
+					if((tex.Desc.BindFlags & BindFlags.ShaderResource) == 0)
+						ThrowInvalidResource();
+					break;
+				}
+				case ITextureView texView:
+				{
+					if(texView.Desc.ViewType != TextureViewType.ShaderResource)
+						ThrowInvalidResource();
+					break;
+				}
+			}
+
+			return;
+
+			static void ThrowInvalidResource()
+			{
+				throw new InvalidOperationException(
+					$"Expected {nameof(ITexture)} or {nameof(ITextureView)} as resource");
+			}
 		}
+
+		protected override void OnAddWriteResource(ulong resourceSlotId, IResource resource)
+		{
+			resource.ValueChanged += (s, e) =>
+			{
+				System.Diagnostics.Debugger.Break();
+			};
+			base.OnAddWriteResource(resourceSlotId, resource);
+		}
+
 		protected override IEnumerable<ulong> GetExpectedReadResourceSlots()
 		{
 			return sExpectedReadResources;

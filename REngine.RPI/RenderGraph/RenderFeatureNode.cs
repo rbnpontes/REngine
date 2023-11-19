@@ -12,11 +12,14 @@ namespace REngine.RPI.RenderGraph
 {
 	public abstract class RenderFeatureNode : ExecutableGraphNode
 	{
-		private IBufferManager? pBufferProvider;
+		private IBufferManager? pBufferMgr;
 		private IRenderer? pRenderer;
 		private IRenderFeature? pFeature;
 		private IPipelineStateManager? pPipelineMgr;
 		private IShaderManager? pShaderMgr;
+		private IRenderTargetManager? pRenderTargetMgr;
+		private GraphicsSettings? pGraphicsSettings;
+		private RenderState? pRenderState;
 
 		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
@@ -27,27 +30,34 @@ namespace REngine.RPI.RenderGraph
 		protected override void OnRun(IServiceProvider provider)
 		{
 			pFeature ??= GetFeature();
-			pBufferProvider ??= provider.Get<IBufferManager>();
+			pBufferMgr ??= provider.Get<IBufferManager>();
 			pRenderer ??= provider.Get<IRenderer>();
 			pPipelineMgr ??= provider.Get<IPipelineStateManager>();
 			pShaderMgr ??= provider.Get<IShaderManager>();
+			pRenderTargetMgr ??= provider.Get<IRenderTargetManager>();
+			pGraphicsSettings ??= provider.Get<GraphicsSettings>();
+			pRenderState ??= provider.Get<RenderState>();
 
 			base.OnRun(provider);
 		}
 
 		protected override void OnCompile(IDevice device, ICommandBuffer command)
 		{
-			if (pBufferProvider is null || pRenderer is null || pPipelineMgr is null || pShaderMgr is null)
+			if (pBufferMgr is null || pRenderer is null || pPipelineMgr is null || pShaderMgr is null)
 				return;
 
-			RenderFeatureSetupInfo setupInfo = new()
-			{
-				Driver = Driver,
-				BufferManager = pBufferProvider,
-				Renderer = pRenderer,
-				PipelineStateManager = pPipelineMgr,
-				ShaderManager = pShaderMgr
-			};
+			// TODO: refactor this to a better approach because
+			// when occurs next refactor this will break
+			RenderFeatureSetupInfo setupInfo = new(
+				Driver,
+				pRenderer,
+				pBufferMgr,
+				pPipelineMgr,
+				pShaderMgr,
+				pRenderTargetMgr,
+				pGraphicsSettings,
+				pRenderState
+			);
 
 			var feature = pFeature;
 			if (feature is null)
