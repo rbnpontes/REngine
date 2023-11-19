@@ -11,9 +11,30 @@ namespace REngine.Core.Serialization
 {
 	internal class CoreContractResolver : DefaultContractResolver
 	{
-		private static readonly CoreContractResolver sInstance = new CoreContractResolver();
-		public static CoreContractResolver Instance { get => sInstance; }
+		public static CoreContractResolver Instance { get; } = new();
+
+		public IServiceProvider? ServiceProvider { get; set; }
+
 		private CoreContractResolver() { }
+
+		private CoreContractResolver(IServiceProvider serviceProvider)
+		{
+			ServiceProvider = serviceProvider;
+		}
+
+		protected override JsonObjectContract CreateObjectContract(Type objectType)
+		{
+			if(ServiceProvider is null)
+				return base.CreateObjectContract(objectType);
+
+			var target = ServiceProvider.GetService(objectType);
+			if(target is null)
+				return base.CreateObjectContract(objectType);
+
+			var contract = base.CreateObjectContract(objectType);
+			contract.DefaultCreator = () => target;
+			return contract;
+		}
 
 		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
 		{
@@ -21,6 +42,11 @@ namespace REngine.Core.Serialization
 			if (member.GetCustomAttribute<SerializationIgnoreAttribute>() != null)
 				property.ShouldSerialize = property.ShouldDeserialize = (instance) => false;
 			return property;
+		}
+
+		public static CoreContractResolver Build(IServiceProvider provider)
+		{
+			return new CoreContractResolver(provider);
 		}
 	}
 }

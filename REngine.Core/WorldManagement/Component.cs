@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Serialization;
 
 namespace REngine.Core.WorldManagement
 {
@@ -12,6 +13,7 @@ namespace REngine.Core.WorldManagement
 		private bool pDisposed;
 		private Entity? pOwner;
 
+		[SerializationIgnore]
 		public bool Enabled 
 		{
 			get 
@@ -31,12 +33,14 @@ namespace REngine.Core.WorldManagement
 			}
 		}
 
+		[SerializationIgnore]
 		public Entity? Owner 
 		{
 			get => pOwner;
 			internal set => AttachEntity(value);
 		}
 
+		[SerializationIgnore]
 		public bool IsDisposed { get => pDisposed; }
 
 		public Component()
