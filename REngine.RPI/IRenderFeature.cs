@@ -14,19 +14,29 @@ namespace REngine.RPI
 		public IBufferManager BufferManager;
 		public IPipelineStateManager PipelineStateManager;
 		public IShaderManager ShaderManager;
+		public IRenderTargetManager RenderTargetManager;
+		public GraphicsSettings GraphicsSettings;
+		public RenderState RenderState;
 
 		public RenderFeatureSetupInfo(
 			IGraphicsDriver driver, 
 			IRenderer renderer, 
 			IBufferManager bufferMgr,
 			IPipelineStateManager pipelineStateMgr,
-			IShaderManager shaderMgr)
+			IShaderManager shaderMgr,
+			IRenderTargetManager renderTargetMgr,
+			GraphicsSettings graphicsSettings,
+			RenderState renderState
+			)
 		{
 			Driver = driver;
 			Renderer = renderer;
 			BufferManager = bufferMgr;
 			PipelineStateManager = pipelineStateMgr;
 			ShaderManager = shaderMgr;
+			GraphicsSettings = graphicsSettings;
+			RenderState = renderState;
+			RenderTargetManager = renderTargetMgr;
 		}
 	}
 

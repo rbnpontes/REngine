@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace REngine.RPI
 {
-	internal class BufferManager : IDisposable, IBufferManager
+	internal class BufferManagerImpl : IDisposable, IBufferManager
 	{
 		private ILogger<IBufferManager> pLogger;
 		private bool pDisposed = false;
@@ -24,7 +24,7 @@ namespace REngine.RPI
 
 		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
 
-		public BufferManager(
+		public BufferManagerImpl(
 			EngineEvents engineEvents, 
 			RPIEvents rpiEvents,
 			ILogger<IBufferManager> logger,

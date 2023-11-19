@@ -19,46 +19,31 @@ namespace REngine.RPI
 {
 	internal class RendererImpl : IRenderer
 	{
-		[Flags]
-		public enum BufferUpdateFlags
-		{
-			None = 0,
-			Fixed = 1 << 0,
-			Frame = 1 << 1,
-			Object = 1 << 2,
-			All = Fixed | Frame | Object
-		}
-
-		class RenderFeatureEntry
-		{
-			public int ZIndex { get; set; }
-			public IRenderFeature Feature { get; set; }
-
-			public RenderFeatureEntry(IRenderFeature feature)
-			{
-				Feature = feature;
-			}
-		}
-
 		private readonly IServiceProvider pProvider;
 		private readonly ILogger<IRenderer> pLogger;
 		private readonly RPIEvents pRenderEvents;
 		private readonly RenderState pRenderState;
+		private readonly GraphicsSettings pGraphicsSettings;
+
+		#region Managers
 		private readonly IBufferManager pBufferProvider;
 		private readonly IPipelineStateManager pPipelineMgr;
 		private readonly IShaderManager pShaderMgr;
+		private readonly IRenderTargetManager pRenderTargetMgr;
+		#endregion
+
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly IEngine pEngine;
 
 #if RENGINE_RENDERGRAPH
 		private RenderGraph.IResourceManager? pRenderGraphResMgr;
-		private RenderGraph.IResource? pMainBackbufferResource;
-		private RenderGraph.IResource? pMainDepthbufferResource;
+		private RenderGraph.IResource? pMainBackBufferResource;
+		private RenderGraph.IResource? pMainDepthBufferResource;
 #endif
-		private IExecutionPipelineVar pNeedsPrepareVar;
+		private readonly IExecutionPipelineVar pNeedsPrepareVar;
 
-		private readonly FeatureCollection pFeatureCollection = new FeatureCollection();
+		private readonly FeatureCollection pFeatureCollection = new();
 
 		private IGraphicsDriver? pDriver;
 		private bool pDisposed = false;
@@ -91,8 +76,10 @@ namespace REngine.RPI
 			IBufferManager bufferProvider,
 			IPipelineStateManager pipelineMgr,
 			IShaderManager shaderMgr,
+			IRenderTargetManager renderTargetMgr,
 			IExecutionPipeline pipeline,
-			IEngine engine)
+			IEngine engine,
+			GraphicsSettings graphicsSettings)
 		{
 			pProvider = provider;
 			pLogger = logger;
@@ -102,13 +89,16 @@ namespace REngine.RPI
 			pBufferProvider = bufferProvider;
 			pPipelineMgr = pipelineMgr;
 			pShaderMgr = shaderMgr;
+			pRenderTargetMgr = renderTargetMgr;
 			pExecutionPipeline = pipeline;
 			pEngine = engine;
+			pGraphicsSettings = graphicsSettings;
 
 			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeforeStop += HandleEngineStop;
+			this.pGraphicsSettings = pGraphicsSettings;
 		}
 
 		private void HandleEngineStop(object? sender, EventArgs e)
@@ -165,12 +155,15 @@ namespace REngine.RPI
 
 			pNeedsPrepareVar.Value = pFeatureCollection.NeedsPrepare;
 
-			RenderFeatureSetupInfo setupInfo = new RenderFeatureSetupInfo(
+			RenderFeatureSetupInfo setupInfo = new(
 				pDriver,
 				this,
 				pBufferProvider,
 				pPipelineMgr,
-				pShaderMgr
+				pShaderMgr,
+				pRenderTargetMgr,
+				pGraphicsSettings,
+				pRenderState
 			);
 
 			foreach(var feature in pFeatureCollection)
@@ -190,7 +183,7 @@ namespace REngine.RPI
 			if (pDisposed || pDriver is null)
 				return this;
 			
-			// if swap chain has been setted, then we must clear
+			// if swap chain has been set, then we must clear
 			if(pSwapChain != null)
 			{
 				var swapChainSize = pSwapChain.Size;
@@ -205,13 +198,13 @@ namespace REngine.RPI
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
 
 #if RENGINE_RENDERGRAPH
-				if (pMainBackbufferResource is null)
-					throw new EngineFatalException("Main Backbuffer Resource is null. It seems IRenderer does not filled this field");
-				if (pMainDepthbufferResource is null)
-					throw new EngineFatalException("Main Depthbuffer Resource is null. It seems IRenderer does not filled this field");
+				if (pMainBackBufferResource is null)
+					throw new EngineFatalException("Main BackBuffer Resource is null. It seems IRenderer does not filled this field");
+				if (pMainDepthBufferResource is null)
+					throw new EngineFatalException("Main DepthBuffer Resource is null. It seems IRenderer does not filled this field");
 				
-				pMainBackbufferResource.Value = colorBuffer;
-				pMainDepthbufferResource.Value = pSwapChain.DepthBuffer;
+				pMainBackBufferResource.Value = colorBuffer;
+				pMainDepthBufferResource.Value = pSwapChain.DepthBuffer;
 #endif
 			}
 
@@ -235,12 +228,6 @@ namespace REngine.RPI
 				pLogger.Debug("Render Prepare Finished");
 			}
 			return this;
-		}
-
-		private void AssertDispose()
-		{
-			if (pDisposed)
-				throw new ObjectDisposedException("IRenderer has been disposed.");
 		}
 
 		private void UpdateSwapChain(ISwapChain? swapChain)
@@ -272,12 +259,14 @@ namespace REngine.RPI
 		{
 			pLogger.Debug("Updating Fixed Buffer Data");
 
-			Matrix4x4 proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
+			var proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
 			proj.M33 = proj.M43 = 0.5f;
+			Matrix4x4.Invert(proj, out var invProj);
 
 			pRenderState.FrameData = new FrameData
 			{
 				ScreenProjection = proj,
+				InvScreenProjection = invProj,
 				ScreenWidth = size.Width,
 				ScreenHeight = size.Height,
 				DeltaTime = (float)pEngine.DeltaTime,
@@ -324,14 +313,14 @@ namespace REngine.RPI
 			pRenderEvents.ExecuteReady(this, pDriver);
 
 			if (swapChain is null)
-				pLogger.Warning("ISwapChain has not been setted on IRenderer, you must set a SwapChain to fully work IRenderer.");
+				pLogger.Warning("ISwapChain has not been set on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
 				UpdateSwapChain(swapChain);
 
 #if RENGINE_RENDERGRAPH
 			pRenderGraphResMgr = pProvider.Get<RenderGraph.IResourceManager>();
-			pMainBackbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainBackbufferResourceName);
-			pMainDepthbufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainDepthbufferResourceName);
+			pMainBackBufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainBackbufferResourceName);
+			pMainDepthBufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainDepthbufferResourceName);
 #endif
 
 			pExecutionPipeline

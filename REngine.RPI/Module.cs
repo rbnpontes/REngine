@@ -46,7 +46,8 @@ namespace REngine.RPI
 				)
 				.Add<IShaderManager, ShaderManagerImpl>()
 				.Add<IPipelineStateManager, PipelineStateManagerImpl>()
-				.Add<IBufferManager, BufferManager>()
+				.Add<IBufferManager, BufferManagerImpl>()
+				.Add<IRenderTargetManager, RenderTargetManagerImpl>()
 				.Add<IRenderer, RendererImpl>()
 				.Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
