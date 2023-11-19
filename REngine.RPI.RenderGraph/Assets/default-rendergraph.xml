@@ -2,8 +2,6 @@
 <render-graph>
 	<input id="@engine/backbuffer" type="RenderTarget"/>
 	<input id="@engine/depthbuffer" type="RenderTarget"/>
-	<render-target id="@resources/copy-rt" />
-	
 	<var id="@vars/@spritebatch/enabled" type="bool" value="false"/>
 
 	<if test="@vars/spritebatch/enabled">
