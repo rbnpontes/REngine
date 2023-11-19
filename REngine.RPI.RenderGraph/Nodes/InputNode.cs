@@ -6,14 +6,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 namespace REngine.RPI.RenderGraph.Nodes
 {
 	[NodeTag("input")]
 	public sealed class InputNode : RenderGraphNode
 	{
-		const string InputIdPropertyKey = "id";
-		const string InputTypePropertyKey = "type";
+		const string IdPropertyKey = "id";
+		const string TypePropertyKey = "type";
+
+		private static readonly ulong IdPropHash = Hash.Digest(IdPropertyKey);
+		private static readonly ulong TypePropHash = Hash.Digest(TypePropertyKey);
 
 		private string pId = string.Empty;
 
@@ -24,12 +28,12 @@ namespace REngine.RPI.RenderGraph.Nodes
 		{
 		}
 
-		protected override void OnSetup(IDictionary<int, string> properties)
+		protected override void OnSetup(IDictionary<ulong, string> properties)
 		{
-			if (!properties.TryGetValue(InputIdPropertyKey.GetHashCode(), out string? id))
-				throw new RequiredNodePropertyException(InputIdPropertyKey, nameof(InputNode));
-			if (!properties.TryGetValue(InputTypePropertyKey.GetHashCode(), out string? type))
-				throw new RequiredNodePropertyException(InputTypePropertyKey, nameof(InputNode));
+			if (!properties.TryGetValue(IdPropHash, out string? id))
+				throw new RequiredNodePropertyException(IdPropertyKey, nameof(InputNode));
+			if (!properties.TryGetValue(TypePropHash, out string? type))
+				throw new RequiredNodePropertyException(TypePropertyKey, nameof(InputNode));
 
 			string[] typeParts = type.Split('|');
 			foreach(var typePart in typeParts)

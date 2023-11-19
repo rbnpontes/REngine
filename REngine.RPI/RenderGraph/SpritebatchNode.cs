@@ -12,10 +12,10 @@ namespace REngine.RPI.RenderGraph
 	[NodeTag("spritebatch-pass")]
 	public class SpritebatchNode : GraphicsRenderFeatureNode
 	{
-		private static readonly int[] ExpectedWriteResources =
+		private static readonly ulong[] sExpectedWriteResources =
 		{
-			BackbufferSlotName.GetHashCode(),
-			DepthbufferSlotName.GetHashCode()
+			BackBufferSlotHash,
+			DepthBufferSlotHash
 		};
 
 		private IRenderFeature? pFeature;
@@ -36,9 +36,9 @@ namespace REngine.RPI.RenderGraph
 			return pFeature;
 		}
 
-		protected override IEnumerable<int> GetExpectedWriteResourceSlots()
+		protected override IEnumerable<ulong> GetExpectedWriteResourceSlots()
 		{
-			return ExpectedWriteResources;
+			return sExpectedWriteResources;
 		}
 	}
 }

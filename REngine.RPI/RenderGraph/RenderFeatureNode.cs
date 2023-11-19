@@ -20,22 +20,17 @@ namespace REngine.RPI.RenderGraph
 
 		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
-		public RenderFeatureNode(string debugName) : base(debugName)
+		protected RenderFeatureNode(string debugName) : base(debugName)
 		{
 		}
 
 		protected override void OnRun(IServiceProvider provider)
 		{
-			if(pFeature is null)
-				pFeature = GetFeature();
-			if (pBufferProvider is null)
-				pBufferProvider = provider.Get<IBufferManager>();
-			if(pRenderer is null)
-				pRenderer = provider.Get<IRenderer>();
-			if(pPipelineMgr is null)
-				pPipelineMgr = provider.Get<IPipelineStateManager>();
-			if (pShaderMgr is null)
-				pShaderMgr = provider.Get<IShaderManager>();
+			pFeature ??= GetFeature();
+			pBufferProvider ??= provider.Get<IBufferManager>();
+			pRenderer ??= provider.Get<IRenderer>();
+			pPipelineMgr ??= provider.Get<IPipelineStateManager>();
+			pShaderMgr ??= provider.Get<IShaderManager>();
 
 			base.OnRun(provider);
 		}
@@ -57,11 +52,11 @@ namespace REngine.RPI.RenderGraph
 			var feature = pFeature;
 			if (feature is null)
 				return;
-			if(feature.IsDirty)
-			{
-				feature.Setup(setupInfo);
-				feature.Compile(command);
-			}
+			if (!feature.IsDirty)
+				return;
+
+			feature.Setup(setupInfo);
+			feature.Compile(command);
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
@@ -77,14 +72,14 @@ namespace REngine.RPI.RenderGraph
 
 		protected abstract IRenderFeature GetFeature();
 
-		public void AddReadResource(int resourceSlotId, IResource resource)
+		public void AddReadResource(ulong resourceSlotId, IResource resource)
 		{
 #if DEBUG
 			ValidateExpectedResource(GetExpectedReadResourceSlots(), resourceSlotId);
 #endif
 			OnAddReadResource(resourceSlotId, resource);
 		}
-		public void AddWriteResource(int resourceSlotId, IResource resource)
+		public void AddWriteResource(ulong resourceSlotId, IResource resource)
 		{
 #if DEBUG
 			ValidateExpectedResource(GetExpectedWriteResourceSlots(), resourceSlotId);
@@ -92,17 +87,17 @@ namespace REngine.RPI.RenderGraph
 			OnAddWriteResource(resourceSlotId, resource);
 		}
 
-		protected virtual IEnumerable<int> GetExpectedWriteResourceSlots()
+		protected virtual IEnumerable<ulong> GetExpectedWriteResourceSlots()
 		{
-			return Array.Empty<int>();
+			return Array.Empty<ulong>();
 		}
-		protected virtual IEnumerable<int> GetExpectedReadResourceSlots()
+		protected virtual IEnumerable<ulong> GetExpectedReadResourceSlots()
 		{
-			return Array.Empty<int>();
+			return Array.Empty<ulong>();
 		}
 
 #if DEBUG
-		private void ValidateExpectedResource(IEnumerable<int> expectedResources, int resourceSlot)
+		private static void ValidateExpectedResource(IEnumerable<ulong> expectedResources, ulong resourceSlot)
 		{
 			if (expectedResources.Contains(resourceSlot))
 				return;
@@ -110,8 +105,8 @@ namespace REngine.RPI.RenderGraph
 		}
 #endif
 
-		protected virtual void OnAddReadResource(int resourceSlotId, IResource resource) { }
-		protected virtual void OnAddWriteResource(int resourceSlotId, IResource resource) { }
+		protected virtual void OnAddReadResource(ulong resourceSlotId, IResource resource) { }
+		protected virtual void OnAddWriteResource(ulong resourceSlotId, IResource resource) { }
 	}
 }
 #endif

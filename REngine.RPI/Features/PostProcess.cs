@@ -17,6 +17,7 @@ namespace REngine.RPI.Features
 
 		private ITexture? pReadTexture;
 		private ITextureView? pWriteRenderTarget;
+		private ITextureView? pDepthStencil;
 
 		private IPipelineState? pPipeline;
 		private IShaderResourceBinding? pBinding;
@@ -67,13 +68,26 @@ namespace REngine.RPI.Features
 
 			pReadTexture ??= setupInfo.RenderTargetManager.GetDummyTexture();
 			pWriteRenderTarget ??= setupInfo.Renderer.SwapChain?.ColorBuffer;
+			pDepthStencil = setupInfo.Renderer.SwapChain?.DepthBuffer;
 
 			OnSetBindings(pBinding, setupInfo.BufferManager);
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
-			throw new NotImplementedException();
+			if (pPipeline is null || pBinding is null || pWriteRenderTarget is null || pReadTexture is null) 
+				return;
+
+			command
+				.SetRT(pWriteRenderTarget, pDepthStencil)
+				.SetPipeline(pPipeline)
+				.CommitBindings(pBinding)
+				.Draw(new DrawArgs()
+				{
+					NumInstances = 1,
+					FirstInstanceLocation = 0,
+					NumVertices = 3
+				});
 		}
 
 		protected virtual IPipelineState OnBuildPipelineState(in RenderFeatureSetupInfo setupInfo)

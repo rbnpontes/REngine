@@ -6,17 +6,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 namespace REngine.RPI.RenderGraph.Nodes
 {
 	[NodeTag("var")]
 	public sealed class VarNode : RenderGraphNode
 	{
-		const string VarIdPropertyKey = "id";
-		const string VarTypePropertyKey = "type";
-		const string VarValuePropertyKey = "value";
+		public const string IdPropertyKey = "id";
+		public const string TypePropertyKey = "type";
+		public const string VarValuePropertyKey = "value";
 
-		private static Dictionary<string, IVarValueResolver> sResolvers = new()
+		public static readonly ulong IdPropHash = Hash.Digest(IdPropertyKey);
+		public static readonly ulong TypePropHash = Hash.Digest(TypePropertyKey);
+		public static readonly ulong ValuePropHash = Hash.Digest(VarValuePropertyKey);
+
+		private static readonly Dictionary<string, IVarValueResolver> sResolvers = new()
 		{
 			// Default Resolvers
 			{ "bool", new BoolVarResolver() },
@@ -35,13 +40,13 @@ namespace REngine.RPI.RenderGraph.Nodes
 		{
 		}
 
-		protected override void OnSetup(IDictionary<int, string> properties)
+		protected override void OnSetup(IDictionary<ulong, string> properties)
 		{
-			if (!properties.TryGetValue(VarIdPropertyKey.GetHashCode(), out var id))
-				throw new RequiredNodePropertyException(VarIdPropertyKey, nameof(VarNode));
-			if (!properties.TryGetValue(VarTypePropertyKey.GetHashCode(), out var type))
-				throw new RequiredNodePropertyException(VarTypePropertyKey, nameof(VarNode));
-			if(properties.TryGetValue(VarValuePropertyKey.GetHashCode(), out var value))
+			if (!properties.TryGetValue(IdPropHash, out var id))
+				throw new RequiredNodePropertyException(IdPropertyKey, nameof(VarNode));
+			if (!properties.TryGetValue(TypePropHash, out var type))
+				throw new RequiredNodePropertyException(TypePropertyKey, nameof(VarNode));
+			if(properties.TryGetValue(ValuePropHash, out var value))
 				pValue = value;
 
 			pVarName = id;
@@ -56,6 +61,8 @@ namespace REngine.RPI.RenderGraph.Nodes
 			IVar varItem = varMgr.GetVar(pVarName);
 			IVarValueResolver resolver = GetResolver(pType);
 			varItem.Value = resolver.Resolve(pValue);
+
+			Dispose();
 		}
 
 		public static void AddResolver(string resolverType, IVarValueResolver resolver)

@@ -27,7 +27,10 @@ namespace REngine.RPI
 				.Register<SpritebatchNode>()
 				.Register<ImGuiNode>()
 				.Register<ReadNode>()
-				.Register<WriteNode>();
+				.Register<WriteNode>()
+				.Register<RenderTargetNode>()
+				.Register<CopyRenderTargetNode>()
+				.Register<GrayScalePostProcessNode>();
 #endif
 			registry
 #if RENGINE_RENDERGRAPH

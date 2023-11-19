@@ -85,13 +85,13 @@ namespace REngine.RPI.RenderGraph
 			pNodes.Add(node.Id, node);
 			return node;	
 		}
-		private Dictionary<int, string> GetElementProperties(XmlElement element)
+		private Dictionary<ulong, string> GetElementProperties(XmlElement element)
 		{
-			Dictionary<int, string> properties = new();
+			Dictionary<ulong, string> properties = new();
 			for (int i = 0; i < element.Attributes.Count; ++i)
 			{
 				var attr = element.Attributes[i];
-				properties[attr.Name.GetHashCode()] = attr.Value;
+				properties[Hash.Digest(attr.Name)] = attr.Value;
 			}
 
 			return properties;

@@ -14,6 +14,8 @@ namespace REngine.RPI.RenderGraph
 		private IServiceProvider? pServiceProvider;
 		private bool pHasSetup;
 		private bool pDirty = true;
+
+		private Queue<RenderGraphNode> pNodes2Remove = new Queue<RenderGraphNode>();
 #if DEBUG
 		public string DebugName { get; private set; }
 		public string Xml { get; internal set; } = string.Empty;
@@ -68,11 +70,22 @@ namespace REngine.RPI.RenderGraph
 			OnRun(provider);
 
 			var children = OnGetChildren();
-			foreach ( var child in children )
+			foreach (var child in children)
+			{
+				if (child.IsDisposed)
+				{
+					pNodes2Remove.Enqueue(child);
+					continue;
+				}
+					
 				child.Run(provider);
+			}
+
+			while (pNodes2Remove.TryDequeue(out var node))
+				RemoveNode(node);
 		}
 
-		public void Setup(IDictionary<int, string> properties) 
+		public void Setup(IDictionary<ulong, string> properties) 
 		{
 			if (pHasSetup)
 				throw new RenderGraphException("Setup has been called");
@@ -90,6 +103,7 @@ namespace REngine.RPI.RenderGraph
 
 			if(pHasSetup)
 				OnDispose();
+
 			var children = OnGetChildren();
 			foreach (var child in children)
 				child.Dispose();
@@ -109,7 +123,7 @@ namespace REngine.RPI.RenderGraph
 		}
 
 		protected abstract void OnRun(IServiceProvider provider);
-		protected virtual void OnSetup(IDictionary<int, string> properties) { }
+		protected virtual void OnSetup(IDictionary<ulong, string> properties) { }
 		protected virtual bool OnAddChild(RenderGraphNode node) { return true; }
 		protected virtual bool OnRemoveChild(RenderGraphNode node) { return true; }
 		protected virtual IEnumerable<RenderGraphNode> OnGetChildren() { return Children; }
