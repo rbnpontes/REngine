@@ -16,9 +16,4 @@
 		<write name="backbuffer" value="@resources/copy-rt"/>
 		<write name="depthbuffer" value="@engine/depthbuffer"/>
 	</imgui-pass>
-
-	<copy-rt>
-		<read name="input" value="@resources/copy-rt"/>
-		<write name="backbuffer" value="@engine/backbuffer"/>
-	</copy-rt>
 </render-graph>
