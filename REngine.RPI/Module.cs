@@ -23,11 +23,7 @@ namespace REngine.RPI
 #if RENGINE_RENDERGRAPH
 			RenderGraphModule.Setup(registry);
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
-			renderGraphRegistry
-				.Register<SpritebatchNode>()
-				.Register<ImGuiNode>()
-				.Register<ReadNode>()
-				.Register<WriteNode>();
+			NodeGraphsModule.Setup(renderGraphRegistry);
 #endif
 			registry
 #if RENGINE_RENDERGRAPH
@@ -46,7 +42,8 @@ namespace REngine.RPI
 				)
 				.Add<IShaderManager, ShaderManagerImpl>()
 				.Add<IPipelineStateManager, PipelineStateManagerImpl>()
-				.Add<IBufferManager, BufferManager>()
+				.Add<IBufferManager, BufferManagerImpl>()
+				.Add<IRenderTargetManager, RenderTargetManagerImpl>()
 				.Add<IRenderer, RendererImpl>()
 				.Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH

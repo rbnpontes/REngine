@@ -132,7 +132,7 @@ namespace REngine.RPI
 					pShaderResourceBinding = null;
 				}
 				else
-					pShaderResourceBinding?.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+					pShaderResourceBinding?.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, texture.GetDefaultView(TextureViewType.ShaderResource));
 			}
 			else if(pMainTexture != null)
 			{
@@ -158,7 +158,7 @@ namespace REngine.RPI
 
 			SetConstantBuffers(serviceProvider, srb);
 			if(pMainTexture != null)
-				srb.Set(ShaderTypeFlags.Pixel, "g_texture", pMainTexture.GetDefaultView(TextureViewType.ShaderResource));
+				srb.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pMainTexture.GetDefaultView(TextureViewType.ShaderResource));
 
 			pPipelineState = result;
 			pShaderResourceBinding = srb;
@@ -217,7 +217,7 @@ namespace REngine.RPI
 
 			output.Samplers.Add(new ImmutableSamplerDesc
 			{
-				Name = "g_texture",
+				Name = TextureNames.MainTexture,
 				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Clamp)
 			});
 
@@ -258,7 +258,7 @@ namespace REngine.RPI
 
 	public sealed class DefaultSpriteEffect : BasicSpriteEffect
 	{
-		public DefaultSpriteEffect() : base("Default Effect")
+		public DefaultSpriteEffect() : base(nameof(DefaultSpriteEffect))
 		{
 		}
 	}

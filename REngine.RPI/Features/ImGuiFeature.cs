@@ -23,8 +23,8 @@ namespace REngine.RPI.Features
 			All = Pipeline | FontTexture
 		}
 
-		private static readonly ulong sImDrawVertSize = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>();
-		private static readonly string sFontTexName = "g_texture";
+		private static readonly ulong sImDrawVertexSize = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>();
+		private static readonly string sFontTexName = TextureNames.MainTexture;
 		private static readonly List<PipelineInputLayoutElementDesc> sLayoutElements = new()
 		{
 			new PipelineInputLayoutElementDesc 
@@ -122,15 +122,15 @@ namespace REngine.RPI.Features
 			return this;
 		}
 
-		protected override void OnSetup(in RenderFeatureSetupInfo execInfo)
+		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
 		{
-			var buffer = execInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
+			var buffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
 
 			if(pFontTexture is null || (pDirtyFlags & DirtyFlags.FontTexture) != 0)
 			{
 				pFontTexture?.Dispose();
 				
-				var fontTexture = CreateFontTexture(execInfo.Driver.Device);
+				var fontTexture = CreateFontTexture(setupInfo.Driver.Device);
 				pFontTexture = fontTexture;
 				pFontTextureView = fontTexture.GetDefaultView(TextureViewType.ShaderResource);
 				
@@ -142,7 +142,7 @@ namespace REngine.RPI.Features
 				pResourceBinding?.Dispose();
 				pPipeline?.Dispose();
 
-				var pipeline = CreatePipelineState(execInfo.PipelineStateManager, execInfo.ShaderManager);
+				var pipeline = CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager);
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
@@ -152,13 +152,14 @@ namespace REngine.RPI.Features
 				pDirtyFlags ^= DirtyFlags.Pipeline;
 			}
 
-			pDevice = execInfo.Driver.Device;
+			pDevice = setupInfo.Driver.Device;
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
 			ITextureView? backbuffer = GetBackBuffer();
 			ITextureView? depthbuffer = GetDepthBuffer();
+
 
 			if (backbuffer is null || depthbuffer is null || pDevice is null)
 				return;
@@ -168,7 +169,7 @@ namespace REngine.RPI.Features
 
 			command.SetRT(backbuffer, depthbuffer);
 
-			RenderDrawData(command, pDevice, io, backbuffer.Parent.Desc.Size);
+			RenderDrawData(command, pDevice, io, backbuffer.Size);
 			pSystem.EndRender();
 		}
 
@@ -335,7 +336,7 @@ namespace REngine.RPI.Features
 			IntPtr vertexMemPtr = cmd.Map(pVBuffer, MapType.Write, MapFlags.Discard);
 			IntPtr indexMemPtr = cmd.Map(pIBuffer, MapType.Write, MapFlags.Discard);
 
-			long vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertSize;
+			long vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertexSize;
 			long iBufferSize = cmdList.IdxBuffer.Size * sizeof(ushort);
 
 			Buffer.MemoryCopy(
@@ -369,7 +370,7 @@ namespace REngine.RPI.Features
 			{
 				Name = "ImGui Vertex Buffer",
 				BindFlags = BindFlags.VertexBuffer,
-				Size = pVertexBufferCount * sImDrawVertSize,
+				Size = pVertexBufferCount * sImDrawVertexSize,
 				Usage = Usage.Dynamic,
 				AccessFlags = CpuAccessFlags.Write
 			});

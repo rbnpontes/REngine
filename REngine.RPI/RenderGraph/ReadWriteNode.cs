@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 namespace REngine.RPI.RenderGraph
 {
@@ -12,6 +13,9 @@ namespace REngine.RPI.RenderGraph
 	{
 		const string NamePropKey = "name";
 		const string ValuePropKey = "value";
+
+		private static readonly ulong NamePropHash = Hash.Digest(NamePropKey);
+		private static readonly ulong ValuePropHash = Hash.Digest(ValuePropKey);
 
 		private bool pSetup = false;
 		private string pName = string.Empty;
@@ -27,11 +31,11 @@ namespace REngine.RPI.RenderGraph
 		{
 		}
 
-		protected override void OnSetup(IDictionary<int, string> properties)
+		protected override void OnSetup(IDictionary<ulong, string> properties)
 		{
-			if(!properties.TryGetValue(NamePropKey.GetHashCode(), out string? name))
+			if(!properties.TryGetValue(NamePropHash, out string? name))
 				throw new RequiredNodePropertyException(NamePropKey, nameof(ReadWriteNode));
-			if(!properties.TryGetValue(ValuePropKey.GetHashCode(), out string? value))
+			if(!properties.TryGetValue(ValuePropHash, out string? value))
 				throw new RequiredNodePropertyException(ValuePropKey, nameof(ReadWriteNode));
 			pName = name;
 			pValue = value;
@@ -39,11 +43,12 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnRun(IServiceProvider provider)
 		{
+#if DEBUG
 			if (Parent is null)
 				throw new NullReferenceException("Read/Write Node must have a parent");
 			if (!Parent.GetType().IsAssignableTo(typeof(RenderFeatureNode)))
-				throw new RenderGraphException("Read/Write Node parent must be RenderFeatureNode inherit type");
-
+				throw new RenderGraphException($"Read/Write Node parent must be {nameof(RenderFeatureNode)} inherit type");
+#endif
 
 			if(!pSetup)
 			{
@@ -68,7 +73,7 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnValue(RenderFeatureNode parent, string name, string value)
 		{
-			parent.AddReadResource(name.GetHashCode(), ResourceManager.GetResource(value));
+			parent.AddReadResource(Hash.Digest(name), ResourceManager.GetResource(value));
 		}
 	}
 	[NodeTag("write")]
@@ -80,7 +85,7 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnValue(RenderFeatureNode parent, string name, string value)
 		{
-			parent.AddWriteResource(name.GetHashCode(), ResourceManager.GetResource(value));
+			parent.AddWriteResource(Hash.Digest(name), ResourceManager.GetResource(value));
 		}
 	}
 }

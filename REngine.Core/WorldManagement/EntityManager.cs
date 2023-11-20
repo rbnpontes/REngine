@@ -41,13 +41,13 @@ namespace REngine.Core.WorldManagement
 			EngineSettings engineSettings,
 			ILoggerFactory loggerFactory,
 			ComponentSerializerFactory serializerFactory,
-			IServiceProvider serviceProvider
+			IServiceProvider provider
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
 			pSerializerFactory = serializerFactory;
 			pLogger = loggerFactory.Build<EntityManager>();
-			pServiceProvider = serviceProvider;
+			pServiceProvider = provider;
 		}
 
 		public EntityManager Destroy(Entity entity)
@@ -117,12 +117,32 @@ namespace REngine.Core.WorldManagement
 				throw new InvalidEntityIdException("Id is greater than Entity Pool");
 			if (id < 0)
 				throw new InvalidEntityIdException("Id cannot be negative");
-
 			var entity = pData[id].TargetEntity;
 			if (entity is null)
 				throw new EntityException("Invalid Entity Id. It seems this entity has been previous destroyed or not be allocated yet.");
 			return entity;
 		}
+
+		public T CreateComponent<T>(Entity entity) where T : Component
+		{
+			if (CreateComponent(entity, typeof(T)) is not T component)
+				throw new NullReferenceException("Error has occurred at create component.");
+			return component;
+		}
+
+		public Component CreateComponent(Entity entity, Type type)
+		{
+			if (!type.IsAssignableTo(typeof(Component)))
+				throw new ArgumentException($"Type must inherit {nameof(Component)}", nameof(type));
+			var resolver = pSerializerFactory.FindSerializer(ComponentSerializerFactory.GetTypeCode(type));
+			if (resolver is null)
+				pSerializerFactory.CollectSerializers();
+			resolver = pSerializerFactory.GetSerializer(type);
+			var component = resolver.Create();
+			entity.AddComponent(component);
+			return component;
+		}
+
 
 		/// <summary>
 		/// Optimize will rearrange the whole poll
@@ -308,19 +328,15 @@ namespace REngine.Core.WorldManagement
 			Dictionary<ulong, Component[]> createdComponents = new();
 			foreach(var componentPair in serializerData.Components)
 			{
-				var serializer = pSerializerFactory.FindSerializer(componentPair.Key) ?? pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
-
-				if (serializer is null)
-					throw new EntityException("Not found serializer while is deserializing components");
-
+				var serializer = (pSerializerFactory.FindSerializer(componentPair.Key) ?? pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key)) 
+				                 ?? throw new EntityException("Not found serializer while is deserializing components");
 				serializer.OnBeforeDeserialize();
 
-				Component[] components = new Component[componentPair.Value.Count];
-				for(int i =0; i < componentPair.Value.Count; i++)
+				var components = new Component[componentPair.Value.Count];
+				for(var i =0; i < componentPair.Value.Count; i++)
 				{
-					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType(), jsonSerializer);
-					if (data is null)
-						throw new NullReferenceException($"Can´t deserialize component data type '{serializer.GetSerializeType().Name}'");
+					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType(), jsonSerializer) 
+					           ?? throw new NullReferenceException($"Can´t deserialize component data type '{serializer.GetSerializeType().Name}'");
 					components[i] = serializer.OnDeserialize(data);
 				}
 
@@ -331,7 +347,7 @@ namespace REngine.Core.WorldManagement
 
 			foreach(var entityItem in serializerData.Entities)
 			{
-				Entity entity = CreateEntity(entityItem.Name);
+				var entity = CreateEntity(entityItem.Name);
 				foreach (var tag in entityItem.Tags)
 					entity.AddTag(tag);
 

@@ -11,22 +11,18 @@ namespace REngine.RHI.NativeDriver
 	internal partial class TextureImpl : NativeObject, ITexture
 	{
 		private readonly TextureViewImpl?[] pTexViews = new TextureViewImpl?[(byte)TextureViewType.ShadingRate];
+		private readonly TextureDesc pDesc;
 
-		public TextureDesc Desc
-		{
-			get => GetObjectDesc(Handle);
-		}
+		public TextureDesc Desc => pDesc;
 
-		public string Name
-		{
-			get => Desc.Name;
-		}
+		public string Name => pDesc.Name;
 
-		public GPUObjectType ObjectType { get; private set; }
+		public GPUObjectType ObjectType { get; }
 
 		public TextureImpl(IntPtr handle) : base(handle)
 		{
 			ObjectType = GetObjectTypeFromDesc(Desc);
+			GetObjectDesc(handle, out pDesc);
 		}
 
 		protected override void BeforeRelease()
@@ -54,13 +50,15 @@ namespace REngine.RHI.NativeDriver
 			rengine_texture_getdefaultview(Handle, (byte)view, ref result);
 			
 			if(result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default view {view}. Texture View is null");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default viewType {view}. Texture View is null");
+
+			ValidateTextureView(view, result.value);
 
 			texView = ObjectRegistry.Acquire(result.value) as TextureViewImpl;
 
 			if(texView is null)
 			{
-				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value);
+				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value, pDesc.Size);
 				texView.AddRef();
 			}
 
@@ -90,13 +88,17 @@ namespace REngine.RHI.NativeDriver
 			return result;
 		}
 
-		public static TextureDesc GetObjectDesc(IntPtr ptr)
+		public static void ValidateTextureView(TextureViewType viewType, IntPtr texView)
+		{
+			if(texView == IntPtr.Zero)
+				throw new NullReferenceException($"There´s no default viewType for '{viewType}'.");
+		}
+		public static void GetObjectDesc(IntPtr ptr, out TextureDesc output)
 		{
 			TextureDescDTO desc = new();
 			rengine_texture_getdesc(ptr, ref desc);
 
-			TextureDescDTO.Fill(desc, out TextureDesc output);
-			return output;
+			TextureDescDTO.Fill(desc, out output);
 		}
 	}
 }

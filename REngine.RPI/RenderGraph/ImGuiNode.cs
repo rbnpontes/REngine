@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 #if RENGINE_RENDERGRAPH
 namespace REngine.RPI.RenderGraph
@@ -13,10 +14,10 @@ namespace REngine.RPI.RenderGraph
 	[NodeTag("imgui-pass")]
 	public class ImGuiNode : GraphicsRenderFeatureNode
 	{
-		private static readonly int[] ExpectedWriteResources =
+		private static readonly ulong[] sExpectedWriteResources =
 		{
-			BackbufferSlotName.GetHashCode(),
-			DepthbufferSlotName.GetHashCode()
+			BackBufferSlotHash,
+			DepthBufferSlotHash
 		};
 
 		private IGraphicsRenderFeature? pFeature;
@@ -24,8 +25,7 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnRun(IServiceProvider provider)
 		{
-			if(pFeature is null)
-				pFeature = provider.Get<IImGuiSystem>().Feature;
+			pFeature ??= provider.Get<IImGuiSystem>().Feature;
 			base.OnRun(provider);
 		}
 
@@ -36,9 +36,9 @@ namespace REngine.RPI.RenderGraph
 			return pFeature;
 		}
 
-		protected override IEnumerable<int> GetExpectedWriteResourceSlots()
+		protected override IEnumerable<ulong> GetExpectedWriteResourceSlots()
 		{
-			return ExpectedWriteResources;
+			return sExpectedWriteResources;
 		}
 	}
 }

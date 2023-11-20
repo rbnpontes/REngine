@@ -11,87 +11,39 @@ namespace REngine.Core.Threading.Nodes
 	[Node("task")]
 	internal class TaskNode : EPNode
 	{
-		const int MaxWaitTime = 1000 / 60;
-		private readonly object pSync = new();
+		private const int MaxWaitTime = 1000 / 60;
+		private readonly Action pTaskAction;
+		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
-		private Task? pIncomingTask;
 		private EPNode? pTarget;
 
 		public TaskNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
+			pTaskAction = ExecTask;
 		}
 
 		public override void Execute()
 		{
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
-			lock (pSync)
-			{
-				pIncomingTask = Task.Run(() =>
-				{
-					ExecuteEvents();
-					ExecuteChildrens();
-				});
-				// Unset if there's not target
-				if (pTarget is null)
-					pIncomingTask = null;
-			}
+			Task.Run(pTaskAction);
 		}
 
-		public override void AddEvent(Action<IExecutionPipeline> action)
+		private void ExecTask()
 		{
-			int incomingTaskId;
-			lock (pSync)
-				incomingTaskId = pIncomingTask?.Id ?? -1;
+			ExecuteEvents();
+			ExecuteChildrens();
 
-			// Deadlock prevention
-			if (Task.CurrentId != incomingTaskId)
-				base.AddEvent(action);
-			else
-				pEvents.Clear();
-		}
-
-		public override void RemoveEvent(Action<IExecutionPipeline> action)
-		{
-			int incomingTaskId;
-			lock (pSync)
-			{
-				incomingTaskId = pIncomingTask?.Id ?? -1;
-			}
-			// Deadlock prevention
-			if (Task.CurrentId != incomingTaskId)
-				base.RemoveEvent(action);
-			else
-				pEvents.Clear();
-		}
-
-		public override void ClearEvents()
-		{
-			int incomingTaskId;
-			lock (pSync)
-				incomingTaskId = pIncomingTask?.Id ?? -1;
-
-			// If we call base, we have deadlock
-			if (Task.CurrentId != incomingTaskId)
-				base.ClearEvents();
-			else
-				pEvents.Clear();
+			pManualResetEvent.Set();
 		}
 
 		public override void ExecuteLinkedNode(EPNode owner)
 		{
-			Task? task;
-
-			lock (pSync)
-			{
-				task = pIncomingTask;
-				pIncomingTask = null;
-			}
-			task?.Wait(MaxWaitTime);
+			pManualResetEvent.Wait(MaxWaitTime);
 		}
 
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
-			ulong targetNodeId = Hash.Digest(element.GetAttribute("end"));
+			var targetNodeId = Hash.Digest(element.GetAttribute("end"));
 			if (targetNodeId == 0)
 				return;
 

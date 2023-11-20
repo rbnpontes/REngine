@@ -10,6 +10,8 @@ namespace REngine.RHI.NativeDriver
 {
 	internal class TextureViewWrapper : ITextureView
 	{
+		private readonly TextureViewDesc pDesc;
+
 		public ITexture Parent
 		{
 			get
@@ -23,14 +25,12 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
-		public TextureViewDesc Desc
-		{
-			get => TextureViewImpl.GetObjectDesc(Handle);
-		}
+		public TextureViewDesc Desc => pDesc;
 
 		public TextureViewType ViewType => Desc.ViewType;
+		public TextureSize Size { get; set; }
 
-		public string Name => Marshal.PtrToStringAnsi(NativeObject.rengine_object_getname(Handle)) ?? string.Empty;
+		public string Name { get; }
 
 		public IntPtr Handle { get; set; }
 
@@ -40,9 +40,12 @@ namespace REngine.RHI.NativeDriver
 
 		public event EventHandler? OnDispose;
 
-		public TextureViewWrapper(IntPtr handle)
+		public TextureViewWrapper(IntPtr handle, TextureSize size)
 		{
 			Handle = handle;
+			Size = size;
+			Name = string.Intern(Marshal.PtrToStringAnsi(NativeObject.rengine_object_getname(Handle)) ?? string.Empty);
+			TextureViewImpl.GetObjectDesc(handle, out pDesc);
 		}
 
 		public void Dispose()
@@ -53,5 +56,6 @@ namespace REngine.RHI.NativeDriver
 			IsDisposed = true;
 			GC.SuppressFinalize(this);
 		}
+
 	}
 }

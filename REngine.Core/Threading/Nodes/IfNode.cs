@@ -19,9 +19,13 @@ namespace REngine.Core.Threading.Nodes
 	{
 		private IExecutionPipelineVar? pVar;
 
-		public ulong VarKey { get; set; } = 0;
+		private bool pSkipExecution;
+		private object? pLastValue;
+
+		public ulong VarKey { get; set; }
 		public IfNodeCmp Cmp { get; set; } = IfNodeCmp.Equal;
 		
+
 		public IfNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
 		}
@@ -31,10 +35,14 @@ namespace REngine.Core.Threading.Nodes
 			if (VarKey == 0)
 				return;
 
-			if (pVar is null)
-				pVar = ExecutionPipeline.GetOrCreateVar(VarKey);
+			pVar ??= ExecutionPipeline.GetOrCreateVar(VarKey);
+			if (pLastValue != pVar.Value)
+			{
+				pSkipExecution = !CanExecute();
+				pLastValue = pVar.Value;
+			}
 
-			if (!CanExecute())
+			if (pSkipExecution)
 				return;
 			base.Execute();
 			ExecuteEvents();
@@ -43,22 +51,23 @@ namespace REngine.Core.Threading.Nodes
 
 		private bool CanExecute()
 		{
-			object? value = pVar?.Value;
-			if (value is null)
-				return false;
-
-			bool result = false;
-			switch (Cmp)
+			var value = pVar?.Value;
+			return value switch
 			{
-				case IfNodeCmp.Equal:
-					result = Equals(value, true);
-					break;
-				case IfNodeCmp.NotEqual:
-					result = !Equals(value, true);
-					break;
-			}
+				bool boolValue => Validate(boolValue),
+				Ref<bool> refBool => Validate(refBool.Value),
+				_ => false
+			};
 
-			return result;
+			bool Validate(bool x)
+			{
+				return Cmp switch
+				{
+					IfNodeCmp.Equal => x,
+					IfNodeCmp.NotEqual => x,
+					_ => false
+				};
+			}
 		}
 
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)

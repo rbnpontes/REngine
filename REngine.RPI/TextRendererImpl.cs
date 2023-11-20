@@ -203,7 +203,7 @@ namespace REngine.RPI
 			desc.Samplers.Add(
 				new ImmutableSamplerDesc
 				{
-					Name = "g_texture",
+					Name = TextureNames.MainTexture,
 					Sampler = new SamplerStateDesc(TextureFilterMode.Anisotropic, TextureAddressMode.Clamp)
 				}
 			);
@@ -280,7 +280,7 @@ namespace REngine.RPI
 
 				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, pBufferProvider.GetBuffer(BufferGroupType.Frame));
 				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
-				srb.Set(ShaderTypeFlags.Pixel, "g_texture", texture.GetDefaultView(TextureViewType.ShaderResource));
+				srb.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, texture.GetDefaultView(TextureViewType.ShaderResource));
 
 				pFonts[fontHashCode] = new FontEntry(font.Optimize(), texture, srb);
 

@@ -41,11 +41,26 @@
 		<None Update="Assets\Fonts\Roboto-Medium.ttf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\Shaders\copy_rt_ps.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Shaders\PostProcess\grayscale_ps.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\Shaders\imgui_ps.hlsl">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Shaders\imgui_vs.hlsl">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Shaders\PostProcess\invertcolors_ps.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Shaders\PostProcess\sepiatone_ps.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Shaders\postprocess_vs.hlsl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Shaders\text_cs.hlsl">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>

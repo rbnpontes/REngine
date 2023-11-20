@@ -69,7 +69,7 @@ namespace REngine.RHI.NativeDriver
 			pDisposeCallback = OnReleaseObject;
 			pHandle = handle;
 #if FULL_DEBUG
-			CreatedAt = Environment.StackTrace;
+			CreatedAt = string.Intern(Environment.StackTrace);
 #endif
 
 			ObjectRegistry.Lock(this);

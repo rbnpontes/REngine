@@ -96,6 +96,7 @@ namespace REngine.Core
 		public Size MaxSize { get; set; }
 		public bool Focused { get; }
 		public bool IsClosed { get; }
+		public bool IsMinimized { get; }
 		public bool IsFullscreen { get; }
 
 		public IWindow Close();

@@ -149,6 +149,18 @@ namespace REngine.Core.WorldManagement
 			return component as T;
 		}
 
+		public T CreateComponent<T>() where T : Component
+		{
+			AssertDispose();
+			return pEntityManager.CreateComponent<T>(this);
+		}
+
+		public object CreateComponent(Type componentType)
+		{
+			AssertDispose();
+			return pEntityManager.CreateComponent(this, componentType);
+		}
+
 		public IEnumerable<Component> GetComponents()
 		{
 			AssertDispose();

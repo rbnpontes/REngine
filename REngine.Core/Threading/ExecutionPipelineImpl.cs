@@ -16,12 +16,13 @@ namespace REngine.Core.Threading
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
 
-        private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new Dictionary<ulong, ExecutionPipelineVarImpl>();
+        private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
+        private readonly Action<EPNode> pExecNodeAction;
         
         public readonly CancellationTokenSource StopTokenSource = new ();
 
-        private IList<EPNode> pNodes = new List<EPNode>();
+        private List<EPNode> pNodes = new ();
         private IDictionary<ulong, EPNode> pNodesTable = new Dictionary<ulong, EPNode>();
         private EPNode? pLastNode;
         private LinkedList<Action> pExecuteScheduledCalls = new();
@@ -35,6 +36,8 @@ namespace REngine.Core.Threading
             pLogger = factory.Build<IExecutionPipeline>();
 
             engineEvents.OnBeforeStop += HandleStop;
+
+            pExecNodeAction = ExecuteNode;
         }
 
         private void HandleStop(object? sender, EventArgs e)
@@ -91,9 +94,8 @@ namespace REngine.Core.Threading
             }
 
             try
-            {
-                foreach (EPNode node in pNodes)
-                    node.Execute();
+            { 
+                pNodes.ForEach(pExecNodeAction);
             }
             catch (OperationCanceledException e)
             {
@@ -101,6 +103,11 @@ namespace REngine.Core.Threading
                 return this;
             }
             return this;
+        }
+
+        private void ExecuteNode(EPNode node)
+        {
+            node.Execute();
         }
 
         public IExecutionPipeline ClearAllEvents()

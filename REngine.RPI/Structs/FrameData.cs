@@ -12,6 +12,7 @@ namespace REngine.RPI.Structs
 	public struct FrameData
 	{
 		public Matrix4x4 ScreenProjection;
+		public Matrix4x4 InvScreenProjection;
 		public uint ScreenWidth;
 		public uint ScreenHeight;
 		public float ElapsedTime;		

@@ -31,6 +31,11 @@ namespace REngine.Core.WorldManagement
 			return typeof(SerializeData);
 		}
 
+		public override Component Create()
+		{
+			return pSystem.CreateTransform();
+		}
+
 		public override object OnSerialize(Component component)
 		{
 			if (component is not Transform2D transform)

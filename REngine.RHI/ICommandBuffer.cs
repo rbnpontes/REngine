@@ -74,8 +74,8 @@ namespace REngine.RHI
 		public ICommandBuffer SetPipeline(IComputePipelineState pipelineState);
 
 		public ICommandBuffer SetVertexBuffer(IBuffer buffer, bool reset = true);
-		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, bool reset = true);
-		public ICommandBuffer SetVertexBuffers(uint startSlot, IEnumerable<IBuffer> buffers, ulong[] offsets, bool reset = true);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IBuffer[] buffers, bool reset = true);
+		public ICommandBuffer SetVertexBuffers(uint startSlot, IBuffer[] buffers, ulong[] offsets, bool reset = true);
 		public ICommandBuffer SetIndexBuffer(IBuffer buffer, ulong byteOffset = 0);
 
 		public ICommandBuffer CommitBindings(IShaderResourceBinding resourceBinding);

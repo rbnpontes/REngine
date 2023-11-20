@@ -160,7 +160,7 @@ namespace REngine.RPI.Features
 		{
 			pDisposed = true;
 		}
-		protected abstract void OnSetup(in RenderFeatureSetupInfo execInfo);
+		protected abstract void OnSetup(in RenderFeatureSetupInfo setupInfo);
 		protected virtual void OnCompile(ICommandBuffer command) { }
 		protected abstract void OnExecute(ICommandBuffer command);
 

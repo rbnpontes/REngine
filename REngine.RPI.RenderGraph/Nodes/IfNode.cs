@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
+
 namespace REngine.RPI.RenderGraph.Nodes
 {
 	public enum IfNodeCompare
@@ -17,8 +19,11 @@ namespace REngine.RPI.RenderGraph.Nodes
 	[NodeTag("if")]
 	public sealed class IfNode : RenderGraphNode
 	{
-		const string IfNodePropertyKey = "test";
-		const string IfNodeCmpPropertyKey = "compare";
+		const string TestPropertyKey = "test";
+		const string CmpPropertyKey = "compare";
+
+		private readonly ulong TestPropHash = Hash.Digest(TestPropertyKey);
+		private readonly ulong CmpPropHash = Hash.Digest(CmpPropertyKey);
 
 		private bool pCanExecute = false;
 		private string pVarName = string.Empty;
@@ -29,11 +34,11 @@ namespace REngine.RPI.RenderGraph.Nodes
 		{
 		}
 
-		protected override void OnSetup(IDictionary<int, string> properties)
+		protected override void OnSetup(IDictionary<ulong, string> properties)
 		{
-			if (!properties.TryGetValue(IfNodePropertyKey.GetHashCode(), out string? testVar))
-				throw new RequiredNodePropertyException(IfNodePropertyKey, nameof(IfNode));
-			if (!properties.TryGetValue(IfNodeCmpPropertyKey.GetHashCode(), out string? cmp))
+			if (!properties.TryGetValue(TestPropHash, out string? testVar))
+				throw new RequiredNodePropertyException(TestPropertyKey, nameof(IfNode));
+			if (!properties.TryGetValue(CmpPropHash, out string? cmp))
 				cmp = "Equal";
 
 			pVarName = testVar;

@@ -19,6 +19,9 @@ namespace REngine.Core
 		public static readonly string PipelineCachePath = Path.Combine(AppDataPath, "pipeline-cache.bin");
 		public static readonly string PipelineItemsPath = Path.Combine(AppDataPath, "pipelines.rcache");
 
+		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+		public static readonly string AssetsShadersPath = Path.Join(AssetsPath, "Shaders");
+		public static readonly string AssetsShadersPostProcessPath = Path.Join(AssetsShadersPath, "PostProcess");
 		/// <summary>
 		/// Defines initial available entity slots
 		/// </summary>
@@ -30,10 +33,25 @@ namespace REngine.Core
 		/// </summary>
 		public float EntityExpansionRate { get; set; } = 1.25f;
 
+		/// <summary>
+		/// If engine runs fasts as can and have time left
+		/// Then GC will be collected
+		/// </summary>
+		public double GcCollectThreshold { get; set; } = 0.008f;
+
+		/// <summary>
+		/// How much time main thread will sleep if app goes to Idle(minimized) ?
+		/// </summary>
+		public int IdleWaitTimeMs { get; set; } = 100;
+
 		public void Merge(EngineSettings value)
 		{
 			InitialEntityCount = value.InitialEntityCount;
 			EntityExpansionRate = value.EntityExpansionRate;
+
+			GcCollectThreshold = value.GcCollectThreshold;
+
+			IdleWaitTimeMs = value.IdleWaitTimeMs;
 		}
 
 		public static EngineSettings FromStream(Stream stream)

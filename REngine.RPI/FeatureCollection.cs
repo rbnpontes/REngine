@@ -4,16 +4,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 
 namespace REngine.RPI
 {
-	internal class FeatureCollection : IEnumerable<IRenderFeature>, IDisposable
+	internal class FeatureCollection : IDisposable
 	{
-		class FeatureEntry : IComparable<FeatureEntry> 
+		private class FeatureEntry : IComparable<FeatureEntry> 
 		{
-			public bool Removed { get; set; } = false;
-			public IRenderFeature Feature { get; set; }
-			public int ZIndex { get; set; } = -1;
+			public bool Removed { get; set; }
+			public IRenderFeature Feature { get; }
+			public int ZIndex { get; init; } = -1;
 			public int Index { get; set; } = -1;
 			public LinkedListNode<FeatureEntry>? InsertNode { get; set; }
 
@@ -32,21 +33,19 @@ namespace REngine.RPI
 
 		private readonly LinkedList<FeatureEntry> pFeatures2Insert = new();
 		private readonly Dictionary<IRenderFeature, FeatureEntry> pLookupFeatures = new();
+		private readonly object pSync = new();
+		private readonly Ref<bool> pNeedsPrepareRef = new ();
 
-		private int pFeatures2RemoveCount = 0;
+		private int pFeatures2RemoveCount;
 
-		private FeatureEntry[] pFeatureEntries = new FeatureEntry[0];
-
-		private object pSync = new();
-
-		public bool NeedsPrepare
+		private FeatureEntry[] pFeatureEntries = Array.Empty<FeatureEntry>();
+		public Ref<bool> NeedsPrepare
 		{
 			get
 			{
-				bool result = false;
 				lock(pSync)
-					result = pFeatures2RemoveCount > 0 || pFeatures2Insert.Count > 0;
-				return result;
+					pNeedsPrepareRef.Value = pFeatures2RemoveCount > 0 || pFeatures2Insert.Count > 0;
+				return pNeedsPrepareRef;
 			}
 		}
 
@@ -117,7 +116,7 @@ namespace REngine.RPI
 			if (pFeatures2RemoveCount == 0)
 				return;
 
-			FeatureEntry[] newFeatures = new FeatureEntry[pFeatureEntries.Length - pFeatures2RemoveCount];
+			FeatureEntry[] newFeatures = new FeatureEntry[Math.Max(pFeatureEntries.Length - pFeatures2RemoveCount, 0)];
 			int nextItemIdx = 0;
 			foreach (var featureEntry in pFeatureEntries)
 			{
@@ -163,28 +162,22 @@ namespace REngine.RPI
 			Array.Sort(pFeatureEntries);
 		}
 
-		public IEnumerator<IRenderFeature> GetEnumerator()
+		public void ForEach(Action<IRenderFeature> action)
 		{
-			var entries = pFeatureEntries;
-			foreach(var entry in entries)
+			foreach (var entry in pFeatureEntries)
 			{
 				if (entry.Removed)
 					continue;
 				if (entry.Feature.IsDisposed)
 				{
-					lock (pSync)
+					lock(pSync)
 						RemoveEntry(entry);
 					continue;
 				}
-				yield return entry.Feature; 
+
+				action(entry.Feature);
 			}
 		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
 		public void Dispose()
 		{
 			lock (pSync)

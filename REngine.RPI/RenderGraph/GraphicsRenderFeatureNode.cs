@@ -4,20 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 namespace REngine.RPI.RenderGraph
 {
 	public abstract class GraphicsRenderFeatureNode : RenderFeatureNode
 	{
-		public const string BackbufferSlotName = "backbuffer";
-		public const string DepthbufferSlotName = "depthbuffer";
+		public const string BackBufferSlotName = "backbuffer";
+		public const string DepthBufferSlotName = "depthbuffer";
 
+		public static readonly ulong BackBufferSlotHash = Hash.Digest(BackBufferSlotName);
+		public static readonly ulong DepthBufferSlotHash = Hash.Digest(DepthBufferSlotName);
 		protected IResource? BackBufferResource { get; set; }
 		protected IResource? DepthBufferResource { get; set; }
 
 		private bool pDirtyBindings = false;
 
-		public GraphicsRenderFeatureNode(string debugName) : base(debugName)
+		protected GraphicsRenderFeatureNode(string debugName) : base(debugName)
 		{
 		}
 
@@ -31,19 +34,39 @@ namespace REngine.RPI.RenderGraph
 
 			if(GetFeature() is IGraphicsRenderFeature feature)
 			{
-				if (BackBufferResource != null && BackBufferResource.Value?.ObjectType == GPUObjectType.TextureView)
-					feature.BackBuffer = (ITextureView)BackBufferResource.Value;
-				if(DepthBufferResource != null && DepthBufferResource.Value?.ObjectType == GPUObjectType.TextureView)
-					feature.DepthBuffer = (ITextureView)DepthBufferResource.Value;
+				TrySetBackBuffer(feature);
+				TrySetDepthBuffer(feature);
 				pDirtyBindings = false;
 			}
 
 			base.OnExecute(command);
 		}
 
-		protected override void OnAddWriteResource(int resourceSlotId, IResource resource)
+		private void TrySetBackBuffer(IGraphicsRenderFeature feature)
 		{
-			if(resourceSlotId == BackbufferSlotName.GetHashCode())
+			var value = BackBufferResource?.Value;
+			feature.BackBuffer = value switch
+			{
+				ITexture texture => texture.GetDefaultView(TextureViewType.RenderTarget),
+				ITextureView textureView => textureView,
+				_ => feature.BackBuffer
+			};
+		}
+
+		private void TrySetDepthBuffer(IGraphicsRenderFeature feature)
+		{
+			var value = DepthBufferResource?.Value;
+			feature.DepthBuffer = value switch
+			{
+				ITexture texture => texture.GetDefaultView(TextureViewType.DepthStencil),
+				ITextureView textureView => textureView,
+				_ => feature.DepthBuffer
+			};
+		}
+
+		protected override void OnAddWriteResource(ulong resourceSlotId, IResource resource)
+		{
+			if(resourceSlotId == BackBufferSlotHash)
 			{
 				if (BackBufferResource != null)
 					BackBufferResource.ValueChanged -= HandleResourceChanges;
@@ -52,7 +75,7 @@ namespace REngine.RPI.RenderGraph
 				pDirtyBindings = true;
 			}
 
-			if(resourceSlotId == DepthbufferSlotName.GetHashCode())
+			if(resourceSlotId == DepthBufferSlotHash)
 			{
 				if(DepthBufferResource != null)
 					DepthBufferResource.ValueChanged -= HandleResourceChanges;

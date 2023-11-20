@@ -1,5 +1,6 @@
 ﻿using REngine.Core.Threading;
 using System.Diagnostics;
+using REngine.Core.DependencyInjection;
 using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
@@ -9,13 +10,13 @@ namespace REngine.Core
 		private readonly EngineEvents pEvents;
 		private readonly UpdateEventArgs pUpdateEvtArgs;
 		private readonly IExecutionPipeline pExecPipeline;
-		private readonly object pSync = new();
+		private readonly EngineSettings pEngineSettings;
+		private readonly IServiceProvider pServiceProvider;
 
-		private readonly Timer pTimer = new Timer();
+		private readonly Timer pTimer = new();
+		private IWindow? pMainWindow;
 
-		private bool pStopped = false;
-
-
+		private bool pStopped;
 		public double DeltaTime { get => pTimer.DeltaTime; }
 		public double ElapsedTime { get => pTimer.Elapsed; }
 
@@ -24,17 +25,24 @@ namespace REngine.Core
 		public EngineImpl(
 			IServiceProvider provider,
 			EngineEvents events,
-			IExecutionPipeline pipeline) 
+			IExecutionPipeline pipeline,
+			EngineSettings settings,
+			IServiceProvider serviceProvider) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
 			pStopwatch = Stopwatch.StartNew();
 			pExecPipeline = pipeline;
+			pEngineSettings = settings;
+			pServiceProvider = serviceProvider;
 		}
 
 		public IEngine Start()
 		{
 			Thread.CurrentThread.Name = "REngine - Main Thread";
+			// Try get main window
+			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
+
 			pStopwatch.Restart();
 			return this;
 		}
@@ -52,6 +60,12 @@ namespace REngine.Core
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
 
+			if (pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
+				GC.Collect();
+
+			// If window is minimized, we don't want burn unnecessary CPU
+			if (pMainWindow is { IsMinimized: true })
+				Thread.Sleep(pEngineSettings.IdleWaitTimeMs);
 			return this;
 		}
 
