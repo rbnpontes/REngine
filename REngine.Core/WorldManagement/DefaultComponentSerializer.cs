@@ -14,35 +14,7 @@ namespace REngine.Core.WorldManagement
 			mServiceProvider = serviceProvider;
 		}
 
-		public Component Create()
-		{
-			Type type = GetComponentType();
-			object[] paramValues = Array.Empty<object>();
-			// Find Suitable Constructor
-			var ctor = type.GetConstructors().Where(ctorInfo =>
-			{
-				var parameters = ctorInfo.GetParameters();
-				var currParamValues = new object[parameters.Length];
-				for (int i = 0; i < parameters.Length; ++i)
-				{
-					var targetValue = mServiceProvider.GetService(parameters[i].ParameterType);
-					if (targetValue is null)
-						return false;
-					currParamValues[i] = targetValue;
-				}
-
-				paramValues = currParamValues;
-				return true;
-			}).FirstOrDefault();
-
-			if (ctor is null)
-				throw new NullReferenceException($"Cannot found suitable Constructor to create Component '{type.Name}'");
-
-			Component? result = Activator.CreateInstance(type, paramValues) as Component;
-			if (result is null)
-				throw new NullReferenceException($"Error has ocurred while is creating component type '{nameof(type.Name)}'");
-			return result;
-		}
+		public abstract Component Create();
 
 		public abstract Type GetSerializeType();
 
@@ -74,6 +46,36 @@ namespace REngine.Core.WorldManagement
 
 		public DefaultComponentSerializer(IServiceProvider provider) : base(provider)
 		{
+		}
+
+		public override Component Create()
+		{
+			Type type = GetComponentType();
+			object[] paramValues = Array.Empty<object>();
+			// Find Suitable Constructor
+			var ctor = type.GetConstructors().Where(ctorInfo =>
+			{
+				var parameters = ctorInfo.GetParameters();
+				var currParamValues = new object[parameters.Length];
+				for (int i = 0; i < parameters.Length; ++i)
+				{
+					var targetValue = mServiceProvider.GetService(parameters[i].ParameterType);
+					if (targetValue is null)
+						return false;
+					currParamValues[i] = targetValue;
+				}
+
+				paramValues = currParamValues;
+				return true;
+			}).FirstOrDefault();
+
+			if (ctor is null)
+				throw new NullReferenceException($"Cannot found suitable Constructor to create Component '{type.Name}'");
+
+			Component? result = Activator.CreateInstance(type, paramValues) as Component;
+			if (result is null)
+				throw new NullReferenceException($"Error has occurred while is creating component type '{nameof(type.Name)}'");
+			return result;
 		}
 
 		protected override Type GetComponentType()

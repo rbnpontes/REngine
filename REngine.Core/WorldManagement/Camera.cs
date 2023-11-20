@@ -36,6 +36,11 @@ namespace REngine.Core.WorldManagement
 			pSystem = system;
 		}
 
+		public override Component Create()
+		{
+			return pSystem.CreateCamera();
+		}
+
 		public override Type GetSerializeType()
 		{
 			return typeof(SerializeData);

@@ -29,6 +29,11 @@ namespace REngine.Core.WorldManagement
 			pSystem = system;
 		}
 
+		public override Component Create()
+		{
+			return pSystem.CreateTransform();
+		}
+
 		public override Type GetSerializeType()
 		{
 			return typeof(SerializeData);
