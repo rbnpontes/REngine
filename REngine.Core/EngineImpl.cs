@@ -1,5 +1,6 @@
 ﻿using REngine.Core.Threading;
 using System.Diagnostics;
+using REngine.Core.DependencyInjection;
 using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
@@ -10,8 +11,10 @@ namespace REngine.Core
 		private readonly UpdateEventArgs pUpdateEvtArgs;
 		private readonly IExecutionPipeline pExecPipeline;
 		private readonly EngineSettings pEngineSettings;
+		private readonly IServiceProvider pServiceProvider;
 
 		private readonly Timer pTimer = new();
+		private IWindow? pMainWindow;
 
 		private bool pStopped;
 		public double DeltaTime { get => pTimer.DeltaTime; }
@@ -23,18 +26,23 @@ namespace REngine.Core
 			IServiceProvider provider,
 			EngineEvents events,
 			IExecutionPipeline pipeline,
-			EngineSettings settings) 
+			EngineSettings settings,
+			IServiceProvider serviceProvider) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
 			pStopwatch = Stopwatch.StartNew();
 			pExecPipeline = pipeline;
 			pEngineSettings = settings;
+			pServiceProvider = serviceProvider;
 		}
 
 		public IEngine Start()
 		{
 			Thread.CurrentThread.Name = "REngine - Main Thread";
+			// Try get main window
+			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
+
 			pStopwatch.Restart();
 			return this;
 		}
@@ -52,8 +60,12 @@ namespace REngine.Core
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
 
-			//if(pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
-			//	GC.Collect();
+			if (pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
+				GC.Collect();
+
+			// If window is minimized, we don't want burn unnecessary CPU
+			if (pMainWindow is { IsMinimized: true })
+				Thread.Sleep(pEngineSettings.IdleWaitTimeMs);
 			return this;
 		}
 

@@ -37,7 +37,12 @@ namespace REngine.Core
 		/// If engine runs fasts as can and have time left
 		/// Then GC will be collected
 		/// </summary>
-		public double GcCollectThreshold { get; set; } = 0.05f;
+		public double GcCollectThreshold { get; set; } = 0.008f;
+
+		/// <summary>
+		/// How much time main thread will sleep if app goes to Idle(minimized) ?
+		/// </summary>
+		public int IdleWaitTimeMs { get; set; } = 100;
 
 		public void Merge(EngineSettings value)
 		{
@@ -45,6 +50,8 @@ namespace REngine.Core
 			EntityExpansionRate = value.EntityExpansionRate;
 
 			GcCollectThreshold = value.GcCollectThreshold;
+
+			IdleWaitTimeMs = value.IdleWaitTimeMs;
 		}
 
 		public static EngineSettings FromStream(Stream stream)

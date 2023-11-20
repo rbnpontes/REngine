@@ -103,6 +103,16 @@ namespace REngine.Windows
 			get => Glfw.WindowShouldClose(pWindow);
 		}
 
+		public bool IsMinimized
+		{
+			get
+			{
+				if (pDisposed)
+					return false;
+				return Glfw.GetWindowAttribute(pWindow, WindowAttribute.AutoIconify);
+			}
+		}
+
 		private bool pFullscreen = false;
 		public bool IsFullscreen
 		{
