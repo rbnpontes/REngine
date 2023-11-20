@@ -160,6 +160,7 @@ namespace REngine.RPI.Features
 			ITextureView? backbuffer = GetBackBuffer();
 			ITextureView? depthbuffer = GetDepthBuffer();
 
+
 			if (backbuffer is null || depthbuffer is null || pDevice is null)
 				return;
 
@@ -168,7 +169,7 @@ namespace REngine.RPI.Features
 
 			command.SetRT(backbuffer, depthbuffer);
 
-			RenderDrawData(command, pDevice, io, backbuffer.Parent.Desc.Size);
+			RenderDrawData(command, pDevice, io, backbuffer.Size);
 			pSystem.EndRender();
 		}
 

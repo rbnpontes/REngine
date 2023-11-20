@@ -24,7 +24,7 @@ namespace REngine.Core.Threading.Nodes
 
 		public List<EPNode> LinkedNodes { get; set; } = new();
 
-		public EPNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) 
+		protected EPNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) 
 		{
 			ExecutionPipeline = execPipeline;
 			ServiceProvider = provider;

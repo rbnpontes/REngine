@@ -84,6 +84,7 @@ namespace REngine.RPI
 		public ISpriteBatch Draw(TextRendererBatch textBatch);
 		public ISpriteBatch Draw(SpriteBatchInfo spriteInfo);
 		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem);
+		public ISpriteBatch Draw(byte textureSlot, Color color, ISpriteInstancing instancingItem);
 		public ISpriteBatch ClearTexture(byte slot);
 		public ISpriteBatch ClearTextures();
 	}

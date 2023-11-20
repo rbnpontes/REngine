@@ -10,25 +10,22 @@ namespace REngine.RHI.NativeDriver
 {
 	internal class TextureWrapper : ITexture
 	{
-		public TextureDesc Desc
-		{
-			get => TextureImpl.GetObjectDesc(Handle);
-		}
-
-		public string Name { get => Desc.Name; }
+		private readonly TextureDesc pDesc;
+		public TextureDesc Desc => pDesc;
+		public string Name => pDesc.Name;
 
 		public IntPtr Handle { get; set; }
 
 		public bool IsDisposed { get; private set; }
 
-		public GPUObjectType ObjectType { get; private set; }
+		public GPUObjectType ObjectType => GPUObjectType.Texture;
 
 		public event EventHandler? OnDispose;
 
 		public TextureWrapper(IntPtr handle)
 		{
 			Handle = handle;
-			ObjectType = TextureImpl.GetObjectTypeFromDesc(Desc);
+			TextureImpl.GetObjectDesc(handle, out pDesc);
 		}
 
 		public void Dispose()
@@ -49,7 +46,7 @@ namespace REngine.RHI.NativeDriver
 			if (result.error != IntPtr.Zero)
 				throw new NullReferenceException(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default view {view}. Texture View is null");
 			TextureImpl.ValidateTextureView(view, result.value);
-			return new TextureViewWrapper(result.value);
+			return new TextureViewWrapper(result.value, new TextureSize(pDesc.Size.Width, pDesc.Size.Height));
 		}
 	}
 }

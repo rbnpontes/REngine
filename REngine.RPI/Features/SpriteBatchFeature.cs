@@ -13,9 +13,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Mathematics;
 
 namespace REngine.RPI.Features
 {
+	//TODO: Make this feature render driven
     internal class SpriteBatchFeature : GraphicsRenderFeature
 	{
 		[Flags]
@@ -40,24 +42,16 @@ namespace REngine.RPI.Features
 				Color = Vector4.One;
 			}
 		}
-		struct InstancedBufferData
-		{
-			public Vector4 Color;
-			public InstancedBufferData()
-			{
-				Color = Vector4.One;
-			}
-		}
 
-		private static readonly Vector4[] sVertices = new Vector4[] 
+		private static readonly Vector4[] sVertices = 
 		{ 
-			new Vector4(0, 1, 0, 1),
-			new Vector4(1, 0, 1, 0),
-			new Vector4(0, 0, 0, 0),
+			new (0, 1, 0, 1),
+			new (1, 0, 1, 0),
+			new (0, 0, 0, 0),
 
-			new Vector4(0, 1, 0, 1),
-			new Vector4(1, 1, 1, 1),
-			new Vector4(1, 0, 1, 0)
+			new (0, 1, 0, 1),
+			new (1, 1, 1, 1),
+			new (1, 0, 1, 0)
 		};
 
 		private readonly IServiceProvider pProvider;
@@ -65,9 +59,11 @@ namespace REngine.RPI.Features
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
 
+		private readonly Action<SpriteBatchInfo> pExecSpriteAction;
+		private readonly Action<TextRendererBatch> pExecTextBatchAction;
+
 		private IShaderResourceBinding?[] pBindings = Array.Empty<IShaderResourceBinding?>();
 		private IShaderResourceBinding?[] pInstancedBindings = Array.Empty<IShaderResourceBinding?>();
-
 
 		private IPipelineState? pDefaultPipeline;
 		private IPipelineState? pTexturedPipeline;
@@ -78,6 +74,7 @@ namespace REngine.RPI.Features
 		private IBuffer? pVBuffer;
 		private IBuffer? pInstanceBuffer;
 		private IBufferManager? pBufferProvider;
+		private ICommandBuffer? pCommandBuffer;
 
 		private DirtyFlags pDirtyFlags = DirtyFlags.All;
 
@@ -94,6 +91,9 @@ namespace REngine.RPI.Features
 			pTextureManager = texManager;
 			pSettings = settings;
 			pProvider = provider;
+
+			pExecSpriteAction = ExecuteSpriteBatch;
+			pExecTextBatchAction = ExecuteTextBatch;
 		}
 
 		public void UpdateTextures()
@@ -125,9 +125,9 @@ namespace REngine.RPI.Features
 			base.OnDispose();
 		}
 
-		public void CheckCBufferSizes(ulong cbufferSize)
+		public void CheckCBufferSizes(ulong cBufferSize)
 		{
-			if (cbufferSize != pCBuffer?.Desc.Size)
+			if (cBufferSize != pCBuffer?.Desc.Size)
 				MarkAsDirty(DirtyFlags.CBuffer);
 		}
 
@@ -165,8 +165,7 @@ namespace REngine.RPI.Features
 				pTexturedInstancedPipeline = instancedTexturedPipeline;
 			}
 
-			IShaderResourceBinding?[][] bindingArray = new IShaderResourceBinding?[][]
-			{
+			IShaderResourceBinding?[][] bindingArray = {
 				pBindings, pInstancedBindings
 			};
 
@@ -244,11 +243,9 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
-			BufferData cbufferData = new BufferData();
-			InstancedBufferData instancedBufferData = new();
-
-			ITextureView? backbuffer = GetBackBuffer();
-			ITextureView? depthbuffer = GetDepthBuffer();
+			pCommandBuffer = command;
+			var backbuffer = GetBackBuffer();
+			var depthbuffer = GetDepthBuffer();
 
 			if (backbuffer is null || depthbuffer is null)
 				return;
@@ -259,64 +256,67 @@ namespace REngine.RPI.Features
 			command.SetRT(backbuffer, depthbuffer);
 			
 			lock(pBatcher.SyncPrimitive)
-				ExecuteIndexed(command, pVBuffer, pDefaultPipeline, pTexturedPipeline, ref cbufferData);
+				ExecuteIndexed();
 			lock(pBatcher.SyncPrimitive)
-				ExecuteInstanced(command, pVBuffer, pInstancedPipeline, pTexturedInstancedPipeline, ref instancedBufferData);
+				ExecuteInstanced(command, pVBuffer, pInstancedPipeline, pTexturedInstancedPipeline);
 		}
 
-		private void ExecuteIndexed(
-			ICommandBuffer cmd, 
-			IBuffer vertexBuffer,
-			IPipelineState defaultPipeline, 
-			IPipelineState texturedPipeline,
-			ref BufferData cbufferData)
+		private void ExecuteIndexed()
 		{
-			var items = pBatcher.Items;
-			for (int i =0; i < items.Count; ++i)
+			// Render Sprites
+			pBatcher.Items.ForEach(pExecSpriteAction);
+			// Render Texts
+			pBatcher.TextBatches.ForEach(pExecTextBatchAction);
+		}
+
+		private BufferData pBufferData = new();
+		private void ExecuteSpriteBatch(SpriteBatchInfo item)
+		{
+			if (pCommandBuffer is null || pDefaultPipeline is null || pTexturedPipeline is null || pVBuffer is null)
+				return;
+
+			var textureSlot = item.TextureSlot;
+
+			var pipeline = textureSlot == byte.MaxValue ? pDefaultPipeline : pTexturedPipeline;
+			var binding = textureSlot != byte.MaxValue ? pBindings[textureSlot] : pDefaultPipeline.GetResourceBinding();
+			binding ??= pDefaultPipeline.GetResourceBinding();
+
+
+			if (item.Effect != null)
 			{
-				var item = items[i];
-				byte textureSlot = item.TextureSlot;
-				
-				var pipeline = textureSlot == byte.MaxValue ? defaultPipeline : texturedPipeline;
-				var binding = textureSlot != byte.MaxValue ? pBindings[textureSlot] : defaultPipeline.GetResourceBinding();
-				binding ??= defaultPipeline.GetResourceBinding();
+				var effect = item.Effect;
+				effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
 
-
-				if (item.Effect != null)
-				{
-					var effect = item.Effect;
-					effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
-
-					pipeline = effect.OnBuildPipeline(pProvider);
-					binding = effect.OnGetSRB();
-				}
-
-				FillBufferData(item, ref cbufferData);
-
-				var mappedData = cmd.Map<BufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
-				mappedData[0] = cbufferData;
-				cmd.Unmap(pCBuffer, MapType.Write);
-
-				cmd
-					.SetVertexBuffer(vertexBuffer)
-					.SetPipeline(pipeline)
-					.CommitBindings(binding);
-
-				cmd.Draw(new DrawArgs { NumVertices = 6 });
+				pipeline = effect.OnBuildPipeline(pProvider);
+				binding = effect.OnGetSRB();
 			}
 
-			// Render Texts
-			var textBatches = pBatcher.TextBatches;
-			foreach (var t in textBatches)
-				t.Draw(cmd);
+			FillBufferData(item, ref pBufferData);
+
+			var mappedData = pCommandBuffer.Map<BufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
+			mappedData[0] = pBufferData;
+			pCommandBuffer.Unmap(pCBuffer, MapType.Write);
+
+			pCommandBuffer
+				.SetVertexBuffer(pVBuffer)
+				.SetPipeline(pipeline)
+				.CommitBindings(binding);
+
+			pCommandBuffer.Draw(new DrawArgs { NumVertices = 6 });
+		} 
+		private void ExecuteTextBatch(TextRendererBatch batch)
+		{
+			if (pCommandBuffer is null)
+				return;
+			batch.Draw(pCommandBuffer);
 		}
 
+		private readonly IBuffer[] pInstanceVertexBuffers = new IBuffer[2];
 		private unsafe void ExecuteInstanced(
 			ICommandBuffer cmd,
 			IBuffer vertexBuffer,
 			IPipelineState defaultPipeline,
-			IPipelineState texturePipeline,
-			ref InstancedBufferData bufferData)
+			IPipelineState texturePipeline)
 		{
 			if (pBufferProvider is null)
 				return;
@@ -326,16 +326,16 @@ namespace REngine.RPI.Features
 			if (entries.Count == 0)
 				return;
 
-			{	// Write First CBuffer
-				var mappedData = cmd.Map<InstancedBufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
-				mappedData[0] = bufferData;
-				cmd.Unmap(pCBuffer, MapType.Write);
-			}
+			//{	// Write First CBuffer
+			//	var mappedData = cmd.Map<InstancedBufferData>(pCBuffer, MapType.Write, MapFlags.Discard);
+			//	mappedData[0] = pInstancedBufferData;
+			//	cmd.Unmap(pCBuffer, MapType.Write);
+			//}
 
-			ulong spriteInstancingSize = (ulong)Marshal.SizeOf<SpriteInstanceItem>();
-			ulong requiredBufferSize = pBatcher.MaxAllocatedInstanceItems * spriteInstancingSize;
+			var spriteInstancingSize = (ulong)Marshal.SizeOf<SpriteInstanceItem>();
+			var requiredBufferSize = pBatcher.MaxAllocatedInstanceItems * spriteInstancingSize;
 			// we also store instance buffer
-			// this prevents to reexecute buffer provider to get a new one at every frame
+			// this prevents to re-execute buffer provider to get a new one at every frame
 			// So we only change get new instance buffer if required data is greater than buffer.
 			if(pInstanceBuffer?.Size < requiredBufferSize || pInstanceBuffer is null)
 			{
@@ -343,18 +343,22 @@ namespace REngine.RPI.Features
 				pInstanceBuffer = pBufferProvider.GetInstancingBuffer(requiredBufferSize, true);
 			}
 
-			IBuffer[] vbuffers = new IBuffer[] { vertexBuffer, pInstanceBuffer };
+			pInstanceVertexBuffers[0] = vertexBuffer;
+			pInstanceVertexBuffers[1] = pInstanceBuffer;
 
-			byte textureSlot;
-			SpriteInstancing? entry;
 			foreach(var entryPair in entries)
 			{
-				if(entryPair.Value is null)
-					continue;
-				textureSlot = entryPair.Value.TextureSlot;
+				var textureSlot = entryPair.Value.TextureSlot;
 				// Only Renders Object that still exists
-				if (!entryPair.Value.Instancing.TryGetTarget(out entry))
+				if (!entryPair.Value.Instancing.TryGetTarget(out var entry))
 					continue;
+
+				// Update Constant Buffer
+				{
+					var mappedData = cmd.Map<Vector4>(pCBuffer, MapType.Write, MapFlags.Discard);
+					mappedData[0] = entryPair.Value.Color.ToVector4();
+					cmd.Unmap(pCBuffer, MapType.Write);
+				}
 
 				// Copy data to GPU Buffer
 				fixed (SpriteInstanceItem* data = pBatcher.InstanceData)
@@ -371,11 +375,11 @@ namespace REngine.RPI.Features
 					cmd.Unmap(pInstanceBuffer, MapType.Write);
 				}
 
-				IShaderResourceBinding? binding = textureSlot != byte.MaxValue ? pInstancedBindings[textureSlot] : defaultPipeline.GetResourceBinding();
+				var binding = textureSlot != byte.MaxValue ? pInstancedBindings[textureSlot] : defaultPipeline.GetResourceBinding();
 				binding ??= defaultPipeline.GetResourceBinding();
 
 				cmd
-					.SetVertexBuffers(0, vbuffers)
+					.SetVertexBuffers(0, pInstanceVertexBuffers)
 					.SetPipeline(textureSlot != byte.MaxValue ? texturePipeline : defaultPipeline)
 					.CommitBindings(binding)
 					.Draw(new DrawArgs

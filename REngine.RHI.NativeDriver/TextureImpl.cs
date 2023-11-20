@@ -11,22 +11,18 @@ namespace REngine.RHI.NativeDriver
 	internal partial class TextureImpl : NativeObject, ITexture
 	{
 		private readonly TextureViewImpl?[] pTexViews = new TextureViewImpl?[(byte)TextureViewType.ShadingRate];
+		private readonly TextureDesc pDesc;
 
-		public TextureDesc Desc
-		{
-			get => GetObjectDesc(Handle);
-		}
+		public TextureDesc Desc => pDesc;
 
-		public string Name
-		{
-			get => Desc.Name;
-		}
+		public string Name => pDesc.Name;
 
-		public GPUObjectType ObjectType { get; private set; }
+		public GPUObjectType ObjectType { get; }
 
 		public TextureImpl(IntPtr handle) : base(handle)
 		{
 			ObjectType = GetObjectTypeFromDesc(Desc);
+			GetObjectDesc(handle, out pDesc);
 		}
 
 		protected override void BeforeRelease()
@@ -62,7 +58,7 @@ namespace REngine.RHI.NativeDriver
 
 			if(texView is null)
 			{
-				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value);
+				pTexViews[(byte)view] = texView = new TextureViewImpl(result.value, pDesc.Size);
 				texView.AddRef();
 			}
 
@@ -97,13 +93,12 @@ namespace REngine.RHI.NativeDriver
 			if(texView == IntPtr.Zero)
 				throw new NullReferenceException($"There´s no default viewType for '{viewType}'.");
 		}
-		public static TextureDesc GetObjectDesc(IntPtr ptr)
+		public static void GetObjectDesc(IntPtr ptr, out TextureDesc output)
 		{
 			TextureDescDTO desc = new();
 			rengine_texture_getdesc(ptr, ref desc);
 
-			TextureDescDTO.Fill(desc, out TextureDesc output);
-			return output;
+			TextureDescDTO.Fill(desc, out output);
 		}
 	}
 }

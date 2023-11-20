@@ -9,13 +9,11 @@ namespace REngine.Core
 		private readonly EngineEvents pEvents;
 		private readonly UpdateEventArgs pUpdateEvtArgs;
 		private readonly IExecutionPipeline pExecPipeline;
-		private readonly object pSync = new();
+		private readonly EngineSettings pEngineSettings;
 
-		private readonly Timer pTimer = new Timer();
+		private readonly Timer pTimer = new();
 
-		private bool pStopped = false;
-
-
+		private bool pStopped;
 		public double DeltaTime { get => pTimer.DeltaTime; }
 		public double ElapsedTime { get => pTimer.Elapsed; }
 
@@ -24,12 +22,14 @@ namespace REngine.Core
 		public EngineImpl(
 			IServiceProvider provider,
 			EngineEvents events,
-			IExecutionPipeline pipeline) 
+			IExecutionPipeline pipeline,
+			EngineSettings settings) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
 			pStopwatch = Stopwatch.StartNew();
 			pExecPipeline = pipeline;
+			pEngineSettings = settings;
 		}
 
 		public IEngine Start()
@@ -52,6 +52,8 @@ namespace REngine.Core
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
 
+			//if(pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
+			//	GC.Collect();
 			return this;
 		}
 

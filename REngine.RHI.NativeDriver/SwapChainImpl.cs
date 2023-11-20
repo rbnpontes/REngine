@@ -11,43 +11,17 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.NativeDriver
 {
-	internal class SwapChainImpl : NativeObject, ISwapChain
+	internal partial class SwapChainImpl : NativeObject, ISwapChain
 	{
-		[DllImport(Constants.Lib)]
-		static extern void rengine_swapchain_get_desc(IntPtr swapChain, ref SwapChainDescNative desc);
-		[DllImport(Constants.Lib)]
-		static extern void rengine_swapchain_present(IntPtr swapChain, uint sync);
-		[DllImport(Constants.Lib)]
-		static extern void rengine_swapchain_resize(IntPtr swapChain, uint width, uint height, uint transform);
-		[DllImport(Constants.Lib)]
-		static extern IntPtr rengine_swapchain_get_backbuffer(IntPtr swapChain);
-		[DllImport(Constants.Lib)]
-		static extern IntPtr rengine_swapchain_get_depthbuffer(IntPtr swapChain);
-
 		private readonly object pSync = new();
 
-		private SwapChainSize pLastSize;
-		public SwapChainDesc Desc 
-		{ 
-			get
-			{
-				SwapChainDescNative desc = new();
-				SwapChainDesc result = new();
-				lock (pSync)
-				{
-					rengine_swapchain_get_desc(Handle, ref desc);
-					SwapChainDescNative.CopyTo(desc, ref result);
-				}
-				return result;
-			}
-		}
+		private SwapChainDesc pDesc;
+
+		public SwapChainDesc Desc => pDesc;
 
 		public SwapChainSize Size { 
-			get => Desc.Size;
-			set
-			{
-				Resize(value.Width, value.Height, Transform);
-			}
+			get => pDesc.Size;
+			set => Resize(value.Width, value.Height, Transform);
 		}
 		public SwapChainTransform Transform
 		{
@@ -59,8 +33,8 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
-		private TextureViewWrapper pColorBuffer;
-		private TextureViewWrapper? pDepthBuffer;
+		private readonly TextureViewWrapper pColorBuffer;
+		private readonly TextureViewWrapper? pDepthBuffer;
 
 		public ITextureView ColorBuffer 
 		{
@@ -79,12 +53,13 @@ namespace REngine.RHI.NativeDriver
 
 		public SwapChainImpl(IntPtr handle) : base(handle)
 		{
+			GetObjectDesc(handle, out pDesc);
+			TextureSize texSize = new(pDesc.Size.Width, pDesc.Size.Height);
+
 			IntPtr ptr = rengine_swapchain_get_depthbuffer(Handle);
 			if(ptr != IntPtr.Zero)
-				pDepthBuffer = new TextureViewWrapper(ptr);
-			pColorBuffer = new TextureViewWrapper(rengine_swapchain_get_backbuffer(Handle));
-
-			pLastSize = Size;
+				pDepthBuffer = new TextureViewWrapper(ptr, texSize);
+			pColorBuffer = new TextureViewWrapper(rengine_swapchain_get_backbuffer(Handle), texSize);
 		}
 
 		public ISwapChain Present(bool vsync)
@@ -106,21 +81,9 @@ namespace REngine.RHI.NativeDriver
 
 		public ISwapChain Resize(uint width, uint height, SwapChainTransform transform = SwapChainTransform.Optimal)
 		{
-			var currSize = Size;
+			var currSize = pDesc.Size;
 			if (currSize.Width == width && currSize.Height == height)
-			{
-				// Vulkan resizes automatically swapchain, when this occurs
-				// Resize event is not called
-				if (pLastSize.Width == width && pLastSize.Height == height) 
-					return this;
-				pLastSize = currSize;
-				OnResize?.Invoke(this, new SwapChainResizeEventArgs(
-						currSize,
-						transform
-					)
-				);
 				return this;
-			}
 
 			width = Math.Max(width, 1);
 			height = Math.Max(height, 1);
@@ -131,7 +94,7 @@ namespace REngine.RHI.NativeDriver
 				CollectBuffers();
 			}
 
-			pLastSize = currSize;
+			UpdateSize(width, height);
 			OnResize?.Invoke(this, 
 				new SwapChainResizeEventArgs(
 					new SwapChainSize(width, height),
@@ -146,6 +109,26 @@ namespace REngine.RHI.NativeDriver
 			pColorBuffer.Handle = rengine_swapchain_get_backbuffer(Handle);
 			if(pDepthBuffer != null)
 				pDepthBuffer.Handle = rengine_swapchain_get_depthbuffer(Handle);
+		}
+
+		private void UpdateSize(uint width, uint height)
+		{
+			var texSize = new TextureSize(width, height);
+			pDesc.Size = new SwapChainSize(width, height);
+
+			pColorBuffer.Size = texSize;
+			if(pDepthBuffer != null)
+				pDepthBuffer.Size = texSize;
+		}
+		public static void GetObjectDesc(IntPtr handle, out SwapChainDesc output)
+		{
+			SwapChainDescNative desc = new();
+			SwapChainDesc result = new();
+			
+			rengine_swapchain_get_desc(handle, ref desc);
+			SwapChainDescNative.CopyTo(desc, ref result);
+
+			output = result;
 		}
 	}
 }

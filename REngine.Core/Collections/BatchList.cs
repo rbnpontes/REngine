@@ -118,6 +118,12 @@ namespace REngine.Core.Collections
 				yield return pBuffer[i];
 		}
 
+		public void ForEach(Action<T> action)
+		{
+			for(var i =0;i < pNextItemIdx; ++i)
+				action(pBuffer[i]);
+		}
+
 		private void ValidateIndex(int index)
 		{
 			if (index >= pNextItemIdx)

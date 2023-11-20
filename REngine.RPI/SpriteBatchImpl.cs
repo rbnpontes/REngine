@@ -5,6 +5,7 @@ using REngine.RHI;
 using REngine.RPI.Features;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -158,7 +159,14 @@ namespace REngine.RPI
 		public ISpriteBatch Draw(byte textureSlot, ISpriteInstancing instancingItem)
 		{
 			if(instancingItem is SpriteInstancing item)
-				pBatcher.Add(textureSlot, item);
+				pBatcher.Add(textureSlot, null, item);
+			return this;
+		}
+
+		public ISpriteBatch Draw(byte textureSlot, Color color, ISpriteInstancing instancingItem)
+		{
+			if(instancingItem is SpriteInstancing item)
+				pBatcher.Add(textureSlot, color, item);
 			return this;
 		}
 

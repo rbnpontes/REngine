@@ -33,10 +33,18 @@ namespace REngine.Core
 		/// </summary>
 		public float EntityExpansionRate { get; set; } = 1.25f;
 
+		/// <summary>
+		/// If engine runs fasts as can and have time left
+		/// Then GC will be collected
+		/// </summary>
+		public double GcCollectThreshold { get; set; } = 0.05f;
+
 		public void Merge(EngineSettings value)
 		{
 			InitialEntityCount = value.InitialEntityCount;
 			EntityExpansionRate = value.EntityExpansionRate;
+
+			GcCollectThreshold = value.GcCollectThreshold;
 		}
 
 		public static EngineSettings FromStream(Stream stream)

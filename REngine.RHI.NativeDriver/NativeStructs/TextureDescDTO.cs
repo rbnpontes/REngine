@@ -62,7 +62,7 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		{
 			output = new TextureDesc
 			{
-				Name = Marshal.PtrToStringAnsi(desc.name) ?? string.Empty,
+				Name = string.Intern(Marshal.PtrToStringAnsi(desc.name) ?? string.Empty),
 				Dimension = (TextureDimension)desc.dimension,
 				Size = new TextureSize(desc.width, desc.height),
 				ArraySizeOrDepth = desc.arraySizeOrDepth,

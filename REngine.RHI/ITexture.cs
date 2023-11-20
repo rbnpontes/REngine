@@ -93,5 +93,7 @@
 		public ITexture Parent { get; }
 		public TextureViewDesc Desc { get; }
 		public TextureViewType ViewType { get; }
+
+		public TextureSize Size { get; }
 	}
 }

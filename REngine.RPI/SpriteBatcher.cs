@@ -3,6 +3,7 @@ using REngine.Core.Resources;
 using REngine.RHI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -117,7 +118,7 @@ namespace REngine.RPI
 	{
 		public WeakReference<SpriteInstancing> Instancing { get; set; }
 		public byte TextureSlot { get; set; }
-
+		public Color Color { get; set; } = Color.White;
 		public SpriteInstancingEntry(byte slot, SpriteInstancing instancing)
 		{
 			TextureSlot = slot;
@@ -195,7 +196,7 @@ namespace REngine.RPI
 			lock(SyncPrimitive)
 				Items.Add(next);
 		}
-		public void Add(byte textureSlot, SpriteInstancing instancing)
+		public void Add(byte textureSlot, Color? color, SpriteInstancing instancing)
 		{
 			lock (SyncPrimitive)
 			{
@@ -205,6 +206,8 @@ namespace REngine.RPI
 				{
 					if (entry.TextureSlot != textureSlot)
 						entry.TextureSlot = textureSlot;
+					if(entry.Color != color && color != null)
+						entry.Color = color.Value;
 					return;
 				}
 

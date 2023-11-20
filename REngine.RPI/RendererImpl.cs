@@ -36,6 +36,9 @@ namespace REngine.RPI
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly IEngine pEngine;
 
+		private readonly Action<IRenderFeature> pCompileAction;
+		private readonly Action<IRenderFeature> pRenderAction;
+
 #if RENGINE_RENDERGRAPH
 		private RenderGraph.IResourceManager? pRenderGraphResMgr;
 		private RenderGraph.IResource? pMainBackBufferResource;
@@ -45,12 +48,13 @@ namespace REngine.RPI
 
 		private readonly FeatureCollection pFeatureCollection = new();
 
+		private RenderFeatureSetupInfo pSetupInfo;
+
 		private IGraphicsDriver? pDriver;
-		private bool pDisposed = false;
 
 		private ISwapChain? pSwapChain;
 
-		public bool IsDisposed { get => pDisposed; }
+		public bool IsDisposed { get; private set; }
 
 		public ISwapChain? SwapChain { 
 			get => pSwapChain; 
@@ -71,7 +75,7 @@ namespace REngine.RPI
 			IServiceProvider provider, 
 			ILogger<IRenderer> logger,
 			EngineEvents events,
-			RPIEvents rendererEvts,
+			RPIEvents rendererEvents,
 			RenderState renderState,
 			IBufferManager bufferProvider,
 			IPipelineStateManager pipelineMgr,
@@ -83,7 +87,7 @@ namespace REngine.RPI
 		{
 			pProvider = provider;
 			pLogger = logger;
-			pRenderEvents = rendererEvts;
+			pRenderEvents = rendererEvents;
 			pRenderState = renderState;
 			pEngineEvents = events;
 			pBufferProvider = bufferProvider;
@@ -98,7 +102,9 @@ namespace REngine.RPI
 
 			events.OnStart += HandleEngineStart;
 			events.OnBeforeStop += HandleEngineStop;
-			this.pGraphicsSettings = pGraphicsSettings;
+
+			pCompileAction = ExecCompile;
+			pRenderAction = ExecRender;
 		}
 
 		private void HandleEngineStop(object? sender, EventArgs e)
@@ -108,10 +114,10 @@ namespace REngine.RPI
 
 		public void Dispose()
 		{
-			if(pDisposed)
+			if(IsDisposed)
 				return;
 
-			pDisposed = true;
+			IsDisposed = true;
 
 			pRenderEvents.ExecuteBeginDispose(this);
 
@@ -126,7 +132,7 @@ namespace REngine.RPI
 
 		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
 		{
-			if (pDisposed)
+			if (IsDisposed)
 				return this;
 			pFeatureCollection.AddFeature(feature, zindex);
 			return this;
@@ -134,7 +140,7 @@ namespace REngine.RPI
 
 		public IRenderer AddFeature(IEnumerable<IRenderFeature> features, int zindex = -1)
 		{
-			if (pDisposed)
+			if (IsDisposed)
 				return this;
 			pFeatureCollection.AddFeatures(features, zindex);
 			return this;
@@ -142,7 +148,7 @@ namespace REngine.RPI
 
 		public IRenderer RemoveFeature(IRenderFeature feature)
 		{
-			if (pDisposed)
+			if (IsDisposed)
 				return this;
 			pFeatureCollection.RemoveFeature(feature);
 			return this;
@@ -150,37 +156,26 @@ namespace REngine.RPI
 
 		public IRenderer Compile()
 		{
-			if (pDisposed || pDriver is null)
+			if (IsDisposed || pDriver is null)
 				return this;
 
 			pNeedsPrepareVar.Value = pFeatureCollection.NeedsPrepare;
-
-			RenderFeatureSetupInfo setupInfo = new(
-				pDriver,
-				this,
-				pBufferProvider,
-				pPipelineMgr,
-				pShaderMgr,
-				pRenderTargetMgr,
-				pGraphicsSettings,
-				pRenderState
-			);
-
-			foreach(var feature in pFeatureCollection)
-			{
-				if (!feature.IsDirty)
-					continue;
-				feature.Setup(setupInfo);
-				feature.Compile(pDriver.ImmediateCommand);
-			}
-
+			pFeatureCollection.ForEach(pCompileAction);
 			return this;
+
+		}
+		private void ExecCompile(IRenderFeature feature)
+		{
+			if (!feature.IsDirty || pDriver is null)
+				return;
+			feature.Setup(pSetupInfo);
+			feature.Compile(pDriver.ImmediateCommand);
 		}
 
 		public IRenderer Render()
 		{
 			// TODO: make this multi-thread
-			if (pDisposed || pDriver is null)
+			if (IsDisposed || pDriver is null)
 				return this;
 			
 			// if swap chain has been set, then we must clear
@@ -192,7 +187,7 @@ namespace REngine.RPI
 
 				var colorBuffer = pSwapChain.ColorBuffer;
 				pDriver.ImmediateCommand
-					.SetRTs(new ITextureView[] { colorBuffer }, pSwapChain.DepthBuffer)
+					.SetRT(colorBuffer, pSwapChain.DepthBuffer)
 					.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
 					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
@@ -208,25 +203,25 @@ namespace REngine.RPI
 #endif
 			}
 
-			foreach(var feature in pFeatureCollection)
-			{
-				if (feature.IsDirty)
-					continue;
-
-				feature.Execute(pDriver.ImmediateCommand);
-			}
+			pFeatureCollection.ForEach(pRenderAction);
 			return this;
+		}
+
+		private void ExecRender(IRenderFeature feature)
+		{
+			if (feature.IsDirty || pDriver is null)
+				return;
+			feature.Execute(pDriver.ImmediateCommand);
 		}
 
 		public IRenderer PrepareFeatures()
 		{
-			if (pFeatureCollection.NeedsPrepare)
-			{
-				pLogger.Debug("Executing Render Prepare");
-				pFeatureCollection.Prepare();
-				pNeedsPrepareVar.Value = false;
-				pLogger.Debug("Render Prepare Finished");
-			}
+			if (!pFeatureCollection.NeedsPrepare.Value)
+				return this;
+			pLogger.Debug("Executing Render Prepare");
+			pFeatureCollection.Prepare();
+			pNeedsPrepareVar.Value = false;
+			pLogger.Debug("Render Prepare Finished");
 			return this;
 		}
 
@@ -322,6 +317,18 @@ namespace REngine.RPI
 			pMainBackBufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainBackbufferResourceName);
 			pMainDepthBufferResource = pRenderGraphResMgr.GetResource(ConstantRenderGraphNames.MainDepthbufferResourceName);
 #endif
+
+
+			pSetupInfo = new RenderFeatureSetupInfo(
+				pDriver,
+				this,
+				pBufferProvider,
+				pPipelineMgr,
+				pShaderMgr,
+				pRenderTargetMgr,
+				pGraphicsSettings,
+				pRenderState
+			);
 
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())

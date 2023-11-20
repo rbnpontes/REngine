@@ -145,22 +145,22 @@ namespace REngine.RHI.NativeDriver
 			ValidateTextureView(rt);
 			ValidateTextureView(depthStencil);
 #endif
-			pCopyRenderTargetsPtrs[0] = rt.Handle;
+			pCopyRenderTargetsPointers[0] = rt.Handle;
 			InternalSetRTs(1, depthStencil.Handle);
 			return this;
 		}
 
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil)
 		{
-			if (rts.Length > MAX_RENDER_TARGETS)
-				throw new ArgumentOutOfRangeException($"Max allowed Render Targets is {MAX_RENDER_TARGETS}");
+			if (rts.Length > MaxRenderTargets)
+				throw new ArgumentOutOfRangeException($"Max allowed Render Targets is {MaxRenderTargets}");
 
 			for (var i = 0; i < rts.Length; ++i)
 			{
 #if DEBUG
 				ValidateTextureView(rts[i]);
 #endif
-				pCopyRenderTargetsPtrs[i] = rts[i].Handle;
+				pCopyRenderTargetsPointers[i] = rts[i].Handle;
 			}
 #if DEBUG
 			ValidateTextureView(depthStencil);
@@ -172,7 +172,7 @@ namespace REngine.RHI.NativeDriver
 
 		private unsafe void InternalSetRTs(byte numRts, IntPtr depthStencil)
 		{
-			fixed (void* rtsPtr = pCopyRenderTargetsPtrs)
+			fixed (void* rtsPtr = pCopyRenderTargetsPointers)
 			{
 				rengine_cmdbuffer_setrts(
 					Handle,
@@ -198,7 +198,7 @@ namespace REngine.RHI.NativeDriver
 #if DEBUG
 			ValidateVertexBuffer(buffer);
 #endif
-			pCopyVertexBuffersPtrs[0] = buffer.Handle;
+			pCopyVertexBuffersPointers[0] = buffer.Handle;
 			InternalSetVertexBuffers(0, 1, pCopyOffsets, reset);
 			return this;
 		}
@@ -213,7 +213,7 @@ namespace REngine.RHI.NativeDriver
 #if DEBUG
 				ValidateVertexBuffer(buffers[i]);
 #endif
-				pCopyVertexBuffersPtrs[i] = buffers[i].Handle;
+				pCopyVertexBuffersPointers[i] = buffers[i].Handle;
 				pCopyOffsets[i] = ulong.MinValue;
 			}
 
@@ -234,7 +234,7 @@ namespace REngine.RHI.NativeDriver
 #if DEBUG
 				ValidateVertexBuffer(buffers[i]);
 #endif
-				pCopyVertexBuffersPtrs[i] = buffers[i].Handle;
+				pCopyVertexBuffersPointers[i] = buffers[i].Handle;
 			}
 
 			InternalSetVertexBuffers(startSlot, bufferCount, offsets, reset);
@@ -244,8 +244,8 @@ namespace REngine.RHI.NativeDriver
 #if DEBUG
 		private static void ValidateVertexBuffers(IBuffer[] buffers)
 		{
-			if(buffers.Length > MAX_VERTEX_BUFFERS)
-				throw new ArgumentOutOfRangeException($"Vertex Buffer items cannot greater than '{MAX_VERTEX_BUFFERS}'.");
+			if(buffers.Length > MaxVertexBuffers)
+				throw new ArgumentOutOfRangeException($"Vertex Buffer items cannot greater than '{MaxVertexBuffers}'.");
 		}
 
 		private static void ValidateVertexBuffer(IBuffer buffer)
@@ -258,7 +258,7 @@ namespace REngine.RHI.NativeDriver
 #endif
 		private unsafe void InternalSetVertexBuffers(uint startSlot, uint bufferCount, ulong[] offsets, bool reset)
 		{
-			fixed (void* ptr = pCopyVertexBuffersPtrs)
+			fixed (void* ptr = pCopyVertexBuffersPointers)
 			{
 				fixed (ulong* offsetsPtr = offsets)
 				{
@@ -341,29 +341,35 @@ namespace REngine.RHI.NativeDriver
 
 		public ICommandBuffer SetViewport(Viewport viewport, uint rtWidth, uint rtHeight)
 		{
-			return SetViewports(new Viewport[] { viewport }, rtWidth, rtHeight);
+			pCopyViewport[0] = viewport;
+			return SetViewports(pCopyViewport, rtWidth, rtHeight);
 		}
 
-		public unsafe ICommandBuffer SetScissors(IntRect[] scissors, uint rtWidth, uint rtHeight)
+		public ICommandBuffer SetScissors(IntRect[] scissors, uint rtWidth, uint rtHeight)
 		{
-			fixed(IntRect* ptr = scissors)
-			{
-				IntPtr scissorsPtr = new(ptr);
-				rengine_cmdbuffer_setscissors(
-					Handle,
-					scissorsPtr, 
-					(byte)scissors.Length, 
-					rtWidth, 
-					rtHeight 
-				);
-			}
-
+			InternalSetScissors((byte)scissors.Length, scissors, rtWidth, rtHeight);
 			return this;
 		}
 
 		public ICommandBuffer SetScissor(IntRect scissor, uint rtWidth, uint rtHeight)
 		{
-			return SetScissors(new IntRect[] { scissor }, rtWidth, rtHeight);
+			pCopyScissors[0] = scissor;
+			InternalSetScissors(1, pCopyScissors, rtWidth, rtHeight);
+			return this;
+		}
+
+		private unsafe void InternalSetScissors(byte scissorsCount, IntRect[] scissors, uint rtWidth, uint rtHeight)
+		{
+			fixed (IntRect* ptr = scissors)
+			{
+				rengine_cmdbuffer_setscissors(
+					Handle,
+					new IntPtr(ptr),
+					scissorsCount,
+					rtWidth,
+					rtHeight
+				);
+			}
 		}
 
 		public ICommandBuffer Compute(ComputeArgs args)
