@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.Serialization
 {
-	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true)]
 	public class SerializationIgnoreAttribute : Attribute
 	{
 	}
