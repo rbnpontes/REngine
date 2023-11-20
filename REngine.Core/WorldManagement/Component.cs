@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Serialization;
 
 namespace REngine.Core.WorldManagement
 {
 	public abstract class Component : IDisposable
 	{
-		private bool pEnabled = false;
-		private bool pDisposed = false;
+		private bool pEnabled = true;
+		private bool pDisposed;
 		private Entity? pOwner;
 
+		[SerializationIgnore]
 		public bool Enabled 
 		{
 			get 
@@ -31,12 +33,14 @@ namespace REngine.Core.WorldManagement
 			}
 		}
 
+		[SerializationIgnore]
 		public Entity? Owner 
 		{
 			get => pOwner;
 			internal set => AttachEntity(value);
 		}
 
+		[SerializationIgnore]
 		public bool IsDisposed { get => pDisposed; }
 
 		public Component()

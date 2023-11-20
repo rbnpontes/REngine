@@ -16,6 +16,7 @@ namespace REngine.Core.WorldManagement
 		public Vector2 Scale;
 		public Matrix4x4 CachedTransformMatrix;
 		public Matrix4x4 CachedWorldTransformMatrix;
+		public float WorldRotation;
 		public int ParentId;
 		public List<int> Children;
 		public bool Dirty;
@@ -30,6 +31,7 @@ namespace REngine.Core.WorldManagement
 			
 			CachedTransformMatrix = Matrix4x4.Identity;
 			CachedWorldTransformMatrix = Matrix4x4.Identity;
+			WorldRotation = 0;
 			ParentId = -1;
 			Children = new List<int>();
 			Component = null;
@@ -272,6 +274,33 @@ namespace REngine.Core.WorldManagement
 			}
 		}
 
+		public void GetWorldPosition(Transform2D transform, out Vector2 position)
+		{
+			lock (pSync)
+			{
+#if DEBUG
+				ValidateComponent(transform);
+#endif
+				if (pData[transform.Id].Dirty)
+					UpdateTransforms(transform.Id);
+				var translation = pData[transform.Id].CachedWorldTransformMatrix.Translation;
+				position = new Vector2(translation.X, translation.Y);
+			}
+		}
+
+		public void GetWorldRotation(Transform2D transform, out float rotation)
+		{
+			lock (pSync)
+			{
+#if DEBUG
+				ValidateComponent(transform);
+#endif
+				if (pData[transform.Id].Dirty)
+					UpdateTransforms(transform.Id);
+				rotation = pData[transform.Id].WorldRotation;
+			}
+		}
+
 		public IEnumerable<Transform2D> GetChildren(Transform2D transform)
 		{
 			IEnumerable<Transform2D> children;
@@ -299,11 +328,13 @@ namespace REngine.Core.WorldManagement
 			                             * Matrix4x4.CreateRotationZ(data.Rotation)
 			                             * Matrix4x4.CreateTranslation(new Vector3(data.Position, data.ZIndex));
 			data.CachedWorldTransformMatrix = data.CachedTransformMatrix;
+			data.WorldRotation = data.Rotation;
 			if (data.ParentId >= 0)
 			{
 				UpdateTransforms(data.ParentId);
 				var parent = pData[data.ParentId];
 				data.CachedWorldTransformMatrix = parent.CachedWorldTransformMatrix * data.CachedTransformMatrix;
+				data.WorldRotation = parent.WorldRotation + data.Rotation;
 			}
 
 			data.Dirty = false;
