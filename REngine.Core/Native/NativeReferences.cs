@@ -191,6 +191,9 @@ namespace REngine.Core.Native
 			{
 				foreach (var searchPath in searchPaths)
 				{
+					if(!Directory.Exists(searchPath))
+						continue;
+
 					var loaded = false;
 					var files = Directory.GetFiles(searchPath).Where(x => x.Contains(lib));
 					foreach (var file in files)
@@ -213,7 +216,7 @@ namespace REngine.Core.Native
 				try
 				{
 					result = NativeLibrary.Load(libPath);
-					Logger.Success($"[LOADED]: {libName}");
+					Logger?.Success($"[LOADED]: {libName}");
 				}
 				catch (Exception e)
 				{
