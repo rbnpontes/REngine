@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.IO;
 
-namespace REngine.Core.Native
+namespace REngine.Core.Runtimes
 {
 	public static class NativeReferences
 	{

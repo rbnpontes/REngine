@@ -254,11 +254,12 @@ namespace REngine.RPI.Features
 				return;
 
 			command.SetRT(backbuffer, depthbuffer);
-			
-			lock(pBatcher.SyncPrimitive)
+
+			lock (pBatcher.SyncPrimitive)
+			{
 				ExecuteIndexed();
-			lock(pBatcher.SyncPrimitive)
 				ExecuteInstanced(command, pVBuffer, pInstancedPipeline, pTexturedInstancedPipeline);
+			}
 		}
 
 		private void ExecuteIndexed()
