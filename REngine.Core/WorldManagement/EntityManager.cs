@@ -108,7 +108,7 @@ namespace REngine.Core.WorldManagement
 			return entities;
 		}
 		
-		public Entity GetEntity(int id)
+		public Entity GetEntity(string id)
 		{
 			if (id >= pData.Length)
 				throw new InvalidEntityIdException("Id is greater than Entity Pool");
@@ -120,6 +120,27 @@ namespace REngine.Core.WorldManagement
 				throw new EntityException("Invalid Entity Id. It seems this entity has been previous destroyed or not be allocated yet.");
 			return entity;
 		}
+
+		public T CreateComponent<T>(Entity entity) where T : Component
+		{
+			if (CreateComponent(entity, typeof(T)) is not T component)
+				throw new NullReferenceException("Error has occurred at create component.");
+			return component;
+		}
+
+		public Component CreateComponent(Entity entity, Type type)
+		{
+			if (!type.IsAssignableTo(typeof(Component)))
+				throw new ArgumentException($"Type must inherit {nameof(Component)}", nameof(type));
+			var resolver = pSerializerFactory.FindSerializer(ComponentSerializerFactory.GetTypeCode(type));
+			if (resolver is null)
+				pSerializerFactory.CollectSerializers();
+			resolver = pSerializerFactory.GetSerializer(type);
+			var component = resolver.Create();
+			entity.AddComponent(component);
+			return component;
+		}
+
 
 		/// <summary>
 		/// Optimize will rearrange the whole poll

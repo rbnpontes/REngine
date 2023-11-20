@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Reflection;
 
 namespace REngine.Sandbox
 {
@@ -67,8 +68,7 @@ namespace REngine.Sandbox
 			pLastSample?.Dispose();
 			pLastSample = null;
 
-			ISample? sample = Activator.CreateInstance(item.Type) as ISample;
-			if (sample is null)
+			if (ActivatorExtended.CreateInstance(pServiceProvider, item.Type) is not ISample sample)
 				throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
 
 			sample.Window = pServiceProvider.Get<IWindow>();
