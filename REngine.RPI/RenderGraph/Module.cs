@@ -23,7 +23,8 @@ namespace REngine.RPI.RenderGraph
 				.Register<ClearNode>()
 				.Register<CopyRenderTargetNode>()
 				.Register<GrayScalePostProcessNode>()
-				.Register<InvertPostProcessNode>();
+				.Register<InvertPostProcessNode>()
+				.Register<SepiaPostProcessNode>();
 		}
 	}
 #endif

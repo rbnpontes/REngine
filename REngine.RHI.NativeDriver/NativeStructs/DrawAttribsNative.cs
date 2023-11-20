@@ -14,16 +14,13 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		public uint startVertexLocation;
 		public uint firstInstanceLocation;
 
-		public static void Fill(in DrawArgs args, out DrawAttribsNative output)
+		public static void Fill(in DrawArgs args, ref DrawAttribsNative output)
 		{
-			output = new DrawAttribsNative
-			{
-				numVertices = args.NumVertices,
-				flags = 0x01 | 0x02 | 0x04,
-				numInstances = args.NumInstances,
-				startVertexLocation = args.StartVertexLocation,
-				firstInstanceLocation = args.FirstInstanceLocation
-			};
+			output.numVertices = args.NumVertices;
+			output.flags = 0x01 | 0x02 | 0x04;
+			output.numInstances = args.NumInstances;
+			output.startVertexLocation = args.StartVertexLocation;
+			output.firstInstanceLocation = args.FirstInstanceLocation;
 		}
 	}
 
@@ -37,18 +34,15 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 		public uint baseVertex;
 		public uint firstInstanceLocation;
 
-		public static void Fill(in DrawIndexedArgs args, out DrawIndexedAttribsNative output)
+		public static void Fill(in DrawIndexedArgs args, ref DrawIndexedAttribsNative output)
 		{
-			output = new DrawIndexedAttribsNative
-			{
-				numIndices = args.NumIndices,
-				indexType = (byte)args.IndexType,
-				flags = 0x01 | 0x02 | 0x04,
-				numInstances = args.NumInstances,
-				firstIndexLocation = args.FirstIndexLocation,
-				baseVertex = args.BaseVertex,
-				firstInstanceLocation = args.FirstInstanceLocation
-			};
+			output.numIndices = args.NumIndices;
+			output.indexType = (byte)args.IndexType;
+			output.flags = 0x01 | 0x02 | 0x04;
+			output.numInstances = args.NumInstances;
+			output.firstIndexLocation = args.FirstIndexLocation;
+			output.baseVertex = args.BaseVertex;
+			output.firstInstanceLocation = args.FirstInstanceLocation;
 		}
 	}
 }

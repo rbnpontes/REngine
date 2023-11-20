@@ -117,7 +117,7 @@ namespace REngine.RPI
 			if (pFeatures2RemoveCount == 0)
 				return;
 
-			FeatureEntry[] newFeatures = new FeatureEntry[pFeatureEntries.Length - pFeatures2RemoveCount];
+			FeatureEntry[] newFeatures = new FeatureEntry[Math.Max(pFeatureEntries.Length - pFeatures2RemoveCount, 0)];
 			int nextItemIdx = 0;
 			foreach (var featureEntry in pFeatureEntries)
 			{

@@ -23,8 +23,8 @@ namespace REngine.RPI.Features
 			All = Pipeline | FontTexture
 		}
 
-		private static readonly ulong sImDrawVertSize = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>();
-		private static readonly string sFontTexName = "g_texture";
+		private static readonly ulong sImDrawVertexSize = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>();
+		private static readonly string sFontTexName = TextureNames.MainTexture;
 		private static readonly List<PipelineInputLayoutElementDesc> sLayoutElements = new()
 		{
 			new PipelineInputLayoutElementDesc 
@@ -335,7 +335,7 @@ namespace REngine.RPI.Features
 			IntPtr vertexMemPtr = cmd.Map(pVBuffer, MapType.Write, MapFlags.Discard);
 			IntPtr indexMemPtr = cmd.Map(pIBuffer, MapType.Write, MapFlags.Discard);
 
-			long vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertSize;
+			long vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertexSize;
 			long iBufferSize = cmdList.IdxBuffer.Size * sizeof(ushort);
 
 			Buffer.MemoryCopy(
@@ -369,7 +369,7 @@ namespace REngine.RPI.Features
 			{
 				Name = "ImGui Vertex Buffer",
 				BindFlags = BindFlags.VertexBuffer,
-				Size = pVertexBufferCount * sImDrawVertSize,
+				Size = pVertexBufferCount * sImDrawVertexSize,
 				Usage = Usage.Dynamic,
 				AccessFlags = CpuAccessFlags.Write
 			});

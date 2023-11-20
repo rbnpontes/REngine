@@ -115,6 +115,7 @@ namespace REngine.Sandbox.Samples
 			ImGui.Begin("Post Process Sample");
 			ImGui.RadioButton("Grayscale", ref pPostProcessOption, 0);
 			ImGui.RadioButton("Invert", ref pPostProcessOption, 1);
+			ImGui.RadioButton("Sepia", ref pPostProcessOption, 2);
 			ImGui.End();
 
 			pVar.Value = pPostProcessOption;

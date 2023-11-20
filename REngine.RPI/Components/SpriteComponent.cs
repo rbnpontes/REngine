@@ -70,19 +70,19 @@ namespace REngine.RPI.Components
 		{
 		}
 
+		private SpriteBatchInfo pBatchInfo = new();
 		protected override void OnDraw(ISpriteBatch spriteBatch)
 		{
-			spriteBatch.Draw(new SpriteBatchInfo
-			{
-				Position = Transform.WorldPosition,
-				Angle = Transform.WorldRotation,
-				Size = Transform.Scale,
-				Anchor = Anchor,
-				Color = Color,
-				Offset = Offset,
-				TextureSlot = TextureSlot,
-				Effect = Effect
-			});
+			pBatchInfo.Position = Transform.WorldPosition;
+			pBatchInfo.Angle = Transform.Rotation;
+			pBatchInfo.Size = Transform.Scale;
+			pBatchInfo.Anchor = Anchor;
+			pBatchInfo.Color = Color;
+			pBatchInfo.Offset = Offset;
+			pBatchInfo.TextureSlot = TextureSlot;
+			pBatchInfo.Effect = Effect;
+
+			spriteBatch.Draw(pBatchInfo);
 		}
 	}
 }

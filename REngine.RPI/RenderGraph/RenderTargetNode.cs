@@ -27,8 +27,16 @@ namespace REngine.RPI.RenderGraph
 		private uint pHeight;
 		private TextureFormat pFormat = TextureFormat.Unknown;
 
+		private IResource? pResource;
 		public RenderTargetNode() : base(nameof(RenderTargetNode))
 		{
+		}
+
+		protected override void OnDispose()
+		{
+			pResource?.Value?.Dispose();
+			if (pResource != null)
+				pResource.Value = null;
 		}
 
 		protected override void OnSetup(IDictionary<ulong, string> properties)
@@ -64,6 +72,8 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnRun(IServiceProvider provider)
 		{
+			if (pResource is not null)
+				return;
 			var renderer = provider.Get<IRenderer>();
 			var rtMgr = provider.Get<IRenderTargetManager>();
 			var resourceMgr = provider.Get<IResourceManager>();
@@ -75,8 +85,7 @@ namespace REngine.RPI.RenderGraph
 				pHeight = renderer.SwapChain?.Size.Height ?? 1;
 
 			resource.Value = pFormat != TextureFormat.Unknown ? rtMgr.Allocate(pWidth, pHeight, pFormat) : rtMgr.Allocate(pWidth, pHeight);
-			// Auto Remove after create RT
-			Dispose();
+			pResource = resource;
 		}
 	}
 }

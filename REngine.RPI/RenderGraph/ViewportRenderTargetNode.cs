@@ -25,8 +25,25 @@ namespace REngine.RPI.RenderGraph
 		protected IRenderTargetManager? mRenderTargetManager;
 		protected IServiceProvider? mServiceProvider;
 
+		private bool pHasFinishSetup;
+		private RPIEvents? pRpiEvents;
+		private ISwapChain? pLastSwapChain;
+
 		internal ViewportRenderTargetNode(string debugName) : base(debugName)
 		{
+		}
+
+		protected override void OnDispose()
+		{
+			mResource?.Value?.Dispose();
+			if(mResource != null )
+				mResource.Value = null;
+
+			if (!pHasFinishSetup || pLastSwapChain is null || pRpiEvents is null)
+				return;
+
+			pRpiEvents.OnChangeSwapChain -= HandleChangeSwapChain;
+			pLastSwapChain.OnResize -= HandleSwapChainResize;
 		}
 
 		protected override void OnSetup(IDictionary<ulong, string> properties)
@@ -55,6 +72,8 @@ namespace REngine.RPI.RenderGraph
 			mResourceManager ??= provider.Get<IResourceManager>();
 			mServiceProvider = provider;
 
+			pRpiEvents ??= provider.Get<RPIEvents>();
+
 			var swapChain = mRenderer.SwapChain;
 			if (swapChain is null)
 				return;
@@ -62,16 +81,33 @@ namespace REngine.RPI.RenderGraph
 			mResource ??= mResourceManager.GetResource(mId);
 			mResource.Value = OnCreateRenderTarget(swapChain, mRenderTargetManager);
 
+			if (pHasFinishSetup)
+				return;
+
 			swapChain.OnResize += HandleSwapChainResize;
+			pRpiEvents.OnChangeSwapChain += HandleChangeSwapChain;
+			pLastSwapChain = swapChain;
+
+			pHasFinishSetup = true;
+		}
+
+		private void HandleChangeSwapChain(object? sender, RenderEventArgs e)
+		{
+			if (pRpiEvents is null || pLastSwapChain is null || mServiceProvider is null)
+				return;
+
+			pRpiEvents.OnChangeSwapChain -= HandleChangeSwapChain;
+			pLastSwapChain.OnResize -= HandleSwapChainResize;
+
+			pHasFinishSetup = false;
+			mResource?.Value?.Dispose();
+			CreateRenderTarget(mServiceProvider);
 		}
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)
 		{
 			if (mServiceProvider is null)
 				return;
-
-			if(sender is ISwapChain swapChain)
-				swapChain.OnResize -= HandleSwapChainResize;
 
 			mResource?.Value?.Dispose();
 			CreateRenderTarget(mServiceProvider);

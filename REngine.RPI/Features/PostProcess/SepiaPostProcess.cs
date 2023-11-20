@@ -8,12 +8,12 @@ using REngine.Core.IO;
 
 namespace REngine.RPI.Features.PostProcess
 {
-	public sealed class InvertPostProcess : PostProcessFeature
+	public class SepiaPostProcess : PostProcessFeature
 	{
 		protected override ShaderStream OnGetShaderCode()
 		{
 			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPostProcessPath, "invertcolors_ps.hlsl")
+				Path.Join(EngineSettings.AssetsShadersPostProcessPath, "sepiatone_ps.hlsl")
 			);
 		}
 	}

@@ -13,7 +13,7 @@ namespace REngine.RPI.Features.PostProcess
         protected override ShaderStream OnGetShaderCode()
         {
             return new FileShaderStream(
-                Path.Join(EngineSettings.AssetsShadersPath, "grayscale_ps.hlsl")
+                Path.Join(EngineSettings.AssetsShadersPostProcessPath, "grayscale_ps.hlsl")
             );
         }
     }

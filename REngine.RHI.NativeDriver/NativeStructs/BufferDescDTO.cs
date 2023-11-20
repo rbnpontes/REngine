@@ -30,18 +30,15 @@ namespace REngine.RHI.NativeDriver.NativeStructs
 				elementByteStride = desc.ElementByteStride,
 			};
 		}
-		public static void Fill(in BufferDescDTO desc, out BufferDesc output)
+		public static void Fill(in BufferDescDTO desc, ref BufferDesc output)
 		{
-			output = new BufferDesc
-			{
-				Name = Marshal.PtrToStringAnsi(desc.name) ?? string.Empty,
-				Size = desc.size,
-				BindFlags = (BindFlags)desc.bindFlags,
-				Usage = (Usage)desc.usage,
-				AccessFlags = (CpuAccessFlags)desc.accessFlags,
-				Mode = (BufferMode)desc.mode,
-				ElementByteStride = desc.elementByteStride
-			};
+			output.Name = string.Intern(Marshal.PtrToStringAnsi(desc.name) ?? string.Empty);
+			output.Size = desc.size;
+			output.BindFlags = (BindFlags)desc.bindFlags;
+			output.Usage = (Usage)desc.usage;
+			output.AccessFlags = (CpuAccessFlags)desc.accessFlags;
+			output.Mode = (BufferMode)desc.mode;
+			output.ElementByteStride = desc.elementByteStride;
 		}
 	}
 }

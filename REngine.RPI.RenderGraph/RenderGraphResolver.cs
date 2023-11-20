@@ -68,8 +68,8 @@ namespace REngine.RPI.RenderGraph
 			if (string.IsNullOrEmpty(element.Name))
 				throw new RenderGraphException("Invalid Element Name. Tag name must not be null or empty.");
 			
-			string id = element.GetAttribute("id");
-			ulong idHashCode = Hash.Digest(id);
+			var id = element.GetAttribute("id");
+			var idHashCode = Hash.Digest(id);
 
 			if (pNodes.ContainsKey(idHashCode))
 				throw new RenderGraphException($"Duplicated Id Entry. There´s a node with id {idHashCode}.");
@@ -77,7 +77,7 @@ namespace REngine.RPI.RenderGraph
 			idCounter++;
 			var node = pRegistry.Create(element.Name);
 #if DEBUG
-			node.Xml = element.OuterXml;
+			node.Xml = string.Intern(element.OuterXml);
 #endif
 			node.Id = string.IsNullOrEmpty(id) ? idCounter : idHashCode;
 			node.Setup(GetElementProperties(element));

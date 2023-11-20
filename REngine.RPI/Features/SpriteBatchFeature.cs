@@ -479,7 +479,7 @@ namespace REngine.RPI.Features
 
 			desc.Samplers.Add(new ImmutableSamplerDesc
 			{
-				Name = "g_texture",
+				Name = TextureNames.MainTexture,
 				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Clamp)
 			});
 
@@ -541,7 +541,7 @@ namespace REngine.RPI.Features
 		{
 			ITextureView? tex = pTextureManager.Textures[slot]?.GetDefaultView(TextureViewType.ShaderResource);
 			if(tex != null)
-				binding?.Set(ShaderTypeFlags.Pixel, "g_texture", tex);
+				binding?.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, tex);
 		}
 		private void SetCBufferBinding(IShaderResourceBinding? binding, IBuffer fixedCBuffer)
 		{

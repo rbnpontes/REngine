@@ -9,23 +9,14 @@ namespace REngine.RHI.NativeDriver
 {
 	internal partial class BufferImpl : NativeObject, IBuffer
 	{
-		public BufferDesc Desc
-		{
-			get
-			{
-				BufferDescDTO dto = new();
-				rengine_buffer_getdesc(Handle, ref dto);
-
-				BufferDescDTO.Fill(dto, out BufferDesc result);
-				return result;
-			}
-		}
+		private readonly BufferDesc pDesc;
+		public BufferDesc Desc => pDesc;
 
 		public ulong Size => Desc.Size;
 
 		public string Name => Desc.Name;
 
-		public GPUObjectType ObjectType { get; private set; }
+		public GPUObjectType ObjectType { get; }
 
 		public BufferImpl(IntPtr handle) : base(handle)
 		{
@@ -38,6 +29,11 @@ namespace REngine.RHI.NativeDriver
 				ObjectType |= GPUObjectType.ConstantBuffer;
 			if ((bindFlags & BindFlags.UnorderedAccess) != 0)
 				ObjectType = GPUObjectType.UavBuffer;
+
+			var dto = new BufferDescDTO();
+			rengine_buffer_getdesc(handle, ref dto);
+
+			BufferDescDTO.Fill(dto, ref pDesc);
 		}
 	}
 }
