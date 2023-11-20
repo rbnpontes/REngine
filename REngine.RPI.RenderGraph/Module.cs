@@ -16,7 +16,10 @@ namespace REngine.RPI.RenderGraph
 			registry
 				.Register<IfNode>()
 				.Register<InputNode>()
-				.Register<VarNode>();
+				.Register<VarNode>()
+				.Register<SwitchNode>()
+				.Register<DefaultNode>()
+				.Register<CaseNode>();
 			return registry;
 		}
 		public static void Setup(IServiceRegistry registry)

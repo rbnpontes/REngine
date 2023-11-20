@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<render-graph>
+	<var id="@vars/sample/postprocess-effect" type="int" value="0"/>
+
+	<colorbuffer id="@sample/backbuffer"/>
+	<colorbuffer id="@sample/backbuffer@2"/>
+	<depthbuffer id="@sample/depthbuffer"/>
+	
+	<if test="@vars/spritebatch/enabled">
+		<spritebatch-pass>
+			<write name="backbuffer" value="@sample/backbuffer"/>
+			<write name="depthbuffer" value="@sample/depthbuffer"/>
+		</spritebatch-pass>
+	</if>
+	<imgui-pass>
+		<write name="backbuffer" value="@sample/backbuffer"/>
+		<write name="depthbuffer" value="@sample/depthbuffer"/>
+	</imgui-pass>
+	
+	<switch value="@vars/sample/postprocess-effect">
+		<case value="0">
+			<grayscale>
+				<read name="input" value="@sample/backbuffer"/>
+				<write name="backbuffer" value="@sample/backbuffer@2"/>
+			</grayscale>
+			<copy>
+				<read name="input" value="@sample/backbuffer@2"/>
+				<write name="input" value="@sample/backbuffer"/>
+			</copy>
+		</case>
+	</switch>
+	
+	<copy>
+		<read name="input" value="@sample/backbuffer"/>
+		<write name="backbuffer" value="@sample/depthbuffer"/>
+	</copy>
+</render-graph>

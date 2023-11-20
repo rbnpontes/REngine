@@ -23,18 +23,7 @@ namespace REngine.RPI
 #if RENGINE_RENDERGRAPH
 			RenderGraphModule.Setup(registry);
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
-			// TODO: move this register step
-			renderGraphRegistry
-				.Register<SpritebatchNode>()
-				.Register<ImGuiNode>()
-				.Register<ReadNode>()
-				.Register<WriteNode>()
-				.Register<RenderTargetNode>()
-				.Register<ColorBufferNode>()
-				.Register<DepthBufferNode>()
-				.Register<ClearNode>()
-				.Register<CopyRenderTargetNode>()
-				.Register<GrayScalePostProcessNode>();
+			NodeGraphsModule.Setup(renderGraphRegistry);
 #endif
 			registry
 #if RENGINE_RENDERGRAPH

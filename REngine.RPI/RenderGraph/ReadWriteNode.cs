@@ -43,11 +43,12 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnRun(IServiceProvider provider)
 		{
+#if DEBUG
 			if (Parent is null)
 				throw new NullReferenceException("Read/Write Node must have a parent");
 			if (!Parent.GetType().IsAssignableTo(typeof(RenderFeatureNode)))
-				throw new RenderGraphException("Read/Write Node parent must be RenderFeatureNode inherit type");
-
+				throw new RenderGraphException($"Read/Write Node parent must be {nameof(RenderFeatureNode)} inherit type");
+#endif
 
 			if(!pSetup)
 			{
