@@ -18,11 +18,23 @@
 	
 	<switch value="@vars/sample/postprocess-effect">
 		<case value="0">
-			<grayscale>
+			<postprocess.grayscale>
 				<read name="input" value="@sample/backbuffer"/>
 				<write name="backbuffer" value="@sample/backbuffer@2"/>
 				<write name="depthbuffer" value="@sample/depthbuffer"/>
-			</grayscale>
+			</postprocess.grayscale>
+			<copy>
+				<read name="input" value="@sample/backbuffer@2"/>
+				<write name="backbuffer" value="@sample/backbuffer"/>
+				<write name="depthbuffer" value="@sample/depthbuffer"/>
+			</copy>
+		</case>
+		<case value="1">
+			<postprocess.invert>
+				<read name="input" value="@sample/backbuffer"/>
+				<write name="backbuffer" value="@sample/backbuffer@2"/>
+				<write name="depthbuffer" value="@sample/depthbuffer"/>
+			</postprocess.invert>
 			<copy>
 				<read name="input" value="@sample/backbuffer@2"/>
 				<write name="backbuffer" value="@sample/backbuffer"/>

@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
 
-namespace REngine.RPI.Features
+namespace REngine.RPI.Features.PostProcess
 {
-	public class GrayscalePostProcess : PostProcessFeature
+	public sealed class InvertPostProcess : PostProcessFeature
 	{
 		protected override ShaderStream OnGetShaderCode()
 		{
 			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPath, "grayscale_ps.hlsl")
+				Path.Join(EngineSettings.AssetsShadersPath, "invertcolors_ps.hlsl")
 			);
 		}
 	}

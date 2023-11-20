@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
@@ -108,9 +109,15 @@ namespace REngine.Sandbox.Samples
 			}
 		}
 
+		private int pPostProcessOption = 0;
 		private void OnGui(object? sender, EventArgs e)
 		{
+			ImGui.Begin("Post Process Sample");
+			ImGui.RadioButton("Grayscale", ref pPostProcessOption, 0);
+			ImGui.RadioButton("Invert", ref pPostProcessOption, 1);
+			ImGui.End();
 
+			pVar.Value = pPostProcessOption;
 		}
 
 		public void Update(IServiceProvider provider)
