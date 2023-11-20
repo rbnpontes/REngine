@@ -35,19 +35,16 @@ namespace REngine.Core.WorldManagement
 		private readonly int pEntityExpansionLength;
 		private readonly ComponentSerializerFactory pSerializerFactory;
 		private readonly ILogger<EntityManager> pLogger;
-		private readonly IServiceProvider pServiceProvider;
 
 		public EntityManager(
 			EngineSettings engineSettings,
 			ILoggerFactory loggerFactory,
-			ComponentSerializerFactory serializerFactory,
-			IServiceProvider serviceProvider
+			ComponentSerializerFactory serializerFactory
 		) : base((int)engineSettings.InitialEntityCount)
 		{
 			pEntityExpansionLength = (int)Math.Max(Math.Floor(engineSettings.EntityExpansionRate * engineSettings.InitialEntityCount), 1);
 			pSerializerFactory = serializerFactory;
 			pLogger = loggerFactory.Build<EntityManager>();
-			pServiceProvider = serviceProvider;
 		}
 
 		public EntityManager Destroy(Entity entity)
@@ -111,13 +108,12 @@ namespace REngine.Core.WorldManagement
 			return entities;
 		}
 		
-		public Entity GetEntity(string id)
+		public Entity GetEntity(int id)
 		{
 			if (id >= pData.Length)
 				throw new InvalidEntityIdException("Id is greater than Entity Pool");
 			if (id < 0)
 				throw new InvalidEntityIdException("Id cannot be negative");
-
 			var entity = pData[id].TargetEntity;
 			if (entity is null)
 				throw new EntityException("Invalid Entity Id. It seems this entity has been previous destroyed or not be allocated yet.");
@@ -227,12 +223,6 @@ namespace REngine.Core.WorldManagement
 
 		public EntityManager Save(Stream stream)
 		{
-			var jsonSerializer = new JsonSerializerSettings()
-			{
-				Formatting = Formatting.Indented,
-				ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-				ContractResolver = new EntityContractResolver(pServiceProvider)
-			};
 			EntitySerializationData<object> serializerData = new ();
 
 			List<EntityDTO> entities = new();
@@ -289,12 +279,16 @@ namespace REngine.Core.WorldManagement
 
 			using (TextWriter writer = new StreamWriter(stream))
 			{
-				MemoryTraceWriter traceWriter = new();
-				jsonSerializer.TraceWriter = traceWriter;
+				MemoryTraceWriter traceWritter = new();
 				writer.Write(
-					JsonConvert.SerializeObject(serializerData, jsonSerializer)
+					JsonConvert.SerializeObject(serializerData, new JsonSerializerSettings 
+					{
+						Formatting = Formatting.Indented,
+						ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+						TraceWriter = traceWritter
+					})
 				);
-				pLogger.Debug(traceWriter);
+				pLogger.Debug(traceWritter);
 			}
 
 			serializerData.Entities = Array.Empty<EntityDTO>();
@@ -308,18 +302,12 @@ namespace REngine.Core.WorldManagement
 
 		public EntityManager Load(Stream stream)
 		{
-			var jsonSerializer = new JsonSerializer()
-			{
-				ContractResolver = new EntityContractResolver(pServiceProvider),
-				NullValueHandling = NullValueHandling.Ignore,
-			};
-
-			string json;
+			string json = string.Empty;
 			using (TextReader reader = new StreamReader(stream))
 				json = reader.ReadToEnd();
 
 			MemoryTraceWriter traceWriter = new();
-			var serializerData = JsonConvert.DeserializeObject<EntitySerializationData<JObject>>(json, new JsonSerializerSettings { 
+			EntitySerializationData<JObject> serializerData = JsonConvert.DeserializeObject<EntitySerializationData<JObject>>(json, new JsonSerializerSettings { 
 				TraceWriter = traceWriter
 			});
 			pLogger.Debug(traceWriter);
@@ -329,7 +317,9 @@ namespace REngine.Core.WorldManagement
 			Dictionary<ulong, Component[]> createdComponents = new();
 			foreach(var componentPair in serializerData.Components)
 			{
-				var serializer = pSerializerFactory.FindSerializer(componentPair.Key) ?? pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
+				var serializer = pSerializerFactory.FindSerializer(componentPair.Key);
+				if (serializer is null)
+					serializer = pSerializerFactory.CollectSerializers().FindSerializer(componentPair.Key);
 
 				if (serializer is null)
 					throw new EntityException("Not found serializer while is deserializing components");
@@ -339,7 +329,7 @@ namespace REngine.Core.WorldManagement
 				Component[] components = new Component[componentPair.Value.Count];
 				for(int i =0; i < componentPair.Value.Count; i++)
 				{
-					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType(), jsonSerializer);
+					var data = componentPair.Value[i].ToObject(serializer.GetSerializeType());
 					if (data is null)
 						throw new NullReferenceException($"Can´t deserialize component data type '{serializer.GetSerializeType().Name}'");
 					components[i] = serializer.OnDeserialize(data);

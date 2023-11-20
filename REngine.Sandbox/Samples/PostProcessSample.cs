@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Assets;
 using REngine.Core;
+using REngine.Core.DependencyInjection;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
+using REngine.RPI.Components;
 using REngine.RPI.Features;
 using REngine.RPI.RenderGraph;
 
 namespace REngine.Sandbox.Samples
 {
-	[Sample("Post Process Sample")]
+	[Sample("Post Process")]
 	internal class PostProcessSample : ISample
 	{
 		private readonly IVariableManager pVarMgr;
@@ -49,12 +53,23 @@ namespace REngine.Sandbox.Samples
 			pFeature.Dispose();
 
 			pEntityMgr.DestroyAll();
+
+			pImGuiSystem.OnGui -= OnGui;
+			pRenderer.AddFeature(pImGuiSystem.Feature, 100);
 		}
 
 		public void Load(IServiceProvider provider)
 		{
 			if (Window is null)
 				return;
+
+			// Load Sprite
+			ImageAsset sprite = new("doge.png");
+			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
+				sprite.Load(stream).Wait();
+
+			provider.Get<ISpriteBatch>().SetTexture(0, sprite.Image);
+
 
 			var rootEntry = pRenderGraph.LoadFromFile(
 				Path.Join(EngineSettings.AssetsPath, "postprocess-rendergraph.xml")
@@ -73,15 +88,23 @@ namespace REngine.Sandbox.Samples
 		private void CreateSprites(Size size)
 		{
 			var rnd = new Random();
-			for (int i = 0; i < 100; ++i)
+			for (var i = 0; i < 100; ++i)
 			{
 				var x = (float)rnd.NextDouble() * size.Width;
 				var y = (float)rnd.NextDouble() * size.Height;
+				var scale = 10 + (float)rnd.NextDouble() * 100;
 				var rot = (float)rnd.NextDouble();
 
-				var entity = pEntityMgr.GetEntity($"Sprite #{i}");
+				var entity = pEntityMgr.CreateEntity($"Sprite #{i}");
 				var transform = entity.CreateComponent<Transform2D>();
 				var sprite = entity.CreateComponent<SpriteComponent>();
+				sprite.Anchor = new Vector2(0.5f);
+
+				transform.Scale = new Vector2(scale);
+				transform.Position = new Vector2(x, y);
+				transform.Rotation = rot;
+
+				sprite.TextureSlot = 0;
 			}
 		}
 
