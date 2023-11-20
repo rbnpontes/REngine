@@ -21,10 +21,12 @@
 			<grayscale>
 				<read name="input" value="@sample/backbuffer"/>
 				<write name="backbuffer" value="@sample/backbuffer@2"/>
+				<write name="depthbuffer" value="@sample/depthbuffer"/>
 			</grayscale>
 			<copy>
 				<read name="input" value="@sample/backbuffer@2"/>
 				<write name="backbuffer" value="@sample/backbuffer"/>
+				<write name="depthbuffer" value="@sample/depthbuffer"/>
 			</copy>
 		</case>
 	</switch>
@@ -32,5 +34,6 @@
 	<copy>
 		<read name="input" value="@sample/backbuffer"/>
 		<write name="backbuffer" value="@engine/backbuffer"/>
+		<write name="depthbuffer" value="@engine/depthbuffer"/>
 	</copy>
 </render-graph>

@@ -13,7 +13,7 @@ namespace REngine.RPI.RenderGraph
 	{
 		private static readonly ulong sInputSlotHash = Hash.Digest("input");
 
-		private static readonly ulong[] sExpectedWriteResources = { BackBufferSlotHash };
+		private static readonly ulong[] sExpectedWriteResources = { BackBufferSlotHash, DepthBufferSlotHash };
 		private static readonly ulong[] sExpectedReadResources = { sInputSlotHash };
 
 		private IResource? pReadTexture;
@@ -55,6 +55,21 @@ namespace REngine.RPI.RenderGraph
 				pFeature.WriteRT = writeRt;
 			}
 
+			if (DepthBufferResource?.Value != null)
+			{
+				var depthStencil = DepthBufferResource.Value switch
+				{
+					ITexture value => value.GetDefaultView(TextureViewType.DepthStencil),
+					ITextureView valueView => valueView,
+					_ => null
+				};
+
+				if (depthStencil?.ViewType != TextureViewType.DepthStencil)
+					depthStencil = depthStencil?.Parent.GetDefaultView(TextureViewType.DepthStencil);
+
+				pFeature.DepthStencil = depthStencil;
+			}
+
 			base.OnRun(provider);
 		}
 
@@ -90,15 +105,6 @@ namespace REngine.RPI.RenderGraph
 				throw new InvalidOperationException(
 					$"Expected {nameof(ITexture)} or {nameof(ITextureView)} as resource");
 			}
-		}
-
-		protected override void OnAddWriteResource(ulong resourceSlotId, IResource resource)
-		{
-			resource.ValueChanged += (s, e) =>
-			{
-				System.Diagnostics.Debugger.Break();
-			};
-			base.OnAddWriteResource(resourceSlotId, resource);
 		}
 
 		protected override IEnumerable<ulong> GetExpectedReadResourceSlots()

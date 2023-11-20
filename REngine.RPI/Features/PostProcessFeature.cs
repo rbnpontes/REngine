@@ -42,7 +42,15 @@ namespace REngine.RPI.Features
 				pWriteRenderTarget = value;
 			}
 		}
-
+		public ITextureView? DepthStencil
+		{
+			get => pDepthStencil;
+			set
+			{
+				IsDirty |= pDepthStencil != value;
+				pDepthStencil = value;
+			}
+		}
 		public override bool IsDirty { get; protected set; } = true;
 
 		public override IRenderFeature MarkAsDirty()
@@ -66,7 +74,7 @@ namespace REngine.RPI.Features
 
 			pReadTexture ??= setupInfo.RenderTargetManager.GetDummyTexture().GetDefaultView(TextureViewType.ShaderResource);
 			pWriteRenderTarget ??= setupInfo.Renderer.SwapChain?.ColorBuffer;
-			pDepthStencil = setupInfo.Renderer.SwapChain?.DepthBuffer;
+			pDepthStencil ??= setupInfo.Renderer.SwapChain?.DepthBuffer;
 
 			OnSetBindings(pBinding, setupInfo.BufferManager);
 
@@ -92,8 +100,8 @@ namespace REngine.RPI.Features
 
 		protected virtual IPipelineState OnBuildPipelineState(in RenderFeatureSetupInfo setupInfo)
 		{
-			IShader vsShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex);
-			IShader psShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel);
+			var vsShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex);
+			var psShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel);
 
 			GraphicsPipelineDesc desc = new();
 			if (pWriteRenderTarget is not null)
@@ -101,7 +109,9 @@ namespace REngine.RPI.Features
 			else
 				desc.Output.RenderTargetFormats[0] = setupInfo.GraphicsSettings.DefaultColorFormat;
 
-			desc.Output.DepthStencilFormat = setupInfo.GraphicsSettings.DefaultDepthFormat;
+			desc.Output.DepthStencilFormat = pDepthStencil is not null ? pDepthStencil.Desc.Format 
+				: setupInfo.GraphicsSettings.DefaultDepthFormat;
+
 			desc.BlendState.BlendMode = BlendMode.Replace;
 			desc.PrimitiveType = PrimitiveType.TriangleList;
 			desc.RasterizerState.CullMode = CullMode.Back;
