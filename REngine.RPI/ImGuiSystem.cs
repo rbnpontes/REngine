@@ -13,6 +13,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace REngine.RPI
@@ -21,7 +22,170 @@ namespace REngine.RPI
 	internal class ImGuiSystem : IImGuiSystem, IDisposable
 	{
 		const byte MaxMouseKeys = (byte)MouseKey.XButton2;
-
+		
+		#region ImGui Key Table
+		private static readonly ImGuiKey[] pKeys = new[]
+		{
+			ImGuiKey.None,
+			ImGuiKey.Backspace,
+			ImGuiKey.Tab,
+			ImGuiKey.Enter,
+			ImGuiKey.Enter,
+			ImGuiKey.ModShift,
+			ImGuiKey.ModCtrl,
+			ImGuiKey.ModAlt,
+			ImGuiKey.Pause,
+			ImGuiKey.CapsLock,
+			ImGuiKey.Escape,
+			ImGuiKey.Space,
+			ImGuiKey.PageUp,
+			ImGuiKey.PageDown,
+			ImGuiKey.End,
+			ImGuiKey.Home,
+			ImGuiKey.LeftArrow,
+			ImGuiKey.UpArrow,
+			ImGuiKey.RightArrow,
+			ImGuiKey.DownArrow,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.PrintScreen,
+			ImGuiKey.Insert,
+			ImGuiKey.Delete,
+			ImGuiKey.None,
+			ImGuiKey._0,
+			ImGuiKey._1,
+			ImGuiKey._2, 
+			ImGuiKey._3,
+			ImGuiKey._4,
+			ImGuiKey._5,
+			ImGuiKey._6,
+			ImGuiKey._7,
+			ImGuiKey._8,
+			ImGuiKey._9,
+			ImGuiKey.A,
+			ImGuiKey.B,
+			ImGuiKey.C,
+			ImGuiKey.D,
+			ImGuiKey.E,
+			ImGuiKey.F,
+			ImGuiKey.G,
+			ImGuiKey.H,
+			ImGuiKey.I,
+			ImGuiKey.J,
+			ImGuiKey.K,
+			ImGuiKey.L,
+			ImGuiKey.M,
+			ImGuiKey.N,
+			ImGuiKey.O,
+			ImGuiKey.P,
+			ImGuiKey.Q,
+			ImGuiKey.R,
+			ImGuiKey.S,
+			ImGuiKey.T,
+			ImGuiKey.U,
+			ImGuiKey.V,
+			ImGuiKey.W,
+			ImGuiKey.X,
+			ImGuiKey.Y,
+			ImGuiKey.Z,
+			ImGuiKey.LeftSuper,
+			ImGuiKey.RightSuper,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.Keypad0,
+			ImGuiKey.Keypad1,
+			ImGuiKey.Keypad2,
+			ImGuiKey.Keypad3,
+			ImGuiKey.Keypad4,
+			ImGuiKey.Keypad5,
+			ImGuiKey.Keypad6,
+			ImGuiKey.Keypad7,
+			ImGuiKey.Keypad8,
+			ImGuiKey.Keypad9,
+			ImGuiKey.KeypadMultiply,
+			ImGuiKey.KeypadAdd,
+			ImGuiKey.None,
+			ImGuiKey.KeypadSubtract,
+			ImGuiKey.KeypadDecimal,
+			ImGuiKey.KeypadDivide,
+			ImGuiKey.F1,
+			ImGuiKey.F2,
+			ImGuiKey.F3,
+			ImGuiKey.F4,
+			ImGuiKey.F5,
+			ImGuiKey.F6,
+			ImGuiKey.F7,
+			ImGuiKey.F8,
+			ImGuiKey.F9,
+			ImGuiKey.F10,
+			ImGuiKey.F11,
+			ImGuiKey.F12,
+			ImGuiKey.F13,
+			ImGuiKey.F14,
+			ImGuiKey.F15,
+			ImGuiKey.F16,
+			ImGuiKey.F17,
+			ImGuiKey.F18,
+			ImGuiKey.F19,
+			ImGuiKey.F20,
+			ImGuiKey.F21,
+			ImGuiKey.F22,
+			ImGuiKey.F23,
+			ImGuiKey.F24,
+			ImGuiKey.None,
+			ImGuiKey.NumLock,
+			ImGuiKey.ScrollLock,
+			ImGuiKey.LeftShift,
+			ImGuiKey.RightShift,
+			ImGuiKey.LeftCtrl,
+			ImGuiKey.RightCtrl,
+			ImGuiKey.LeftAlt,
+			ImGuiKey.RightAlt,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.Semicolon,
+			ImGuiKey.Equal,
+			ImGuiKey.Comma,
+			ImGuiKey.Minus,
+			ImGuiKey.Period,
+			ImGuiKey.Slash,
+			ImGuiKey.GraveAccent,
+			ImGuiKey.LeftBracket,
+			ImGuiKey.Backslash,
+			ImGuiKey.RightBracket,
+			ImGuiKey.None,
+			ImGuiKey.Backslash,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None,
+			ImGuiKey.None
+		};
+		#endregion
+		
 		private readonly IServiceProvider pProvider;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly EngineEvents pEngineEvents;
@@ -46,7 +210,7 @@ namespace REngine.RPI
 		private IntPtr pImGuiCtx = IntPtr.Zero;
 
 		public UIntSize FontSize { get; private set; } = new UIntSize();
-		public byte[] FontData { get; private set; } = new byte[0];
+		public byte[] FontData { get; private set; } = Array.Empty<byte>();
 
 		public IGraphicsRenderFeature Feature
 		{
@@ -141,7 +305,6 @@ namespace REngine.RPI
 				io.FontGlobalScale = (videoScale.X + videoScale.Y) / 2.0f;
 			}
 
-			SetupKeyMap();
 			AllocateFontBuffer();
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
@@ -150,115 +313,6 @@ namespace REngine.RPI
 		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
 		{
 			pUpdateRateVar.Value = e.Settings.ImGuiUpdateRate;
-		}
-
-		private void SetupKeyMap()
-		{
-			var io = ImGuiNET.ImGui.GetIO();
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Tab]				= (int)InputKey.Tab;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftArrow]			= (int)InputKey.Left;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightArrow]		= (int)InputKey.Right;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.UpArrow]			= (int)InputKey.Up;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.DownArrow]			= (int)InputKey.Down;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.PageUp]			= (int)InputKey.PageUp;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.PageDown]			= (int)InputKey.PageDown;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Home]				= (int)InputKey.Home;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.End]				= (int)InputKey.End;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Insert]			= (int)InputKey.Insert;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Delete]			= (int)InputKey.Delete;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Backspace]			= (int)InputKey.Backspace;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Space]				= (int)InputKey.Space;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Enter]				= (int)InputKey.Enter;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Escape]			= (int)InputKey.Esc;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftCtrl]			= (int)InputKey.LeftControl;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftShift]			= (int)InputKey.LeftShift;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftAlt]			= (int)InputKey.LeftAlt;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftSuper]			= (int)InputKey.LeftSuper;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightCtrl]			= (int)InputKey.RightControl;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightShift]		= (int)InputKey.RightShift;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightAlt]			= (int)InputKey.RightAlt;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightSuper]		= (int)InputKey.RightSuper;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Menu]				= (int)InputKey.Menu;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._0]				= (int)InputKey.D0;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._1]				= (int)InputKey.D1;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._2]				= (int)InputKey.D1;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._3]				= (int)InputKey.D3;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._4]				= (int)InputKey.D4;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._5]				= (int)InputKey.D5;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._6]				= (int)InputKey.D6;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._7]				= (int)InputKey.D7;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._8]				= (int)InputKey.D8;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey._9]				= (int)InputKey.D9;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.A]					= (int)InputKey.A;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.B]					= (int)InputKey.B;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.C]					= (int)InputKey.C;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.D]					= (int)InputKey.D;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.E]					= (int)InputKey.E;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F]					= (int)InputKey.F;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.G]					= (int)InputKey.G;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.H]					= (int)InputKey.H;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.I]					= (int)InputKey.I;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.J]					= (int)InputKey.J;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.K]					= (int)InputKey.K;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.L]					= (int)InputKey.L;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.M]					= (int)InputKey.M;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.N]					= (int)InputKey.N;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.O]					= (int)InputKey.O;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.P]					= (int)InputKey.P;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Q]					= (int)InputKey.Q;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.R]					= (int)InputKey.R;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.S]					= (int)InputKey.S;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.T]					= (int)InputKey.T;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.V]					= (int)InputKey.V;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.U]					= (int)InputKey.U;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.W]					= (int)InputKey.W;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.X]					= (int)InputKey.X;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Y]					= (int)InputKey.Y;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Z]					= (int)InputKey.Z;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F1]				= (int)InputKey.F1;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F2]				= (int)InputKey.F2;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F3]				= (int)InputKey.F3;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F4]				= (int)InputKey.F4;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F5]				= (int)InputKey.F5;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F6]				= (int)InputKey.F6;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F7]				= (int)InputKey.F7;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F8]				= (int)InputKey.F8;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F9]				= (int)InputKey.F9;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F10]				= (int)InputKey.F10;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F11]				= (int)InputKey.F11;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.F12]				= (int)InputKey.F12;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Apostrophe]		= (int)InputKey.Quotes;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Comma]				= (int)InputKey.Comma;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Minus]				= (int)InputKey.Minus;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Period]			= (int)InputKey.Period;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Slash]				= (int)InputKey.Backslash;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Semicolon]			= (int)InputKey.Semicolon;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Equal]				= (int)InputKey.Plus;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.LeftBracket]		= (int)InputKey.OpenBrackets;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.RightBracket]		= (int)InputKey.CloseBrackets;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.GraveAccent]		= (int)InputKey.Tilde;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.CapsLock]			= (int)InputKey.Capslock;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.ScrollLock]		= (int)InputKey.Scroll;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.NumLock]			= (int)InputKey.NumLock;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.PrintScreen]		= (int)InputKey.PrintScreen;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Pause]				= (int)InputKey.Pause;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad0]			= (int)InputKey.NumPad0;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad1]			= (int)InputKey.NumPad1;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad2]			= (int)InputKey.NumPad2;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad3]			= (int)InputKey.NumPad3;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad4]			= (int)InputKey.NumPad4;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad5]			= (int)InputKey.NumPad5;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad6]			= (int)InputKey.NumPad6;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad7]			= (int)InputKey.NumPad7;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad8]			= (int)InputKey.NumPad8;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.Keypad9]			= (int)InputKey.NumPad9;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadDecimal]		= (int)InputKey.Decimal;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadDivide]		= (int)InputKey.Divide;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadMultiply]	= (int)InputKey.Multiply;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadSubtract]	= (int)InputKey.Subtract;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadAdd]			= (int)InputKey.Add;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadEnter]		= (int)InputKey.Enter;
-			io.KeyMap[(int)ImGuiNET.ImGuiKey.KeypadEqual]		= (int)InputKey.Plus;
 		}
 
 		private unsafe void AllocateFontBuffer()
@@ -330,12 +384,12 @@ namespace REngine.RPI
 
 		private void HandleKeyUp(object? sender, InputEventArgs e)
 		{
-			ImGuiNET.ImGui.GetIO().KeysDown[(int)e.Key] = false;
+			ImGui.GetIO().AddKeyEvent(pKeys[(int)e.Key], false);
 		}
 
 		private void HandleKeyDown(object? sender, InputEventArgs e)
 		{
-			ImGuiNET.ImGui.GetIO().KeysDown[(int)e.Key] = true;
+			ImGui.GetIO().AddKeyEvent(pKeys[(int)e.Key], true);
 		}
 
 		private double pLastElapsed = 0;
@@ -355,13 +409,15 @@ namespace REngine.RPI
 			io.DeltaTime = (float)(curr - pLastElapsed);
 			pLastElapsed = curr;
 
-			io.DisplaySize.X = swapChain.Size.Width;
-			io.DisplaySize.Y = swapChain.Size.Height;
-			io.MousePos = pInput.MousePosition;
-			io.MouseWheel = pInput.MouseWheel.Y;
-			io.MouseWheelH = pInput.MouseWheel.X;
-			for (byte i = 1; i < MaxMouseKeys; ++i)
-				io.MouseDown[i - 1] = pInput.GetMouseDown((MouseKey)i);
+			io.DisplaySize = new Vector2(swapChain.Size.Width, swapChain.Size.Height);
+			io.AddMousePosEvent(pInput.MousePosition.X, pInput.MousePosition.Y);
+			io.AddMouseWheelEvent(pInput.MouseWheel.X, pInput.MouseWheel.Y);
+
+			io.AddMouseButtonEvent(0, pInput.GetMouseDown(MouseKey.Left));
+			io.AddMouseButtonEvent(1, pInput.GetMouseDown(MouseKey.Right));
+			io.AddMouseButtonEvent(2, pInput.GetMouseDown(MouseKey.Middle));
+			io.AddMouseButtonEvent(3, pInput.GetMouseDown(MouseKey.XButton1));
+			io.AddMouseButtonEvent(4, pInput.GetMouseDown(MouseKey.XButton2));
 
 			io.KeyCtrl = pInput.GetKeyDown(InputKey.Control);
 			io.KeyShift = pInput.GetKeyDown(InputKey.Shift);

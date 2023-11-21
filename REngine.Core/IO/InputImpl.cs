@@ -14,24 +14,24 @@ namespace REngine.Core.IO
 		const float DefaultMsWheelDeadzone = 0.34f;
 
 		private readonly object pSync = new();
-		private readonly byte[] pPressKeys = new byte[(int)InputKey.OemClear];
-		private readonly byte[] pMouseKeys = new byte[(int)MouseKey.XButton2];
+		private readonly byte[] pPressKeys = new byte[(int)InputKey.OemClear + 1];
+		private readonly byte[] pMouseKeys = new byte[(int)MouseKey.XButton2 + 1];
 		private readonly IServiceProvider pProvider;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecution;
-		private readonly LinkedList<Action> pDisposeWndEvents = new LinkedList<Action>();
+		private readonly LinkedList<Action> pDisposeWndEvents = new();
 
 		private bool pDisposed = false;
 
-		private Vector2 pLastMousePos = new Vector2();
+		private Vector2 pLastMousePos = new ();
 
 		public Vector2 MousePosition { get; private set; }
 
 		public Vector2 MouseWheel { get; private set; }
-		public Vector2 MouseWheelXDeadzone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
-		public Vector2 MouseWheelYDeadzone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
+		public Vector2 MouseWheelXDeadZone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
+		public Vector2 MouseWheelYDeadZone { get; set; } = new(-DefaultMsWheelDeadzone, DefaultMsWheelDeadzone);
 
-		public Vector2 MouseMovement { get => pLastMousePos - MousePosition; }
+		public Vector2 MouseMovement => pLastMousePos - MousePosition;
 
 		public event EventHandler<InputEventArgs>? OnKeyDown;
 		public event EventHandler<InputEventArgs>? OnKeyPressed;
@@ -119,9 +119,9 @@ namespace REngine.Core.IO
 				float mouseWheelX = MouseWheel.X;
 				float mouseWheelY = MouseWheel.Y;
 
-				if (MouseWheel.X >= MouseWheelXDeadzone.X && MouseWheel.X <= MouseWheelXDeadzone.Y)
+				if (MouseWheel.X >= MouseWheelXDeadZone.X && MouseWheel.X <= MouseWheelXDeadZone.Y)
 					mouseWheelX = 0;
-				if (MouseWheel.Y >= MouseWheelYDeadzone.X && MouseWheel.Y <= MouseWheelYDeadzone.Y)
+				if (MouseWheel.Y >= MouseWheelYDeadZone.X && MouseWheel.Y <= MouseWheelYDeadZone.Y)
 					mouseWheelY = 0;
 
 				MouseWheel = new Vector2(mouseWheelX, mouseWheelY);
