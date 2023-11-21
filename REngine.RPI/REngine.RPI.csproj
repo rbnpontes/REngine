@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Platforms>x64</Platforms>
@@ -24,7 +24,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ImGui.NET" Version="1.89.9.2" />
+		<PackageReference Include="ImGui.NET" Version="1.90.0.1" />
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 	</ItemGroup>
 	<ItemGroup>

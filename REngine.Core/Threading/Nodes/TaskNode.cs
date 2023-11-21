@@ -16,6 +16,8 @@ namespace REngine.Core.Threading.Nodes
 		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
 		private EPNode? pTarget;
+		
+		public bool IsRunning { get; private set; }
 
 		public TaskNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
@@ -25,11 +27,13 @@ namespace REngine.Core.Threading.Nodes
 		public override void Execute()
 		{
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+			pManualResetEvent.Reset();
 			Task.Run(pTaskAction);
 		}
 
 		private void ExecTask()
 		{
+			IsRunning = true;
 			ExecuteEvents();
 			ExecuteChildrens();
 
@@ -39,6 +43,7 @@ namespace REngine.Core.Threading.Nodes
 		public override void ExecuteLinkedNode(EPNode owner)
 		{
 			pManualResetEvent.Wait(MaxWaitTime);
+			IsRunning = false;
 		}
 
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)

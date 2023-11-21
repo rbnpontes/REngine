@@ -61,7 +61,7 @@ namespace REngine.Sandbox.Samples
 
 			pCubeFeature.Camera = camera;
 			pCubeFeature.Transform = objectTransform;
-			cameraTransform.Position = new Vector3(0f, 0f, 5.0f);
+			cameraTransform.Position = new Vector3(0f, 0f, -5.0f);
 
 			pObjectTransform = objectTransform;
 		}

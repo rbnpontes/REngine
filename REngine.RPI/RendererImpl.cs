@@ -254,8 +254,7 @@ namespace REngine.RPI
 		{
 			pLogger.Debug("Updating Fixed Buffer Data");
 
-			var proj = Matrix4x4.CreateOrthographicOffCenter(0, size.Width, size.Height, 0, 0.0f, 1.0f);
-			proj.M33 = proj.M43 = 0.5f;
+			var proj = Matrix4x4.CreateOrthographicOffCenterLeftHanded(0, size.Width, size.Height, 0, 0.0f, 1.0f);
 			Matrix4x4.Invert(proj, out var invProj);
 
 			pRenderState.FrameData = new FrameData
