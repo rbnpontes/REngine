@@ -195,7 +195,7 @@ namespace REngine.RPI.Features
 			pPipelineDesc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
 			pPipelineDesc.BlendState.BlendMode = BlendMode.Replace;
 			pPipelineDesc.PrimitiveType = PrimitiveType.TriangleList;
-			pPipelineDesc.RasterizerState.CullMode = CullMode.Front;
+			pPipelineDesc.RasterizerState.CullMode = CullMode.Back;
 			pPipelineDesc.DepthStencilState.EnableDepth = true;
 
 			pPipelineDesc.Shaders.VertexShader = vsShader;
