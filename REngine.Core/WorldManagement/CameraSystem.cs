@@ -122,7 +122,7 @@ namespace REngine.Core.WorldManagement
 				if (pMainWindow is null)
 					camera.AutoAspectRatio = false;
 
-				if (camera.AutoAspectRatio&& pMainWindow != null)
+				if (camera.AutoAspectRatio && pMainWindow != null)
 				{
 					float aspectRatio = pMainWindow.Bounds.Width / (float)pMainWindow.Bounds.Height;
 					if(aspectRatio != camera.AspectRatio)
@@ -157,7 +157,7 @@ namespace REngine.Core.WorldManagement
 
 			if (data.DirtyProj)
 			{
-				data.Proj = Matrix4x4.CreatePerspectiveFieldOfView(
+				data.Proj = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(
 					(float)Math.Clamp((1.0 / Math.Tan(data.Fov * Mathf.Degrees2Radians * 0.5)) * data.Zoom, float.Epsilon, Math.Floor(Math.PI)),
 					data.AspectRatio,
 					data.NearClip,
