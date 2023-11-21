@@ -35,6 +35,7 @@ namespace REngine.Sandbox.States
 			if (PongVariables.BackgroundAudio != null)
 			{
 				PongVariables.BackgroundAudio.Volume = PongVariables.AudioVolume;
+				PongVariables.BackgroundAudio.Loop = true;
 				PongVariables.BackgroundAudio.Play();
 			}
 
@@ -90,7 +91,7 @@ namespace REngine.Sandbox.States
 			if (pMenuTransform is null)
 				return;
 
-			var contentSize = new Vector2(PongVariables.MenuTextureSize.X,PongVariables.MenuButtonMargin + PongVariables.MenuTextureSize.Y * 2);
+			var contentSize = PongVariables.MenuTextureSize with { Y = PongVariables.MenuButtonMargin + PongVariables.MenuTextureSize.Y * 2 };
 			pMenuTransform.Position = (pMainWindow.Size.ToVector2() * 0.5f) - contentSize * 0.5f;
 		}
 	}
