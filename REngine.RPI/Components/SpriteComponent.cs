@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
+using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.Core.Serialization;
 using REngine.Core.WorldManagement;
@@ -58,16 +59,23 @@ namespace REngine.RPI.Components
 		}
 	}
 
+	// TODO: refactor this shit
 	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
 	{
+		private readonly IInput pInput;
 		public byte TextureSlot { get; set; } = byte.MaxValue;
 		[SerializationIgnore]
 		public BasicSpriteEffect? Effect { get; set; }
 		public Vector2 Anchor { get; set; }
 		public Vector2 Offset { get; set; }
 		public Color Color { get; set; } = Color.White;
+
+		public event EventHandler<EventArgs>? OnMouseOver;
+		public event EventHandler<EventArgs>? OnMouseOut;
+		public event EventHandler<EventArgs>? OnClick;
 		public SpriteComponent(IServiceProvider provider) : base(provider)
 		{
+			pInput = provider.Get<IInput>();
 		}
 
 		private SpriteBatchInfo pBatchInfo = new();
@@ -83,6 +91,50 @@ namespace REngine.RPI.Components
 			pBatchInfo.Effect = Effect;
 
 			spriteBatch.Draw(pBatchInfo);
+
+			ComputeMouseInput();
+		}
+		private bool pIsOver;
+		private bool pIsOut;
+		private void ComputeMouseInput()
+		{
+			var pos = Transform.WorldPosition;
+			var scale = Transform.Scale;
+			var mousePos = pInput.MousePosition;
+			var bounds = new RectangleF(pos.X, pos.Y, scale.X, scale.Y);
+
+			var isInside = bounds.Contains(mousePos.X, mousePos.Y);
+			if (isInside)
+			{
+				pIsOut = false;
+				ComputeMouseOverActions();
+				return;
+			}
+
+			if (pIsOut)
+				return;
+
+			OnMouseOut?.Invoke(this, EventArgs.Empty);
+			pIsOut = true;
+			pIsOver = false;
+		}
+
+		private void ComputeMouseOverActions()
+		{
+			if (!pIsOver)
+			{
+				OnMouseOver?.Invoke(this, EventArgs.Empty);
+				pIsOver = true;
+			}
+
+			if(pInput.GetMousePress(MouseKey.Left))
+				OnClick?.Invoke(this, EventArgs.Empty);
+		}
+		protected override void OnDispose()
+		{
+			base.OnDispose();
+			Effect?.Dispose();
+			Effect = null;
 		}
 	}
 }

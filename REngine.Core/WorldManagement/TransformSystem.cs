@@ -132,7 +132,6 @@ namespace REngine.Core.WorldManagement
 		}
 		public void SetPosition(int id, in Vector3 position)
 		{
-			bool changed = false;
 			Transform? transform = null;
 			lock (pSync)
 			{
@@ -140,15 +139,14 @@ namespace REngine.Core.WorldManagement
 				ValidateComponent(id);
 #endif
 				var data = pData[id];
-				changed = data.Position != position;
 				data.Position = position;
-				data.Dirty |= changed;
 				transform = data.Component;
 				pData[id] = data;
+
+				MarkDirty(id);
 			}
 
-			if (changed)
-				OnMove?.Invoke(transform, EventArgs.Empty);
+			OnMove?.Invoke(transform, EventArgs.Empty);
 		}
 		public void GetRotation(Transform transform, out Quaternion rotation)
 		{
@@ -178,7 +176,6 @@ namespace REngine.Core.WorldManagement
 		}
 		public void SetRotation(int id, in Quaternion rotation)
 		{
-			bool changed = false;
 			Transform? transform = null;
 
 			lock (pSync)
@@ -187,15 +184,14 @@ namespace REngine.Core.WorldManagement
 				ValidateComponent(id);
 #endif
 				var data = pData[id];
-				changed = data.Rotation != rotation;
 				data.Rotation = rotation;
-				data.Dirty |= changed;
 				transform = data.Component;
 				pData[id] = data;
+
+				MarkDirty(id);
 			}
 
-			if (changed)
-				OnRotate?.Invoke(transform, EventArgs.Empty);
+			OnRotate?.Invoke(transform, EventArgs.Empty);
 		}
 		public void GetScale(Transform transform, out Vector3 scale)
 		{
@@ -217,7 +213,6 @@ namespace REngine.Core.WorldManagement
 		}
 		public void SetScale(int id, in Vector3 scale)
 		{
-			bool changed = false;
 			Transform? transform;
 			lock (pSync)
 			{
@@ -225,15 +220,14 @@ namespace REngine.Core.WorldManagement
 				ValidateComponent(id);
 #endif
 				var data = pData[id];
-				changed = data.Scale != scale;
 				data.Scale = scale;
-				data.Dirty |= changed;
 				transform = data.Component;
 				pData[id] = data;
-			}
 
-			if (changed)
-				OnScale?.Invoke(transform, EventArgs.Empty);
+				MarkDirty(id);
+			}
+			
+			OnScale?.Invoke(transform, EventArgs.Empty);
 		}
 
 		public void GetTransformMatrix(Transform transform, out Matrix4x4 matrix)
@@ -305,7 +299,6 @@ namespace REngine.Core.WorldManagement
 		}
 		public void SetEulerAngles(int id, in Vector3 rotation)
 		{
-			bool changed = false;
 			Transform? transform;
 			lock (pSync)
 			{
@@ -314,16 +307,15 @@ namespace REngine.Core.WorldManagement
 #endif
 				var rot = rotation.FromEulerAngles();
 				var data = pData[id];
-				changed = rot != data.Rotation;
 
-				data.Dirty |= changed;
 				data.Rotation = rot;
 				pData[id] = data;
 				transform = pData[id].Component;
+
+				MarkDirty(id);
 			}
 
-			if (changed)
-				OnRotate?.Invoke(transform, EventArgs.Empty);
+			OnRotate?.Invoke(transform, EventArgs.Empty);
 		}
 
 		public Transform? GetParent(Transform transform)
@@ -372,14 +364,18 @@ namespace REngine.Core.WorldManagement
 				var target = pData[id];
 				var child = pData[childId];
 
+				if (target.Children.Contains(childId))
+					return;
+				
 				child.ParentId = id;
-				if(target.Children.Contains(childId))
-					target.Children.Add(childId);
+				target.Children.Add(childId);
 
 				child.Dirty = true;
 
 				pData[id] = target;
 				pData[childId] = child;
+
+				MarkDirty(childId);
 			}
 		}
 
@@ -411,6 +407,8 @@ namespace REngine.Core.WorldManagement
 
 				pData[id] = transform;
 				pData[childId] = child;
+
+				MarkDirty(childId);
 			}
 		}
 
@@ -439,11 +437,20 @@ namespace REngine.Core.WorldManagement
 			return children;
 		}
 
+		private void MarkDirty(int id)
+		{
+			var data = pData[id];
+			if (data.Dirty)
+				return;
+
+			data.Dirty = true;
+			pData[id] = data;
+			data.Children.ForEach(MarkDirty);
+		}
+
 		private void UpdateTransforms(int id)
 		{
 			var data = pData[id];
-			if (!data.Dirty)
-				return;
 			data.CachedTransformMatrix = Matrix4x4.CreateScale(data.Scale)
 				* Matrix4x4.CreateFromQuaternion(data.Rotation)
 				* Matrix4x4.CreateTranslation(data.Position);
@@ -453,7 +460,7 @@ namespace REngine.Core.WorldManagement
 			{
 				UpdateTransforms(data.ParentId);
 				var parent = pData[data.ParentId];
-				data.CachedWorldTransformMatrix = parent.CachedWorldTransformMatrix * data.CachedTransformMatrix;
+				data.CachedWorldTransformMatrix = data.CachedTransformMatrix * parent.CachedWorldTransformMatrix;
 			}
 
 			data.Dirty = false;

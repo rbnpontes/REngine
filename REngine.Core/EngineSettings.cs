@@ -22,6 +22,8 @@ namespace REngine.Core
 		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
 		public static readonly string AssetsShadersPath = Path.Join(AssetsPath, "Shaders");
 		public static readonly string AssetsShadersPostProcessPath = Path.Join(AssetsShadersPath, "PostProcess");
+		public static readonly string AssetsSoundsPath = Path.Join(AssetsPath, "Sounds");
+		public static readonly string AssetsTexturesPath = Path.Join(AssetsPath, "Textures");
 		/// <summary>
 		/// Defines initial available entity slots
 		/// </summary>

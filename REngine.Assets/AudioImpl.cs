@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Resources;
+using SFML.Audio;
+using SFML.System;
 
 namespace REngine.Assets
 {
@@ -80,6 +82,8 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
+					if (pState == AudioState.Playing && pMusic.Status == SoundStatus.Stopped)
+						pState = AudioState.Stopped;
 					value = pState;
 				}
 				return value;
@@ -167,11 +171,19 @@ namespace REngine.Assets
 			}
 		}
 
-		public IAudio Play()
+		public IAudio Play(bool force = false)
 		{
 			lock (pSync) 
 			{
 				AssertDispose();
+				if (force)
+				{
+					pMusic.PlayingOffset = Time.Zero;
+					pMusic.Play();
+					pState = AudioState.Playing;
+					return this;
+				}
+
 				if (pState == AudioState.Playing)
 					return this;
 				pMusic.Play();

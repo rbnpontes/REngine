@@ -17,9 +17,9 @@ namespace REngine.RPI.Features
 		public bool IsDirty { get; private set; } = true;
 		public bool IsDisposed { get; } = false;
 
-		public Color ClearColor { get; set; } = Color.Black;
-		public float ClearDepthValue { get; set; } = 1f;
-		public byte ClearStencilValue { get; set; } = 0;
+		public Color? ClearColor { get; set; }
+		public float? ClearDepthValue { get; set; }
+		public byte? ClearStencilValue { get; set; }
 		public ITextureView? ColorBuffer { get; set; }
 		public ITextureView? DepthBuffer { get; set; }
 		public void Dispose()
@@ -60,12 +60,12 @@ namespace REngine.RPI.Features
 			command
 				.SetRTs(rts, DepthBuffer)
 				.SetViewport(viewport, colorBufferSize.Width, colorBufferSize.Height)
-				.ClearRT(ColorBuffer, ClearColor)
+				.ClearRT(ColorBuffer, ClearColor ?? pRenderState.DefaultClearColor)
 				.ClearDepth(
 					DepthBuffer,
 					ClearDepthStencil.Depth,
-					ClearDepthValue,
-					ClearStencilValue
+					ClearDepthValue ?? pRenderState.DefaultClearDepthValue,
+					ClearStencilValue ?? pRenderState.DefaultClearStencilValue
 				);
 
 			var swapChainSize = swapChain.Size;

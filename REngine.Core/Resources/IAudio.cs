@@ -21,7 +21,7 @@ namespace REngine.Core.Resources
 		public float Pitch { get; set; }
 		public float Volume { get; set; }
 		public bool Loop { get; set; }
-		public IAudio Play();
+		public IAudio Play(bool force = false);
 		public IAudio Stop();
 		public IAudio Pause();
 	}

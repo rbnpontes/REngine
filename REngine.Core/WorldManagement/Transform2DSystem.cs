@@ -118,9 +118,10 @@ namespace REngine.Core.WorldManagement
 				ValidateComponent(transform);
 #endif
 				var data = pData[transform.Id];
-				data.Dirty |= data.Position != position;
 				data.Position = position;
 				pData[transform.Id] = data;
+
+				MakeDirty(transform.Id);
 			}
 		}
 		public void GetZIndex(Transform2D transform, out int zIndex)
@@ -142,9 +143,9 @@ namespace REngine.Core.WorldManagement
 				ValidateComponent(transform);
 #endif
 				var data = pData[transform.Id];
-				data.Dirty |= zIndex != data.ZIndex;
 				data.ZIndex = zIndex;
 				pData[transform.Id] = data;
+				MakeDirty(transform.Id);
 			}
 		}
 		public void GetScale(Transform2D transform, out Vector2 scale)
@@ -169,6 +170,7 @@ namespace REngine.Core.WorldManagement
 				data.Dirty |= data.Scale != scale;
 				data.Scale = scale;
 				pData[transform.Id] = data;
+				MakeDirty(transform.Id);
 			}
 		}
 		public void GetRotation(Transform2D transform,out float rotation)
@@ -193,6 +195,7 @@ namespace REngine.Core.WorldManagement
 				data.Dirty |= Math.Abs(data.Rotation - rotation) > float.Epsilon;
 				data.Rotation = rotation;
 				pData[transform.Id] = data;
+				MakeDirty(transform.Id);
 			}
 		}
 		public Transform2D? GetParent(Transform2D transform)
@@ -221,14 +224,16 @@ namespace REngine.Core.WorldManagement
 				var transformData = pData[transform.Id];
 				var childData = pData[child.Id];
 
+				if (transformData.Children.Contains(child.Id))
+					return;
+
 				childData.ParentId = transform.Id;
-				if(transformData.Children.Contains(child.Id))
-					transformData.Children.Add(child.Id);
-
-				transformData.Dirty = true;
-
+				transformData.Children.Add(child.Id);
 				pData[transform.Id] = transformData;
 				pData[child.Id] = childData;
+
+				MakeDirty(child.Id);
+
 			}
 		}
 		public void RemoveChild(Transform2D transform, Transform2D child)
@@ -247,6 +252,8 @@ namespace REngine.Core.WorldManagement
 
 				pData[transform.Id] = childData;
 				pData[child.Id] = childData;
+
+				MakeDirty(child.Id);
 			}
 		}
 		public void GetTransformMatrix(Transform2D transform, out Matrix4x4 matrix)
@@ -318,22 +325,30 @@ namespace REngine.Core.WorldManagement
 			return children;
 		}
 
+		private void MakeDirty(int id)
+		{
+			var data = pData[id];
+			if (data.Dirty)
+				return;
+
+			data.Dirty = true;
+			pData[id]= data;
+			data.Children.ForEach(MakeDirty);
+		}
 		private void UpdateTransforms(int id)
 		{
 			var data = pData[id];
-			if (!data.Dirty)
-				return;
-
 			data.CachedTransformMatrix = Matrix4x4.CreateScale(new Vector3(data.Scale, 1))
 			                             * Matrix4x4.CreateRotationZ(data.Rotation)
 			                             * Matrix4x4.CreateTranslation(new Vector3(data.Position, data.ZIndex));
+
 			data.CachedWorldTransformMatrix = data.CachedTransformMatrix;
 			data.WorldRotation = data.Rotation;
 			if (data.ParentId >= 0)
 			{
 				UpdateTransforms(data.ParentId);
 				var parent = pData[data.ParentId];
-				data.CachedWorldTransformMatrix = parent.CachedWorldTransformMatrix * data.CachedTransformMatrix;
+				data.CachedWorldTransformMatrix = data.CachedTransformMatrix * parent.CachedWorldTransformMatrix;
 				data.WorldRotation = parent.WorldRotation + data.Rotation;
 			}
 

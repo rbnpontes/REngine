@@ -286,6 +286,9 @@ namespace REngine.RPI.Features
 			if (item.Effect != null)
 			{
 				var effect = item.Effect;
+				if (effect.IsDisposed)
+					return;
+
 				effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
 
 				pipeline = effect.OnBuildPipeline(pProvider);
