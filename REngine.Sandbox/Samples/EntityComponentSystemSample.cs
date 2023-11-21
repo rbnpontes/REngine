@@ -192,6 +192,8 @@ namespace REngine.Sandbox.Samples
 
 			if(ImGui.Button("Save Scene 'sprite_scene.rscene'"))
 				SaveScene();
+			if (ImGui.Button("Clear Scene"))
+				pEntityManager?.DestroyAll();
 		}
 
 		private void LoadScene()
