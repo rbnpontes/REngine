@@ -11,8 +11,6 @@ namespace REngine.Core.Serialization
 {
 	internal class CoreContractResolver : DefaultContractResolver
 	{
-		public static CoreContractResolver Instance { get; } = new();
-
 		public IServiceProvider? ServiceProvider { get; set; }
 
 		private CoreContractResolver() { }
@@ -44,6 +42,10 @@ namespace REngine.Core.Serialization
 			return property;
 		}
 
+		public static CoreContractResolver Build()
+		{
+			return new CoreContractResolver();
+		}
 		public static CoreContractResolver Build(IServiceProvider provider)
 		{
 			return new CoreContractResolver(provider);

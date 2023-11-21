@@ -15,10 +15,11 @@ namespace REngine.RHI.NativeDriver
 		public string CreatedAt { get; private set; }
 #endif
 		private readonly object pSync = new();
+		// ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+		private readonly NativeObjectReleaseCallback pDisposeCallback;
 
 		private IntPtr pHandle;
 		private bool pDisposed;
-		private NativeObjectReleaseCallback pDisposeCallback;
 
 		public IntPtr Handle 
 		{

@@ -204,15 +204,16 @@ namespace REngine.Core.IO
 	}
 	public abstract class AsyncLoggerFactory : BaseLoggerFactory
 	{
-		private object pSync = new object();
-		private LinkedList<(LogSeverity, string)> pLogQueue = new LinkedList<(LogSeverity, string)>();
+		private readonly object pSync = new();
+
+		private Queue<(LogSeverity, string)> pLogQueue = new();
 		private Task? pLogTask;
 
 		protected void EnqueueLog(LogSeverity severity, string log)
 		{
 			lock (pSync)
 			{
-				pLogQueue.AddLast((severity, log));
+				pLogQueue.Enqueue((severity, log));
 				if (pLogTask is null)
 					StartLogTask();
 			}
@@ -225,19 +226,19 @@ namespace REngine.Core.IO
 
 		private void TaskJob()
 		{
-			bool repeat = false;
+			bool repeat;
 			do
 			{
-				LinkedList<(LogSeverity, string)> queue;
+				Queue<(LogSeverity, string)> queue;
 
 				lock (pSync)
 				{
 					queue = pLogQueue;
-					pLogQueue = new LinkedList<(LogSeverity, string)>();
+					pLogQueue = new Queue<(LogSeverity, string)>();
 				}
 
 				OnAsyncBeforeExecute();
-				foreach (var log in queue)
+				while(queue.TryDequeue(out var log))
 					OnAsyncExecuteLog(log.Item1, log.Item2);
 				OnAsyncAfterExecute();
 

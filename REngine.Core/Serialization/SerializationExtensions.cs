@@ -14,13 +14,13 @@ namespace REngine.Core.Serialization
 			return JsonConvert.SerializeObject(obj,new JsonSerializerSettings
 			{
 				Formatting = Formatting.Indented,
-				ContractResolver = CoreContractResolver.Instance
+				ContractResolver = CoreContractResolver.Build()
 			});
 		}
 		public static T? FromJson<T>(this string data)
 		{
 			return JsonConvert.DeserializeObject<T>(data, new JsonSerializerSettings { 
-				ContractResolver = CoreContractResolver.Instance
+				ContractResolver = CoreContractResolver.Build()
 			});
 		}
 	}
