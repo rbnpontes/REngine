@@ -15,7 +15,7 @@ namespace REngine.Sandbox.Samples
 	[Sample("Pong Game")]
 	internal class PongGameSample : ISample
 	{
-		private readonly GameState pGameState;
+		private readonly GameStateManager pGameStateManager;
 		private readonly IRenderer pRenderer;
 		private readonly IRenderGraph pRenderGraph;
 		private readonly IImGuiSystem pImGuiSystem;
@@ -25,19 +25,19 @@ namespace REngine.Sandbox.Samples
 		public IWindow? Window { get; set; }
 
 		public PongGameSample(
-			GameState gameState, 
+			GameStateManager gameStateManager, 
 			IRenderer renderer,
 			IRenderGraph renderGraph,
 			IImGuiSystem imGuiSystem)
 		{
-			pGameState = gameState;
+			pGameStateManager = gameStateManager;
 			pRenderer = renderer;
 			pRenderGraph = renderGraph;
 			pImGuiSystem = imGuiSystem;
 		}
 		public void Dispose()
 		{
-			pGameState.Stop().ClearStates();
+			pGameStateManager.Stop().ClearStates();
 			
 			PongVariables.Reset();
 
@@ -49,10 +49,11 @@ namespace REngine.Sandbox.Samples
 
 		public void Load(IServiceProvider provider)
 		{
-			pGameState
+			pGameStateManager
 				.RegisterState<SplashScreenState>()
 				.RegisterState<LoadPongState>()
-				.RegisterState<PongMainMenuState>();
+				.RegisterState<PongMainMenuState>()
+				.RegisterState<PongGamePlayState>();
 
 			var rootEntry = pRenderGraph.LoadFromFile(
 				Path.Join(EngineSettings.AssetsPath, "ponggame-rendergraph.xml")
@@ -63,7 +64,7 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer.RemoveFeature(pImGuiSystem.Feature);
 
-			pGameState.SetState(PongStates.SplashScreenState); // Start Game
+			pGameStateManager.SetState(PongStates.SplashScreenState); // Start Game
 		}
 
 		public void Update(IServiceProvider provider)

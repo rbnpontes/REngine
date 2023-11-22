@@ -289,7 +289,8 @@ namespace REngine.RPI.Features
 				if (effect.IsDisposed)
 					return;
 
-				effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
+				if(item.TextureSlot != byte.MaxValue)
+					effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
 
 				pipeline = effect.OnBuildPipeline(pProvider);
 				binding = effect.OnGetSRB();

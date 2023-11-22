@@ -25,7 +25,7 @@ namespace REngine.Sandbox.States
 		private readonly IWindow pMainWindow;
 		private readonly RenderState pRenderState;
 		private readonly Color pDefaultClearColor;
-		private readonly GameState pGameState;
+		private readonly GameStateManager pGameStateManager;
 		public string Name => PongStates.SplashScreenState;
 
 		private Transform2D? pComponent;
@@ -37,7 +37,7 @@ namespace REngine.Sandbox.States
 			EntityManager entityManager,
 			IWindow mainWindow,
 			RenderState renderState,
-			GameState gameState
+			GameStateManager gameStateManager
 		)
 		{
 			pSpriteBatch = spriteBatch;
@@ -45,7 +45,7 @@ namespace REngine.Sandbox.States
 			pMainWindow = mainWindow;
 			pRenderState = renderState;
 			pDefaultClearColor = renderState.DefaultClearColor;
-			pGameState = gameState;
+			pGameStateManager = gameStateManager;
 		}
 		public void OnStart()
 		{
@@ -95,7 +95,7 @@ namespace REngine.Sandbox.States
 			{
 				// Goto next State
 				pAudio = null;
-				pGameState.SetState(PongStates.LoadingPongState);
+				pGameStateManager.SetState(PongStates.LoadingPongState);
 				return;
 			}
 

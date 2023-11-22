@@ -18,16 +18,19 @@ namespace REngine.Sandbox.States
 	{
 		private readonly EntityManager pEntityManager;
 		private readonly IWindow pMainWindow;
+		private readonly GameStateManager pGameStateManager;
 
 		private Transform2D? pMenuTransform;
 		public string Name => nameof(PongMainMenuState);
 
 		public PongMainMenuState(
 			EntityManager entityMgr,
-			IWindow mainWindow)
+			IWindow mainWindow,
+			GameStateManager gameStateManager)
 		{
 			pEntityManager = entityMgr;
 			pMainWindow = mainWindow;
+			pGameStateManager = gameStateManager;
 		}
 
 		public void OnStart()
@@ -74,11 +77,12 @@ namespace REngine.Sandbox.States
 
 		public void OnExit()
 		{
+			pEntityManager.DestroyAll();
 		}
 
 		private void ExecutePlay()
 		{
-
+			pGameStateManager.SetState(PongStates.PongGamePlayState);
 		}
 
 		private void ExecuteStop()

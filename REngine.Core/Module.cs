@@ -32,7 +32,7 @@ namespace REngine.Core
 				.Add<TransformSystem>()
 				.Add<Transform2DSystem>()
 				.Add<CameraSystem>()
-				.Add<GameState>();
+				.Add<GameStateManager>();
 		}
 	}
 }

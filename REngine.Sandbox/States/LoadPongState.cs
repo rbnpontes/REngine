@@ -23,7 +23,7 @@ namespace REngine.Sandbox.States
 		private const float LoadingPaddingSize = 8;
 
 		private readonly Queue<Action> pLoadQueue = new();
-		private readonly GameState pGameState;
+		private readonly GameStateManager pGameStateManager;
 		private readonly EntityManager pEntityManager;
 		private readonly RenderState pRenderState;
 		private readonly IWindow pMainWindow;
@@ -39,14 +39,14 @@ namespace REngine.Sandbox.States
 
 
 		public LoadPongState(
-			GameState gameState,
+			GameStateManager gameStateManager,
 			EntityManager entityManager,
 			RenderState renderState,
 			IWindow mainWindow,
 			ISpriteBatch spriteBatch
 		)
 		{
-			pGameState = gameState;
+			pGameStateManager = gameStateManager;
 			pEntityManager = entityManager;
 			pRenderState = renderState;
 			pMainWindow = mainWindow;
@@ -109,7 +109,7 @@ namespace REngine.Sandbox.States
 			else
 			{
 				// If queue items is empty, then we must go to next state
-				pGameState.SetState(PongStates.PongMainMenuState);
+				pGameStateManager.SetState(PongStates.PongMainMenuState);
 				return;
 			}
 

@@ -16,7 +16,7 @@ namespace REngine.Core.Logic
 		public void OnUpdate();
 		public void OnExit();
 	}
-	public sealed class GameState : IDisposable
+	public sealed class GameStateManager : IDisposable
 	{
 		private class StateTransaction
 		{
@@ -35,7 +35,7 @@ namespace REngine.Core.Logic
 
 		private IGameState? pState;
 		private bool pDisposed;
-		public GameState(
+		public GameStateManager(
 			IServiceProvider serviceProvider,
 			IExecutionPipeline executionPipeline,
 			EngineEvents engineEvents)
@@ -92,7 +92,7 @@ namespace REngine.Core.Logic
 		}
 
 
-		public GameState RegisterState<T>() where T : IGameState
+		public GameStateManager RegisterState<T>() where T : IGameState
 		{
 			IGameState? state = ActivatorExtended.CreateInstance<T>(pServiceProvider);
 			if (state is null)
@@ -102,7 +102,7 @@ namespace REngine.Core.Logic
 			return this;
 		}
 
-		public GameState ClearStates()
+		public GameStateManager ClearStates()
 		{
 			foreach (var pair in pGameStates)
 				pair.Value.OnExit();
@@ -110,12 +110,12 @@ namespace REngine.Core.Logic
 			return this;
 		}
 
-		public GameState SetState(string stateName)
+		public GameStateManager SetState(string stateName)
 		{
 			return SetState(Hash.Digest(stateName));
 		}
 
-		public GameState SetState(ulong stateId)
+		public GameStateManager SetState(ulong stateId)
 		{
 			lock (pSync)
 			{
@@ -125,7 +125,7 @@ namespace REngine.Core.Logic
 			return this;
 		}
 
-		public GameState Restart()
+		public GameStateManager Restart()
 		{
 			lock (pSync)
 			{
@@ -135,7 +135,7 @@ namespace REngine.Core.Logic
 			}
 			return this;
 		}
-		public GameState Stop()
+		public GameStateManager Stop()
 		{
 			lock (pSync)
 			{
