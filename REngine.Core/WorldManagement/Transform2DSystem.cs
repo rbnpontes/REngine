@@ -8,6 +8,17 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.WorldManagement
 {
+	public struct Transform2DSnapshot
+	{
+		public Vector2 Position;
+		public int ZIndex;
+		public float Rotation;
+		public Vector2 Scale;
+		public Vector2 WorldPosition;
+		public float WorldRotation;
+		public Matrix4x4 TransformMatrix;
+		public Matrix4x4 WorldTransformMatrix;
+	}
 	public struct Transform2DData
 	{
 		public Vector2 Position;
@@ -323,6 +334,37 @@ namespace REngine.Core.WorldManagement
 			}
 
 			return children;
+		}
+
+		/// <summary>
+		/// Acquire current state of Transform2D
+		/// Usefully if you don't want fight with internal locks
+		/// </summary>
+		/// <param name="transform"></param>
+		/// <param name="output"></param>
+		public void GetSnapshot(Transform2D transform, out Transform2DSnapshot output)
+		{
+			lock (pSync)
+			{
+				if (pData[transform.Id].Dirty)
+					UpdateTransforms(transform.Id);
+
+				var data = pData[transform.Id];
+
+				var worldPos = data.CachedWorldTransformMatrix.Translation;
+
+				output = new Transform2DSnapshot()
+				{
+					Position = data.Position,
+					ZIndex = data.ZIndex,
+					Rotation = data.Rotation,
+					Scale = data.Scale,
+					WorldPosition = new Vector2(worldPos.X, worldPos.Y),
+					WorldRotation = data.WorldRotation,
+					TransformMatrix = data.CachedTransformMatrix,
+					WorldTransformMatrix = data.CachedWorldTransformMatrix
+				};
+			}
 		}
 
 		private void MakeDirty(int id)

@@ -9,6 +9,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.Core.Serialization;
+using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
 
 namespace REngine.RPI.Components
@@ -63,6 +64,11 @@ namespace REngine.RPI.Components
 	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
 	{
 		private readonly IInput pInput;
+		private readonly IExecutionPipeline pExecutionPipeline;
+		private readonly Action<IExecutionPipeline> pRenderBegin;
+
+		private Transform2DSnapshot pLastSnapshot;
+
 		public byte TextureSlot { get; set; } = byte.MaxValue;
 		[SerializationIgnore]
 		public BasicSpriteEffect? Effect { get; set; }
@@ -73,17 +79,25 @@ namespace REngine.RPI.Components
 		public event EventHandler<EventArgs>? OnMouseOver;
 		public event EventHandler<EventArgs>? OnMouseOut;
 		public event EventHandler<EventArgs>? OnClick;
-		public SpriteComponent(IServiceProvider provider) : base(provider)
+
+		public SpriteComponent(
+			IServiceProvider provider,
+			IInput input,
+			IExecutionPipeline execPipeline
+		) : base(provider)
 		{
-			pInput = provider.Get<IInput>();
+			pInput = input;
+			pExecutionPipeline = execPipeline;
+
+			pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, pRenderBegin = OnRenderBegin);
 		}
 
 		private SpriteBatchInfo pBatchInfo = new();
 		protected override void OnDraw(ISpriteBatch spriteBatch)
 		{
-			pBatchInfo.Position = Transform.WorldPosition;
-			pBatchInfo.Angle = Transform.Rotation;
-			pBatchInfo.Size = Transform.Scale;
+			pBatchInfo.Position = pLastSnapshot.WorldPosition;
+			pBatchInfo.Angle = pLastSnapshot.WorldRotation;
+			pBatchInfo.Size = pLastSnapshot.Scale;
 			pBatchInfo.Anchor = Anchor;
 			pBatchInfo.Color = Color;
 			pBatchInfo.Offset = Offset;
@@ -94,6 +108,15 @@ namespace REngine.RPI.Components
 
 			ComputeMouseInput();
 		}
+
+		private void OnRenderBegin(IExecutionPipeline _)
+		{
+			if (IsDisposed)
+				return;
+
+			Transform.GetSnapshot(out pLastSnapshot);
+		}
+
 		private bool pIsOver;
 		private bool pIsOut;
 		private void ComputeMouseInput()
@@ -135,6 +158,8 @@ namespace REngine.RPI.Components
 			base.OnDispose();
 			Effect?.Dispose();
 			Effect = null;
+
+			pExecutionPipeline.RemoveEvent(DefaultEvents.RenderBeginId, pRenderBegin);
 		}
 	}
 }

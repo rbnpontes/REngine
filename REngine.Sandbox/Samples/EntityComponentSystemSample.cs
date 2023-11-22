@@ -95,7 +95,7 @@ namespace REngine.Sandbox.Samples
 			{
 				var entity = pEntityManager.CreateEntity($"Sprite Component #{pComponents.Count}");
 
-				var spriteComponent = new SpriteComponent(pServiceProvider);
+				var spriteComponent = entity.CreateComponent<SpriteComponent>();
 
 				entity.AddComponent(spriteComponent);
 

@@ -193,5 +193,10 @@ namespace REngine.Core.WorldManagement
 		{
 			pSystem.RemoveChild(this, child);
 		}
+
+		public void GetSnapshot(out Transform2DSnapshot snapshot)
+		{
+			pSystem.GetSnapshot(this, out snapshot);
+		}
 	}
 }
