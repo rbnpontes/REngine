@@ -64,7 +64,8 @@ namespace REngine.Sandbox.Samples
 
 			pRenderer.RemoveFeature(pImGuiSystem.Feature);
 
-			pGameStateManager.SetState(PongStates.SplashScreenState); // Start Game
+			pGameStateManager.SetState(PongStates.PongGamePlayState);
+			//pGameStateManager.SetState(PongStates.SplashScreenState); // Start Game
 		}
 
 		public void Update(IServiceProvider provider)

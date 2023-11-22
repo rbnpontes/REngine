@@ -34,6 +34,9 @@ namespace REngine.Sandbox.States
 
 		public static float Speed { get; set; } = 100f;
 		public static Vector2 BallVelocity { get; set; } = Vector2.One;
+
+		public static bool GamePaused { get; set; } = false;
+		public static bool EnableDebug { get; set; } = false;
 		public static void Reset()
 		{
 			Speed = 1;
