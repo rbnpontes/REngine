@@ -17,6 +17,8 @@ namespace REngine.Sandbox.States
 
 		public const float MenuButtonMargin = 8;
 
+		public const float ScoreTextMargin = 8;
+
 		public const float BallRadius = 15;
 		public const int BlocksPerCol = 10;
 		public const int BlocksPerRow = 5;

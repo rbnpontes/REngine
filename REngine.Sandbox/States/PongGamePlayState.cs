@@ -36,6 +36,7 @@ namespace REngine.Sandbox.States
 		private Transform2D? pRoot;
 
 		private TextComponent? pText;
+		private Transform2D? pTextTransform;
 
 		private Vector2 pBallPosition;
 
@@ -75,8 +76,8 @@ namespace REngine.Sandbox.States
 			var text = textEntity.CreateComponent<TextComponent>();
 			text.FontName = "Anonymous Pro.ttf";
 			text.TextSize = 16;
-			text.Text = "Score: 0";
-			textTransform.Position = new Vector2(0, wndSize.Height - PongVariables.BarSize.Y - 16);
+			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
+			pTextTransform = textTransform;
 
 			pText = text;
 			pRoot.AddChild(textTransform);
@@ -156,6 +157,7 @@ namespace REngine.Sandbox.States
 
 			UpdateBall(deltaTime);
 			UpdateBar();
+			UpdateScoreTextPosition();
 
 			ComputeBarCollision();
 			ComputeScreenCollisions();
@@ -276,6 +278,19 @@ namespace REngine.Sandbox.States
 			var pos = new Vector2(input.MousePosition.X - PongVariables.BarSize.X * 0.5f,
 				mainWindow.Size.Height - PongVariables.BarSize.Y);
 			pBar.Position = pos;
+		}
+
+		private void UpdateScoreTextPosition()
+		{
+			if (pTextTransform is null || pText is null)
+				return;
+
+			var bounds = pText.Bounds;
+			var size = mainWindow.Size;
+			pTextTransform.Position = new Vector2(
+				size.Width - (bounds.Width + PongVariables.ScoreTextMargin),
+				size.Height - (bounds.Height + PongVariables.ScoreTextMargin)
+			);
 		}
 	}
 }
