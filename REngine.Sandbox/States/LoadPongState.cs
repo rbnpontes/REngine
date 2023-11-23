@@ -28,13 +28,14 @@ namespace REngine.Sandbox.States
 		private readonly RenderState pRenderState;
 		private readonly IWindow pMainWindow;
 		private readonly ISpriteBatch pSpriteBatch;
+		private readonly ITextRenderer pTextRenderer;
 
 		private Color pDefaultClearColor = Color.Black;
 
 		private Transform2D? pLoadingTransform;
 		private Transform2D? pBarTransform;
 
-		private int pLoadCount = 0;
+		private int pLoadCount;
 		public string Name => nameof(LoadPongState);
 
 
@@ -43,7 +44,8 @@ namespace REngine.Sandbox.States
 			EntityManager entityManager,
 			RenderState renderState,
 			IWindow mainWindow,
-			ISpriteBatch spriteBatch
+			ISpriteBatch spriteBatch,
+			ITextRenderer textRenderer
 		)
 		{
 			pGameStateManager = gameStateManager;
@@ -51,6 +53,7 @@ namespace REngine.Sandbox.States
 			pRenderState = renderState;
 			pMainWindow = mainWindow;
 			pSpriteBatch = spriteBatch;
+			pTextRenderer = textRenderer;
 		}
 
 		public void OnStart()
@@ -59,9 +62,11 @@ namespace REngine.Sandbox.States
 
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
 			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg"));
+			pLoadQueue.Enqueue(()=> PongVariables.BlockClickAudio = LoadAudio("block_click.ogg"));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-play-button.png", PongVariables.MenuPlayButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-restart-button.png", PongVariables.MenuRestartButtonSlot));
+			pLoadQueue.Enqueue(()=> LoadFont("Anonymous Pro.ttf"));
 
 			pLoadCount = pLoadQueue.Count;
 
@@ -113,7 +118,7 @@ namespace REngine.Sandbox.States
 				return;
 			}
 
-			var progress = (float)pLoadQueue.Count / pLoadQueue.Count;
+			var progress = (float)pLoadQueue.Count / pLoadCount;
 			pBarTransform.Scale = new Vector2(progress * LoadingWidth, LoadingHeight);
 		}
 
@@ -144,6 +149,15 @@ namespace REngine.Sandbox.States
 
 			var img = imageAsset.Image;
 			pSpriteBatch.SetTexture(slotId, img);
+		}
+
+		private void LoadFont(string assetName)
+		{
+			using FontAsset fontAsset = new();
+			fontAsset.Name = assetName;
+			using(FileStream stream = new(Path.Join(EngineSettings.AssetsFontPath, assetName), FileMode.Open))
+				fontAsset.Load(stream).Wait();
+			pTextRenderer.SetFont(fontAsset.Font);
 		}
 	}
 }

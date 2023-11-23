@@ -35,7 +35,7 @@
 	  <PackageReference Include="Standart.Hash.xxHash" Version="4.0.5" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="Assets\ExecutionPipeline.xml">
+	  <None Update="Assets\default_execution_pipeline.xml">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

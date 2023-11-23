@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.RHI;
+using REngine.RPI.Events;
 using REngine.RPI.RenderGraph.Annotations;
 using REngine.RPI.RenderGraph.Nodes;
 
@@ -26,7 +27,7 @@ namespace REngine.RPI.RenderGraph
 		protected IServiceProvider? mServiceProvider;
 
 		private bool pHasFinishSetup;
-		private RPIEvents? pRpiEvents;
+		private RendererEvents? pRendererEvents;
 		private ISwapChain? pLastSwapChain;
 
 		internal ViewportRenderTargetNode(string debugName) : base(debugName)
@@ -39,10 +40,10 @@ namespace REngine.RPI.RenderGraph
 			if(mResource != null )
 				mResource.Value = null;
 
-			if (!pHasFinishSetup || pLastSwapChain is null || pRpiEvents is null)
+			if (!pHasFinishSetup || pLastSwapChain is null || pRendererEvents is null)
 				return;
 
-			pRpiEvents.OnChangeSwapChain -= HandleChangeSwapChain;
+			pRendererEvents.OnChangeSwapChain -= HandleChangeSwapChain;
 			pLastSwapChain.OnResize -= HandleSwapChainResize;
 		}
 
@@ -72,7 +73,7 @@ namespace REngine.RPI.RenderGraph
 			mResourceManager ??= provider.Get<IResourceManager>();
 			mServiceProvider = provider;
 
-			pRpiEvents ??= provider.Get<RPIEvents>();
+			pRendererEvents ??= provider.Get<RendererEvents>();
 
 			var swapChain = mRenderer.SwapChain;
 			if (swapChain is null)
@@ -85,18 +86,18 @@ namespace REngine.RPI.RenderGraph
 				return;
 
 			swapChain.OnResize += HandleSwapChainResize;
-			pRpiEvents.OnChangeSwapChain += HandleChangeSwapChain;
+			pRendererEvents.OnChangeSwapChain += HandleChangeSwapChain;
 			pLastSwapChain = swapChain;
 
 			pHasFinishSetup = true;
 		}
 
-		private void HandleChangeSwapChain(object? sender, RenderEventArgs e)
+		private void HandleChangeSwapChain(object? sender,  ISwapChain? e)
 		{
-			if (pRpiEvents is null || pLastSwapChain is null || mServiceProvider is null)
+			if (pRendererEvents is null || pLastSwapChain is null || mServiceProvider is null)
 				return;
 
-			pRpiEvents.OnChangeSwapChain -= HandleChangeSwapChain;
+			pRendererEvents.OnChangeSwapChain -= HandleChangeSwapChain;
 			pLastSwapChain.OnResize -= HandleSwapChainResize;
 
 			pHasFinishSetup = false;

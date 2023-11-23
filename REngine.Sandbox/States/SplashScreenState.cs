@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 using REngine.Assets;
 using REngine.Core;
 using REngine.Core.IO;
@@ -49,7 +50,7 @@ namespace REngine.Sandbox.States
 		}
 		public void OnStart()
 		{
-			//pMainWindow.Fullscreen();
+			pMainWindow.Fullscreen();
 			using ImageAsset sprite = new("EngineLogo-Sdf.png");
 			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "Textures", sprite.Name),
 				       FileMode.Open, FileAccess.Read))

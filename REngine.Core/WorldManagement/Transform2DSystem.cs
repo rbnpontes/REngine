@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -18,6 +19,7 @@ namespace REngine.Core.WorldManagement
 		public float WorldRotation;
 		public Matrix4x4 TransformMatrix;
 		public Matrix4x4 WorldTransformMatrix;
+		public RectangleF Bounds;
 	}
 	public struct Transform2DData
 	{
@@ -27,6 +29,7 @@ namespace REngine.Core.WorldManagement
 		public Vector2 Scale;
 		public Matrix4x4 CachedTransformMatrix;
 		public Matrix4x4 CachedWorldTransformMatrix;
+		public RectangleF Bounds;
 		public float WorldRotation;
 		public int ParentId;
 		public List<int> Children;
@@ -42,6 +45,7 @@ namespace REngine.Core.WorldManagement
 			
 			CachedTransformMatrix = Matrix4x4.Identity;
 			CachedWorldTransformMatrix = Matrix4x4.Identity;
+			Bounds = RectangleF.Empty;
 			WorldRotation = 0;
 			ParentId = -1;
 			Children = new List<int>();
@@ -319,6 +323,19 @@ namespace REngine.Core.WorldManagement
 			}
 		}
 
+		public void GetBounds(Transform2D transform, out RectangleF bounds)
+		{
+			lock (pSync)
+			{
+#if DEBUG
+				ValidateComponent(transform);
+#endif
+				if (pData[transform.Id].Dirty)
+					UpdateTransforms(transform.Id);
+				bounds = pData[transform.Id].Bounds;
+			}
+		}
+
 		public IEnumerable<Transform2D> GetChildren(Transform2D transform)
 		{
 			IEnumerable<Transform2D> children;
@@ -362,7 +379,8 @@ namespace REngine.Core.WorldManagement
 					WorldPosition = new Vector2(worldPos.X, worldPos.Y),
 					WorldRotation = data.WorldRotation,
 					TransformMatrix = data.CachedTransformMatrix,
-					WorldTransformMatrix = data.CachedWorldTransformMatrix
+					WorldTransformMatrix = data.CachedWorldTransformMatrix,
+					Bounds = data.Bounds
 				};
 			}
 		}
@@ -393,6 +411,9 @@ namespace REngine.Core.WorldManagement
 				data.CachedWorldTransformMatrix = data.CachedTransformMatrix * parent.CachedWorldTransformMatrix;
 				data.WorldRotation = parent.WorldRotation + data.Rotation;
 			}
+
+			var worldPos = data.CachedWorldTransformMatrix.Translation;
+			data.Bounds = new RectangleF(worldPos.X, worldPos.Y, data.Scale.X, data.Scale.Y);
 
 			data.Dirty = false;
 			pData[id] = data;

@@ -10,51 +10,70 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
 	internal class BufferManagerImpl : IDisposable, IBufferManager
 	{
-		private ILogger<IBufferManager> pLogger;
-		private bool pDisposed = false;
+		private readonly ILogger<IBufferManager> pLogger;
+		private readonly RendererEvents pRendererEvents;
+		private readonly BufferManagerEvents pBufferMgrEvents;
+		private readonly RenderSettings pRenderSettings;
+		private readonly RPIEvents pRpiEvents;
+		private readonly IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
+
+		private bool pDisposed;
 
 		private IGraphicsDriver? pDriver;
-		private RenderSettings pRenderSettings;
-		private RPIEvents pRPIEvents;
 
-		private IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
 
 		public BufferManagerImpl(
-			EngineEvents engineEvents, 
-			RPIEvents rpiEvents,
 			ILogger<IBufferManager> logger,
+			RendererEvents rendererEvents,
+			BufferManagerEvents bufferMgrEvents,
+			RPIEvents rpiEvents,
 			RenderSettings settings)
 		{
-			pRenderSettings = settings;
 			pLogger = logger;
-			pRPIEvents = rpiEvents;
-			engineEvents.OnStop += HandleEngineStop;
-			rpiEvents.OnReady += HandleRenderReady;
+			pRenderSettings = settings;
+			pBufferMgrEvents = bufferMgrEvents;
+			pRendererEvents = rendererEvents;
+			pBufferMgrEvents = bufferMgrEvents;
+			pRpiEvents = rpiEvents;
+
+			rendererEvents.OnReady += HandleRendererReady;
+			rendererEvents.OnDisposed += HandleRendererDisposed;
 			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
+		private void HandleRendererReady(object? sender, EventArgs e)
+		{
+			if (sender is not IRenderer renderer)
+				return;
+
+			pRendererEvents.OnReady -= HandleRendererReady;
+
+			pDriver = renderer.Driver;
+
+			pLogger.Info("Initializing.");
+			BuildBuffers();
+			pLogger.Success("Initialized with success");
+
+			pBufferMgrEvents.ExecuteReady(this);
+		}
+
+		private void HandleRendererDisposed(object? sender, EventArgs e)
+		{
+			pRendererEvents.OnDisposed -= HandleRendererDisposed;
+			Dispose();
+		}
+
+		private void HandleUpdateSettings(object? sender, EventArgs e)
 		{
 			if (pDisposed || pDriver is null)
 				return;
 			BuildBuffers();
-		}
-
-		private void HandleEngineStop(object? sender, EventArgs e)
-		{
-			Dispose();
-		}
-		private void HandleRenderReady(object? sender, RenderReadyEventArgs e)
-		{
-			pDriver = e.Driver;
-			pLogger.Info("Initializing.");
-			BuildBuffers();
-			pLogger.Success("Initialized with success");
 		}
 
 		public void Dispose()
@@ -62,24 +81,25 @@ namespace REngine.RPI
 			if (pDisposed)
 				return;
 
+			pRpiEvents.OnUpdateSettings -= HandleUpdateSettings;
+			pBufferMgrEvents.ExecuteDispose(this);
+
 			pLogger.Info($"Disposing {nameof(IBufferManager)}.");
-			foreach(var cbuffer in pCBuffers)
-			{
-				cbuffer?.Dispose();
-			}
+			foreach(var buffer in pCBuffers)
+				buffer?.Dispose();
 
 			pDisposed = true;
+
+			pBufferMgrEvents.ExecuteDisposed(this);
 		}
 
 		public IBuffer GetBuffer(BufferGroupType groupType)
 		{
-			if (pDisposed)
-				throw new ObjectDisposedException(nameof(IBufferManager));
+			if (pDisposed) throw new ObjectDisposedException(nameof(IBufferManager));
 
-			IBuffer buffer = pCBuffers[GetBufferGroupIndex(groupType)];
-			if (buffer is null)
-				throw new NullReferenceException($"Buffer of group type {groupType} is null. Did you forget to build buffers ?");
-			return buffer;
+			var buffer = pCBuffers[GetBufferGroupIndex(groupType)];
+			return buffer ?? throw new NullReferenceException(
+				$"Buffer of group type {groupType} is null. Did you forget to build buffers ?");
 		}
 
 		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic)
@@ -99,7 +119,7 @@ namespace REngine.RPI
 			});
 		}
 
-		private int GetBufferGroupIndex(BufferGroupType grpType)
+		private static int GetBufferGroupIndex(BufferGroupType grpType)
 		{
 			return (int)(grpType - 1);
 		}
@@ -147,7 +167,7 @@ namespace REngine.RPI
 			}
 
 			if (changed)
-				pRPIEvents.ExecuteChangeBuffers(this);
+				pBufferMgrEvents.ExecuteChange(this);
 		}
 	}
 }

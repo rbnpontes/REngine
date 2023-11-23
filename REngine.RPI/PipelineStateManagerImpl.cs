@@ -7,42 +7,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Events;
 using REngine.RPI.Serialization;
 
 namespace REngine.RPI
 {
 	internal class PipelineStateManagerImpl : IPipelineStateManager, IDisposable
 	{
-
-		private readonly EngineEvents pEngineEvents;
 		private readonly IServiceProvider pServiceProvider;
 		private readonly ILogger<IPipelineStateManager> pLogger;
 		private readonly IShaderManager pShaderManager;
-
-		private bool pDisposed;
-		private IDevice? pDevice;
+		private readonly PipelineStateManagerEvents pPipelineStateEvents;
+		private readonly RendererEvents pRendererEvents;
+		private readonly ShaderManagerEvents pShaderMgrEvents;
 
 		private readonly Dictionary<ulong, IPipelineState> pPipelines = new();
 		private readonly Dictionary<ulong, IComputePipelineState> pComputePipelines = new();
+		
+		private bool pDisposed;
+		private IDevice? pDevice;
 
 		private PipelineSerializer? pSerializer;
 		private bool pSaveCache;
+
 		public IPipelineStateCache? PSCache { get; private set; }
 
 		public PipelineStateManagerImpl(
-			EngineEvents engineEvents, 
 			ILoggerFactory loggerFactory,
 			IServiceProvider serviceProvider,
-			IShaderManager shaderManager
+			IShaderManager shaderManager,
+			PipelineStateManagerEvents pipelineEvents,
+			RendererEvents rendererEvents,
+			ShaderManagerEvents shaderMgrEvents
 		)
 		{
 			pLogger = loggerFactory.Build<IPipelineStateManager>();
-			pEngineEvents = engineEvents;
-
-			engineEvents.OnStart += HandleEngineStart;
-			engineEvents.OnStop += HandleEngineStop;
 			pServiceProvider = serviceProvider;
 			pShaderManager = shaderManager;
+			pPipelineStateEvents = pipelineEvents;
+			pRendererEvents = rendererEvents;
+			pShaderMgrEvents = shaderMgrEvents;
+
+			//engineEvents.OnStart += HandleEngineStart;
+			//engineEvents.OnStop += HandleEngineStop;
+			shaderMgrEvents.OnReady += HandleShaderManagerReady;
+			rendererEvents.OnDisposed += HandleRendererDisposed;
 		}
 
 		public void Dispose()
@@ -53,6 +62,7 @@ namespace REngine.RPI
 				return;
 			}
 
+			pPipelineStateEvents.ExecuteDispose(this);
 			// Only save cache if pipeline state list has been changed, this means that new items have been added
 			// only writes to disk if it needed
 			if (pSaveCache)
@@ -68,18 +78,13 @@ namespace REngine.RPI
 			pDisposed = true;
 
 			pLogger.Info("Pipeline State has been disposed");
+			pPipelineStateEvents.ExecuteDisposed(this);
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private void HandleShaderManagerReady(object? sender, EventArgs e)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
-			pLogger.Info("Stopping Pipeline State Manager");
-			Dispose();
-		}
+			pShaderMgrEvents.OnReady -= HandleShaderManagerReady;
 
-		private void HandleEngineStart(object? sender, EventArgs e)
-		{
-			pEngineEvents.OnStart -= HandleEngineStart;
 			var driver = pServiceProvider.Get<IGraphicsDriver>();
 			pDevice = driver.Device;
 
@@ -87,6 +92,14 @@ namespace REngine.RPI
 			LoadCacheItems();
 
 			pLogger.Info("Pipeline State Manager is Initialized");
+
+			pPipelineStateEvents.ExecuteReady(this);
+		}
+
+		private void HandleRendererDisposed(object? sender, EventArgs e)
+		{
+			pRendererEvents.OnDisposed -= HandleRendererDisposed;
+			Dispose();
 		}
 
 		private IDevice GetDevice()

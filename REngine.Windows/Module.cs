@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace REngine.Windows
 {
-	public static class WindowsModule
+	public sealed class WindowsModule : IModule
 	{
-		public static void Setup(IServiceRegistry registry)
+		public void Setup(IServiceRegistry registry)
 		{
 			registry
 				.Add(

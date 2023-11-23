@@ -16,8 +16,13 @@ namespace REngine.RPI.Components
 {
 	public abstract class BaseSpriteComponent<T> : Component
 	{
+		private readonly IExecutionPipeline pExecutionPipeline;
+		private readonly Action<IExecutionPipeline> pBeginRenderAction;
+
 		protected readonly ISpriteBatch mSpriteBatch;
 		protected readonly Transform2DSystem mTransformSystem;
+
+		private bool pSkipDraw = false;
 
 		protected Transform2D? mTransform;
 		[SerializationIgnore]
@@ -39,24 +44,36 @@ namespace REngine.RPI.Components
 
 		internal BaseSpriteComponent(IServiceProvider provider)
 		{
+			pExecutionPipeline = provider.Get<IExecutionPipeline>();
 			mSpriteBatch = provider.Get<ISpriteBatch>();
 			mTransformSystem = provider.Get<Transform2DSystem>();
 
 			mSpriteBatch.OnDraw += HandleDraw;
+			pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, pBeginRenderAction = BeginRender);
 		}
 
 		private void HandleDraw(object? sender, EventArgs e)
 		{
-			if (!Enabled || Owner is null)
+			if (pSkipDraw || Owner is null)
 				return;
 			OnDraw(mSpriteBatch);
+		}
+
+		private void BeginRender(IExecutionPipeline _)
+		{
+			if (Owner is null)
+				return;
+			pSkipDraw = !Enabled;
+			OnBeginRender();
 		}
 		
 		protected abstract void OnDraw(ISpriteBatch spriteBatch);
 
+		protected virtual void OnBeginRender(){}
 		protected override void OnDispose()
 		{
 			mSpriteBatch.OnDraw -= HandleDraw;
+			pExecutionPipeline.RemoveEvent(DefaultEvents.RenderBeginId, pBeginRenderAction);
 		}
 	}
 
@@ -64,8 +81,6 @@ namespace REngine.RPI.Components
 	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
 	{
 		private readonly IInput pInput;
-		private readonly IExecutionPipeline pExecutionPipeline;
-		private readonly Action<IExecutionPipeline> pRenderBegin;
 
 		private Transform2DSnapshot pLastSnapshot;
 
@@ -82,14 +97,10 @@ namespace REngine.RPI.Components
 
 		public SpriteComponent(
 			IServiceProvider provider,
-			IInput input,
-			IExecutionPipeline execPipeline
+			IInput input
 		) : base(provider)
 		{
 			pInput = input;
-			pExecutionPipeline = execPipeline;
-
-			pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, pRenderBegin = OnRenderBegin);
 		}
 
 		private SpriteBatchInfo pBatchInfo = new();
@@ -109,11 +120,8 @@ namespace REngine.RPI.Components
 			ComputeMouseInput();
 		}
 
-		private void OnRenderBegin(IExecutionPipeline _)
+		protected override void OnBeginRender()
 		{
-			if (IsDisposed)
-				return;
-
 			Transform.GetSnapshot(out pLastSnapshot);
 		}
 
@@ -158,8 +166,6 @@ namespace REngine.RPI.Components
 			base.OnDispose();
 			Effect?.Dispose();
 			Effect = null;
-
-			pExecutionPipeline.RemoveEvent(DefaultEvents.RenderBeginId, pRenderBegin);
 		}
 	}
 }

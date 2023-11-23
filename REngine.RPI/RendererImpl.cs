@@ -14,6 +14,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
@@ -21,7 +22,7 @@ namespace REngine.RPI
 	{
 		private readonly IServiceProvider pProvider;
 		private readonly ILogger<IRenderer> pLogger;
-		private readonly RPIEvents pRenderEvents;
+		private readonly RendererEvents pRenderEvents;
 		private readonly RenderState pRenderState;
 		private readonly GraphicsSettings pGraphicsSettings;
 
@@ -75,7 +76,7 @@ namespace REngine.RPI
 			IServiceProvider provider, 
 			ILogger<IRenderer> logger,
 			EngineEvents events,
-			RPIEvents rendererEvents,
+			RendererEvents rendererEvents,
 			RenderState renderState,
 			IBufferManager bufferProvider,
 			IPipelineStateManager pipelineMgr,
@@ -119,15 +120,15 @@ namespace REngine.RPI
 
 			IsDisposed = true;
 
-			pRenderEvents.ExecuteBeginDispose(this);
+			pRenderEvents.ExecuteDispose(this);
 
 			pFeatureCollection.Dispose();
 			SwapChain?.Dispose();
 			
-			pRenderEvents.ExecuteEndDispose(this);
-
 			pEngineEvents.OnStart -= HandleEngineStart;
 			pEngineEvents.OnBeforeStop -= HandleEngineStop;
+
+			pRenderEvents.ExecuteDisposed(this);
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
@@ -168,8 +169,11 @@ namespace REngine.RPI
 		{
 			if (!feature.IsDirty || pDriver is null)
 				return;
+
+			pRenderEvents.ExecuteBeginCompile(this);
 			feature.Setup(pSetupInfo);
 			feature.Compile(pDriver.ImmediateCommand);
+			pRenderEvents.ExecuteEndCompile(this);
 		}
 
 		public IRenderer Render()
@@ -247,7 +251,7 @@ namespace REngine.RPI
 			}
 
 			pLogger.Info("SwapChain has been changed.");
-			pRenderEvents.ExecuteChangeSwapChain(this);
+			pRenderEvents.ExecuteChangeSwapChain(this, pSwapChain);
 		}
 
 		private void UpdateFixedBufferData(SwapChainSize size)
@@ -302,10 +306,8 @@ namespace REngine.RPI
 		private void HandleEngineStart(object? sender, EventArgs e)
 		{
 			pDriver = pProvider.GetOrDefault<IGraphicsDriver>();
-			ISwapChain? swapChain = pProvider.GetOrDefault<ISwapChain>();
+			var swapChain = pProvider.GetOrDefault<ISwapChain>();
 			
-			pRenderEvents.ExecuteReady(this, pDriver);
-
 			if (swapChain is null)
 				pLogger.Warning("ISwapChain has not been set on IRenderer, you must set a SwapChain to fully work IRenderer.");
 			else
@@ -334,6 +336,9 @@ namespace REngine.RPI
 				.AddEvent(DefaultEvents.RenderId, (_) => HandleRender())
 				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures())
 				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
+
+			pRenderEvents.ExecuteBeforeReady(this);
+			pRenderEvents.ExecuteReady(this);
 		}
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)

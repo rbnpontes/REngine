@@ -1,6 +1,7 @@
 ﻿using REngine.Core.Threading;
 using System.Diagnostics;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Events;
 using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
@@ -74,10 +75,8 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
-			pEvents.ExecuteBeforeStop();
-			pEvents.ExecuteStop();
 			pStopped = true;
-
+			ApplicationLifecyle.ExecuteExit();
 			return this;
 		}
 	}

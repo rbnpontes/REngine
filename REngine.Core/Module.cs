@@ -14,11 +14,10 @@ using REngine.Core.Logic;
 
 namespace REngine.Core
 {
-	public static class CoreModule
+	public sealed class CoreModule : IModule
 	{
-		public static void Setup(IServiceRegistry registry)
+		public void Setup(IServiceRegistry registry)
 		{
-
 			registry
 				.Add<EngineSettings>()
 				.Add<EntityManager>()

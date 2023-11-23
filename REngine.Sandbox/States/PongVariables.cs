@@ -18,33 +18,45 @@ namespace REngine.Sandbox.States
 		public const float MenuButtonMargin = 8;
 
 		public const float BallRadius = 15;
-		public const float BlocksPerWidth = 10;
-		public const float BlocksPerHeight = 5;
+		public const int BlocksPerCol = 10;
+		public const int BlocksPerRow = 5;
+		public const float BlockHeight = 30;
+		public const float BlocksMargin = 5;
 
-		public const float BallMargin = 0;
+		public const int ScorePerBlock = 10;
+		public const float InitialSpeed = 500.0f;
+		public const float MaxSpeed = 1000;
+		public const float MaxPitch = 1.3f;
 
-		public static readonly Vector2 BarSize = new(150, 10);
+		public static readonly Vector2 BarSize = new(300, 10);
 		public static readonly Vector2 MenuTextureSize = new(275, 66);
 
 		public static readonly Queue<IAsset> Assets2Dispose  = new();
 
-		public static float AudioVolume { get; set; } = 80f;
+		public static float AudioVolume { get; set; } = 50f;
 		public static IAudio? BackgroundAudio { get; set; }
 		public static IAudio? MenuItemAudio { get; set; }
+		public static IAudio? BlockClickAudio { get; set; }
 
-		public static float Speed { get; set; } = 100f;
+		public static float Speed { get; set; } = InitialSpeed;
 		public static Vector2 BallVelocity { get; set; } = Vector2.One;
 
 		public static bool GamePaused { get; set; } = false;
 		public static bool EnableDebug { get; set; } = false;
+
+		public static int Score { get; set; }
 		public static void Reset()
 		{
-			Speed = 1;
+			AudioVolume = 80f;
+			Speed = InitialSpeed;
+			Score = 0;
+
 			BallVelocity = Vector2.One;
 			BackgroundAudio?.Stop();
 			MenuItemAudio?.Stop();
+			BlockClickAudio?.Stop();
 
-			BackgroundAudio = MenuItemAudio = null;
+			BackgroundAudio = MenuItemAudio = BlockClickAudio = null;
 
 			while(Assets2Dispose.TryDequeue(out var asset))
 				asset.Dispose();
