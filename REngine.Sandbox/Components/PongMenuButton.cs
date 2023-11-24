@@ -12,7 +12,7 @@ using REngine.Sandbox.States;
 
 namespace REngine.Sandbox.Components
 {
-	internal class PongMenuButton : Behavior
+	internal class PongMenuButton(IServiceProvider provider) : Behavior(provider)
 	{
 		public byte TextureSlot
 		{
@@ -29,7 +29,6 @@ namespace REngine.Sandbox.Components
 
 		private SpriteComponent? pSpriteComponent;
 		private Transform2D? pTransform;
-
 
 		public override void OnSetup()
 		{

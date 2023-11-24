@@ -127,10 +127,7 @@ namespace REngine.RPI.Features
 
 		private IShader LoadShader(IShaderManager shaderManager, ShaderType shaderType)
 		{
-			ShaderCreateInfo shaderCI = new()
-			{
-				Type = shaderType
-			};
+			OnBuildShaderCreateInfo(shaderManager, shaderType, out var shaderCI);
 			ShaderStream shaderStream; 
 
 			switch (shaderType)
@@ -163,6 +160,14 @@ namespace REngine.RPI.Features
 			return shaderManager.GetOrCreate(shaderCI);
 		}
 
+		protected virtual void OnBuildShaderCreateInfo(IShaderManager shaderManager, ShaderType shaderType,
+			out ShaderCreateInfo shaderCI)
+		{
+			shaderCI = new()
+			{
+				Type = shaderType
+			};
+		}
 		protected virtual void OnSetImmutableSamplers(IList<ImmutableSamplerDesc> samplers)
 		{
 			samplers.Add(new ImmutableSamplerDesc()

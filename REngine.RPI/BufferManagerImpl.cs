@@ -21,7 +21,7 @@ namespace REngine.RPI
 		private readonly BufferManagerEvents pBufferMgrEvents;
 		private readonly RenderSettings pRenderSettings;
 		private readonly RPIEvents pRpiEvents;
-		private readonly IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Object];
+		private readonly IBuffer[] pCBuffers = new IBuffer[(int)BufferGroupType.Material];
 
 		private bool pDisposed;
 
@@ -138,11 +138,11 @@ namespace REngine.RPI
 				AccessFlags = CpuAccessFlags.Write
 			};
 
-			ulong[] bufferSizes = new ulong[]
-			{
+			ulong[] bufferSizes = {
 				(ulong)Marshal.SizeOf<FrameData>(),
 				(ulong)Marshal.SizeOf<CameraData>(),
 				pRenderSettings.ObjectBufferSize,
+				pRenderSettings.MaterialBufferSize
 			};
 
 			for(int i =0; i < bufferSizes.Length; ++i)

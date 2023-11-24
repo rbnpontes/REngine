@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.Core.Mathematics;
 
 namespace REngine.RPI.RenderGraph.Nodes
@@ -47,30 +48,29 @@ namespace REngine.RPI.RenderGraph.Nodes
 
 		protected override void OnRun(IServiceProvider provider)
 		{
-			if (pVar is null)
-				pVar = provider.Get<IVariableManager>().GetVar(pVarName);
-
-			ValidateVar(pVar);
+			pVar ??= provider.Get<IVariableManager>().GetVar(pVarName);
+			pCanExecute = CanExecute();
 		}
 
-		private void ValidateVar(IVar vary)
+		private bool CanExecute()
 		{
-			object? value = vary.Value;
-			if (value is null)
+			var value = pVar?.Value;
+			return value switch
 			{
-				pCanExecute = false;
-				return;
-			}
+				bool boolValue => Validate(boolValue),
+				Ref<bool> refBool => Validate(refBool.Value),
+				_ => false
+			};
+		}
 
-			switch (pCompare)
+		private bool Validate(bool x)
+		{
+			return pCompare switch
 			{
-				case IfNodeCompare.Equal:
-					pCanExecute = Equals(value, true);
-					break;
-				case IfNodeCompare.NotEqual:
-					pCanExecute = !Equals(value, true);
-					break;
-			}
+				IfNodeCompare.Equal => x,
+				IfNodeCompare.NotEqual => x,
+				_ => false
+			};
 		}
 
 		protected override IEnumerable<RenderGraphNode> OnGetChildren()

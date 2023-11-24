@@ -53,7 +53,8 @@ namespace REngine.Sandbox.Samples
 				.RegisterState<SplashScreenState>()
 				.RegisterState<LoadPongState>()
 				.RegisterState<PongMainMenuState>()
-				.RegisterState<PongGamePlayState>();
+				.RegisterState<PongGamePlayState>()
+				.RegisterState<PongGameOverState>();
 
 			var rootEntry = pRenderGraph.LoadFromFile(
 				Path.Join(EngineSettings.AssetsPath, "ponggame-rendergraph.xml")

@@ -10,10 +10,12 @@ using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Logic;
 using REngine.Core.Mathematics;
+using REngine.Core.Storage;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.SpriteEffects;
+using REngine.Sandbox.Components;
 
 namespace REngine.Sandbox.States
 {
@@ -37,6 +39,7 @@ namespace REngine.Sandbox.States
 
 		private TextComponent? pText;
 		private Transform2D? pTextTransform;
+		private PongPausedMenu? pGameMenu;
 
 		private Vector2 pBallPosition;
 
@@ -44,8 +47,7 @@ namespace REngine.Sandbox.States
 
 		public void OnStart()
 		{
-			if (PongVariables.BackgroundAudio != null)
-				PongVariables.BackgroundAudio.Pitch = 0.01f;
+			SetInitialState();
 
 			var wndSize = mainWindow.Size;
 			var rootEntity = entityManager.CreateEntity("root");
@@ -54,7 +56,7 @@ namespace REngine.Sandbox.States
 			var barEntity = entityManager.CreateEntity("bar");
 			pBar = barEntity.CreateComponent<Transform2D>();
 			pBar.Scale = PongVariables.BarSize;
-			pBar.Position = new Vector2(wndSize.Width * 0.5f - (PongVariables.BarSize.X * 0.5f), wndSize.Width - PongVariables.BarSize.Y);
+			pBar.Position = new Vector2(wndSize.Width * 0.5f - (PongVariables.BarSize.X * 0.5f), wndSize.Height - PongVariables.BarSize.Y);
 
 			var sprite = barEntity.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
@@ -62,7 +64,7 @@ namespace REngine.Sandbox.States
 			var ball = entityManager.CreateEntity("ball");
 			pBall = ball.CreateComponent<Transform2D>();
 			pBall.Scale = new Vector2(PongVariables.BallRadius, PongVariables.BallRadius);
-			pBall.Position = pBallPosition = new Vector2(pBar.Position.X, pBar.Position.Y - PongVariables.BallRadius);
+			pBall.Position = pBallPosition = new Vector2(pBar.Position.X + PongVariables.BarSize.X * 0.5f, pBar.Position.Y - (PongVariables.BallRadius + PongVariables.BarSize.Y));
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
@@ -83,6 +85,11 @@ namespace REngine.Sandbox.States
 			pRoot.AddChild(textTransform);
 
 			CreateBlocks(pRoot);
+
+			pGameMenu = entityManager.CreateEntity("menu").CreateComponent<PongPausedMenu>();
+			pGameMenu.ResumeAction = () => pGameMenu.Visible = PongVariables.MenuActive = false;
+			pGameMenu.RestartAction = () => gameStateManager.Restart();
+			pGameMenu.ExitAction = () => engine.Stop();
 
 			if(PongVariables.EnableDebug)
 				imguiSystem.OnGui += OnGui;
@@ -137,8 +144,16 @@ namespace REngine.Sandbox.States
 
 		public void OnUpdate()
 		{
+			if (pGameMenu is null)
+				return;
+
+			if (input.GetKeyPress(InputKey.Esc))
+				pGameMenu.Visible = PongVariables.MenuActive = !PongVariables.MenuActive;
+
+			if (PongVariables.MenuActive)
+				return;
 #if DEBUG
-			if (input.GetKeyPress(InputKey.Space))
+			if (input.GetKeyPress(InputKey.Space) && PongVariables.EnableDebug)
 				PongVariables.GamePaused = !PongVariables.GamePaused;
 			if (input.GetKeyPress(InputKey.P))
 			{
@@ -279,7 +294,6 @@ namespace REngine.Sandbox.States
 				mainWindow.Size.Height - PongVariables.BarSize.Y);
 			pBar.Position = pos;
 		}
-
 		private void UpdateScoreTextPosition()
 		{
 			if (pTextTransform is null || pText is null)
@@ -291,6 +305,20 @@ namespace REngine.Sandbox.States
 				size.Width - (bounds.Width + PongVariables.ScoreTextMargin),
 				size.Height - (bounds.Height + PongVariables.ScoreTextMargin)
 			);
+		}
+
+		private static void SetInitialState()
+		{
+			PongVariables.MenuActive = false;
+			PongVariables.GamePaused = false;
+			PongVariables.Speed = PongVariables.InitialSpeed;
+			PongVariables.Score = 0;
+			PongVariables.BallVelocity = new Vector2(1, -1);
+			
+			if (PongVariables.BackgroundAudio == null) return;
+			
+			PongVariables.BackgroundAudio.Pitch = 0.01f;
+			PongVariables.BackgroundAudio.Offset = TimeSpan.Zero;
 		}
 	}
 }

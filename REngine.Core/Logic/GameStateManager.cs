@@ -127,12 +127,13 @@ namespace REngine.Core.Logic
 
 		public GameStateManager Restart()
 		{
+			IGameState? state;
 			lock (pSync)
-			{
-				if (pState is null)
-					return this;
-				SetState(pState.Name);
-			}
+				state = pState;
+
+			if (state is null)
+				return this;
+			SetState(state.Name);
 			return this;
 		}
 		public GameStateManager Stop()

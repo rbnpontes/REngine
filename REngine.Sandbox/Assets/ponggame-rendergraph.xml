@@ -1,23 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <render-graph>
-	<var id="@vars/sample/postprocess-effect" type="int" value="0"/>
+	<var id="@vars/pong/paused" type="bool" value="false"/>
 	<input id="@engine/backbuffer" type="RenderTarget"/>
 
 	<colorbuffer id="@sample/backbuffer"/>
-	<!--<colorbuffer id="@sample/backbuffer@2"/>-->
+	<colorbuffer id="@sample/blur"/>
 	<depthbuffer id="@sample/depthbuffer"/>
 
 	<clear colorbuffer="@sample/backbuffer" depthbuffer="@sample/depthbuffer"/>
-	<!--<clear colorbuffer="@sample/backbuffer@2" depthbuffer="@sample/depthbuffer"/>-->
 
 	<spritebatch-pass>
 		<write name="backbuffer" value="@sample/backbuffer"/>
 		<write name="depthbuffer" value="@sample/depthbuffer"/>
 	</spritebatch-pass>
+		   
 	<imgui-pass>
 		<write name="backbuffer" value="@sample/backbuffer"/>
 		<write name="depthbuffer" value="@sample/depthbuffer"/>
 	</imgui-pass>
+
+	<if test="@vars/pong/paused" compare="NotEqual">
+		<blur>
+			<read name="input" value="@sample/backbuffer"/>
+			<write name="depthbuffer" value="@sample/depthbuffer"/>
+			<write name="backbuffer" value="@sample/blur"/>
+		</blur>
+	</if>
+	
 	<copy>
 		<read name="input" value="@sample/backbuffer"/>
 		<write name="backbuffer" value="@engine/backbuffer"/>

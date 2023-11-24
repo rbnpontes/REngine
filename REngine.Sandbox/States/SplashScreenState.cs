@@ -50,7 +50,7 @@ namespace REngine.Sandbox.States
 		}
 		public void OnStart()
 		{
-			pMainWindow.Fullscreen();
+			//pMainWindow.Fullscreen();
 			using ImageAsset sprite = new("EngineLogo-Sdf.png");
 			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "Textures", sprite.Name),
 				       FileMode.Open, FileAccess.Read))

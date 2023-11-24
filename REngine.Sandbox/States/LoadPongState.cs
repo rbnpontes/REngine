@@ -11,8 +11,10 @@ using REngine.Core.Logic;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
+using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.RPI.RenderGraph;
 
 namespace REngine.Sandbox.States
 {
@@ -29,6 +31,7 @@ namespace REngine.Sandbox.States
 		private readonly IWindow pMainWindow;
 		private readonly ISpriteBatch pSpriteBatch;
 		private readonly ITextRenderer pTextRenderer;
+		private readonly IResourceManager pResourceManager;
 
 		private Color pDefaultClearColor = Color.Black;
 
@@ -45,7 +48,8 @@ namespace REngine.Sandbox.States
 			RenderState renderState,
 			IWindow mainWindow,
 			ISpriteBatch spriteBatch,
-			ITextRenderer textRenderer
+			ITextRenderer textRenderer,
+			IResourceManager resourceManager
 		)
 		{
 			pGameStateManager = gameStateManager;
@@ -54,6 +58,7 @@ namespace REngine.Sandbox.States
 			pMainWindow = mainWindow;
 			pSpriteBatch = spriteBatch;
 			pTextRenderer = textRenderer;
+			pResourceManager = resourceManager;
 		}
 
 		public void OnStart()
@@ -66,7 +71,15 @@ namespace REngine.Sandbox.States
 			pLoadQueue.Enqueue(()=> LoadImage("menu-play-button.png", PongVariables.MenuPlayButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-restart-button.png", PongVariables.MenuRestartButtonSlot));
+			pLoadQueue.Enqueue(()=> LoadImage("menu-resume-button.png", PongVariables.MenuResumeButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadFont("Anonymous Pro.ttf"));
+			pLoadQueue.Enqueue(() =>
+			{
+				// Load blur screen into sprite batch
+				var resource = pResourceManager.GetResource("@sample/blur");
+				if (resource.Value is ITexture texture)
+					pSpriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
+			});
 
 			pLoadCount = pLoadQueue.Count;
 

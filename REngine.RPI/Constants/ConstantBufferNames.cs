@@ -11,5 +11,6 @@ namespace REngine.RPI.Constants
         public const string Frame = "FrameConstants";
         public const string Camera = "CameraConstants";
         public const string Object = "ObjectConstants";
+        public const string Material = "MaterialConstants";
     }
 }

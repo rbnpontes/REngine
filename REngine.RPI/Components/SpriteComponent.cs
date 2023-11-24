@@ -9,6 +9,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.Core.Serialization;
+using REngine.Core.Storage;
 using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
 
@@ -22,7 +23,7 @@ namespace REngine.RPI.Components
 		protected readonly ISpriteBatch mSpriteBatch;
 		protected readonly Transform2DSystem mTransformSystem;
 
-		private bool pSkipDraw = false;
+		private bool pSkipDraw;
 
 		protected Transform2D? mTransform;
 		[SerializationIgnore]
@@ -80,9 +81,21 @@ namespace REngine.RPI.Components
 	// TODO: refactor this shit
 	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
 	{
+		private static readonly object sSync = new();
+		[Flags]
+		enum MotionEventFlags
+		{
+			None = 0,
+			Over = 1 << 0,
+			Out = 1 << 1,
+			Click = 1 << 2,
+		}
+
 		private readonly IInput pInput;
 
 		private Transform2DSnapshot pLastSnapshot;
+
+		private MotionEventFlags pEventFlags;
 
 		public byte TextureSlot { get; set; } = byte.MaxValue;
 		[SerializationIgnore]
@@ -106,23 +119,39 @@ namespace REngine.RPI.Components
 		private SpriteBatchInfo pBatchInfo = new();
 		protected override void OnDraw(ISpriteBatch spriteBatch)
 		{
-			pBatchInfo.Position = pLastSnapshot.WorldPosition;
-			pBatchInfo.Angle = pLastSnapshot.WorldRotation;
-			pBatchInfo.Size = pLastSnapshot.Scale;
-			pBatchInfo.Anchor = Anchor;
-			pBatchInfo.Color = Color;
-			pBatchInfo.Offset = Offset;
-			pBatchInfo.TextureSlot = TextureSlot;
-			pBatchInfo.Effect = Effect;
+			lock (sSync)
+			{
+				pBatchInfo.Position = pLastSnapshot.WorldPosition;
+				pBatchInfo.Angle = pLastSnapshot.WorldRotation;
+				pBatchInfo.Size = pLastSnapshot.Scale;
+				pBatchInfo.Anchor = Anchor;
+				pBatchInfo.Color = Color;
+				pBatchInfo.Offset = Offset;
+				pBatchInfo.TextureSlot = TextureSlot;
+				pBatchInfo.Effect = Effect;
 
-			spriteBatch.Draw(pBatchInfo);
+				spriteBatch.Draw(pBatchInfo);
 
-			ComputeMouseInput();
+				ComputeMouseInput();
+			}
 		}
 
 		protected override void OnBeginRender()
 		{
-			Transform.GetSnapshot(out pLastSnapshot);
+			lock (sSync)
+			{
+				Transform.GetSnapshot(out pLastSnapshot);
+
+				if (pEventFlags == MotionEventFlags.None)
+					return;
+				if((pEventFlags & MotionEventFlags.Over) != 0)
+					OnMouseOver?.Invoke(this, EventArgs.Empty);
+				if((pEventFlags & MotionEventFlags.Out) != 0)
+					OnMouseOut?.Invoke(this, EventArgs.Empty);
+				if((pEventFlags & MotionEventFlags.Click) != 0)
+					OnClick?.Invoke(this, EventArgs.Empty);
+				pEventFlags = 0;
+			}
 		}
 
 		private bool pIsOver;
@@ -145,7 +174,7 @@ namespace REngine.RPI.Components
 			if (pIsOut)
 				return;
 
-			OnMouseOut?.Invoke(this, EventArgs.Empty);
+			pEventFlags |= MotionEventFlags.Out;
 			pIsOut = true;
 			pIsOver = false;
 		}
@@ -154,12 +183,12 @@ namespace REngine.RPI.Components
 		{
 			if (!pIsOver)
 			{
-				OnMouseOver?.Invoke(this, EventArgs.Empty);
+				pEventFlags |= MotionEventFlags.Over;
 				pIsOver = true;
 			}
 
-			if(pInput.GetMousePress(MouseKey.Left))
-				OnClick?.Invoke(this, EventArgs.Empty);
+			if (pInput.GetMousePress(MouseKey.Left))
+				pEventFlags |= MotionEventFlags.Click;
 		}
 		protected override void OnDispose()
 		{
