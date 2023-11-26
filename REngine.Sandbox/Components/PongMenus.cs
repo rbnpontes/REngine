@@ -1,13 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
+using REngine.Core.DependencyInjection;
+using REngine.Core.Mathematics;
+using REngine.Core.WorldManagement;
+using REngine.RPI.Components;
+using REngine.RPI.RenderGraph;
 using REngine.Sandbox.States;
 
 namespace REngine.Sandbox.Components
 {
-	internal class PongPausedMenu(IServiceProvider provider) : PongMenuButtons(provider)
+	internal abstract class BlurMenu(IServiceProvider provider) : PongMenuButtons(provider)
+	{
+		private readonly IVar pBlurVar = provider.Get<IVariableManager>().GetVar("@vars/pong/blur");
+		private Transform2D? pBackground;
+
+		protected override void OnSetVisible(bool value)
+		{
+			pBlurVar.Value = new Ref<bool>(value);
+			if (pBackground?.Owner != null)
+				pBackground.Owner.Enabled = value;
+		}
+
+		public override void OnSetup()
+		{
+			var bgEntity = mEntityManager.CreateEntity("menu:background");
+			pBackground = bgEntity.CreateComponent<Transform2D>();
+			var sprite = bgEntity.CreateComponent<SpriteComponent>();
+			sprite.TextureSlot = PongVariables.MenuBackgroundSlot;
+			sprite.Color = Color.White;
+
+			base.OnSetup();
+		}
+
+		protected override void OnUpdate(float deltaTime)
+		{
+			if (pBackground is null)
+				return;
+			pBackground.Scale = mMainWindow.Size.ToVector2();
+			base.OnUpdate(deltaTime);
+		}
+
+		protected override void OnDispose()
+		{
+			base.OnDispose();
+
+			pBackground?.Owner?.Dispose();
+		}
+	}
+	internal class PongPausedMenu(IServiceProvider provider) : BlurMenu(provider)
 	{
 		public Action? ResumeAction { get; set; }
 		public Action? RestartAction { get; set; }
@@ -67,7 +112,7 @@ namespace REngine.Sandbox.Components
 		}
 	}
 
-	internal class PongGameOverMenu(IServiceProvider provider) : PongMenuButtons(provider)
+	internal class PongGameOverMenu(IServiceProvider provider) : BlurMenu(provider)
 	{
 		public Action? RestartAction;
 		public Action? ExitAction;

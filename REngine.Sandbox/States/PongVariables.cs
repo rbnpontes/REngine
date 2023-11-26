@@ -17,6 +17,8 @@ namespace REngine.Sandbox.States
 		public const byte MenuResumeButtonSlot = 4;
 		public const byte MenuBackgroundSlot = 5;
 
+		public const string DefaultFont = "Anonymous Pro.ttf";
+
 		public const float MenuButtonMargin = 8;
 
 		public const float ScoreTextMargin = 8;

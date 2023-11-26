@@ -76,7 +76,7 @@ namespace REngine.Sandbox.States
 			var textEntity = entityManager.CreateEntity("score");
 			var textTransform = textEntity.CreateComponent<Transform2D>();
 			var text = textEntity.CreateComponent<TextComponent>();
-			text.FontName = "Anonymous Pro.ttf";
+			text.FontName = PongVariables.DefaultFont;
 			text.TextSize = 16;
 			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
 			pTextTransform = textTransform;
@@ -216,8 +216,11 @@ namespace REngine.Sandbox.States
 				velocity.Y *= -1;
 			}
 
-			if(pBallPosition.Y + PongVariables.BallRadius > size.Height)
-				PongVariables.GamePaused = true;
+			if (pBallPosition.Y + PongVariables.BallRadius > size.Height)
+			{
+				gameStateManager.SetState(PongStates.GameOverPlayState);
+				return;
+			}
 
 			PongVariables.BallVelocity = velocity;
 		}

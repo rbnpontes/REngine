@@ -39,6 +39,7 @@ namespace REngine.Sandbox.States
 			{
 				PongVariables.BackgroundAudio.Volume = PongVariables.AudioVolume;
 				PongVariables.BackgroundAudio.Loop = true;
+				PongVariables.BackgroundAudio.Pitch = 1;
 				PongVariables.BackgroundAudio.Play();
 			}
 

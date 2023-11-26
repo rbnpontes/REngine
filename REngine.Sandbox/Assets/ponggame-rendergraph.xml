@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <render-graph>
-	<var id="@vars/pong/paused" type="bool" value="false"/>
+	<var id="@vars/pong/blur" type="bool" value="false"/>
 	<input id="@engine/backbuffer" type="RenderTarget"/>
 
 	<colorbuffer id="@sample/backbuffer"/>

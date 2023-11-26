@@ -20,11 +20,9 @@ namespace REngine.Sandbox.Components
 		: Behavior(provider)
 	{
 		private readonly Dictionary<int, Action> pMenuActions = new();
-		private readonly IWindow pMainWindow = provider.Get<IWindow>();
-		private readonly EntityManager pEntityManager = provider.Get<EntityManager>();
-		private readonly IVar pBlurVar = provider.Get<IVariableManager>().GetVar("@vars/pong/paused");
+		protected readonly IWindow mMainWindow = provider.Get<IWindow>();
+		protected readonly EntityManager mEntityManager = provider.Get<EntityManager>();
 
-		private Transform2D? pBackground;
 		private SpriteComponent[] pButtons = [];
 		private Transform2D? pTransform;
 		private int pSelectedSprite = -1;
@@ -51,28 +49,19 @@ namespace REngine.Sandbox.Components
 			{
 				if (pVisible == value)
 					return;
-				pBlurVar.Value = new Ref<bool>(!value);
+				OnSetVisible(value);
 				pVisible = value;
-				if (pBackground?.Owner != null)
-					pBackground.Owner.Enabled = value;
 				foreach (var button in pButtons)
-				{
 					button.Enabled = value;
-				}
 			}
 		}
 
+
+		protected virtual void OnSetVisible(bool value){}
 		public override void OnSetup()
 		{
 			if (Owner is null)
 				return;
-
-			var bgEntity = pEntityManager.CreateEntity("menu:background");
-			pBackground = bgEntity.CreateComponent<Transform2D>();
-			var sprite = bgEntity.CreateComponent<SpriteComponent>();
-			sprite.TextureSlot = PongVariables.MenuBackgroundSlot;
-			sprite.Color = Color.White;
-			
 
 			List<SpriteComponent> components = new();
 			var buttonCount = OnGetButtonCount();
@@ -108,14 +97,10 @@ namespace REngine.Sandbox.Components
 
 		protected override void OnUpdate(float deltaTime)
 		{
-			if (pBackground is null)
-				return;
 			if (!pVisible)
 				return;
 
-			var size = pMainWindow.Size.ToVector2() * 0.5f;
-
-			pBackground.Scale = pMainWindow.Size.ToVector2();
+			var size = mMainWindow.Size.ToVector2() * 0.5f;
 			Transform.Position = size - PongVariables.MenuTextureHalfSize with { Y = pBounds.Height * 0.5f };
 
 			if (pSelectedSprite == -1)
@@ -126,22 +111,9 @@ namespace REngine.Sandbox.Components
 			action?.Invoke();
 		}
 
-		protected override void OnDispose()
-		{
-			base.OnDispose();
-
-			pBackground?.Owner?.Dispose();
-			foreach (var button in pButtons)
-			{
-				button.OnClick -= HandleClick;
-				button.OnMouseOver -= HandleMsOver;
-				button.OnMouseOut -= HandleMsOut;
-			}
-		}
-
 		private SpriteComponent CreateComponent(byte textureSlot, string name, out int id)
 		{
-			var spriteEntity = pEntityManager.CreateEntity(name);
+			var spriteEntity = mEntityManager.CreateEntity(name);
 			var transform = spriteEntity.CreateComponent<Transform2D>();
 			var sprite = spriteEntity.CreateComponent<SpriteComponent>();
 

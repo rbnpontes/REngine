@@ -72,7 +72,7 @@ namespace REngine.Sandbox.States
 			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-restart-button.png", PongVariables.MenuRestartButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-resume-button.png", PongVariables.MenuResumeButtonSlot));
-			pLoadQueue.Enqueue(()=> LoadFont("Anonymous Pro.ttf"));
+			pLoadQueue.Enqueue(()=> LoadFont(PongVariables.DefaultFont));
 			pLoadQueue.Enqueue(() =>
 			{
 				// Load blur screen into sprite batch
