@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using REngine.Core.IO;
 
 namespace REngine.Core.Threading.Nodes
 {
@@ -16,7 +17,9 @@ namespace REngine.Core.Threading.Nodes
 
 		private IExecutionPipelineVar pTargetValue = new ExecutionPipelineVarImpl(0);
 		private IEngine? pEngine;
-
+#if PROFILER
+		private string? pProfilerName;
+#endif
 		public DeferredNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
 		{
 			pInterval = new TimerInterval(ExecuteNode);
@@ -39,8 +42,16 @@ namespace REngine.Core.Threading.Nodes
 		private void ExecuteNode()
 		{
 			base.Execute();
-			ExecuteEvents();
-			ExecuteChildrens();
+#if PROFILER
+			pProfilerName ??= $"{nameof(DeferredNode)}#{GetHashCode()}:{DebugName}";
+			using (Profiler.Instance.Begin(pProfilerName, ProfilerColor.Yellow))
+			{
+#endif
+				ExecuteEvents();
+				ExecuteChildrens();
+#if PROFILER
+			}
+#endif
 		}
 
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)

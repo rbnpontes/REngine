@@ -28,6 +28,7 @@ namespace REngine.Core.IO
 	{
 		private ILoggerFactory pFactory;
 		private string pTag;
+		private IDisposable? pProfiler;
 
 		public NonGenericLoggerImpl(ILoggerFactory factory, Type type)
 		{
@@ -54,7 +55,9 @@ namespace REngine.Core.IO
 
 		public ILogger EndProfile(string key)
 		{
-			throw new NotImplementedException();
+			pProfiler?.Dispose();
+			pProfiler = null;
+			return this;
 		}
 
 		public ILogger Error(params object[] args)
@@ -71,7 +74,8 @@ namespace REngine.Core.IO
 
 		public ILogger Profile(string key)
 		{
-			throw new NotImplementedException();
+			pProfiler = Profiler.Instance.Begin(key);
+			return this;
 		}
 
 		public ILogger Success(params object[] args)
@@ -95,6 +99,7 @@ namespace REngine.Core.IO
 	{
 		private ILoggerFactory pFactory;
 		private string pTag;
+		private IDisposable? pProfilerScope;
 
 		public LoggerImpl(ILoggerFactory factory)
 		{
@@ -121,7 +126,9 @@ namespace REngine.Core.IO
 
 		public ILogger<T> EndProfile(string key)
 		{
-			throw new NotImplementedException();
+			pProfilerScope?.Dispose();
+			pProfilerScope = null;
+			return this;
 		}
 
 		public ILogger<T> Error(params object[] args)
@@ -138,7 +145,8 @@ namespace REngine.Core.IO
 
 		public ILogger<T> Profile(string key)
 		{
-			throw new NotImplementedException();
+			pProfilerScope ??= Profiler.Instance.Begin(key);
+			return this;
 		}
 
 		public ILogger<T> Success(params object[] args)

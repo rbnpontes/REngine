@@ -278,9 +278,13 @@ namespace REngine.RPI
 			if (pDriver is null)
 				return;
 
+			var frameData = pRenderState.FrameData;
+			frameData.DeltaTime = (float)pEngine.DeltaTime;
+			frameData.ElapsedTime = (float)pEngine.ElapsedTime;
+
 			var buffer = pBufferProvider.GetBuffer(BufferGroupType.Frame);
 			var mappedData = pDriver.ImmediateCommand.Map<FrameData>(buffer, MapType.Write, MapFlags.Discard);
-			mappedData[0] = pRenderState.FrameData;
+			mappedData[0] = frameData;
 			pDriver.ImmediateCommand.Unmap(buffer, MapType.Write);
 		}
 

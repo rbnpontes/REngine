@@ -68,7 +68,7 @@ namespace REngine.RPI.RenderGraph.Nodes
 			return pCompare switch
 			{
 				IfNodeCompare.Equal => x,
-				IfNodeCompare.NotEqual => x,
+				IfNodeCompare.NotEqual => x == false,
 				_ => false
 			};
 		}

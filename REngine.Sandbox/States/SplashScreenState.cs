@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
@@ -16,46 +17,35 @@ using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.RPI.RenderGraph;
 
 namespace REngine.Sandbox.States
 {
-	public class SplashScreenState : IGameState
+	public class SplashScreenState(
+		ISpriteBatch spriteBatch,
+		EntityManager entityManager,
+		IWindow mainWindow,
+		RenderState renderState,
+		GameStateManager gameStateManager,
+		IVariableManager variableManager)
+		: IGameState
 	{
-		private readonly ISpriteBatch pSpriteBatch;
-		private readonly EntityManager pEntityManager;
-		private readonly IWindow pMainWindow;
-		private readonly RenderState pRenderState;
-		private readonly Color pDefaultClearColor;
-		private readonly GameStateManager pGameStateManager;
+		private readonly Color pDefaultClearColor = renderState.DefaultClearColor;
+		private readonly IVar pEnableCrt = variableManager.GetVar("@vars/pong/enable_crt");
 		public string Name => PongStates.SplashScreenState;
 
 		private Transform2D? pComponent;
 		private IAsset? pAudioAsset;
 		private IAudio? pAudio;
 
-		public SplashScreenState(
-			ISpriteBatch spriteBatch,
-			EntityManager entityManager,
-			IWindow mainWindow,
-			RenderState renderState,
-			GameStateManager gameStateManager
-		)
-		{
-			pSpriteBatch = spriteBatch;
-			pEntityManager = entityManager;
-			pMainWindow = mainWindow;
-			pRenderState = renderState;
-			pDefaultClearColor = renderState.DefaultClearColor;
-			pGameStateManager = gameStateManager;
-		}
 		public void OnStart()
 		{
-			//pMainWindow.Fullscreen();
+			mainWindow.Fullscreen();
 			using ImageAsset sprite = new("EngineLogo-Sdf.png");
 			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "Textures", sprite.Name),
 				       FileMode.Open, FileAccess.Read))
 				sprite.Load(stream).Wait();
-			pSpriteBatch.SetTexture(0, sprite.Image);
+			spriteBatch.SetTexture(0, sprite.Image);
 
 			var audioAsset = new StreamedAudioAsset();
 			audioAsset.Load(new FileStream(Path.Join(EngineSettings.AssetsSoundsPath, "doge_bonk.ogg"), FileMode.Open,
@@ -67,7 +57,7 @@ namespace REngine.Sandbox.States
 			effect.PixelShader =
 				new FileShaderStream(Path.Join(EngineSettings.AssetsShadersPath, "engine_logo_effect.hlsl"));
 
-			var entity = pEntityManager.CreateEntity("Engine Logo");
+			var entity = entityManager.CreateEntity("Engine Logo");
 			entity.Enabled = false;
 			pComponent = entity.CreateComponent<Transform2D>();
 
@@ -76,10 +66,12 @@ namespace REngine.Sandbox.States
 			spriteComponent.TextureSlot = 0;
 			spriteComponent.Effect = effect;
 
-			var winScale = pMainWindow.Size.ToVector2();
+			var winScale = mainWindow.Size.ToVector2();
 			pComponent.Position = winScale * new Vector2(0.5f, 0.5f);
 			winScale *= new Vector2(0.4f);
 			pComponent.Scale = new Vector2(Math.Min(winScale.X, winScale.Y));
+
+			pEnableCrt.Value = new Ref<bool>(false);
 		}
 
 		private readonly Stopwatch pStopwatch = new();
@@ -96,7 +88,7 @@ namespace REngine.Sandbox.States
 			{
 				// Goto next State
 				pAudio = null;
-				pGameStateManager.SetState(PongStates.LoadingPongState);
+				gameStateManager.SetState(PongStates.LoadingPongState);
 				return;
 			}
 
@@ -113,19 +105,20 @@ namespace REngine.Sandbox.States
 			if (pStopwatch.Elapsed.TotalSeconds > 1 && pComponent.Owner != null)
 				pComponent.Owner.Enabled = true;
 
-			var winScale = pMainWindow.Size.ToVector2();
+			var winScale = mainWindow.Size.ToVector2();
 			pComponent.Position = winScale * new Vector2(0.5f, 0.5f);
 			winScale *= new Vector2(0.4f);
 			pComponent.Scale = new Vector2(Math.Min(winScale.X, winScale.Y));
 
-			pRenderState.DefaultClearColor = Color.White;
+			renderState.DefaultClearColor = Color.White;
 		}
 
 		public void OnExit()
 		{
+			pEnableCrt.Value = new Ref<bool>(true);
 			pStopwatch.Stop();
-			pRenderState.DefaultClearColor = pDefaultClearColor;
-			pEntityManager.DestroyAll();
+			renderState.DefaultClearColor = pDefaultClearColor;
+			entityManager.DestroyAll();
 			pAudioAsset?.Dispose();
 		}
 	}

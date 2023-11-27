@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using REngine.Core.IO;
 
 namespace REngine.Core.Threading.Nodes
 {
 	[Node("step")]
-	internal class StepNode : EPNode
+	internal class StepNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider)
+		: EPNode(execPipeline, provider)
 	{
-		public StepNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
-		{
-		}
 
+#if PROFILER
+		private string? pProfilerName;
+#endif
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
 		{
 		}
@@ -21,8 +23,16 @@ namespace REngine.Core.Threading.Nodes
 		public override void Execute()
 		{
 			base.Execute();
-			ExecuteEvents();
-			ExecuteChildrens();
+#if PROFILER
+			pProfilerName ??= $"{nameof(StepNode)}#{GetHashCode()}:{DebugName}";
+			using (Profiler.Instance.Begin(pProfilerName, ProfilerColor.White))
+			{
+#endif
+				ExecuteEvents();
+				ExecuteChildrens();
+#if PROFILER
+			}
+#endif
 		}
 	}
 }

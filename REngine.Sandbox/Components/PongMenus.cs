@@ -99,7 +99,7 @@ namespace REngine.Sandbox.Components
 			switch (buttonIdx)
 			{
 				case 0:
-					textureSlot = PongVariables.MenuResumeButtonSlot;
+					textureSlot = PongVariables.MenuPlayButtonSlot;
 					action = () => PlayAction?.Invoke();
 					break;
 				case 1:

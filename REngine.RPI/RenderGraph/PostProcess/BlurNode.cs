@@ -10,7 +10,7 @@ using REngine.RPI.RenderGraph.Annotations;
 
 namespace REngine.RPI.RenderGraph.PostProcess
 {
-	[NodeTag("blur")]
+	[NodeTag("postprocess.blur")]
 	public class BlurNode : PostProcessNode
 	{
 		private const string DirectionsPropKey = "directions";

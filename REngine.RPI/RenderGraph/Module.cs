@@ -25,7 +25,8 @@ namespace REngine.RPI.RenderGraph
 				.Register<GrayScalePostProcessNode>()
 				.Register<InvertPostProcessNode>()
 				.Register<SepiaPostProcessNode>()
-				.Register<BlurNode>();
+				.Register<BlurNode>()
+				.Register<CrtPostProcessNode>();
 		}
 	}
 #endif

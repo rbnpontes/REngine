@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using REngine.Core.IO;
 
 namespace REngine.Core.Threading.Nodes
 {
@@ -21,6 +22,10 @@ namespace REngine.Core.Threading.Nodes
 
 		private bool pSkipExecution;
 		private object? pLastValue;
+
+#if PROFILER
+		private string? pProfilerName;
+#endif
 
 		public ulong VarKey { get; set; }
 		public IfNodeCmp Cmp { get; set; } = IfNodeCmp.Equal;
@@ -45,8 +50,16 @@ namespace REngine.Core.Threading.Nodes
 			if (pSkipExecution)
 				return;
 			base.Execute();
-			ExecuteEvents();
-			ExecuteChildrens();
+#if PROFILER
+			pProfilerName ??= $"{nameof(IfNode)}#{GetHashCode()}:{DebugName}";
+			using (Profiler.Instance.Begin(pProfilerName))
+			{
+#endif
+				ExecuteEvents();
+				ExecuteChildrens();
+#if PROFILER
+			}
+#endif
 		}
 
 		private bool CanExecute()

@@ -47,6 +47,9 @@
 		<None Update="Assets\Shaders\PostProcess\blur.hlsl">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\Shaders\PostProcess\crt_ps.hlsl">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\Shaders\PostProcess\grayscale_ps.hlsl">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
