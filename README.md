@@ -1,7 +1,7 @@
 
 
 # REngine
-![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_Small.png)
+![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_Small.jpg)
 
 Welcome to my game engine, full made by a Brazilian
 I'm excited to share my open-source game engine project with you. This is a personal initiative where I've leveraged my knowledge in game engine development.
@@ -51,7 +51,7 @@ Perform the same steps on Linux, copy the published or built project, and transf
 
 1. Does engine works with MacOS ? Answer: NO, but its could be easy to port, feel free to open PR for that.
 2. Can i collaborate ? Answer: Yeah, feel free to open PR
-3. I can´t build project, or something is wrong. Answer: Feel free to send me a e-mail to rbnpontes@gmail.com
+3. I canÂ´t build project, or something is wrong. Answer: Feel free to send me a e-mail to rbnpontes@gmail.com
 4. I want a feature, how can i request? Answer: Open your request on issues tab, if i know how to-do i can prioritize
 5. How to enable Tracy Profiler ? Answer: If you're under Visual Studio, just select `Debug-Profiler` or `Release-Profiler` configuration
 6. I need to use Tracy on Linux. Answer: To use on linux you must build manualy tracy with CMAKE parameters: 
