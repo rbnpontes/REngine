@@ -81,6 +81,7 @@ namespace REngine.Core
 
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
+			Profiler.Instance.Dispose();
 			return this;
 		}
 	}

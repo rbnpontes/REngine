@@ -11,11 +11,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Logic;
+using Tracy;
 
 namespace REngine.Core
 {
 	public sealed class CoreModule : IModule
 	{
+		static CoreModule()
+		{
+			NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly, Runtimes.NativeReferences.DefaultDllImportResolver);
+		}
 		public void Setup(IServiceRegistry registry)
 		{
 			registry

@@ -312,7 +312,7 @@ public readonly unsafe struct CString : IEquatable<CString>, IDisposable
     /// <param name="s">The string value.</param>
     public CString(string s)
     {
-        Pointer = FromString(s).Pointer;
+        Pointer = FromString(string.Intern(s)).Pointer;
     }
 
     /// <summary>

@@ -19,7 +19,6 @@ namespace REngine.Core.Threading.Nodes
 		private EPNode? pTarget;
 #if PROFILER
 		private string? pProfilerName;
-		private IDisposable? pProfilerScope;
 #endif
 		public bool IsRunning { get; private set; }
 
@@ -32,7 +31,7 @@ namespace REngine.Core.Threading.Nodes
 		{
 #if PROFILER
 			pProfilerName ??= $"{nameof(TaskNode)}#{GetHashCode()}:{DebugName}";
-			pProfilerScope = Profiler.Instance.Begin(pProfilerName, ProfilerColor.Purple);
+			//Profiler.Instance.BeginTask(pProfilerName);
 #endif
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			pManualResetEvent.Reset();
@@ -41,20 +40,36 @@ namespace REngine.Core.Threading.Nodes
 
 		private void ExecTask()
 		{
-			IsRunning = true;
-			ExecuteEvents();
-			ExecuteChildrens();
-
-			pManualResetEvent.Set();
+			Exception? exception = null;
+#if PROFILER
+			Profiler.Instance.BeginTask(pProfilerName);
+			using (Profiler.Instance.Begin(pProfilerName))
+			{
+#endif
+				try
+				{
+					IsRunning = true;
+					ExecuteEvents();
+					ExecuteChildrens();
+					pManualResetEvent.Set();
+				}
+				catch (Exception ex)
+				{
+					exception = ex;
+				}
+#if PROFILER
+			}
+			Profiler.Instance.EndTask(pProfilerName);
+#endif
+			if (exception is not null)
+				throw exception;
 		}
 
 		public override void ExecuteLinkedNode(EPNode owner)
 		{
+			if (!IsRunning)
+				return;
 			pManualResetEvent.Wait(MaxWaitTime);
-#if PROFILER
-			pProfilerScope?.Dispose();
-			pProfilerScope = null;
-#endif
 			IsRunning = false;
 		}
 

@@ -290,12 +290,22 @@ public static unsafe partial class PInvoke
     [CNode(Kind = "Function")]
     [LibraryImport(LibraryName, EntryPoint = "___tracy_fiber_enter")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public static partial void TracySetFiberEnter(CString fiberName);
+    public static partial void TracyFiberEnter(CString fiberName);
 
     [CNode(Kind = "Function")]
     [LibraryImport(LibraryName, EntryPoint = "___tracy_fiber_leave")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public static partial void TracySetFiberLeave(CString fiberName);
+    public static partial void TracyFiberLeave(CString fiberName);
+
+    [CNode(Kind = "Function")]
+    [LibraryImport(LibraryName, EntryPoint = "___tracy_startup_profiler")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial void TracyStartupProfiler();
+
+    [CNode(Kind = "Function")]
+    [LibraryImport(LibraryName, EntryPoint = "___tracy_shutdown_profiler")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial void TracyShutdownProfiler();
 
 	#endregion
 

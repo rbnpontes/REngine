@@ -24,8 +24,8 @@
 				Render Features, this can be an expensive task
 				and must execute when it needs
 			-->
-			<if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal" end="@render">
-				<task id="@render/prepare"></task>
+			<if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal">
+				<task id="@render/prepare" end="@render"></task>
 			</if>
 			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>
 			<step id="@wndmgr/invalidate"/>

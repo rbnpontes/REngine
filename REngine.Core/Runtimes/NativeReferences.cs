@@ -123,7 +123,8 @@ namespace REngine.Core.Runtimes
 					"freetype.dll",
 					"glfw3.dll",
 					"REngine-DiligentNativeDriver.dll",
-					"csfml-audio.dll"
+					"csfml-audio.dll",
+					"TracyClient.dll"
 				});
 
 				searchPaths.AddRange(new string[]
@@ -268,7 +269,7 @@ namespace REngine.Core.Runtimes
 			foreach (var lib in libs2Unload)
 				NativeLibrary.Free(lib);
 
-			Logger.Debug($"Unloaded {libs2Unload.Count} Native Libs");
+			Logger?.Debug($"Unloaded {libs2Unload.Count} Native Libs");
 		}
 	}
 }

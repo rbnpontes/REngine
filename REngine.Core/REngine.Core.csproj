@@ -12,7 +12,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	  <DefineConstants>$(DefineConstants);LINUX;PROFILER</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="bin\**" />
@@ -33,6 +33,9 @@
 	<ItemGroup>
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="Standart.Hash.xxHash" Version="4.0.5" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\ThirdParty\Tracy\Tracy.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Assets\default_execution_pipeline.xml">

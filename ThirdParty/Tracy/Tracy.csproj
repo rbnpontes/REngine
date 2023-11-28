@@ -16,9 +16,8 @@
             <PackagePath>/</PackagePath>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-
-        <Content Update="runtimes\win-x64\native\TracyClient.dll">
+        <None Update="runtimes\win-x64\native\TracyClient.dll">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        </None>
     </ItemGroup>
 </Project>

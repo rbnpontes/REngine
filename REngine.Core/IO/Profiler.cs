@@ -5,6 +5,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+
 #if PROFILER
 using bottlenoselabs.C2CS.Runtime;
 using Tracy;
@@ -19,12 +24,12 @@ namespace REngine.Core.IO
 		}
 	}
 #if PROFILER
-	internal sealed class ProfilerScope(TracyCZoneCtx ctx) : IDisposable
+	internal sealed class ProfilerScope(TracyCZoneCtx ctx, Profiler profiler) : IDisposable
 	{
 		private bool pDisposed;
 		public void Dispose()
 		{
-			if(pDisposed) 
+			if(pDisposed || profiler.IsDisposed) 
 				return;
 			TracyEmitZoneEnd(ctx);
 			pDisposed = true;
@@ -42,6 +47,8 @@ namespace REngine.Core.IO
 
 		private CString? pFrameName;
 #endif
+		public bool IsDisposed { get; private set; }
+
 		public static Profiler Instance
 		{
 			get
@@ -51,8 +58,15 @@ namespace REngine.Core.IO
 			}
 		}
 
+		internal Profiler()
+		{
+			TracyStartupProfiler();
+		}
+
 		public void BeginFrame(string frame)
 		{
+			if (IsDisposed)
+				return;
 #if PROFILER
 			pFrameName ??= (CString)frame;
 			TracyEmitFrameMarkStart(pFrameName.Value);
@@ -60,6 +74,8 @@ namespace REngine.Core.IO
 		}
 		public void EndFrame()
 		{
+			if (IsDisposed)
+				return;
 #if PROFILER
 			if (pFrameName is null)
 				return;
@@ -72,6 +88,8 @@ namespace REngine.Core.IO
 			[CallerFilePath] string scriptPath = "",
 			[CallerLineNumber] int lineNumber = 0)
 		{
+			if (IsDisposed)
+				return new DummyProfilerScope();
 #if PROFILER
 			lock (pSync)
 			{
@@ -95,58 +113,63 @@ namespace REngine.Core.IO
 				if (color != default)
 					TracyEmitZoneColor(ctx, (uint)color);
 
-				return new ProfilerScope(ctx);
+				return new ProfilerScope(ctx, this);
 			}
 #else
 			return new DummyProfilerScope();
 #endif
 		}
 
-		public IDisposable BeginTask([CallerMemberName] string funcName = "",
-			ProfilerColor color = default,
-			[CallerFilePath] string scriptPath = "",
-			[CallerLineNumber] int lineNumber = 0)
+		public void BeginTask(string fiberName)
 		{
+			if (IsDisposed)
+				return;
 #if PROFILER
 			lock (pSync)
 			{
-				if (!pTraceAllocMap.TryGetValue(funcName, out var tuple))
+				if (!pTraceAllocMap.TryGetValue(fiberName, out var tuple))
 				{
-					var source = (CString)scriptPath;
-					var func = (CString)funcName;
+					var source = (CString)fiberName;
 
-					tuple = (source, func);
-					pTraceAllocMap.Add(funcName, tuple);
+					tuple = (source, source);
+					pTraceAllocMap.Add(fiberName, tuple);
 				}
 
-				var srcLoc = TracyAllocSrcloc(
-					(uint)lineNumber,
-					tuple.Item1,
-					(ulong)scriptPath.Length,
-					tuple.Item2,
-					(ulong)funcName.Length);
-				var ctx = TracyEmitFi
+				TracyFiberEnter(tuple.Item1);
 			}
-#else
-			return new DummyProfilerScope();
+#endif
+		}
+
+		public void EndTask(string fiberName)
+		{
+			if (IsDisposed)
+				return;
+#if PROFILER
+			lock (pSync)
+			{
+				if (!pTraceAllocMap.TryGetValue(fiberName, out var tuple))
+					return;
+
+				TracyFiberLeave(tuple.Item1);
+			}
 #endif
 		}
 
 		public void Dispose()
 		{
-			sInstance = null;
+			if (IsDisposed)
+				return;
 #if PROFILER
 			lock (pSync)
 			{
 				pFrameName?.Dispose();
-				foreach (var kvp in pTraceAllocMap.Values)
-				{
-					kvp.Item1.Dispose();
-					kvp.Item2.Dispose();
-				}
 				pTraceAllocMap.Clear();
 			}
 #endif
+
+			sInstance = null;
+			IsDisposed = true;
+			TracyShutdownProfiler();
 			GC.SuppressFinalize(this);
 		}
 	}
