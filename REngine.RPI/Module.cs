@@ -9,14 +9,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Core;
 using REngine.Core.Runtimes;
+using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
 	// ReSharper disable once InconsistentNaming
-	public static class RPIModule
+	public sealed class RPIModule : IModule
 	{
-		public static void Setup(IServiceRegistry registry)
+		public void Setup(IServiceRegistry registry)
 		{
 
 			NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, NativeReferences.DefaultDllImportResolver);
@@ -25,12 +27,14 @@ namespace REngine.RPI
 			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
 			NodeGraphsModule.Setup(renderGraphRegistry);
 #endif
+
+			EventsModule.Setup(registry);
+
 			registry
 #if RENGINE_RENDERGRAPH
 				.Add(()=> renderGraphRegistry)
 #endif
 				.Add<RenderSettings>()
-				.Add<RPIEvents>()
 				.Add<RenderState>()
 				.Add(
 					(deps) => ((ILoggerFactory)deps[0]).Build<IRenderer>(),

@@ -15,7 +15,7 @@ namespace REngine.Core.Threading.Nodes
 		protected readonly IServiceProvider ServiceProvider;
 
 		public ulong Id { get; set; } = 0;
-#if DEBUG
+#if DEBUG || PROFILER
 		public string DebugName { get; set; } = string.Empty;
 		public string Xml { get; set; } = string.Empty;
 #endif

@@ -6,18 +6,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
 
 namespace REngine.Core
 {
 	public interface IEngineApplication
 	{
+		public void OnSetupModules(List<IModule> modules);
 		public void OnSetup(IServiceRegistry registry);
 		public void OnStart(IServiceProvider provider);
 		public void OnUpdate(IServiceProvider provider);
 		public void OnExit(IServiceProvider provider);
 	}
 
-	public interface IEngineStartup 
+	public interface IEngineStartup
 	{
 		public IEngineStartup Setup();
 		public IEngineStartup Start();
@@ -39,8 +41,8 @@ namespace REngine.Core
 			var loggerFactory = pServiceProvider.Get<ILoggerFactory>();
 			var logger = loggerFactory.Build<IEngineStartup>();
 
-			IEngine engine = pServiceProvider.Get<IEngine>();
-			EngineEvents events = pServiceProvider.Get<EngineEvents>();
+			var engine = pServiceProvider.Get<IEngine>();
+			var events = pServiceProvider.Get<EngineEvents>();
 			events.OnUpdate += HandleUpdate;
 
 			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -53,6 +55,8 @@ namespace REngine.Core
 			logger.Debug("Starting");
 			engine.Start();
 			logger.Debug("Starting Game Loop");
+
+			ApplicationLifecyle.ExecuteRun();
 			while (!engine.IsStopped)
 				engine.ExecuteFrame();
 			logger.Debug("Exiting");
@@ -70,15 +74,25 @@ namespace REngine.Core
 		public IEngineStartup Setup()
 		{
 			IServiceRegistry registry = ServiceRegistryFactory.Build();
+			List<IModule> modules = new List<IModule>();
+			SetupModules(modules);
 
-			CoreModule.Setup(registry);
+			modules.ForEach(x => x.Setup(registry));
+
 			pApp.OnSetup(registry);
+			ApplicationLifecyle.ExecuteSetup(registry);
 
 			pServiceProvider = registry.Build();
-			using (FileStream stream = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/ExecutionPipeline.xml"), FileMode.Open))
+			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "default_execution_pipeline.xml"), FileMode.Open))
 				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
 
 			return this;
+		}
+
+		private void SetupModules(List<IModule> modules)
+		{
+			modules.Add(new CoreModule());
+			pApp.OnSetupModules(modules);
 		}
 
 		public IEngineStartup Start()
@@ -86,10 +100,8 @@ namespace REngine.Core
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");
 
-			pServiceProvider.Get<EngineEvents>()
-				.ExecuteBeforeStart()
-				.ExecuteStart();
 			pApp.OnStart(pServiceProvider);
+			ApplicationLifecyle.ExecuteStart(pServiceProvider);
 			return this;
 		}
 	}

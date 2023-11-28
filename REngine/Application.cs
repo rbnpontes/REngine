@@ -70,6 +70,16 @@ namespace REngine.Sandbox
 				writer.Write(data.ToJson());
 		}
 
+		public virtual void OnSetupModules(List<IModule> modules)
+		{
+			modules.AddRange(new IModule[]
+			{
+				new AssetsModule(),
+				new WindowsModule(),
+				new RHIModule(),
+				new RPIModule(),
+			});
+		}
 		public virtual void OnSetup(IServiceRegistry registry)
 		{
 			// Create Application Data Path
@@ -92,10 +102,6 @@ namespace REngine.Sandbox
 				return RenderSettings.FromStream(stream);
 			});
 
-			AssetsModule.Setup(registry);
-			WindowsModule.Setup(registry);
-			RHIModule.Setup(registry);
-			RPIModule.Setup(registry);
 			ISwapChain? swapChain = null;
 
 			registry.Add(() => pLoggerFactory);

@@ -4,11 +4,12 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.Core.DependencyInjection;
 
 namespace REngine.Assets
 {
-	public static class AssetsModule
+	public sealed class AssetsModule : IModule
 	{
 		static AssetsModule()
 		{
@@ -16,7 +17,7 @@ namespace REngine.Assets
 			NativeLibrary.SetDllImportResolver(typeof(FreeTypeSharp.NativeObject).Assembly, Core.Runtimes.NativeReferences.DefaultDllImportResolver);
 		}
 
-		public static void Setup(IServiceRegistry registry)
+		public void Setup(IServiceRegistry registry)
 		{
 
 		}

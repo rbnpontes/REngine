@@ -8,13 +8,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
 	internal class ShaderManagerImpl : IShaderManager, IDisposable
 	{
 		private readonly IServiceProvider pProvider;
-		private readonly EngineEvents pEngineEvents;
+
+		private readonly RendererEvents pRendererEvents;
+		private readonly ShaderManagerEvents pShaderManagerEvents;
+		private readonly PipelineStateManagerEvents pPipelineStateManagerEvents;
+
 		private readonly ILogger<IShaderManager> pLogger;
 
 		private readonly Dictionary<ulong, IShader> pShaders = new();
@@ -26,21 +31,27 @@ namespace REngine.RPI
 		public ShaderManagerImpl(
 			ILoggerFactory loggerFactory,
 			IServiceProvider provider,
-			EngineEvents engineEvents
+			RendererEvents rendererEvents,
+			ShaderManagerEvents shaderMgrEvents,
+			PipelineStateManagerEvents pipelineStateEvents
 		)
 		{
 			pProvider = provider;
-			pEngineEvents = engineEvents;
+			pRendererEvents = rendererEvents;
+			pShaderManagerEvents = shaderMgrEvents;
 			pLogger = loggerFactory.Build<IShaderManager>();
+			pPipelineStateManagerEvents = pipelineStateEvents;
 
-			engineEvents.OnStart += HandleEngineStart;
-			engineEvents.OnStop += HandleEngineStop;
+			pRendererEvents.OnBeforeReady += HandleRendererReady;
+			pPipelineStateManagerEvents.OnDisposed += HandlePipelineStateDisposed;
 		}
 
 		public void Dispose()
 		{
 			if (pDisposed)
 				return;
+
+			pShaderManagerEvents.ExecuteDispose(this);
 			pLogger.Info("Disposing Shader Manager");
 
 			foreach (var pair in pShaders)
@@ -48,24 +59,25 @@ namespace REngine.RPI
 			pShaders.Clear();
 
 			pDisposed = true;
-			GC.SuppressFinalize(this);
+			pShaderManagerEvents.ExecuteDisposed(this);
 		}
-
-		private void HandleEngineStop(object? sender, EventArgs e)
+		
+		private void HandlePipelineStateDisposed(object? sender, EventArgs e)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
+			pPipelineStateManagerEvents.OnDisposed -= HandlePipelineStateDisposed;
 			Dispose();
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private void HandleRendererReady(object? sender, EventArgs e)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
-
+			pRendererEvents.OnBeforeReady -= HandleRendererReady;
 			pDevice = pProvider.Get<IGraphicsDriver>().Device;
-			
+
 			LoadCache();
 
 			pLogger.Info("Shader Manager started");
+
+			pShaderManagerEvents.ExecuteReady(this);
 		}
 
 		private IDevice GetDevice()

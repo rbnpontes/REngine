@@ -10,22 +10,24 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
 #if RENGINE_SPRITEBATCH
-	internal class SpriteBatchImpl : ISpriteBatch
+	internal class SpriteBatchImpl : ISpriteBatch, IDisposable
 	{
 		private readonly SpriteBatcher pBatcher;
 		private readonly SpriteTextureManager pTextureManager;
 		private readonly RenderSettings pRenderSettings;
 		private readonly GraphicsSettings pGraphicsSettings;
 		private readonly IExecutionPipeline pExecutionPipeline;
-		private readonly EngineEvents pEngineEvents;
-		private readonly RPIEvents pRenderEvents;
+		private readonly RPIEvents pRpiEvents;
+		private readonly RendererEvents pRendererEvents;
 		private readonly IServiceProvider pServiceProvider;
 
 		private SpriteBatchFeature? pFeature;
+		private bool pDisposed;
 
 		public IGraphicsRenderFeature Feature => GetFeature();
 		public event EventHandler? OnDraw;
@@ -35,9 +37,9 @@ namespace REngine.RPI
 		public SpriteBatchImpl(
 			SpriteTextureManager texManager,
 			SpriteBatcher batcher, 
-			GraphicsSettings settings, 
-			EngineEvents engineEvents,
-			RPIEvents rpiEvents,
+			GraphicsSettings settings,
+			RPIEvents rpiEventsEvents,
+			RendererEvents rendererEvents,
 			RenderSettings renderSettings,
 			IExecutionPipeline execPipeline,
 			IServiceProvider provider
@@ -47,16 +49,24 @@ namespace REngine.RPI
 			pBatcher = batcher;
 			pRenderSettings = renderSettings;
 			pGraphicsSettings = settings;
-			pEngineEvents = engineEvents;
-			pRenderEvents = rpiEvents;
+			pRpiEvents = rpiEventsEvents;
+			pRendererEvents = rendererEvents;
 			pExecutionPipeline = execPipeline;
 			pServiceProvider = provider;
 
-			engineEvents.OnStart += HandleStart;
-			engineEvents.OnStop += HandleStop;
-			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
+			rendererEvents.OnReady += HandleRendererReady;
+			rendererEvents.OnDispose += HandleRendererDispose;
+			rpiEventsEvents.OnUpdateSettings += HandleUpdateSettings;
 			pTextureManager.OnUpdateTextures += HandleUpdateTextures;
 			pTextureManager.OnRebuildTextures += HandleRebuildTextures;
+		}
+
+		private void HandleRendererReady(object? sender, EventArgs e)
+		{
+			pRendererEvents.OnReady -= HandleRendererReady;
+
+			pTextureManager.Start();
+			pExecutionPipeline.AddEvent(DefaultEvents.SpriteBatchDrawId, (_) => HandleDraw());
 		}
 
 		private void HandleRebuildTextures(object? sender, EventArgs e)
@@ -69,31 +79,36 @@ namespace REngine.RPI
 			GetFeature().UpdateTextures();
 		}
 
-		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
+		private void HandleUpdateSettings(object? sender, EventArgs e)
 		{
-			pTextureManager.RecreateTextures();
-			GetFeature().CheckCBufferSizes(e.Settings.ObjectBufferSize);
-			pBatcher.UpdateSettings();
+			if (sender is RenderSettings settings)
+			{
+				pTextureManager.RecreateTextures();
+				GetFeature().CheckCBufferSizes(settings.ObjectBufferSize);
+				pBatcher.UpdateSettings();
+			}
 		}
 
-		private void HandleStart(object? sender, EventArgs e)
+		private void HandleRendererDispose(object? sender, EventArgs e)
 		{
-			pTextureManager.Start();
-			pExecutionPipeline.AddEvent(DefaultEvents.SpriteBatchDrawId, (_) => HandleDraw());
+			Dispose();
 		}
 
-		private void HandleStop(object? sender, EventArgs e)
+		public void Dispose()
 		{
+			if (pDisposed)
+				return;
+			
 			pBatcher.Reset();
 			pTextureManager.Dispose();
 			pFeature?.Dispose();
 			pFeature = null;
 
-			pEngineEvents.OnStart -= HandleStart;
-			pEngineEvents.OnStop -= HandleStop;
-			pRenderEvents.OnUpdateSettings -= HandleUpdateSettings;
+			pRpiEvents.OnUpdateSettings -= HandleUpdateSettings;
 			pTextureManager.OnUpdateTextures -= HandleUpdateTextures;
 			pTextureManager.OnRebuildTextures -= HandleRebuildTextures;
+
+			pDisposed = true;
 		}
 
 		private void HandleDraw()

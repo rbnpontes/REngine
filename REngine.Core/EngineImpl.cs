@@ -1,6 +1,8 @@
 ﻿using REngine.Core.Threading;
 using System.Diagnostics;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Events;
+using REngine.Core.IO;
 using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
@@ -52,6 +54,7 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
+			Profiler.Instance.BeginFrame("Engine Frame");
 			pTimer.Measure();
 
 			pUpdateEvtArgs.DeltaTime = pTimer.DeltaTime;
@@ -66,6 +69,8 @@ namespace REngine.Core
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
 				Thread.Sleep(pEngineSettings.IdleWaitTimeMs);
+
+			Profiler.Instance.EndFrame();
 			return this;
 		}
 
@@ -74,10 +79,9 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
-			pEvents.ExecuteBeforeStop();
-			pEvents.ExecuteStop();
 			pStopped = true;
-
+			ApplicationLifecyle.ExecuteExit();
+			Profiler.Instance.Dispose();
 			return this;
 		}
 	}

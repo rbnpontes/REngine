@@ -1,6 +1,8 @@
 
 
 # REngine
+![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_Small.png)
+
 Welcome to my game engine, full made by a Brazilian
 I'm excited to share my open-source game engine project with you. This is a personal initiative where I've leveraged my knowledge in game engine development.
 
@@ -51,6 +53,9 @@ Perform the same steps on Linux, copy the published or built project, and transf
 2. Can i collaborate ? Answer: Yeah, feel free to open PR
 3. I can´t build project, or something is wrong. Answer: Feel free to send me a e-mail to rbnpontes@gmail.com
 4. I want a feature, how can i request? Answer: Open your request on issues tab, if i know how to-do i can prioritize
+5. How to enable Tracy Profiler ? Answer: If you're under Visual Studio, just select `Debug-Profiler` or `Release-Profiler` configuration
+6. I need to use Tracy on Linux. Answer: To use on linux you must build manualy tracy with CMAKE parameters: 
+`-DTRACY_FIBERS=ON -DTRACY_DELAYED_INIT=ON -DTRACY_MANUAL_LIFETIME=ON -DBUILD_SHARED_LIBS=ON`
 
 # Samples
 ![REngine Samples](https://github.com/rbnpontes/REngine/blob/main/doc/sample.gif)
@@ -74,6 +79,12 @@ Perform the same steps on Linux, copy the published or built project, and transf
 
 ### Sound Sample
 ![Sound Sample](https://github.com/rbnpontes/REngine/blob/main/doc/sound_sample.gif)
+
+### Simple Pong Game
+![Pong Game](https://github.com/rbnpontes/REngine/blob/main/doc/pong_game.gif)
+
+### Tray Support
+![Tracy Profiler](https://github.com/rbnpontes/REngine/blob/main/doc/tracy_profiler.gif)
 
 ### Huge Thanks to Support JetBrains
 

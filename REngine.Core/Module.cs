@@ -10,14 +10,19 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Logic;
+using Tracy;
 
 namespace REngine.Core
 {
-	public static class CoreModule
+	public sealed class CoreModule : IModule
 	{
-		public static void Setup(IServiceRegistry registry)
+		static CoreModule()
 		{
-
+			NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly, Runtimes.NativeReferences.DefaultDllImportResolver);
+		}
+		public void Setup(IServiceRegistry registry)
+		{
 			registry
 				.Add<EngineSettings>()
 				.Add<EntityManager>()
@@ -30,7 +35,8 @@ namespace REngine.Core
 				.Add<ComponentSerializerFactory>()
 				.Add<TransformSystem>()
 				.Add<Transform2DSystem>()
-				.Add<CameraSystem>();
+				.Add<CameraSystem>()
+				.Add<GameStateManager>();
 		}
 	}
 }

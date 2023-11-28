@@ -8,15 +8,23 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler</Configurations>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 		<DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
 	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
+	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
@@ -33,12 +41,7 @@
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<None Update="runtimes\win-x64\native\REngine-DiligentNativeDriver.dll">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	<ItemGroup>
 		<None Update="runtimes\win-x64\native\REngine-DiligentNativeDriver.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

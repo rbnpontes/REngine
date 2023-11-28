@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using REngine.Core.IO;
 
 namespace REngine.Core.Threading.Nodes
 {
@@ -16,7 +17,9 @@ namespace REngine.Core.Threading.Nodes
 		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
 		private EPNode? pTarget;
-		
+#if PROFILER
+		private string? pProfilerName;
+#endif
 		public bool IsRunning { get; private set; }
 
 		public TaskNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) : base(execPipeline, provider)
@@ -26,6 +29,10 @@ namespace REngine.Core.Threading.Nodes
 
 		public override void Execute()
 		{
+#if PROFILER
+			pProfilerName ??= $"{nameof(TaskNode)}#{GetHashCode()}:{DebugName}";
+			//Profiler.Instance.BeginTask(pProfilerName);
+#endif
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			pManualResetEvent.Reset();
 			Task.Run(pTaskAction);
@@ -33,15 +40,35 @@ namespace REngine.Core.Threading.Nodes
 
 		private void ExecTask()
 		{
-			IsRunning = true;
-			ExecuteEvents();
-			ExecuteChildrens();
-
-			pManualResetEvent.Set();
+			Exception? exception = null;
+#if PROFILER
+			Profiler.Instance.BeginTask(pProfilerName);
+			using (Profiler.Instance.Begin(pProfilerName))
+			{
+#endif
+				try
+				{
+					IsRunning = true;
+					ExecuteEvents();
+					ExecuteChildrens();
+					pManualResetEvent.Set();
+				}
+				catch (Exception ex)
+				{
+					exception = ex;
+				}
+#if PROFILER
+			}
+			Profiler.Instance.EndTask(pProfilerName);
+#endif
+			if (exception is not null)
+				throw exception;
 		}
 
 		public override void ExecuteLinkedNode(EPNode owner)
 		{
+			if (!IsRunning)
+				return;
 			pManualResetEvent.Wait(MaxWaitTime);
 			IsRunning = false;
 		}

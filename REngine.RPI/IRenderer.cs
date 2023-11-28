@@ -11,7 +11,8 @@ namespace REngine.RPI
 	{
 		Frame = 1,
 		Camera,
-		Object
+		Object,
+		Material
 	}
 
 	public interface IRenderer : IDisposable

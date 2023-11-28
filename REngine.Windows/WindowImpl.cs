@@ -55,13 +55,11 @@ namespace REngine.Windows
 				Glfw.SetWindowSize(pWindow, value.Width, value.Height);
 			}
 		}
-		public Size Size 
+
+		private Size pSize;
+		public Size Size
 		{
-			get
-			{
-				Glfw.GetWindowSize(pWindow, out int w, out int h);
-				return new Size(w, h);
-			}
+			get => pSize;
 			set => Glfw.SetWindowSize(pWindow, value.Width, value.Height);
 		}
 		public Point Position 
@@ -150,7 +148,8 @@ namespace REngine.Windows
 			pKeyboardCallback = HandleKeyboard;
 			pInputCallback = HandleInput;
 
-
+			Glfw.GetWindowSize(pWindow, out var w, out var h);
+			pSize = new Size(w, h);
 			Glfw.SetWindowSizeCallback(window, pResizeCallback);
 			Glfw.SetMouseButtonCallback(window, pMouseButtonCallback);
 			Glfw.SetCursorPositionCallback(window, pMouseCallback);
@@ -292,7 +291,9 @@ namespace REngine.Windows
 			// If window is minimized, don't set resize event
 			if (attr)
 				return;
-			pNewSize = new Size(width, height);
+			
+			pSize = new(width, height);
+			pNewSize = new(width, height);
 			pResizeDirtyCount = 0;
 			pDirtyResize = true;
 		}

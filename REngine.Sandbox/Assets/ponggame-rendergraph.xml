@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<render-graph>
+	<var id="@vars/pong/blur" type="bool" value="false"/>
+	<var id="@vars/pong/enable_crt" type="bool" value="false"/>
+	<input id="@engine/backbuffer" type="RenderTarget"/>
+
+	<colorbuffer id="@sample/backbuffer"/>
+	<colorbuffer id="@sample/blur"/>
+	<depthbuffer id="@sample/depthbuffer"/>
+
+	<clear colorbuffer="@sample/backbuffer" depthbuffer="@sample/depthbuffer"/>
+
+	<spritebatch-pass>
+		<write name="backbuffer" value="@sample/backbuffer"/>
+		<write name="depthbuffer" value="@sample/depthbuffer"/>
+	</spritebatch-pass>
+		   
+	<if test="@vars/pong/enable_crt" compare="Equal">
+		<postprocess.crt>
+			<read name="input" value="@sample/backbuffer"/>
+			<write name="backbuffer" value="@engine/backbuffer"/>
+			<write name="depthbuffer" value="@engine/depthbuffer"/>
+		</postprocess.crt>
+	</if>
+	<if test="@vars/pong/enable_crt" compare="NotEqual">
+		<copy>
+			<read name="input" value="@sample/backbuffer"/>
+			<write name="backbuffer" value="@engine/backbuffer"/>
+			<write name="depthbuffer" value="@engine/depthbuffer"/>
+		</copy>
+	</if>
+	
+	<imgui-pass>
+		<write name="backbuffer" value="@engine/backbuffer"/>
+		<write name="depthbuffer" value="@engine/depthbuffer"/>
+	</imgui-pass>
+
+	<if test="@vars/pong/blur" compare="NotEqual">
+		<postprocess.blur>
+			<read name="input" value="@sample/backbuffer"/>
+			<write name="depthbuffer" value="@sample/depthbuffer"/>
+			<write name="backbuffer" value="@sample/blur"/>
+		</postprocess.blur>
+	</if>
+
+</render-graph>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
 
 namespace REngine.Core
 {
@@ -31,33 +32,28 @@ namespace REngine.Core
 		public event EventHandler? OnBeforeStop;
 		public event EventHandler? OnStop;
 
-		public EngineEvents ExecuteBeforeStart()
+		public EngineEvents()
 		{
-			OnBeforeStart?.Invoke(this, EventArgs.Empty);
-			return this;
+			ApplicationLifecyle.OnStart += HandleAppStart;
+			ApplicationLifecyle.OnExit += HandleAppExit;
 		}
 
-		public EngineEvents ExecuteStart()
+		private void HandleAppExit(object? sender, EventArgs e)
 		{
-			OnStart?.Invoke(this, EventArgs.Empty);
-			return this;
+			OnBeforeStop?.Invoke(this, EventArgs.Empty);
+			OnStop?.Invoke(this, EventArgs.Empty);
 		}
+
+		private void HandleAppStart(object? sender, IServiceProvider e)
+		{
+			OnBeforeStart?.Invoke(this, EventArgs.Empty);
+			OnStart?.Invoke(this, EventArgs.Empty);
+		}
+
 
 		public EngineEvents ExecuteUpdate(UpdateEventArgs args)
 		{
 			OnUpdate?.Invoke(this, args);
-			return this;
-		}
-		
-		public EngineEvents ExecuteBeforeStop()
-		{
-			OnBeforeStop?.Invoke(this, EventArgs.Empty);
-			return this;
-		}
-
-		public EngineEvents ExecuteStop()
-		{
-			OnStop?.Invoke(this, EventArgs.Empty);
 			return this;
 		}
 	}

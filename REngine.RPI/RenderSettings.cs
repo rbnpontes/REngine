@@ -17,6 +17,7 @@ namespace REngine.RPI
 		/// The buffer will be used to transfer transforms, lights or any other mutable values
 		/// </summary>
 		public uint ObjectBufferSize { get; set; } = 1024 * 2;
+		public uint MaterialBufferSize { get; set; } = 16000; // 16kb, same of opengl
 #if RENGINE_SPRITEBATCH
 		public uint SpriteBatchInitialSize { get; set; } = 8;
 		public uint SpriteBatchTextsInitialSize { get; set; } = 1;
@@ -48,6 +49,7 @@ namespace REngine.RPI
 #if RENGINE_IMGUI
 		public float ImGuiUpdateRate { get; set; } = 33.0f; // Update ImGui at 30FPS
 #endif
+
 		public void Merge(RenderSettings settings)
 		{
 			PipelineCacheFilename = settings.PipelineCacheFilename;
@@ -63,6 +65,8 @@ namespace REngine.RPI
 #if RENGINE_IMGUI
 			ImGuiUpdateRate = settings.ImGuiUpdateRate;
 #endif
+
+			MaterialBufferSize = settings.MaterialBufferSize; 
 		}
 
 		public static RenderSettings FromStream(Stream stream)

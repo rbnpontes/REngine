@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -168,6 +169,15 @@ namespace REngine.Core.WorldManagement
 
 		public IEnumerable<Transform2D> Children => pSystem.GetChildren(this);
 
+		public RectangleF Bounds
+		{
+			get
+			{
+				pSystem.GetBounds(this, out var bounds);
+				return bounds;
+			}
+		}
+
 		public Vector2 Up => Vector2.Transform(new Vector2(0, 1), TransformMatrix);
 		public Vector2 Down => Vector2.Transform(new Vector2(0, -1), TransformMatrix);
 		public Vector2 Left => Vector2.Transform(new Vector2(-1, 0), TransformMatrix);
@@ -192,6 +202,11 @@ namespace REngine.Core.WorldManagement
 		public void RemoveChild(Transform2D child)
 		{
 			pSystem.RemoveChild(this, child);
+		}
+
+		public void GetSnapshot(out Transform2DSnapshot snapshot)
+		{
+			pSystem.GetSnapshot(this, out snapshot);
 		}
 	}
 }

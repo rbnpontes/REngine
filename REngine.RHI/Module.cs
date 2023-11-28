@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 
 namespace REngine.RHI
 {
-	public static class RHIModule
+	public class RHIModule : IModule
 	{
-		public static void Setup(IServiceRegistry registry)
+		public void Setup(IServiceRegistry registry)
 		{
 			registry.Add<GraphicsSettings>();
 		}

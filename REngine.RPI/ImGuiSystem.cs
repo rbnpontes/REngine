@@ -310,9 +310,10 @@ namespace REngine.RPI
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
 		}
 
-		private void HandleUpdateSettings(object? sender, RenderUpdateSettingsEventArgs e)
+		private void HandleUpdateSettings(object? sender, EventArgs e)
 		{
-			pUpdateRateVar.Value = e.Settings.ImGuiUpdateRate;
+			if(sender is RenderSettings settings)
+				pUpdateRateVar.Value = settings.ImGuiUpdateRate;
 		}
 
 		private unsafe void AllocateFontBuffer()

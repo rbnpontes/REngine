@@ -286,7 +286,11 @@ namespace REngine.RPI.Features
 			if (item.Effect != null)
 			{
 				var effect = item.Effect;
-				effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
+				if (effect.IsDisposed)
+					return;
+
+				if(item.TextureSlot != byte.MaxValue)
+					effect.OnSetMainTexture(pTextureManager.Textures[item.TextureSlot]);
 
 				pipeline = effect.OnBuildPipeline(pProvider);
 				binding = effect.OnGetSRB();
@@ -428,7 +432,7 @@ namespace REngine.RPI.Features
 
 			desc.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
 			desc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
-			desc.BlendState.BlendMode = BlendMode.Replace;
+			desc.BlendState.BlendMode = BlendMode.Alpha;
 			desc.PrimitiveType = PrimitiveType.TriangleList;
 			desc.RasterizerState.CullMode = CullMode.Both;
 			desc.DepthStencilState.EnableDepth = true;

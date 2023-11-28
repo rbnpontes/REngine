@@ -17,9 +17,9 @@ namespace REngine.RPI.Features
 		public bool IsDirty { get; private set; } = true;
 		public bool IsDisposed { get; } = false;
 
-		public Color ClearColor { get; set; } = Color.Black;
-		public float ClearDepthValue { get; set; } = 1f;
-		public byte ClearStencilValue { get; set; } = 0;
+		public Color? ClearColor { get; set; }
+		public float? ClearDepthValue { get; set; }
+		public byte? ClearStencilValue { get; set; }
 		public ITextureView? ColorBuffer { get; set; }
 		public ITextureView? DepthBuffer { get; set; }
 		public void Dispose()
@@ -46,7 +46,6 @@ namespace REngine.RPI.Features
 			Viewport viewport = new();
 
 			var colorBufferSize = ColorBuffer?.Parent.Desc.Size ?? new TextureSize();
-			var depthBufferSize = DepthBuffer?.Parent.Desc.Size ?? new TextureSize();
 
 			if (ColorBuffer is not null)
 			{
@@ -54,19 +53,20 @@ namespace REngine.RPI.Features
 				viewport.Size = new Vector2(colorBufferSize.Width, colorBufferSize.Height);
 			}
 
-			if (colorBufferSize.Width != depthBufferSize.Width || colorBufferSize.Height != depthBufferSize.Height)
-				throw new InvalidOperationException("Color Buffer and Depth Buffer must have the same size");
-
 			command
 				.SetRTs(rts, DepthBuffer)
 				.SetViewport(viewport, colorBufferSize.Width, colorBufferSize.Height)
-				.ClearRT(ColorBuffer, ClearColor)
-				.ClearDepth(
-					DepthBuffer,
-					ClearDepthStencil.Depth,
-					ClearDepthValue,
-					ClearStencilValue
-				);
+				.ClearRT(ColorBuffer, ClearColor ?? pRenderState.DefaultClearColor);
+			if (DepthBuffer != null)
+			{
+				command
+					.ClearDepth(
+						DepthBuffer,
+						ClearDepthStencil.Depth,
+						ClearDepthValue ?? pRenderState.DefaultClearDepthValue,
+						ClearStencilValue ?? pRenderState.DefaultClearStencilValue
+					);
+			}
 
 			var swapChainSize = swapChain.Size;
 

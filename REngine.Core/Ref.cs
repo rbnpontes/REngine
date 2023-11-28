@@ -9,5 +9,12 @@ namespace REngine.Core
 	public sealed class Ref<T> where T : struct
 	{
 		public T Value { get; set; }
+
+		public Ref() {}
+
+		public Ref(T value)
+		{
+			Value = value;
+		}
 	}
 }

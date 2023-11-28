@@ -150,7 +150,7 @@ namespace REngine.RHI.NativeDriver
 			return this;
 		}
 
-		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView depthStencil)
+		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView? depthStencil)
 		{
 			if (rts.Length > MaxRenderTargets)
 				throw new ArgumentOutOfRangeException($"Max allowed Render Targets is {MaxRenderTargets}");
@@ -163,10 +163,11 @@ namespace REngine.RHI.NativeDriver
 				pCopyRenderTargetsPointers[i] = rts[i].Handle;
 			}
 #if DEBUG
-			ValidateTextureView(depthStencil);
+			if(depthStencil != null)
+				ValidateTextureView(depthStencil);
 #endif
 
-			InternalSetRTs((byte)rts.Length, depthStencil.Handle);
+			InternalSetRTs((byte)rts.Length, depthStencil?.Handle ?? IntPtr.Zero);
 			return this;
 		}
 

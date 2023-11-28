@@ -7,7 +7,7 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler</Configurations>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
@@ -15,12 +15,21 @@
 	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
+	  <DefineConstants>$(DefineConstants);DEBUG;WINDOWS;PROFILER</DefineConstants>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
+	  <Optimize>True</Optimize>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	  <DefineConstants>$(DefineConstants);DEBUG;LINUX</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="bin\**" />
@@ -35,7 +44,10 @@
 	  <PackageReference Include="Standart.Hash.xxHash" Version="4.0.5" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="Assets\ExecutionPipeline.xml">
+	  <ProjectReference Include="..\ThirdParty\Tracy\Tracy.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Assets\default_execution_pipeline.xml">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
