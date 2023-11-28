@@ -1,7 +1,7 @@
 
 
 # REngine
-![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_Small.jpg)
+![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_sm.jpg)
 
 Welcome to my game engine, full made by a Brazilian
 I'm excited to share my open-source game engine project with you. This is a personal initiative where I've leveraged my knowledge in game engine development.
