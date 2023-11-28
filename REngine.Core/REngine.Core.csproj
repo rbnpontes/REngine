@@ -7,11 +7,15 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler</Configurations>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
 	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
 	</PropertyGroup>
 
@@ -19,8 +23,12 @@
 	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
+	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX;PROFILER</DefineConstants>
+	  <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="bin\**" />

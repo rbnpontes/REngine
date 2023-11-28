@@ -27,8 +27,10 @@ namespace REngine.Sandbox.States
 			IImGuiSystem imguiSystem)
 		: IGameState
 	{
+#if PROFILER
+		private static readonly string sProfilerUpdateSignature = $"{nameof(PongGamePlayState)}.OnUpdate()";
+#endif
 		private readonly object pSync = new();
-
 #if DEBUG
 		private readonly List<RectangleF> pBallTrajectoryDbg = new();
 #endif
@@ -146,37 +148,43 @@ namespace REngine.Sandbox.States
 		{
 			if (pGameMenu is null)
 				return;
-
-			if (input.GetKeyPress(InputKey.Esc))
-				pGameMenu.Visible = PongVariables.MenuActive = !PongVariables.MenuActive;
-
-			if (PongVariables.MenuActive)
-				return;
-#if DEBUG
-			if (input.GetKeyPress(InputKey.Space) && PongVariables.EnableDebug)
-				PongVariables.GamePaused = !PongVariables.GamePaused;
-			if (input.GetKeyPress(InputKey.P))
+#if PROFILER
+			using (Profiler.Instance.Begin(sProfilerUpdateSignature))
 			{
-				PongVariables.EnableDebug = !PongVariables.EnableDebug;
-				if (PongVariables.EnableDebug)
-					imguiSystem.OnGui += OnGui;
-				else
-					imguiSystem.OnGui -= OnGui;
-			}
+#endif
+				if (input.GetKeyPress(InputKey.Esc))
+					pGameMenu.Visible = PongVariables.MenuActive = !PongVariables.MenuActive;
+
+				if (PongVariables.MenuActive)
+					return;
+#if DEBUG
+				if (input.GetKeyPress(InputKey.Space) && PongVariables.EnableDebug)
+					PongVariables.GamePaused = !PongVariables.GamePaused;
+				if (input.GetKeyPress(InputKey.P))
+				{
+					PongVariables.EnableDebug = !PongVariables.EnableDebug;
+					if (PongVariables.EnableDebug)
+						imguiSystem.OnGui += OnGui;
+					else
+						imguiSystem.OnGui -= OnGui;
+				}
 #endif
 
-			if (PongVariables.GamePaused)
-				return;
+				if (PongVariables.GamePaused)
+					return;
 
-			var deltaTime = (float)engine.DeltaTime;
+				var deltaTime = (float)engine.DeltaTime;
 
-			UpdateBall(deltaTime);
-			UpdateBar();
-			UpdateScoreTextPosition();
+				UpdateBall(deltaTime);
+				UpdateBar();
+				UpdateScoreTextPosition();
 
-			ComputeBarCollision();
-			ComputeScreenCollisions();
-			ComputeBlocksCollision();
+				ComputeBarCollision();
+				ComputeScreenCollisions();
+				ComputeBlocksCollision();
+#if PROFILER
+			}
+#endif
 		}
 
 		public void OnExit()
@@ -192,78 +200,101 @@ namespace REngine.Sandbox.States
 
 		private void ComputeScreenCollisions()
 		{
-			var size = mainWindow.Size;
-			var velocity = PongVariables.BallVelocity;
+#if PROFILER
+			using (Profiler.Instance.Begin())
+			{
+#endif
+				var size = mainWindow.Size;
+				var velocity = PongVariables.BallVelocity;
 
 #if DEBUG
-			if(PongVariables.EnableDebug)
-				pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius, PongVariables.BallRadius));
+				if (PongVariables.EnableDebug)
+					pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius,
+						PongVariables.BallRadius));
 #endif
-			if (pBallPosition.X + PongVariables.BallRadius >= size.Width)
-			{
-				pBallPosition.X = size.Width - PongVariables.BallRadius;
-				velocity.X *= -1;
-			}
-			else if (pBallPosition.X <= 0)
-			{
-				pBallPosition.X = 0;
-				velocity.X *= -1;
-			}
+				if (pBallPosition.X + PongVariables.BallRadius >= size.Width)
+				{
+					pBallPosition.X = size.Width - PongVariables.BallRadius;
+					velocity.X *= -1;
+				}
+				else if (pBallPosition.X <= 0)
+				{
+					pBallPosition.X = 0;
+					velocity.X *= -1;
+				}
 
-			if (pBallPosition.Y < 0)
-			{
-				pBallPosition.Y = 0;
-				velocity.Y *= -1;
-			}
+				if (pBallPosition.Y < 0)
+				{
+					pBallPosition.Y = 0;
+					velocity.Y *= -1;
+				}
 
-			if (pBallPosition.Y + PongVariables.BallRadius > size.Height)
-			{
-				gameStateManager.SetState(PongStates.GameOverPlayState);
-				return;
-			}
+				if (pBallPosition.Y + PongVariables.BallRadius > size.Height)
+				{
+					gameStateManager.SetState(PongStates.GameOverPlayState);
+					return;
+				}
 
-			PongVariables.BallVelocity = velocity;
+				PongVariables.BallVelocity = velocity;
+#if PROFILER
+			}
+#endif
 		}
 
 		private void ComputeBarCollision()
 		{
-			var pos = new Vector2(input.MousePosition.X - PongVariables.BarSize.X * 0.5f,
+#if PROFILER
+			using (Profiler.Instance.Begin())
+			{
+
+#endif
+				var pos = new Vector2(input.MousePosition.X - PongVariables.BarSize.X * 0.5f,
 				mainWindow.Size.Height - PongVariables.BarSize.Y);
-			var size = (PongVariables.BarSize);
+				var size = (PongVariables.BarSize);
 
 #if DEBUG
-			if(PongVariables.EnableDebug)
-				pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius, PongVariables.BallRadius));
+				if(PongVariables.EnableDebug)
+					pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius, PongVariables.BallRadius));
 #endif
-			if ((!(pBallPosition.X >= pos.X) || !(pBallPosition.X + PongVariables.BallRadius <= pos.X + size.X)) ||
-			    !(pBallPosition.Y + PongVariables.BallRadius >= pos.Y)) return;
+				if ((!(pBallPosition.X >= pos.X) || !(pBallPosition.X + PongVariables.BallRadius <= pos.X + size.X)) ||
+					!(pBallPosition.Y + PongVariables.BallRadius >= pos.Y)) return;
 
-			pBallPosition.Y = pos.Y - PongVariables.BallRadius;
-			PongVariables.BallVelocity *= new Vector2(1, -1);
-			PongVariables.BlockClickAudio?.Play(true);
+				pBallPosition.Y = pos.Y - PongVariables.BallRadius;
+				PongVariables.BallVelocity *= new Vector2(1, -1);
+				PongVariables.BlockClickAudio?.Play(true);
+#if PROFILER
+			}
+#endif
 		}
 
 		private void ComputeBlocksCollision()
 		{
-			var ballRect = new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius, PongVariables.BallRadius);
-			for (var i = 0; i < pBlocks.Length; ++i)
+#if PROFILER
+			using (Profiler.Instance.Begin())
 			{
-				var block = pBlocks[i];
-				if (block is null)
-					continue;
-				var bounds = block.Bounds;
+#endif
+				var ballRect = new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius, PongVariables.BallRadius);
+				for (var i = 0; i < pBlocks.Length; ++i)
+				{
+					var block = pBlocks[i];
+					if (block is null)
+						continue;
+					var bounds = block.Bounds;
 				
-				if(!bounds.IntersectsWith(ballRect))
-					continue;
+					if(!bounds.IntersectsWith(ballRect))
+						continue;
 
-				ComputeScore();
+					ComputeScore();
 				
-				PongVariables.BallVelocity *= new Vector2(1, -1);
-				if (block.Owner != null)
-					block.Owner.Enabled = false;
-				pBlocks[i] = null;
-				return;
+					PongVariables.BallVelocity *= new Vector2(1, -1);
+					if (block.Owner != null)
+						block.Owner.Enabled = false;
+					pBlocks[i] = null;
+					return;
+				}
+#if PROFILER
 			}
+#endif
 		}
 
 		private void ComputeScore()
