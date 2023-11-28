@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <!-- MSBuild settings -->
     <PropertyGroup>
@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace />
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Configurations>Debug;Release;Debug-Linux</Configurations>
+        <Configurations>Debug;Debug-Profiler;Release;Release-Profiler;Debug-Linux</Configurations>
         <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
     </PropertyGroup>
 

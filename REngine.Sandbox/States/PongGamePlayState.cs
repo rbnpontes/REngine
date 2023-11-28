@@ -93,8 +93,10 @@ namespace REngine.Sandbox.States
 			pGameMenu.RestartAction = () => gameStateManager.Restart();
 			pGameMenu.ExitAction = () => engine.Stop();
 
+#if DEBUG
 			if(PongVariables.EnableDebug)
 				imguiSystem.OnGui += OnGui;
+#endif
 		}
 
 		private void CreateBlocks(Transform2D root)

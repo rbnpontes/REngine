@@ -223,8 +223,8 @@ Global
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|Any CPU.ActiveCfg = Debug-Linux|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|Any CPU.Build.0 = Debug-Linux|x64
-		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|x64.ActiveCfg = Debug-Linux|x64
-		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|x64.Build.0 = Debug-Linux|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|x64.ActiveCfg = Debug-Profiler|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Profiler|x64.Build.0 = Debug-Profiler|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Release|Any CPU.ActiveCfg = Release|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Release|Any CPU.Build.0 = Release|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Release|x64.ActiveCfg = Release|x64
@@ -274,8 +274,8 @@ Global
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|Any CPU.ActiveCfg = Debug-Linux|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|Any CPU.Build.0 = Debug-Linux|x64
-		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|x64.ActiveCfg = Debug-Linux|x64
-		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|x64.Build.0 = Debug-Linux|x64
+		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|x64.ActiveCfg = Debug|x64
+		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Profiler|x64.Build.0 = Debug|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Release|Any CPU.ActiveCfg = Release|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Release|Any CPU.Build.0 = Release|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Release|x64.ActiveCfg = Release|x64
@@ -294,8 +294,8 @@ Global
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|Any CPU.ActiveCfg = Debug-Linux|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|Any CPU.Build.0 = Debug-Linux|x64
-		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|x64.ActiveCfg = Debug-Linux|x64
-		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|x64.Build.0 = Debug-Linux|x64
+		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|x64.ActiveCfg = Debug-Profiler|x64
+		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Profiler|x64.Build.0 = Debug-Profiler|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Release|Any CPU.ActiveCfg = Release|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Release|Any CPU.Build.0 = Release|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Release|x64.ActiveCfg = Release|x64
@@ -330,8 +330,8 @@ Global
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Linux|x64.Build.0 = Debug-Linux|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|Any CPU.ActiveCfg = Debug-Linux|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|Any CPU.Build.0 = Debug-Linux|x64
-		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|x64.ActiveCfg = Debug-Linux|x64
-		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|x64.Build.0 = Debug-Linux|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|x64.ActiveCfg = Debug-Profiler|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Profiler|x64.Build.0 = Debug-Profiler|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Release|Any CPU.ActiveCfg = Release|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Release|Any CPU.Build.0 = Release|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Release|x64.ActiveCfg = Release|x64
@@ -370,8 +370,8 @@ Global
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Linux|x64.Build.0 = Debug|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|Any CPU.ActiveCfg = Debug-Linux|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|Any CPU.Build.0 = Debug-Linux|Any CPU
-		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|x64.ActiveCfg = Debug-Linux|Any CPU
-		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|x64.Build.0 = Debug-Linux|Any CPU
+		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|x64.ActiveCfg = Debug-Profiler|Any CPU
+		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Profiler|x64.Build.0 = Debug-Profiler|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release|x64.ActiveCfg = Release|Any CPU

@@ -60,7 +60,9 @@ namespace REngine.Core.IO
 
 		internal Profiler()
 		{
+#if PROFILER
 			TracyStartupProfiler();
+#endif
 		}
 
 		public void BeginFrame(string frame)
@@ -165,11 +167,11 @@ namespace REngine.Core.IO
 				pFrameName?.Dispose();
 				pTraceAllocMap.Clear();
 			}
+			TracyShutdownProfiler();
 #endif
 
 			sInstance = null;
 			IsDisposed = true;
-			TracyShutdownProfiler();
 			GC.SuppressFinalize(this);
 		}
 	}
