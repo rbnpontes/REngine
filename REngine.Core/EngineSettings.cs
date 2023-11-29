@@ -47,6 +47,9 @@ namespace REngine.Core
 		/// </summary>
 		public int IdleWaitTimeMs { get; set; } = 100;
 
+		public int JobsThreadCount { get; set; }
+		public int MaxJobsThreadCount { get; set; }
+
 		public void Merge(EngineSettings value)
 		{
 			InitialEntityCount = value.InitialEntityCount;
@@ -55,6 +58,9 @@ namespace REngine.Core
 			GcCollectThreshold = value.GcCollectThreshold;
 
 			IdleWaitTimeMs = value.IdleWaitTimeMs;
+
+			JobsThreadCount = value.JobsThreadCount;
+			MaxJobsThreadCount = value.MaxJobsThreadCount;
 		}
 
 		public static EngineSettings FromStream(Stream stream)

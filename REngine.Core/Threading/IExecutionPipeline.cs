@@ -38,6 +38,14 @@ namespace REngine.Core.Threading
         /// <param name="action"></param>
         /// <returns></returns>
         public IExecutionPipeline Invoke(Action action);
+        /// <summary>
+        /// Schedule an Action to execute on Worker System
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public IExecutionPipeline Schedule(Action action);
+
+        public IExecutionPipeline SetThreadSleep(int threadSleep);
 
         public IExecutionPipelineVar GetOrCreateVar(string name);
         public IExecutionPipelineVar GetOrCreateVar(ulong varHashCode);

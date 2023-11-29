@@ -45,6 +45,9 @@ namespace REngine.Sandbox
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{
+#if PROFILER
+			Profiler.Instance.Dispose();
+#endif
 			NativeReferences.UnloadLibs();
 
 			EngineSettings?		engineSettings		= provider.GetOrDefault<EngineSettings>();
@@ -86,10 +89,16 @@ namespace REngine.Sandbox
 			if (!Directory.Exists(EngineSettings.AppDataPath))
 				Directory.CreateDirectory(EngineSettings.AppDataPath);
 
+			var processorCount = Environment.ProcessorCount;
 			registry.Add(() =>
 			{
 				using FileStream stream = new FileStream(EngineSettings.EngineSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);
-				return EngineSettings.FromStream(stream);
+				var engineSettings = EngineSettings.FromStream(stream);
+				if (engineSettings.JobsThreadCount == 0)
+					engineSettings.JobsThreadCount = processorCount;
+				if(engineSettings.MaxJobsThreadCount == 0)
+					engineSettings.MaxJobsThreadCount = processorCount;
+				return engineSettings;
 			});
 			registry.Add(() =>
 			{
@@ -108,10 +117,10 @@ namespace REngine.Sandbox
 
 			DriverFactory.OnDriverMessage += HandleGraphicsMessage;
 
-			Logger.Info("OS Version: " + Environment.OSVersion.ToString());
-			Logger.Info("Machine: " + Environment.MachineName.ToString());
-			Logger.Info("TickCount:" + Environment.TickCount.ToString());
-			Logger.Info("ProcessorCount: " + Environment.ProcessorCount.ToString());
+			Logger.Info("OS Version: " + Environment.OSVersion);
+			Logger.Info("Machine: " + Environment.MachineName);
+			Logger.Info("TickCount:" + Environment.TickCount);
+			Logger.Info("ProcessorCount: " + processorCount);
 			Logger.Info("UserName: " + Environment.UserName);
 			Logger.Info("UserDomainName: " + Environment.UserDomainName);
 			Logger.Info("App Data Path: " + EngineSettings.AppDataPath);

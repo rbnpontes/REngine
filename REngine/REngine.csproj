@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;DEBUG</DefineConstants>
+	  <DefineConstants>$(DefineConstants);DEBUG;WINDOWS;PROFILER</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -23,7 +23,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">

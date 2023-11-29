@@ -3,37 +3,45 @@ using REngine.Core.Mathematics;
 using REngine.Core.Threading.Nodes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace REngine.Core.Threading
 {
-    internal class ExecutionPipelineImpl : IExecutionPipeline
+    internal class ExecutionPipelineImpl : IExecutionPipeline, IDisposable
     {
         private static readonly LinkedList<Action> EmptyScheduledCalls = new();
         
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
+        private readonly ThreadCoordinator pCoordinator;
 
         private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
         private readonly Action<EPNode> pExecNodeAction;
+        private readonly Queue<Action> pExecuteMainThreadCalls = new();
+        private readonly EngineSettings pEngineSettings;
         
         public readonly CancellationTokenSource StopTokenSource = new ();
+
+        private bool pDisposed;
 
         private List<EPNode> pNodes = new ();
         private IDictionary<ulong, EPNode> pNodesTable = new Dictionary<ulong, EPNode>();
         private EPNode? pLastNode;
-        private LinkedList<Action> pExecuteScheduledCalls = new();
 
         public ExecutionPipelineImpl(
             EngineEvents engineEvents,
             ILoggerFactory factory,
-            ExecutionPipelineNodeRegistry nodeRegistry)
+            ExecutionPipelineNodeRegistry nodeRegistry,
+            EngineSettings engineSettings)
         {
             pNodeRegistry = nodeRegistry;
             pLogger = factory.Build<IExecutionPipeline>();
+            pCoordinator = new ThreadCoordinator(factory);
+            pEngineSettings = engineSettings;
 
             engineEvents.OnBeforeStop += HandleStop;
 
@@ -43,10 +51,21 @@ namespace REngine.Core.Threading
         private void HandleStop(object? sender, EventArgs e)
         {
             pLogger.Info("Stopping");
-			StopTokenSource.Cancel();
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+	        if (pDisposed)
+		        return;
+
+            StopTokenSource.Cancel();
             ClearAllEvents();
+            pCoordinator.Dispose();
             pNodes.Clear();
             pNodesTable.Clear();
+
+            pDisposed = true;
         }
 
         public IExecutionPipeline Load(Stream stream)
@@ -67,30 +86,30 @@ namespace REngine.Core.Threading
         
         public IExecutionPipeline Execute()
         {
+	        if (pDisposed)
+		        return this;
+
             if (StopTokenSource.IsCancellationRequested)
             {
                 lock (pSyncObj)
-                    pExecuteScheduledCalls.Clear();
+                    pExecuteMainThreadCalls.Clear();
+                pCoordinator.Dispose();
                 return this;
             }
 
-            LinkedList<Action> calls;
-            lock (pSyncObj)
-            {
-                calls = pExecuteScheduledCalls;
-                // Only recreate calls if count is greater than 0
-                if (pExecuteScheduledCalls.Count == 0)
-                    calls = EmptyScheduledCalls;
-                else
-                    pExecuteScheduledCalls = new LinkedList<Action>();
-            }
+           pCoordinator.Start(pEngineSettings.JobsThreadCount, pEngineSettings.MaxJobsThreadCount);
 
-            // Execute Calls
-            LinkedListNode<Action>? nextCall = calls.First;
-            while(nextCall != null)
+            // Execute Scheduled Calls
+            while (true)
             {
-                nextCall.Value();
-                nextCall = nextCall.Next;
+	            Action? action;
+	            lock (pSyncObj)
+	            {
+		            if (!pExecuteMainThreadCalls.TryDequeue(out action))
+			            break;
+	            }
+
+	            action();
             }
 
             try
@@ -152,11 +171,12 @@ namespace REngine.Core.Threading
             pLastNode?.RemoveEvent(callback);
             return this;
         }
-
+        
         public IExecutionPipeline ClearEvents(string eventName)
         {
             return ClearEvents(Hash.Digest(eventName));
         }
+        
         public IExecutionPipeline ClearEvents(ulong eventHashCode)
         {
 			if (eventHashCode == pLastNode?.Id)
@@ -173,11 +193,24 @@ namespace REngine.Core.Threading
         public IExecutionPipeline Invoke(Action action)
         {
             lock (pSyncObj)
-                pExecuteScheduledCalls.AddLast(action);
+                pExecuteMainThreadCalls.Enqueue(action);
             return this;
         }
-        
-        public IExecutionPipelineVar GetOrCreateVar(string name)
+
+        public IExecutionPipeline Schedule(Action action)
+        {
+            pCoordinator.EnqueueAction(action);
+	        return this;
+        }
+
+        public IExecutionPipeline SetThreadSleep(int threadSleep)
+        {
+            pCoordinator.SetThreadSleep(threadSleep);
+            return this;
+        }
+
+
+		public IExecutionPipelineVar GetOrCreateVar(string name)
         {
             return HandleCreateVar(Hash.Digest(name), name);
 		}

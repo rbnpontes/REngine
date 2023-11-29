@@ -68,7 +68,14 @@ namespace REngine.Core
 
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
+			{
+				pExecPipeline.SetThreadSleep(pEngineSettings.IdleWaitTimeMs);
 				Thread.Sleep(pEngineSettings.IdleWaitTimeMs);
+			}
+			else
+			{
+				pExecPipeline.SetThreadSleep(0);
+			}
 
 			Profiler.Instance.EndFrame();
 			return this;
@@ -81,7 +88,6 @@ namespace REngine.Core
 
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
-			Profiler.Instance.Dispose();
 			return this;
 		}
 	}

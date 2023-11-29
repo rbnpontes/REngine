@@ -34,31 +34,22 @@ namespace REngine.Core.Threading.Nodes
 #endif
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			pManualResetEvent.Reset();
-			Task.Run(pTaskAction);
+			ExecutionPipeline.Schedule(pTaskAction);
 		}
 
 		private void ExecTask()
 		{
-			Exception? exception = null;
 #if PROFILER
-			Profiler.Instance.BeginTask(pProfilerName);
-#endif
-			try
+			using (Profiler.Instance.Begin(pProfilerName))
 			{
+#endif
 				IsRunning = true;
 				ExecuteEvents();
 				ExecuteChildrens();
 				pManualResetEvent.Set();
-			}
-			catch (Exception ex)
-			{
-				exception = ex;
-			}
 #if PROFILER
-			Profiler.Instance.EndTask(pProfilerName);
+			}
 #endif
-			if (exception is not null)
-				throw exception;
 		}
 
 		public override void ExecuteLinkedNode(EPNode owner)

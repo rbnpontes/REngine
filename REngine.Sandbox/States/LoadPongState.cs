@@ -66,7 +66,7 @@ namespace REngine.Sandbox.States
 			pDefaultClearColor = pRenderState.DefaultClearColor;
 
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
-			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg"));
+			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg", false));
 			pLoadQueue.Enqueue(()=> PongVariables.BlockClickAudio = LoadAudio("block_click.ogg", false));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-play-button.png", PongVariables.MenuPlayButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
