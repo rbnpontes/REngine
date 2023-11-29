@@ -67,7 +67,7 @@ namespace REngine.Sandbox.States
 
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
 			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg"));
-			pLoadQueue.Enqueue(()=> PongVariables.BlockClickAudio = LoadAudio("block_click.ogg"));
+			pLoadQueue.Enqueue(()=> PongVariables.BlockClickAudio = LoadAudio("block_click.ogg", false));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-play-button.png", PongVariables.MenuPlayButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
 			pLoadQueue.Enqueue(()=> LoadImage("menu-restart-button.png", PongVariables.MenuRestartButtonSlot));
@@ -141,11 +141,24 @@ namespace REngine.Sandbox.States
 			pEntityManager.DestroyAll();
 		}
 
-		private IAudio LoadAudio(string assetName)
+		private IAudio LoadAudio(string assetName, bool isStreamed = true)
 		{
-			var audioAsset = new StreamedAudioAsset();
-			audioAsset.Load(new FileStream(Path.Join(EngineSettings.AssetsSoundsPath, assetName), FileMode.Open,
-				FileAccess.Read)).Wait();
+			Stream fileStream = new FileStream(Path.Join(EngineSettings.AssetsSoundsPath, assetName), FileMode.Open,
+				FileAccess.Read);
+
+			BaseAudioAsset audioAsset;
+
+			if (isStreamed)
+			{
+				audioAsset = new StreamedAudioAsset();
+				audioAsset.Load(fileStream).Wait();
+			}
+			else
+			{
+				audioAsset = new AudioAsset();
+				audioAsset.Load(fileStream).Wait();
+			}
+
 			if (audioAsset.Audio is null)
 				throw new NullReferenceException($"Error has occurred while is loading {assetName}");
 

@@ -31,7 +31,6 @@ namespace REngine.Core.Threading.Nodes
 		{
 #if PROFILER
 			pProfilerName ??= $"{nameof(TaskNode)}#{GetHashCode()}:{DebugName}";
-			//Profiler.Instance.BeginTask(pProfilerName);
 #endif
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 			pManualResetEvent.Reset();
@@ -43,22 +42,19 @@ namespace REngine.Core.Threading.Nodes
 			Exception? exception = null;
 #if PROFILER
 			Profiler.Instance.BeginTask(pProfilerName);
-			using (Profiler.Instance.Begin(pProfilerName))
-			{
 #endif
-				try
-				{
-					IsRunning = true;
-					ExecuteEvents();
-					ExecuteChildrens();
-					pManualResetEvent.Set();
-				}
-				catch (Exception ex)
-				{
-					exception = ex;
-				}
-#if PROFILER
+			try
+			{
+				IsRunning = true;
+				ExecuteEvents();
+				ExecuteChildrens();
+				pManualResetEvent.Set();
 			}
+			catch (Exception ex)
+			{
+				exception = ex;
+			}
+#if PROFILER
 			Profiler.Instance.EndTask(pProfilerName);
 #endif
 			if (exception is not null)
