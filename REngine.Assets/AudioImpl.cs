@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 using REngine.Core.Resources;
 using SFML.Audio;
 using SFML.System;
 
 namespace REngine.Assets
 {
-	internal class AudioImpl : IAudio
+	internal abstract class BaseAudio : IAudio
 	{
-		private readonly SFML.Audio.Music pMusic;
+#if PROFILER
+		private const string PlaySignature = $"{nameof(IAudio)}.{nameof(Play)}";
+		private const string StopSignature = $"{nameof(IAudio)}.{nameof(Stop)}";
+		private const string PauseSignature = $"{nameof(IAudio)}.{nameof(Pause)}";
+#endif
 		private readonly object pSync = new();
 
 		private bool pDisposed;
-
 		public bool IsDisposed
 		{
 			get
@@ -34,7 +38,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					value = pMusic.Duration.ToTimeSpan();
+					value = OnGetDuration();
 				}
 				return value;
 			}
@@ -47,7 +51,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					value = pMusic.PlayingOffset.ToTimeSpan();
+					value = OnGetOffset();
 				}
 				return value;
 			}
@@ -56,18 +60,16 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					var duration = pMusic.Duration.ToTimeSpan();
-					var loop = pMusic.Loop;
+					var duration = OnGetDuration();
+					var loop = OnGetLoop();
 					if (value >= duration)
 					{
-						pMusic.PlayingOffset = duration;
+						OnSetOffset(duration);
 						if (!loop)
 							pState = AudioState.Stopped;
 					}
 					else
-					{
-						pMusic.PlayingOffset = value;
-					}
+						OnSetOffset(value);
 				}
 			}
 		}
@@ -82,9 +84,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					if (pState == AudioState.Playing && pMusic.Status == SoundStatus.Stopped)
-						pState = AudioState.Stopped;
-					value = pState;
+					value = OnGetState();
 				}
 				return value;
 			}
@@ -97,7 +97,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					value = pMusic.Pitch;
+					value = OnGetPitch();
 				}
 				return value;
 			}
@@ -106,7 +106,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					pMusic.Pitch = value;
+					OnSetPitch(value);
 				}
 			}
 		}
@@ -118,7 +118,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					value = pMusic.Volume;
+					value = OnGetVolume();
 				}
 				return value;
 			}
@@ -127,11 +127,10 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					pMusic.Volume = Math.Clamp(value, 0, 100);
+					OnSetVolume(Math.Clamp(value, 0, 100));
 				}
 			}
 		}
-
 		public bool Loop
 		{
 			get
@@ -140,7 +139,7 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					value = pMusic.Loop;
+					value = OnGetLoop();
 				}
 				return value;
 			}
@@ -149,78 +148,270 @@ namespace REngine.Assets
 				lock (pSync)
 				{
 					AssertDispose();
-					pMusic.Loop = value;
+					OnSetLoop(value);
 				}
 			}
 		}
 
-		public AudioImpl(SFML.Audio.Music music)
-		{
-			pMusic = music;
-		}
 		public void Dispose()
 		{
 			lock (pSync)
 			{
-				if (pDisposed) 
+				if (pDisposed)
 					return;
 				pState = AudioState.Stopped;
-				pMusic.Stop();
-				pMusic.Dispose();
+				OnStop();
+				OnDispose();
 				pDisposed = true;
 			}
 		}
 
 		public IAudio Play(bool force = false)
 		{
-			lock (pSync) 
+#if PROFILER
+			using (Profiler.Instance.Begin(PlaySignature))
 			{
-				AssertDispose();
-				if (force)
+#endif
+				var state = State;
+				lock (pSync)
 				{
-					pMusic.PlayingOffset = Time.Zero;
-					pMusic.Play();
-					pState = AudioState.Playing;
-					return this;
-				}
+					AssertDispose();
+					if (force)
+					{
+						if (state != AudioState.Stopped)
+							OnStop();
+						OnPlay();
+						pState = AudioState.Playing;
+						return this;
+					}
 
-				if (pState == AudioState.Playing)
-					return this;
-				pMusic.Play();
-				pState = AudioState.Playing;
+					if (pState == AudioState.Playing)
+						return this;
+					OnPlay();
+					pState = AudioState.Playing;
+				}
+#if PROFILER
 			}
+#endif
 			return this;
 		}
 
 		public IAudio Stop()
 		{
-			lock (pSync)
+#if PROFILER
+			using (Profiler.Instance.Begin(StopSignature))
 			{
-				AssertDispose();
-				if (pState == AudioState.Stopped)
-					return this;
-				pMusic.Stop();
-				pState = AudioState.Stopped;
+#endif
+				lock (pSync)
+				{
+					AssertDispose();
+					var state = OnGetState();
+					if (state == AudioState.Stopped)
+						return this;
+					OnStop();
+					pState = AudioState.Stopped;
+				}
+#if PROFILER
 			}
+#endif
 			return this;
 		}
 
 		public IAudio Pause()
 		{
-			lock (pSync)
+#if PROFILER
+			using (Profiler.Instance.Begin(PauseSignature))
 			{
-				AssertDispose();
-				if (pState is AudioState.Paused or AudioState.Stopped)
-					return this;
-				pMusic.Pause();
-				pState = AudioState.Paused;
+#endif
+				lock (pSync)
+				{
+					AssertDispose();
+					var state = OnGetState();
+					if (state is AudioState.Paused or AudioState.Stopped)
+						return this;
+					OnPause();
+					pState = AudioState.Paused;
+				}
+#if PROFILER
 			}
+#endif
 			return this;
 		}
-		private void AssertDispose()
+		protected void AssertDispose()
 		{
-			if (pDisposed)
-				throw new ObjectDisposedException(nameof(IAudio));
+			if (!pDisposed) return;
+			throw new ObjectDisposedException(nameof(IAudio));
+		}
+
+		protected virtual AudioState OnGetState()
+		{
+			return pState;
+		}
+
+		protected abstract void OnDispose();
+		protected abstract void OnPlay();
+		protected abstract void OnStop();
+		protected abstract void OnPause();
+		protected abstract TimeSpan OnGetDuration();
+		protected abstract TimeSpan OnGetOffset();
+		protected abstract void OnSetOffset(TimeSpan offset);
+		protected abstract float OnGetVolume();
+		protected abstract void OnSetVolume(float volume);
+		protected abstract float OnGetPitch();
+		protected abstract void OnSetPitch(float pitch);
+		protected abstract bool OnGetLoop();
+		protected abstract void OnSetLoop(bool loop);
+	}
+
+	internal class MusicWrapperAudio(SFML.Audio.Music music) : BaseAudio
+	{
+		protected override AudioState OnGetState()
+		{
+			var state = base.OnGetState();
+			if (state == AudioState.Playing && music.Status == SoundStatus.Stopped)
+				return AudioState.Stopped;
+			return state;
+		}
+
+		protected override void OnDispose()
+		{
+			music.Dispose();
+		}
+
+		protected override void OnPlay()
+		{
+			music.Play();
+		}
+
+		protected override void OnStop()
+		{
+			music.Stop();
+		}
+
+		protected override void OnPause()
+		{
+			music.Pause();
+		}
+
+		protected override TimeSpan OnGetDuration()
+		{
+			return music.Duration.ToTimeSpan();
+		}
+
+		protected override TimeSpan OnGetOffset()
+		{
+			return music.PlayingOffset.ToTimeSpan();
+		}
+
+		protected override void OnSetOffset(TimeSpan offset)
+		{
+			music.PlayingOffset = offset;
+		}
+
+		protected override float OnGetVolume()
+		{
+			return music.Volume;
+		}
+
+		protected override void OnSetVolume(float volume)
+		{
+			music.Volume = volume;
+		}
+
+		protected override float OnGetPitch()
+		{
+			return music.Pitch;
+		}
+
+		protected override void OnSetPitch(float pitch)
+		{
+			music.Pitch = pitch;
+		}
+
+		protected override bool OnGetLoop()
+		{
+			return music.Loop;
+		}
+
+		protected override void OnSetLoop(bool loop)
+		{
+			music.Loop = loop;
+		}
+	}
+
+	internal class SoundWrapperAudio(Sound sound) : BaseAudio
+	{
+		protected override AudioState OnGetState()
+		{
+			var state = base.OnGetState();
+			if(state == AudioState.Playing && sound.Status == SoundStatus.Stopped)
+				return AudioState.Stopped;
+			return state;
+		}
+
+		protected override void OnDispose()
+		{
+			sound.Dispose();
+		}
+
+		protected override void OnPlay()
+		{
+			sound.Play();
+		}
+
+		protected override void OnStop()
+		{
+			sound.Stop();
+		}
+
+		protected override void OnPause()
+		{
+			sound.Pause();
+		}
+
+		protected override TimeSpan OnGetDuration()
+		{
+			return sound.SoundBuffer.Duration.ToTimeSpan();
+		}
+
+		protected override TimeSpan OnGetOffset()
+		{
+			return sound.PlayingOffset.ToTimeSpan();
+		}
+
+		protected override void OnSetOffset(TimeSpan offset)
+		{
+			sound.PlayingOffset = offset;
+		}
+
+		protected override float OnGetVolume()
+		{
+			return sound.Volume;
+		}
+
+		protected override void OnSetVolume(float volume)
+		{
+			sound.Volume = volume;
+		}
+
+		protected override float OnGetPitch()
+		{
+			return sound.Pitch;
+		}
+
+		protected override void OnSetPitch(float pitch)
+		{
+			sound.Pitch = pitch;
+		}
+
+		protected override bool OnGetLoop()
+		{
+			return sound.Loop;
+		}
+
+		protected override void OnSetLoop(bool loop)
+		{
+			sound.Loop = loop;
 		}
 	}
 }

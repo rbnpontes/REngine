@@ -271,6 +271,7 @@ namespace REngine.Sandbox.States
 
 		private void ComputeBlocksCollision()
 		{
+			Transform2D? collidedBlock = null;
 #if PROFILER
 			using (Profiler.Instance.Begin())
 			{
@@ -282,37 +283,56 @@ namespace REngine.Sandbox.States
 					if (block is null)
 						continue;
 					var bounds = block.Bounds;
-				
 					if(!bounds.IntersectsWith(ballRect))
 						continue;
-
-					ComputeScore();
-				
-					PongVariables.BallVelocity *= new Vector2(1, -1);
-					if (block.Owner != null)
-						block.Owner.Enabled = false;
+					collidedBlock = block;
 					pBlocks[i] = null;
-					return;
+					break;
 				}
 #if PROFILER
 			}
 #endif
+			if (collidedBlock is null)
+				return;
+
+			ComputeBlockCollision(collidedBlock);
+		}
+
+		private void ComputeBlockCollision(Transform2D collidedBlock)
+		{
+			using (Profiler.Instance.Begin())
+			{
+				PongVariables.BallVelocity *= new Vector2(1, -1);
+				if (collidedBlock.Owner != null)
+					collidedBlock.Owner.Enabled = false;
+			}
+
+			ComputeScore();
 		}
 
 		private void ComputeScore()
 		{
-			PongVariables.BlockClickAudio?.Play(true);
+#if PROFILER
+			using (Profiler.Instance.Begin())
+			{
+#endif
+				// Play is an expensive operation. We don't want frame lag
+				PongVariables.BlockClickAudio?.Play(true);
 
-			PongVariables.Score += PongVariables.ScorePerBlock;
-			const int totalScore = (PongVariables.BlocksPerCol * PongVariables.BlocksPerRow) * PongVariables.ScorePerBlock;
-			var progress = PongVariables.Score / (float)totalScore;
+				PongVariables.Score += PongVariables.ScorePerBlock;
+				const int totalScore = (PongVariables.BlocksPerCol * PongVariables.BlocksPerRow) * PongVariables.ScorePerBlock;
+				var progress = PongVariables.Score / (float)totalScore;
 
-			PongVariables.Speed = PongVariables.InitialSpeed + (progress * PongVariables.MaxSpeed);
-			if (PongVariables.BackgroundAudio != null)
-				PongVariables.BackgroundAudio.Pitch = progress * PongVariables.MaxPitch;
+				PongVariables.Speed = PongVariables.InitialSpeed + (progress * PongVariables.MaxSpeed);
+				
+				if (PongVariables.BackgroundAudio != null)
+					PongVariables.BackgroundAudio.Pitch = progress * PongVariables.MaxPitch;
 
-			if(pText != null)
-				pText.Text = $"Score: {PongVariables.Score}";
+				if(pText != null)
+					pText.Text = $"Score: {PongVariables.Score}";
+#if PROFILER
+			}
+#endif
 		}
 
 		private void UpdateBall(float deltaTime)

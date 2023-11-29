@@ -40,14 +40,28 @@ namespace REngine.Assets
 		protected abstract IAudio OnBuildAudio(Stream stream);
 		protected virtual void OnDispose(){}
 	}
+
+	/// <summary>
+	/// Simple Audio Asset
+	/// This object loads audio data on memory
+	/// Is fast but can increase memory usage
+	/// </summary>
 	public sealed class AudioAsset : BaseAudioAsset
 	{
+		private SoundWrapperAudio? pAudio;
 		protected override IAudio OnBuildAudio(Stream stream)
 		{
-			using MemoryStream memStream = new();
+			using var memStream = new MemoryStream();
 			stream.CopyTo(memStream);
-			SFML.Audio.Music music = new(memStream.GetBuffer());
-			return new AudioImpl(music);
+			var buffer = new SFML.Audio.SoundBuffer(memStream.ToArray());
+			var sound = new SFML.Audio.Sound(buffer);
+			pAudio = new SoundWrapperAudio(sound);
+			return pAudio;
+		}
+
+		protected override void OnDispose()
+		{
+			pAudio?.Dispose();
 		}
 	}
 	/// <summary>
@@ -60,15 +74,18 @@ namespace REngine.Assets
 	public sealed class StreamedAudioAsset : BaseAudioAsset
 	{
 		private Stream? pStream;
+		private MusicWrapperAudio? pAudio;
 		protected override IAudio OnBuildAudio(Stream stream)
 		{
 			pStream = stream;
 			SFML.Audio.Music music = new(stream);
-			return new AudioImpl(music);
+			pAudio = new MusicWrapperAudio(music);
+			return pAudio;
 		}
 
 		protected override void OnDispose()
 		{
+			pAudio?.Dispose();
 			pStream?.Dispose();
 		}
 	}
