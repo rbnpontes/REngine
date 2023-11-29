@@ -38,14 +38,14 @@ namespace REngine.Core.Threading
 			pDisposed = true;
 		}
 
-		public void Start(int jobsCount, int maxJobs)
+		public void Start(int jobsCount)
 		{
 			if (pStarted)
 				return;
 
 			pLogger.Debug("Starting Thread Coordinator");
 
-			pThreads = new Thread[Math.Clamp(jobsCount, 1, maxJobs)];
+			pThreads = new Thread[jobsCount];
 
 			pLogger.Debug($"Creating {pThreads.Length} Threads.");
 

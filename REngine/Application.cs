@@ -68,7 +68,9 @@ namespace REngine.Sandbox
 
 		private void WriteSettings<T>(string path, T data)
 		{
-			using (FileStream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write))
+			if(File.Exists(path))
+				File.Delete(path);
+			using (FileStream stream = new FileStream(path, FileMode.Create, FileAccess.Write))
 			using (TextWriter writer = new StreamWriter(stream))
 				writer.Write(data.ToJson());
 		}
@@ -96,8 +98,7 @@ namespace REngine.Sandbox
 				var engineSettings = EngineSettings.FromStream(stream);
 				if (engineSettings.JobsThreadCount == 0)
 					engineSettings.JobsThreadCount = processorCount;
-				if(engineSettings.MaxJobsThreadCount == 0)
-					engineSettings.MaxJobsThreadCount = processorCount;
+				engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 1, processorCount);
 				return engineSettings;
 			});
 			registry.Add(() =>
