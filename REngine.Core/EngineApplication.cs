@@ -3,6 +3,7 @@ using REngine.Core.IO;
 using REngine.Core.Threading;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,15 +27,13 @@ namespace REngine.Core
 		public IEngineStartup Run();
 	}
 
-	internal class EngineStartupImpl : IEngineStartup
+	internal class EngineStartupImpl(IEngineApplication app) : IEngineStartup
 	{
-		private readonly IEngineApplication pApp;
-		private IServiceProvider? pServiceProvider;
+		private readonly Stopwatch pEngineStartTime = new();
+		private readonly Stopwatch pSetupTime = new();
+		private readonly Stopwatch pStartTime = new();
 
-		public EngineStartupImpl(IEngineApplication app)
-		{
-			pApp = app;
-		}
+		private IServiceProvider? pServiceProvider;
 
 		public IEngineStartup Run()
 		{
@@ -53,14 +52,27 @@ namespace REngine.Core
 			};
 
 			logger.Debug("Starting");
+
+			pStartTime.Start();
 			engine.Start();
+			pStartTime.Stop();
+
 			logger.Debug("Starting Game Loop");
 
 			ApplicationLifecyle.ExecuteRun();
+
+			pEngineStartTime.Stop();
+
+			logger
+				.Info($"Engine is Ready.")
+				.Info($"Setup Time: {pSetupTime.Elapsed}")
+				.Info($"Start Time: {pStartTime.Elapsed}")
+				.Info($"Total Time: {pEngineStartTime.Elapsed}");
+
 			while (!engine.IsStopped)
 				engine.ExecuteFrame();
 			logger.Debug("Exiting");
-			pApp.OnExit(pServiceProvider);
+			app.OnExit(pServiceProvider);
 			return this;
 		}
 
@@ -68,31 +80,36 @@ namespace REngine.Core
 		{
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");
-			pApp.OnUpdate(pServiceProvider);
+			app.OnUpdate(pServiceProvider);
 		}
 
 		public IEngineStartup Setup()
 		{
+			pEngineStartTime.Start();
+			pSetupTime.Start();
+
 			IServiceRegistry registry = ServiceRegistryFactory.Build();
 			List<IModule> modules = new List<IModule>();
+
 			SetupModules(modules);
 
 			modules.ForEach(x => x.Setup(registry));
 
-			pApp.OnSetup(registry);
+			app.OnSetup(registry);
 			ApplicationLifecyle.ExecuteSetup(registry);
 
 			pServiceProvider = registry.Build();
 			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "default_execution_pipeline.xml"), FileMode.Open))
 				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
 
+			pSetupTime.Stop();
 			return this;
 		}
 
 		private void SetupModules(List<IModule> modules)
 		{
 			modules.Add(new CoreModule());
-			pApp.OnSetupModules(modules);
+			app.OnSetupModules(modules);
 		}
 
 		public IEngineStartup Start()
@@ -100,7 +117,7 @@ namespace REngine.Core
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");
 
-			pApp.OnStart(pServiceProvider);
+			app.OnStart(pServiceProvider);
 			ApplicationLifecyle.ExecuteStart(pServiceProvider);
 			return this;
 		}
