@@ -8,6 +8,7 @@ using REngine.RPI.Constants;
 using REngine.RPI.Structs;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -309,6 +310,7 @@ namespace REngine.RPI
 
 		private void HandleEngineStart(object? sender, EventArgs e)
 		{
+			pLogger.Profile("Start Time");
 			pDriver = pProvider.GetOrDefault<IGraphicsDriver>();
 			var swapChain = pProvider.GetOrDefault<ISwapChain>();
 			
@@ -341,6 +343,8 @@ namespace REngine.RPI
 				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures())
 				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
 
+
+			pLogger.EndProfile("Start Time");
 			pRenderEvents.ExecuteBeforeReady(this);
 			pRenderEvents.ExecuteReady(this);
 		}

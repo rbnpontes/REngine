@@ -6,25 +6,17 @@ using System.Threading.Tasks;
 
 namespace REngine.Core.DependencyInjection
 {
-	internal class ServiceProviderImpl : IServiceProvider
+	internal class ServiceProviderImpl(Dictionary<Type, object> services) : IServiceProvider
 	{
-		private Dictionary<Type, object> pServices;
-
-		public ServiceProviderImpl(Dictionary<Type, object> services)
-		{
-			pServices = services;
-		}
-
 		public object? GetService(Type serviceType)
 		{
-			object? result;
-			pServices.TryGetValue(serviceType, out result);
+			services.TryGetValue(serviceType, out var result);
 			return result;
 		}
 
 		public Dictionary<Type, object> GetServices()
 		{
-			return pServices;
+			return services;
 		}
 	}
 }

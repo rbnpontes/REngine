@@ -12,30 +12,22 @@ namespace REngine.Core.DependencyInjection
 		public ServiceResolverException(string message) : base(message) { }
 	}
 	
-	internal class ServiceResolver
+	internal class ServiceResolver(Dictionary<Type, ServiceConstructor> ctors)
 	{
-		private Dictionary<Type, ServiceConstructor> pCtors;
-		public ServiceResolver(Dictionary<Type, ServiceConstructor> ctors)
-		{
-			pCtors = ctors;
-		}
-
 		public void Resolve(Dictionary<Type, object> instances)
 		{
-			foreach(var pair in pCtors)
+			foreach(var pair in ctors)
 				ResolveRegistered(instances, pair.Value);
 		}
 
 		private object ResolveDependency(Dictionary<Type, object> instances, Type dependency)
 		{
 			// check first if dependency has been already resolved
-			object? result;
-			if (instances.TryGetValue(dependency, out result))
+			if (instances.TryGetValue(dependency, out var result))
 				return result;
 
 			// if dependency has not yet resolved, then search by registered dependencies
-			ServiceConstructor? depCtor;
-			if (pCtors.TryGetValue(dependency, out depCtor))
+			if (ctors.TryGetValue(dependency, out var depCtor))
 				return ResolveRegistered(instances, depCtor);
 
 			throw new ServiceResolverException($"Dependency {dependency.Name} has not yet registered.");
@@ -45,8 +37,7 @@ namespace REngine.Core.DependencyInjection
 			if (ctor.ActivationCall == null)
 				throw new NullReferenceException("ActivationCall is null.");
 
-			object? obj;
-			if (instances.TryGetValue(ctor.InterfaceType, out obj))
+			if (instances.TryGetValue(ctor.InterfaceType, out var obj))
 				return obj;
 
 			object[] dependencies;
@@ -93,16 +84,16 @@ namespace REngine.Core.DependencyInjection
 		//	return result;
 		//}
 
-		private ConstructorInfo FindSuitableConstructor(Dictionary<Type, object> instances, ConstructorInfo[] ctors)
+		private ConstructorInfo FindSuitableConstructor(Dictionary<Type, object> instances, ConstructorInfo[] ctors1)
 		{
-			var ctor = ctors.Where(ctor =>
+			var ctor = ctors1.Where(ctor =>
 			{
 				var args = ctor.GetParameters();
 				foreach (var arg in args)
 				{
 					if (instances.ContainsKey(arg.ParameterType))
 						continue;
-					if (!pCtors.ContainsKey(arg.ParameterType))
+					if (!ctors.ContainsKey(arg.ParameterType))
 						continue;
 				}
 

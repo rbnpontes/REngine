@@ -24,11 +24,10 @@ namespace REngine.Core.IO
 		public ILoggerFactory Log(LogSeverity severity, string tag, object[] args);
 	}
 
-	internal class NonGenericLoggerImpl : ILogger 
+	internal class NonGenericLoggerImpl : ILogger
 	{
-		private ILoggerFactory pFactory;
-		private string pTag;
-		private IDisposable? pProfiler;
+		private readonly ILoggerFactory pFactory;
+		private readonly string pTag;
 
 		public NonGenericLoggerImpl(ILoggerFactory factory, Type type)
 		{
@@ -53,13 +52,6 @@ namespace REngine.Core.IO
 			return this;
 		}
 
-		public ILogger EndProfile(string key)
-		{
-			pProfiler?.Dispose();
-			pProfiler = null;
-			return this;
-		}
-
 		public ILogger Error(params object[] args)
 		{
 			pFactory.Log(LogSeverity.Error, pTag, args);
@@ -72,9 +64,22 @@ namespace REngine.Core.IO
 			return this;
 		}
 
+		private static int GetProfileKey(string baseKey, string tag)
+		{
+			return string.Intern($"{tag}:{baseKey}").GetHashCode();
+		}
+
 		public ILogger Profile(string key)
 		{
-			pProfiler = Profiler.Instance.Begin(key);
+			PerformanceMeasure.BeginMeasure(GetProfileKey(key, pTag));
+			return this;
+		}
+
+		public ILogger EndProfile(string key)
+		{
+			if (!PerformanceMeasure.EndMeasure(GetProfileKey(key, pTag), out var elapsed))
+				return this;
+			pFactory.Log(LogSeverity.Info, $"{pTag}:Profile#{elapsed}", [key]);
 			return this;
 		}
 
@@ -95,9 +100,10 @@ namespace REngine.Core.IO
 			return this;
 		}
 	}
-	internal class LoggerImpl<T> : ILogger<T> 
+	internal class LoggerImpl<T> : ILogger<T>
 	{
-		private ILoggerFactory pFactory;
+		private readonly ILoggerFactory pFactory;
+
 		private string pTag;
 		private IDisposable? pProfilerScope;
 
@@ -124,13 +130,6 @@ namespace REngine.Core.IO
 			return this;
 		}
 
-		public ILogger<T> EndProfile(string key)
-		{
-			pProfilerScope?.Dispose();
-			pProfilerScope = null;
-			return this;
-		}
-
 		public ILogger<T> Error(params object[] args)
 		{
 			pFactory.Log(LogSeverity.Error, pTag, args);
@@ -143,9 +142,23 @@ namespace REngine.Core.IO
 			return this;
 		}
 
+		private static int GetProfileKey(string baseKey, string tag)
+		{
+			return string.Intern($"{tag}:{baseKey}").GetHashCode();
+		}
 		public ILogger<T> Profile(string key)
 		{
-			pProfilerScope ??= Profiler.Instance.Begin(key);
+			PerformanceMeasure.BeginMeasure(GetProfileKey(key, pTag));
+			return this;
+		}
+
+		public ILogger<T> EndProfile(string key)
+		{
+			var hashCode = GetProfileKey(key, pTag).GetHashCode();
+			if (!PerformanceMeasure.EndMeasure(hashCode, out var elapsed))
+				return this;
+			
+			pFactory.Log(LogSeverity.Info, $"{pTag}:Profile#{elapsed}", [key]);
 			return this;
 		}
 

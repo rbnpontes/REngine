@@ -52,6 +52,7 @@ namespace REngine.RPI
 			if (sender is not IRenderer renderer)
 				return;
 
+			pLogger.Profile("Start Time");
 			pRendererEvents.OnReady -= HandleRendererReady;
 
 			pDriver = renderer.Driver;
@@ -61,6 +62,8 @@ namespace REngine.RPI
 			pLogger.Success("Initialized with success");
 
 			pBufferMgrEvents.ExecuteReady(this);
+
+			pLogger.EndProfile("Start Time");
 		}
 
 		private void HandleRendererDisposed(object? sender, EventArgs e)

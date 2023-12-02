@@ -53,7 +53,7 @@ namespace REngine.Core.Threading
 			{
 				pThreads[i] = new Thread(ThreadExecution)
 				{
-					Name = $"Worker #{i}"
+					Name = $"REngine - Worker #{i}"
 				};
 				pThreads[i].Start();
 			}

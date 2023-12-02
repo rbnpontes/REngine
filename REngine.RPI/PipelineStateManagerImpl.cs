@@ -83,6 +83,7 @@ namespace REngine.RPI
 
 		private void HandleShaderManagerReady(object? sender, EventArgs e)
 		{
+			pLogger.Profile("Start Time");
 			pShaderMgrEvents.OnReady -= HandleShaderManagerReady;
 
 			var driver = pServiceProvider.Get<IGraphicsDriver>();
@@ -93,6 +94,7 @@ namespace REngine.RPI
 
 			pLogger.Info("Pipeline State Manager is Initialized");
 
+			pLogger.EndProfile("Start Time");
 			pPipelineStateEvents.ExecuteReady(this);
 		}
 

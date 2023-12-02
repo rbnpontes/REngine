@@ -70,6 +70,7 @@ namespace REngine.RPI
 
 		private void HandleRendererReady(object? sender, EventArgs e)
 		{
+			pLogger.Profile("Start Time");
 			pRendererEvents.OnBeforeReady -= HandleRendererReady;
 			pDevice = pProvider.Get<IGraphicsDriver>().Device;
 
@@ -77,6 +78,7 @@ namespace REngine.RPI
 
 			pLogger.Info("Shader Manager started");
 
+			pLogger.EndProfile("Start Time");
 			pShaderManagerEvents.ExecuteReady(this);
 		}
 

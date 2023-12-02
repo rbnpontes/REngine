@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Reflection;
 
 namespace REngine.Core.DependencyInjection
 {
@@ -25,15 +26,15 @@ namespace REngine.Core.DependencyInjection
 
 	internal class ServiceRegistryImpl : IServiceRegistry
 	{
-		private Dictionary<Type, ServiceConstructor> pConstructors = new Dictionary<Type, ServiceConstructor>();
-		private Dictionary<Type, PostActivationCall<object>> pPostDependencies = new Dictionary<Type, PostActivationCall<object>>();
+		private readonly Dictionary<Type, ServiceConstructor> pConstructors = new ();
+		private readonly Dictionary<Type, PostActivationCall<object>> pPostDependencies = new ();
 
 		public IServiceRegistry Add<Interface, Target>() where Target: class
 		{
 			ServiceConstructor constructor = new ServiceConstructor(typeof(Interface), typeof(Target));
 			constructor.ActivationCall = deps =>
 			{
-				var result = Activator.CreateInstance(typeof(Target), deps);
+				var result = ActivatorExtended.CreateInstance(typeof(Target), deps);
 				if(result is null)
 					throw new NullReferenceException($"Could not possible to create {typeof(Target).Name} type.");
 				return result;
@@ -47,7 +48,7 @@ namespace REngine.Core.DependencyInjection
 			ServiceConstructor constructor = new ServiceConstructor(typeof(Target));
 			constructor.ActivationCall = deps =>
 			{
-				var result = Activator.CreateInstance(typeof(Target), deps);
+				var result = ActivatorExtended.CreateInstance(typeof(Target), deps);
 				if (result is null)
 					throw new NullReferenceException($"Could not possible to create {typeof(Target).Name} type.");
 				return result;
@@ -63,7 +64,7 @@ namespace REngine.Core.DependencyInjection
 			{
 				var result = call();
 				if (result is null)
-					throw new NullReferenceException($"ActivationCall has retrivied null at service {typeof(Interface).Name}.");
+					throw new NullReferenceException($"ActivationCall has retrieved null at service {typeof(Interface).Name}.");
 				return result;
 			};
 
