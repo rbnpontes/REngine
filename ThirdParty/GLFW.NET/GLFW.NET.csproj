@@ -55,7 +55,7 @@
 	  <None Remove="bin\**" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)'!='net8.0-android'">
 		<None Update="runtimes\win-x64\native\glfw3.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

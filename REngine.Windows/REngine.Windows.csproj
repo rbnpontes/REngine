@@ -12,33 +12,33 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-	  <IsAotCompatible>True</IsAotCompatible>
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+		<IsAotCompatible>True</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);DEBUG;WINDOWS;PROFILER</DefineConstants>
-	  <IsAotCompatible>True</IsAotCompatible>
+		<DefineConstants>$(DefineConstants);DEBUG;WINDOWS;PROFILER</DefineConstants>
+		<IsAotCompatible>True</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-	  <IsAotCompatible>True</IsAotCompatible>
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+		<IsAotCompatible>True</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
-	  <Optimize>True</Optimize>
-	  <IsAotCompatible>True</IsAotCompatible>
+		<DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
+		<Optimize>True</Optimize>
+		<IsAotCompatible>True</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);DEBUG;LINUX</DefineConstants>
-	  <IsAotCompatible>True</IsAotCompatible>
+		<DefineConstants>$(DefineConstants);DEBUG;LINUX</DefineConstants>
+		<IsAotCompatible>True</IsAotCompatible>
 	</PropertyGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
-	  <ProjectReference Include="..\ThirdParty\GLFW.NET\GLFW.NET.csproj" />
+		<ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
+		<ProjectReference Include="..\ThirdParty\GLFW.NET\GLFW.NET.csproj" />
 	</ItemGroup>
 
 </Project>

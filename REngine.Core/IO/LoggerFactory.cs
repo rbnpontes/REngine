@@ -288,6 +288,25 @@ namespace REngine.Core.IO
 	{
 		protected override void OnAsyncExecuteLog(LogSeverity severity, string log)
 		{
+#if ANDROID
+			switch (severity)
+			{
+				case LogSeverity.Error:
+				case LogSeverity.Critical:
+					Android.Util.Log.Error(nameof(REngine), log);
+					break;
+				case LogSeverity.Debug:
+					Android.Util.Log.Debug(nameof(REngine), log);
+					break;
+				case LogSeverity.Success:
+				case LogSeverity.Info:
+					Android.Util.Log.Info(nameof(REngine), log);
+					break;
+				case LogSeverity.Warning:
+					Android.Util.Log.Warn(nameof(REngine), log);
+					break;
+			}
+#else
 			Debug.WriteLine(log);
 
 			ConsoleColor currColor = Console.ForegroundColor;
@@ -312,6 +331,7 @@ namespace REngine.Core.IO
 			}
 			Console.WriteLine(log);
 			Console.ForegroundColor = currColor;
+#endif
 		}
 	}
 

@@ -51,10 +51,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTypeSharp", "ThirdParty
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tracy", "ThirdParty\Tracy\Tracy.csproj", "{82939AC8-0680-4C79-BF3B-97E97CCB103C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{1DB13791-CCAF-42A7-830B-85241C369497}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Android.Sandbox", "REngine.Android.Sandbox\REngine.Android.Sandbox.csproj", "{1058CF80-A8B3-4E70-96AA-FC110763C02F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Android.Windows", "Platforms\REngine.Android.Windows\REngine.Android.Windows.csproj", "{782E2A40-7812-4A2C-B007-90291F8165D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Debug-Android|Any CPU = Debug-Android|Any CPU
+		Debug-Android|x64 = Debug-Android|x64
 		Debug-Linux|Any CPU = Debug-Linux|Any CPU
 		Debug-Linux|x64 = Debug-Linux|x64
 		Debug-Profiler|Any CPU = Debug-Profiler|Any CPU
@@ -69,6 +77,10 @@ Global
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug|Any CPU.Build.0 = Debug|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug|x64.ActiveCfg = Debug|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug|x64.Build.0 = Debug|x64
+		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{72C4FF7A-ACD1-487F-9636-8781FD9F756A}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -89,6 +101,10 @@ Global
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug|Any CPU.Build.0 = Debug|x64
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug|x64.ActiveCfg = Debug|x64
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug|x64.Build.0 = Debug|x64
+		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{6D35A31F-37A4-4D6B-A712-A0E0547CC049}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -109,6 +125,8 @@ Global
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|Any CPU.Build.0 = Debug|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.ActiveCfg = Debug|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug|x64.Build.0 = Debug|x64
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug-Android|Any CPU.ActiveCfg = Debug-Linux|x64
+		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug-Android|x64.ActiveCfg = Debug-Linux|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{2A07D5B8-B862-4AA0-8AAE-CCEA10EBF3FA}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -123,6 +141,9 @@ Global
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|Any CPU.Build.0 = Debug|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.ActiveCfg = Debug|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug|x64.Build.0 = Debug|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{A04F8C05-4464-4531-A666-B392F43D8D14}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -143,6 +164,10 @@ Global
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|Any CPU.Build.0 = Debug|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.ActiveCfg = Debug|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug|x64.Build.0 = Debug|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{6C1D8EC8-DB37-48CB-AC52-7DC7B572D7D5}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -163,6 +188,10 @@ Global
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|Any CPU.Build.0 = Debug|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|x64.ActiveCfg = Debug|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug|x64.Build.0 = Debug|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -183,6 +212,10 @@ Global
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|Any CPU.Build.0 = Debug|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.ActiveCfg = Debug|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.Build.0 = Debug|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -203,6 +236,8 @@ Global
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|Any CPU.Build.0 = Debug|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.ActiveCfg = Debug|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug|x64.Build.0 = Debug|x64
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug-Android|Any CPU.ActiveCfg = Debug-Linux|x64
+		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug-Android|x64.ActiveCfg = Debug-Linux|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{5960716B-CC01-40B6-B13C-2DCD9920F8E0}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -217,6 +252,10 @@ Global
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug|Any CPU.Build.0 = Debug|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug|x64.ActiveCfg = Debug|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug|x64.Build.0 = Debug|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -237,6 +276,8 @@ Global
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug|x64.ActiveCfg = Debug|x64
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug|x64.Build.0 = Debug|x64
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug-Android|Any CPU.ActiveCfg = Debug-Linux|Any CPU
+		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug-Android|x64.ActiveCfg = Debug-Linux|x64
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|Any CPU
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|Any CPU
 		{CC6E8333-D62E-461C-9DF5-99C13B56F1FC}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -252,6 +293,8 @@ Global
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug|x64.ActiveCfg = Debug|x64
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug|x64.Build.0 = Debug|x64
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug-Android|Any CPU.ActiveCfg = Debug-Linux|Any CPU
+		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug-Android|x64.ActiveCfg = Debug-Linux|x64
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|Any CPU
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|Any CPU
 		{2A780F4B-9FE9-4A05-ADE0-0645A99A9A3D}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -268,6 +311,9 @@ Global
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug|Any CPU.Build.0 = Debug|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug|x64.ActiveCfg = Debug|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug|x64.Build.0 = Debug|x64
+		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{3957CC5A-DD07-4E6B-B9A9-F05E212CC3B2}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -288,6 +334,9 @@ Global
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug|Any CPU.Build.0 = Debug|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug|x64.ActiveCfg = Debug|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug|x64.Build.0 = Debug|x64
+		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{5E9398BE-E2E8-4129-B86D-9139C9C6B9BD}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -308,6 +357,8 @@ Global
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug|Any CPU.Build.0 = Debug|x64
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug|x64.ActiveCfg = Debug|x64
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug|x64.Build.0 = Debug|x64
+		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug-Android|Any CPU.ActiveCfg = Debug-Linux|x64
+		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug-Android|x64.ActiveCfg = Debug-Linux|x64
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -324,6 +375,10 @@ Global
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug|Any CPU.Build.0 = Debug|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug|x64.ActiveCfg = Debug|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug|x64.Build.0 = Debug|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Android|Any CPU.ActiveCfg = Debug-Android|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Android|Any CPU.Build.0 = Debug-Android|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Linux|x64.ActiveCfg = Debug-Linux|x64
@@ -344,6 +399,10 @@ Global
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug|x64.Build.0 = Debug|Any CPU
+		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Android|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Android|Any CPU.Build.0 = Debug|Any CPU
+		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Android|x64.Build.0 = Debug|Any CPU
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Linux|Any CPU.ActiveCfg = Debug|Any CPU
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Linux|Any CPU.Build.0 = Debug|Any CPU
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
@@ -364,6 +423,9 @@ Global
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug|x64.Build.0 = Debug|Any CPU
+		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Android|Any CPU.ActiveCfg = Debug-Profiler|Any CPU
+		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Android|Any CPU.Build.0 = Debug-Profiler|Any CPU
+		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Android|x64.ActiveCfg = Debug-Profiler|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Linux|Any CPU.ActiveCfg = Debug|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Linux|Any CPU.Build.0 = Debug|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
@@ -380,6 +442,63 @@ Global
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release-Profiler|Any CPU.Build.0 = Release|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release-Profiler|x64.ActiveCfg = Release|Any CPU
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C}.Release-Profiler|x64.Build.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|Any CPU.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|Any CPU.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|Any CPU.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Android|x64.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|Any CPU.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|Any CPU.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Linux|x64.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|Any CPU.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|Any CPU.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|Any CPU.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Debug-Profiler|x64.Deploy.0 = Debug|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|x64.ActiveCfg = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|x64.Build.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release|x64.Deploy.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|Any CPU.ActiveCfg = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|Any CPU.Build.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|Any CPU.Deploy.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|x64.ActiveCfg = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|x64.Build.0 = Release|Any CPU
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F}.Release-Profiler|x64.Deploy.0 = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Android|Any CPU.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Android|Any CPU.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Linux|Any CPU.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Profiler|Any CPU.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Profiler|Any CPU.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release|x64.Build.0 = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release-Profiler|Any CPU.ActiveCfg = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release-Profiler|Any CPU.Build.0 = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release-Profiler|x64.ActiveCfg = Release|Any CPU
+		{782E2A40-7812-4A2C-B007-90291F8165D4}.Release-Profiler|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -393,6 +512,8 @@ Global
 		{EA91A605-1A11-47A0-A5F7-C5BB2C99A559} = {C6A5B02E-558C-4594-95DB-C12B2694EE1B}
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A} = {A47643E2-2AC1-4DF1-BEE3-2AE63C7901B5}
 		{82939AC8-0680-4C79-BF3B-97E97CCB103C} = {A47643E2-2AC1-4DF1-BEE3-2AE63C7901B5}
+		{1058CF80-A8B3-4E70-96AA-FC110763C02F} = {1DB13791-CCAF-42A7-830B-85241C369497}
+		{782E2A40-7812-4A2C-B007-90291F8165D4} = {1DB13791-CCAF-42A7-830B-85241C369497}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

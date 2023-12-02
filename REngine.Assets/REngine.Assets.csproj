@@ -7,8 +7,13 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android</Configurations>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
+		<TargetFramework>net8.0-android</TargetFramework>
+		<DefineConstants>$(DefineConstants);DEBUG;ANDROID</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
@@ -22,6 +27,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
 	  <DefineConstants>$(DefineConstants);PROFILER</DefineConstants>
 	</PropertyGroup>
+
 	<ItemGroup>
 	  <PackageReference Include="SFML.Audio" Version="2.5.1" />
 	  <PackageReference Include="StbImageSharp" Version="2.27.13" />

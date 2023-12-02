@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "REngine.WindowsGtk": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}

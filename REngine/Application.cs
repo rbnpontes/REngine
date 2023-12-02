@@ -6,7 +6,6 @@ using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
 using REngine.RPI;
-using REngine.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,7 +79,6 @@ namespace REngine.Sandbox
 			modules.AddRange(new IModule[]
 			{
 				new AssetsModule(),
-				new WindowsModule(),
 				new RHIModule(),
 				new RPIModule(),
 			});
@@ -99,6 +97,7 @@ namespace REngine.Sandbox
 				if (engineSettings.JobsThreadCount == 0)
 					engineSettings.JobsThreadCount = processorCount;
 				engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 1, processorCount);
+				OnSetupEngineSettings(engineSettings);
 				return engineSettings;
 			});
 			registry.Add(() =>
@@ -167,6 +166,10 @@ namespace REngine.Sandbox
 						throw new NullReferenceException("SwapChain must be created");
 					return swapChain;
 				});
+		}
+
+		protected virtual void OnSetupEngineSettings(EngineSettings engineSettings)
+		{
 		}
 
 		protected virtual IWindow OnSetupWindow(IWindowManager windowManager)

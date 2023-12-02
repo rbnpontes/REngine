@@ -21,9 +21,9 @@ namespace REngine.Windows
 		private readonly IEngine pEngine;
 
 		private readonly List<WindowImpl> pWindows = new();
-		private bool pDisposed = false;
+		private bool pDisposed;
 
-		public IReadOnlyList<IWindow> Windows => throw new NotImplementedException();
+		public IReadOnlyList<IWindow> Windows => pWindows;
 		public Vector2 VideoScale { get; private set; }
 
 		public WindowManager(

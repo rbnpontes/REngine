@@ -2,6 +2,7 @@
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('linux'))">
 		<TargetFrameworks>net8.0</TargetFrameworks>
+		<Configurations>Debug;Release;Debug-Android</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">

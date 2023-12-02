@@ -6,6 +6,7 @@ using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RPI;
 using REngine.RPI.Features;
+using REngine.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,12 @@ namespace REngine.Sandbox
 		private SampleWindow? pSampleWindow;
 		public SandboxApp() : base(typeof(SandboxApp))
 		{
+		}
+
+		public override void OnSetupModules(List<IModule> modules)
+		{
+			base.OnSetupModules(modules);
+			modules.Add(new WindowsModule());
 		}
 
 		protected override IWindow OnSetupWindow(IWindowManager windowManager)

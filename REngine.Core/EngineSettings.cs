@@ -19,12 +19,23 @@ namespace REngine.Core
 		public static readonly string PipelineCachePath = Path.Combine(AppDataPath, "pipeline-cache.bin");
 		public static readonly string PipelineItemsPath = Path.Combine(AppDataPath, "pipelines.rcache");
 
+#if ANDROID
+		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "../Assets");
+#else
 		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+#endif
 		public static readonly string AssetsShadersPath = Path.Join(AssetsPath, "Shaders");
 		public static readonly string AssetsShadersPostProcessPath = Path.Join(AssetsShadersPath, "PostProcess");
 		public static readonly string AssetsSoundsPath = Path.Join(AssetsPath, "Sounds");
 		public static readonly string AssetsTexturesPath = Path.Join(AssetsPath, "Textures");
 		public static readonly string AssetsFontPath = Path.Join(AssetsPath, "Fonts");
+
+		public string[] AssetSearchPaths { get; set; } =
+		[
+			Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine"),
+			Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets")
+		];
+
 		/// <summary>
 		/// Defines initial available entity slots
 		/// </summary>
@@ -51,6 +62,8 @@ namespace REngine.Core
 
 		public void Merge(EngineSettings value)
 		{
+			AssetSearchPaths = value.AssetSearchPaths;
+
 			InitialEntityCount = value.InitialEntityCount;
 			EntityExpansionRate = value.EntityExpansionRate;
 

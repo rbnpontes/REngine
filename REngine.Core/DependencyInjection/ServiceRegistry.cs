@@ -111,7 +111,7 @@ namespace REngine.Core.DependencyInjection
 			resolver.Resolve(services);
 
 			// execute post dependencies. this dependencies requires IServiceProvider created
-			foreach(var pair in pPostDependencies)
+			foreach(var pair in pPostDependencies) 
 				services.Add(pair.Key, pair.Value(provider));
 			
 			return provider;

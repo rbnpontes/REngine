@@ -7,7 +7,11 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Debug-Profiler;Release;Release-Profiler;Debug-Linux</Configurations>
+		<Configurations>Debug;Debug-Profiler;Release;Release-Profiler;Debug-Linux;Debug-Android</Configurations>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
+		<TargetFramework>net8.0-android</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>

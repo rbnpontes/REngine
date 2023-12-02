@@ -54,7 +54,9 @@ namespace REngine.Core
 			if (pStopped)
 				return this;
 
+#if PROFILER
 			Profiler.Instance.BeginFrame("Engine Frame");
+#endif
 			pTimer.Measure();
 
 			pUpdateEvtArgs.DeltaTime = pTimer.DeltaTime;
@@ -77,7 +79,9 @@ namespace REngine.Core
 				pExecPipeline.SetThreadSleep(0);
 			}
 
+#if PROFILER
 			Profiler.Instance.EndFrame();
+#endif
 			return this;
 		}
 

@@ -20,6 +20,15 @@ namespace REngine.Core
 			return $"Hwnd: {Hwnd.ToString("x8")}";
 		}
 	}
+#elif ANDROID
+	public struct NativeWindow 
+	{
+		public IntPtr AndroidNativeWindow;
+		public override string ToString()
+		{
+			return $"Android Native Window: {AndroidNativeWindow:x8}";
+		}
+	}
 #elif LINUX
 	/// <summary>
 	/// Native Window Handle
