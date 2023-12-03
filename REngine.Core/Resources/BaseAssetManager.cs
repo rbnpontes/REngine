@@ -91,8 +91,9 @@ namespace REngine.Core.Resources
 
 		public virtual Asset? GetAsset(string assetName, Type assetType)
 		{
+			assetName = NormalizeAssetName(assetName);
 #if DEBUG
-			if (assetType.IsAssignableTo(typeof(Asset)))
+			if (!assetType.IsSubclassOf(typeof(Asset)))
 				throw new ArgumentException($"Asset Type must inherit {nameof(Asset)}");
 #endif
 
@@ -136,6 +137,18 @@ namespace REngine.Core.Resources
 		{
 			var asset = (T?)GetAsset(assetName, typeof(T));
 			return asset;
+		}
+
+		private static string NormalizePath(string path)
+		{
+			return path.Replace('\\', '/');
+		}
+
+		protected static string NormalizeAssetName(string path)
+		{
+			if (path.StartsWith('\\') || path.StartsWith('/'))
+				path = path[1..];
+			return NormalizePath(path);
 		}
 	}
 }

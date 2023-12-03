@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
@@ -40,12 +41,14 @@ namespace REngine.Core.Resources
 			var files = Directory.GetFiles(path);
 			foreach (var file in files)
 			{
+				var name = NormalizeAssetName(file.Replace(rootPath, string.Empty));
+				var hash = Hash.Digest(name);
 				AssetEntry entry = new()
 				{
-					Name = file.Replace(rootPath, string.Empty),
+					Name = name,
 					FilePath = file
 				};
-				pEntries[Hash.Digest(entry.Name)] = entry;
+				pEntries[hash] = entry;
 			}
 
 			foreach (var dir in directories)
@@ -59,7 +62,7 @@ namespace REngine.Core.Resources
 
 		public override AssetStream GetStream(string assetName)
 		{
-			var hash = Hash.Digest(assetName);
+			var hash = Hash.Digest(NormalizeAssetName(assetName));
 			if (!pEntries.TryGetValue(hash, out var entry))
 				throw new NotFoundAssetException(assetName);
 			var fileStream = new FileStream(entry.FilePath, FileMode.Open, FileAccess.Read);
