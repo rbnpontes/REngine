@@ -49,6 +49,7 @@ namespace REngine.Core.Resources
 
 		protected override void Dispose(bool disposing)
 		{
+			stream.Dispose();
 			OnDispose?.Invoke(this, EventArgs.Empty);
 		}
 	}

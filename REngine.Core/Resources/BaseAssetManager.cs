@@ -3,14 +3,60 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.DependencyInjection;
+using REngine.Core.Events;
+using REngine.Core.IO;
 using REngine.Core.Mathematics;
+using REngine.Core.Reflection;
 
 namespace REngine.Core.Resources
 { 
-	public abstract class BaseAssetManager(IServiceProvider serviceProvider) : IAssetManager
+	public abstract class BaseAssetManager : IAssetManager, IDisposable
 	{
+		private readonly EngineEvents pEngineEvents;
+		protected readonly IServiceProvider mServiceProvider;
 		protected readonly Dictionary<ulong, Asset> mLoadedAssets = new();
+		protected readonly ILogger<IAssetManager> mLogger;
+		
+		private bool pDisposed;
+		protected BaseAssetManager(
+			IServiceProvider serviceProvider)
+		{
+			mServiceProvider = serviceProvider;
+			mLogger = serviceProvider.Get<ILoggerFactory>().Build<IAssetManager>();
+			pEngineEvents = serviceProvider.Get<EngineEvents>();
+			pEngineEvents.OnStop +=	HandleEngineStop;
+			pEngineEvents.OnStart += HandleEngineStart;
+		}
 
+		private void HandleEngineStart(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnStart -= HandleEngineStart;
+			mLogger.Profile("Start Time");
+			OnStart();
+			mLogger.EndProfile("Start Time");
+		}
+
+		private void HandleEngineStop(object? sender, EventArgs e)
+		{
+			pEngineEvents.OnStop -= HandleEngineStop;
+			Dispose();
+		}
+
+		public void Dispose()
+		{
+			if (pDisposed)
+				return;
+
+			OnDispose();
+			UnloadAssets();
+			
+			pDisposed = true;
+			GC.SuppressFinalize(this);
+		}
+
+		protected abstract void OnStart();
+		protected abstract void OnDispose();
 		public abstract string[] GetAssets();
 
 		public virtual Asset[] GetLoadedAssets()
@@ -43,18 +89,51 @@ namespace REngine.Core.Resources
 
 		public virtual Asset? GetAsset(string assetName, Type assetType)
 		{
+#if DEBUG
+			if (assetType.IsAssignableTo(typeof(Asset)))
+				throw new ArgumentException($"Asset Type must inherit {nameof(Asset)}");
+#endif
+
 			var assetHash = Hash.Digest(assetName);
 			if (mLoadedAssets.TryGetValue(assetHash, out var asset))
 			{
-
+				if (asset.GetType().IsAssignableTo(assetType))
+					return asset;
+				LogAssetNotFound();
+				return null;
 			}
-			
-			throw new NotImplementedException();
+
+			var stream = GetStream(assetName);
+			asset = ActivatorExtended.CreateInstance(mServiceProvider, assetType) as Asset;
+			if (asset is null)
+			{
+				LogAssetNotFound();
+				return null;
+			}
+
+			mLogger.Info($"Loading Asset: {assetName}");
+#if DEBUG
+			var profileKey = $"Load {assetName} Time";
+			mLogger.Profile(profileKey);
+#endif
+			asset.Load(stream).Wait();
+#if DEBUG
+			mLogger.EndProfile(profileKey);
+#endif
+			mLogger.Success($"Loaded Asset: {assetName}");
+			mLoadedAssets[assetHash] = asset;
+			return asset;
+
+			void LogAssetNotFound()
+			{
+				mLogger.Error($"Asset '{assetName}' not found.");
+			}
 		}
 
-		public T GetAsset<T>(string assetName) where T : Asset
+		public T? GetAsset<T>(string assetName) where T : Asset
 		{
-			throw new NotImplementedException();
+			var asset = (T?)GetAsset(assetName, typeof(T));
+			return asset;
 		}
 	}
 }
