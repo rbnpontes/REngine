@@ -11,21 +11,23 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.Sandbox.Samples
 {
 #if RENGINE_SPRITEBATCH
 	[Sample("Text Rendering")]
-	internal class TextRendering : ISample
+	internal class TextRendering(
+		ISpriteBatch spriteBatch,
+		IRenderer renderer,
+		ITextRenderer textRenderer,
+		IImGuiSystem imGuiSystem,
+		IAssetManager assetManager) : ISample
 	{
 		private readonly object pSync = new object();
 
 		public IWindow? Window { get; set; }
-		private ISpriteBatch? pSpriteBatch;
 		private IRenderFeature? pSpriteFeature;
-		private IRenderer? pRenderer;
-		private ITextRenderer? pTextRenderer;
-		private IImGuiSystem? pImGuiSystem;
 
 		private TextRendererBatch? pBatch;
 
@@ -38,49 +40,40 @@ namespace REngine.Sandbox.Samples
 
 		public void Dispose()
 		{
-			pRenderer?.RemoveFeature(pSpriteFeature);
+			renderer.RemoveFeature(pSpriteFeature);
 			pSpriteFeature?.Dispose();
 
 			pBatch?.Dispose();
-			if (pSpriteBatch != null)
-				pSpriteBatch.OnDraw -= OnDraw;
-
-			if(pImGuiSystem != null)
-				pImGuiSystem.OnGui -= OnGui; ;
+			
+			spriteBatch.OnDraw -= OnDraw;
+			imGuiSystem.OnGui -= OnGui;
 		}
 
 		public void Load(IServiceProvider provider)
 		{
 			if (Window is null)
 				return;
-			pSpriteBatch = provider.Get<ISpriteBatch>();
-			pRenderer = provider.Get<IRenderer>();
-
-			pRenderer.AddFeature(pSpriteFeature = pSpriteBatch.Feature);
+			
+			renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
 
 			// Load Font
-			using (FontAsset fontAsset = new())
-			{
-
-				fontAsset.Name = "Anonymous Pro";
-				using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
-					fontAsset.Load(stream).Wait();
-
-				pTextRenderer = provider.Get<ITextRenderer>();
-				pBatch = pTextRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
-			}
-
+			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
+			if (fontAsset is null)
+				throw new NotFoundAssetException("Fonts/Anonymous Pro.ttf");
+			
+			pBatch = textRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 			pBatch.Text = pText = "Hello World";
 			pTextSize = (int)pBatch.Size;
+			
 			pHorizontalSpacing = pBatch.HorizontalSpacing;
 			pVerticalSpacing = pBatch.VerticalSpacing;
 
-			pSpriteBatch.OnDraw += OnDraw;
+			spriteBatch.OnDraw += OnDraw;
 
 			pColor = pBatch.Color.ToVector4();
 
-			pImGuiSystem = provider.Get<IImGuiSystem>();
-			pImGuiSystem.OnGui += OnGui;
+			imGuiSystem = provider.Get<IImGuiSystem>();
+			imGuiSystem.OnGui += OnGui;
 		}
 
 		public void Update(IServiceProvider provider)
@@ -114,12 +107,12 @@ namespace REngine.Sandbox.Samples
 			ImGui.End();
 		}
 
-		private void DrawBounds(RectangleF rect)
+		private static void DrawBounds(RectangleF rect)
 		{
-			uint color = 0xFF00FF00;
+			var color = 0xFF00FF00;
 			
-			Vector2 min = rect.Location.ToVector2();
-			Vector2 max = new Vector2(rect.Right, rect.Bottom);
+			var min = rect.Location.ToVector2();
+			var max = new Vector2(rect.Right, rect.Bottom);
 
 			var drawList = ImGui.GetBackgroundDrawList();
 			drawList.AddText(min, color, min.ToString());
@@ -133,12 +126,12 @@ namespace REngine.Sandbox.Samples
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
-			if(pSpriteBatch is null || pBatch is null || Window is null) return;
+			if(pBatch is null || Window is null) return;
 
 			// ImGui can run in our thread, we must lock this values before read
 			lock (pSync)
 			{
-				// Any slighty changes to this properties will force
+				// Any slight changes to this properties will force
 				// bound box changes, in this case we must 
 				// be carefully while is reading bounding box
 				// because this property will trigger text calculation
@@ -158,7 +151,7 @@ namespace REngine.Sandbox.Samples
 			lock (pSync)
 				pLastBounds = pBatch.Bounds;
 
-			pSpriteBatch.Draw(pBatch);
+			spriteBatch.Draw(pBatch);
 		}
 	}
 #endif
