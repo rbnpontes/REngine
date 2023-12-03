@@ -32,6 +32,7 @@ namespace REngine.Sandbox.States
 		private readonly ISpriteBatch pSpriteBatch;
 		private readonly ITextRenderer pTextRenderer;
 		private readonly IResourceManager pResourceManager;
+		private readonly IAssetManager pAssetManager;
 
 		private Color pDefaultClearColor = Color.Black;
 
@@ -49,7 +50,8 @@ namespace REngine.Sandbox.States
 			IWindow mainWindow,
 			ISpriteBatch spriteBatch,
 			ITextRenderer textRenderer,
-			IResourceManager resourceManager
+			IResourceManager resourceManager,
+			IAssetManager assetManager
 		)
 		{
 			pGameStateManager = gameStateManager;
@@ -59,6 +61,7 @@ namespace REngine.Sandbox.States
 			pSpriteBatch = spriteBatch;
 			pTextRenderer = textRenderer;
 			pResourceManager = resourceManager;
+			pAssetManager = assetManager;
 		}
 
 		public void OnStart()
@@ -179,10 +182,9 @@ namespace REngine.Sandbox.States
 
 		private void LoadFont(string assetName)
 		{
-			using FontAsset fontAsset = new();
-			fontAsset.Name = assetName;
-			using(FileStream stream = new(Path.Join(EngineSettings.AssetsFontPath, assetName), FileMode.Open))
-				fontAsset.Load(stream).Wait();
+			var fontAsset = pAssetManager.GetAsset<FontAsset>("Fonts/"+assetName);
+			if (fontAsset is null)
+				return;
 			pTextRenderer.SetFont(fontAsset.Font);
 		}
 	}

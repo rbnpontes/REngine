@@ -13,18 +13,20 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.Sandbox.Samples
 {
 	[Sample("Render Graph")]
-	internal class RenderGraphSample : ISample
+	internal class RenderGraphSample(
+		IRenderer renderer, 
+		IRenderGraph renderGraph,
+		IVariableManager variableManager,
+		IImGuiSystem imGuiSystem,
+		ISpriteBatch spriteBatch,
+		IAssetManager assetManager) : ISample
 	{
-		private IVariableManager? pVarMgr;
-		private IRenderGraph? pRenderGraph;
 		private IRenderFeature? pFeature;
-		private IRenderer? pRenderer;
-		private IImGuiSystem? pImGuiSystem;
-		private ISpriteBatch? pSpritebatch;
 
 		private TextRendererBatch? pTextBatch;
 
@@ -38,18 +40,14 @@ namespace REngine.Sandbox.Samples
 
 		public void Dispose()
 		{
-			pRenderer?.RemoveFeature(pFeature);
+			renderer.RemoveFeature(pFeature);
 			pFeature?.Dispose();
 
-			if(pImGuiSystem != null)
-			{
-				pImGuiSystem.OnGui -= OnGui;
-				pRenderer?.AddFeature(pImGuiSystem.Feature, 100);
-			}
+			imGuiSystem.OnGui -= OnGui;
+			renderer?.AddFeature(imGuiSystem.Feature, 100);
 
-			if(pSpritebatch != null)
-				pSpritebatch.OnDraw -= OnDraw;
-			pSpritebatch?.ClearTexture(0);
+			spriteBatch.OnDraw -= OnDraw;
+			spriteBatch.ClearTexture(0);
 			pTextBatch?.Dispose();
 
 			GC.SuppressFinalize(this);
@@ -59,61 +57,54 @@ namespace REngine.Sandbox.Samples
 		{
 			if (Window is null)
 				return;
-			pRenderer = provider.Get<IRenderer>();
-			pRenderGraph = provider.Get<IRenderGraph>();
-			pVarMgr = provider.Get<IVariableManager>();
-			pImGuiSystem = provider.Get<IImGuiSystem>();
-			pSpritebatch = provider.Get<ISpriteBatch>();
 
 			// Load Sprite
 			ImageAsset sprite = new("doge.png");
 			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
 				sprite.Load(stream).Wait();
 
-			pSpritebatch.SetTexture(0, sprite.Image);
+			spriteBatch.SetTexture(0, sprite.Image);
 
 			// Load Font
-			using (FontAsset fontAsset = new())
-			{
-				fontAsset.Name = "Anonymous Pro";
-				using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Fonts/Anonymous Pro.ttf"), FileMode.Open))
-					fontAsset.Load(stream).Wait();
+			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
+			if (fontAsset is null)
+				throw new NotFoundAssetException("Fonts/Anonymous Pro.ttf");
+			
+			pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
+			pTextBatch.Text = "Render Graph Sample";
+			pTextBatch.Size = 24;
+			pTextBatch.Position = (Window.Size * 0.5f).ToVector2();
+			
+			pEnableSpritebatchVar = variableManager.GetVar("@vars/spritebatch/enabled");
 
-				pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
-				pTextBatch.Text = "Render Graph Sample";
-				pTextBatch.Size = 24;
-				pTextBatch.Position = (Window.Size * 0.5f).ToVector2();
-			}
-			pEnableSpritebatchVar = pVarMgr.GetVar("@vars/spritebatch/enabled");
-
-			var rootEntry = pRenderGraph.LoadFromFile(
+			var rootEntry = renderGraph.LoadFromFile(
 				Path.Join(
 					AppDomain.CurrentDomain.BaseDirectory,
 					"Assets/default-rendergraph.xml"
 				)
 			);
 
-			pFeature = new RenderGraphFeature(pRenderGraph, rootEntry);
-			pRenderer.AddFeature(pFeature);
+			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
+			renderer.AddFeature(pFeature);
 			// Remove ImGui feature, otherwise we will deal with double rendering
-			pRenderer.RemoveFeature(
-				pImGuiSystem.Feature
+			renderer.RemoveFeature(
+				imGuiSystem.Feature
 			);
 
-			pImGuiSystem.OnGui += OnGui;
-			pSpritebatch.OnDraw += OnDraw;
+			imGuiSystem.OnGui += OnGui;
+			spriteBatch.OnDraw += OnDraw;
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
 			var bounds = pSpriteRect;
-			pSpritebatch?.Draw(new SpriteBatchInfo
+			spriteBatch.Draw(new SpriteBatchInfo
 			{
 				TextureSlot =0,
 				Position = bounds.GetPosition(),
 				Size = bounds.GetSize().ToVector2(),
 			});
-			pSpritebatch?.Draw(pTextBatch);
+			spriteBatch.Draw(pTextBatch);
 		}
 
 		private void OnGui(object? sender, EventArgs e)

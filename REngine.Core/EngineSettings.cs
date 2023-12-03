@@ -28,7 +28,7 @@ namespace REngine.Core
 		public static readonly string AssetsShadersPostProcessPath = Path.Join(AssetsShadersPath, "PostProcess");
 		public static readonly string AssetsSoundsPath = Path.Join(AssetsPath, "Sounds");
 		public static readonly string AssetsTexturesPath = Path.Join(AssetsPath, "Textures");
-		public static readonly string AssetsFontPath = Path.Join(AssetsPath, "Fonts");
+		// public static readonly string AssetsFontPath = Path.Join(AssetsPath, "Fonts");
 
 		public string[] AssetSearchPaths { get; set; } =
 		[

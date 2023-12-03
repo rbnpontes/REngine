@@ -304,7 +304,7 @@ namespace REngine.RPI
 					continue;
 				}
 
-				byte glyphIdx = pFont.GetGlyhIndex(Text[i]);
+				byte glyphIdx = pFont.GetGlyphIndex(Text[i]);
 				var bounds = pFont.GetBounds(glyphIdx);
 				var offset = pFont.GetOffset(glyphIdx);
 				var advance = pFont.GetAdvance(glyphIdx);

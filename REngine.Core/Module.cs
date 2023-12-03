@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Logic;
+using REngine.Core.Resources;
 using Tracy;
 
 namespace REngine.Core
@@ -27,6 +28,7 @@ namespace REngine.Core
 				.Add<EngineSettings>()
 				.Add<EntityManager>()
 				.Add<ILoggerFactory, DebugLoggerFactory>()
+				.Add<IAssetManager, FileAssetManager>()
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, EngineImpl>()
 				.Add<EngineEvents>()

@@ -16,7 +16,7 @@ namespace REngine.Core.Resources
 		public abstract Size AtlasSize { get; }
 		public abstract Size CharSize { get; }
 
-		public abstract byte GetGlyhIndex(int charCode);
+		public abstract byte GetGlyphIndex(int charCode);
 		public abstract Point GetOffset(byte glyphIndex);
 		public abstract Rectangle GetBounds(byte glyphIndex);
 		public abstract Point GetAdvance(byte glyphIndex);
