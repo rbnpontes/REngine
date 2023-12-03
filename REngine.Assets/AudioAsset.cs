@@ -7,38 +7,22 @@ using REngine.Core.Resources;
 
 namespace REngine.Assets
 {
-	public abstract class BaseAudioAsset : IAsset
+	public abstract class BaseAudioAsset : Asset
 	{
-		public int Size { get; private set; }
-		public string Checksum { get; private set; } = string.Empty;
-		public string Name { get; set; } = string.Empty;
-
 		public IAudio? Audio { get; private set; }
 
-		public void Dispose()
+		protected override void OnDispose()
 		{
 			Audio?.Dispose();
 			Audio = null;
-			OnDispose();
-			GC.SuppressFinalize(this);
 		}
-
-		public Task Save(Stream stream)
+		
+		protected override void OnLoad(AssetStream stream)
 		{
-			throw new NotSupportedException();
-		}
-
-		public Task Load(Stream stream)
-		{
-			return Task.Run(() =>
-			{
-				Size = (int)stream.Length;
-				Audio = OnBuildAudio(stream);
-			});
+			Audio = OnBuildAudio(stream);
 		}
 
 		protected abstract IAudio OnBuildAudio(Stream stream);
-		protected virtual void OnDispose(){}
 	}
 
 	/// <summary>
@@ -61,6 +45,7 @@ namespace REngine.Assets
 
 		protected override void OnDispose()
 		{
+			base.OnDispose();
 			pAudio?.Dispose();
 		}
 	}
@@ -85,6 +70,7 @@ namespace REngine.Assets
 
 		protected override void OnDispose()
 		{
+			base.OnDispose();
 			pAudio?.Dispose();
 			pStream?.Dispose();
 		}

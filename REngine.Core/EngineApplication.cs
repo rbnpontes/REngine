@@ -117,8 +117,8 @@ namespace REngine.Core
 			if (pServiceProvider is null)
 				throw new NullReferenceException("IServiceProvider is null");
 
-			app.OnStart(pServiceProvider);
 			ApplicationLifecyle.ExecuteStart(pServiceProvider);
+			app.OnStart(pServiceProvider);
 			return this;
 		}
 	}

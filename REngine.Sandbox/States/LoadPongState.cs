@@ -126,26 +126,15 @@ namespace REngine.Sandbox.States
 
 		private IAudio LoadAudio(string assetName, bool isStreamed = true)
 		{
-			Stream fileStream = new FileStream(Path.Join(EngineSettings.AssetsSoundsPath, assetName), FileMode.Open,
-				FileAccess.Read);
-
 			BaseAudioAsset audioAsset;
-
 			if (isStreamed)
-			{
-				audioAsset = new StreamedAudioAsset();
-				audioAsset.Load(fileStream).Wait();
-			}
+				audioAsset = assetManager.GetAsset<StreamedAudioAsset>("Sounds/" + assetName);
 			else
-			{
-				audioAsset = new AudioAsset();
-				audioAsset.Load(fileStream).Wait();
-			}
+				audioAsset = assetManager.GetAsset<AudioAsset>("Sounds/" + assetName);
 
 			if (audioAsset.Audio is null)
 				throw new NullReferenceException($"Error has occurred while is loading {assetName}");
 
-			PongVariables.Assets2Dispose.Enqueue(audioAsset);
 			return audioAsset.Audio;
 		}
 

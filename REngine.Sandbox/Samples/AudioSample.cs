@@ -13,34 +13,25 @@ using REngine.RPI;
 namespace REngine.Sandbox.Samples
 {
 	[Sample("Audio Sample")]
-	internal class AudioSample : ISample
+	internal class AudioSample(
+		IImGuiSystem imGuiSystem,
+		IAssetManager assetManager) : ISample
 	{
-		private StreamedAudioAsset? pAudioAsset;
 		private IAudio? pAudio;
 
-		private IImGuiSystem? pImGuiSystem;
 		public void Dispose()
 		{
-			pAudioAsset?.Dispose();
-			if(pImGuiSystem != null)
-				pImGuiSystem.OnGui -= OnGui;
+			imGuiSystem.OnGui -= OnGui;
 		}
 
 		public IWindow? Window { get; set; }
 		public void Load(IServiceProvider provider)
 		{
-			FileStream stream =
-				new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Sounds/silent_wood_by_purrplecat.ogg"),
-					FileMode.Open, FileAccess.Read);
 			// Streamed Audio Asset owns FileStream
 			// When Audio Asset goes to dispose
 			// File stream will dispose too.
-			pAudioAsset = new StreamedAudioAsset();
-			pAudioAsset.Load(stream).Wait();
-			pAudio = pAudioAsset.Audio;
-
-			pImGuiSystem = provider.Get<IImGuiSystem>();
-			pImGuiSystem.OnGui += OnGui;
+			pAudio = assetManager.GetAsset<StreamedAudioAsset>("Sounds/silent_wood_by_purrplecat.ogg").Audio;
+			imGuiSystem.OnGui += OnGui;
 		}
 
 		private void OnGui(object? sender, EventArgs e)
@@ -79,6 +70,8 @@ namespace REngine.Sandbox.Samples
 					RenderDuration();
 				}
 					break;
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 
 			ImGui.End();

@@ -37,9 +37,7 @@ namespace REngine.Sandbox.States
 		public static readonly Vector2 BarSize = new(300, 10);
 		public static readonly Vector2 MenuTextureSize = new(275, 66);
 		public static readonly Vector2 MenuTextureHalfSize = MenuTextureSize * 0.5f;
-
-		public static readonly Queue<IAsset> Assets2Dispose  = new();
-
+		
 		public static float AudioVolume { get; set; } = 50f;
 		public static IAudio? BackgroundAudio { get; set; }
 		public static IAudio? MenuItemAudio { get; set; }
@@ -66,9 +64,6 @@ namespace REngine.Sandbox.States
 			BlockClickAudio?.Stop();
 
 			BackgroundAudio = MenuItemAudio = BlockClickAudio = null;
-
-			while(Assets2Dispose.TryDequeue(out var asset))
-				asset.Dispose();
 		}
 	}
 }

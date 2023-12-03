@@ -36,7 +36,7 @@ namespace REngine.Sandbox.States
 		public string Name => PongStates.SplashScreenState;
 
 		private Transform2D? pComponent;
-		private IAsset? pAudioAsset;
+		private Asset? pAudioAsset;
 		private IAudio? pAudio;
 
 		public void OnStart()
@@ -45,9 +45,7 @@ namespace REngine.Sandbox.States
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/EngineLogo-Sdf.png");
 			spriteBatch.SetTexture(0, sprite.Image);
 
-			var audioAsset = new StreamedAudioAsset();
-			audioAsset.Load(new FileStream(Path.Join(EngineSettings.AssetsSoundsPath, "doge_bonk.ogg"), FileMode.Open,
-				FileAccess.Read)).Wait();
+			var audioAsset = assetManager.GetAsset<StreamedAudioAsset>("Sounds/doge_bonk.ogg");
 			pAudio = audioAsset.Audio;
 			pAudioAsset = audioAsset;
 
@@ -117,7 +115,8 @@ namespace REngine.Sandbox.States
 			pStopwatch.Stop();
 			renderState.DefaultClearColor = pDefaultClearColor;
 			entityManager.DestroyAll();
-			pAudioAsset?.Dispose();
+			if(pAudioAsset != null)
+				assetManager.UnloadAsset(pAudioAsset);
 		}
 	}
 }
