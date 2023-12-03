@@ -17,6 +17,7 @@ namespace REngine.Core.Threading.Nodes
 		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
 		private EPNode? pTarget;
+		private Exception? pCaughtException;
 #if PROFILER
 		private string? pProfilerName;
 #endif
@@ -29,6 +30,7 @@ namespace REngine.Core.Threading.Nodes
 
 		public override void Execute()
 		{
+			pCaughtException = null;
 #if PROFILER
 			pProfilerName ??= $"{nameof(TaskNode)}#{GetHashCode()}:{DebugName}";
 #endif
@@ -44,8 +46,15 @@ namespace REngine.Core.Threading.Nodes
 			{
 #endif
 				IsRunning = true;
-				ExecuteEvents();
-				ExecuteChildrens();
+				try
+				{
+					ExecuteEvents();
+					ExecuteChildrens();
+				}
+				catch (Exception e)
+				{
+					pCaughtException = e;
+				}
 				pManualResetEvent.Set();
 #if PROFILER
 			}
@@ -58,6 +67,9 @@ namespace REngine.Core.Threading.Nodes
 				return;
 			pManualResetEvent.Wait(MaxWaitTime);
 			IsRunning = false;
+
+			if (pCaughtException != null)
+				throw pCaughtException;
 		}
 
 		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)

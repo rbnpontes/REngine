@@ -199,7 +199,18 @@ namespace REngine.Core.Threading
 
         public IExecutionPipeline Schedule(Action action)
         {
-            pCoordinator.EnqueueAction(action);
+            // If job count is 0, then we must run this action at main thread
+            // If current thread is not Main Thread, then we schedule action
+            // to execute on main thread.
+            if (pCoordinator.JobsCount == 0)
+            {
+                if (Thread.CurrentThread.Name == "REngine - Main Thread")
+                    action();
+                else
+                    Invoke(action);
+            }
+            else
+                pCoordinator.EnqueueAction(action);
 	        return this;
         }
 

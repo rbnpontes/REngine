@@ -78,7 +78,7 @@ namespace REngine.Sandbox.States
 			var textEntity = entityManager.CreateEntity("score");
 			var textTransform = textEntity.CreateComponent<Transform2D>();
 			var text = textEntity.CreateComponent<TextComponent>();
-			text.FontName = PongVariables.DefaultFont;
+			text.FontName = "Fonts/"+PongVariables.DefaultFont;
 			text.TextSize = 16;
 			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
 			pTextTransform = textTransform;

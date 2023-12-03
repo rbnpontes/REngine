@@ -20,6 +20,7 @@ namespace REngine.Core.Threading
 		private bool pStarted;
 		private bool pDisposed;
 
+		public int JobsCount => pThreads.Length;
 		public void Dispose()
 		{
 			if (pDisposed)

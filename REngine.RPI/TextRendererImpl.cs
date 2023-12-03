@@ -301,7 +301,7 @@ namespace REngine.RPI
 			pFonts.TryGetValue(fontName.GetHashCode(), out fontEntry);
 
 			if (fontEntry is null)
-				throw new NullReferenceException($"Font '{fontName}' was not found. Did you call SetFont method first ?");
+				throw new NullReferenceException($"Font '{fontName}' not found. Did you call SetFont method first ?");
 
 			InternalBatch batch = new InternalBatch(
 				this,

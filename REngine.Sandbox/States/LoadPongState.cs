@@ -18,21 +18,22 @@ using REngine.RPI.RenderGraph;
 
 namespace REngine.Sandbox.States
 {
-	internal class LoadPongState : IGameState
+	internal class LoadPongState(
+		GameStateManager gameStateManager,
+		EntityManager entityManager,
+		RenderState renderState,
+		IWindow mainWindow,
+		ISpriteBatch spriteBatch,
+		ITextRenderer textRenderer,
+		IResourceManager resourceManager,
+		IAssetManager assetManager)
+		: IGameState
 	{
 		private const float LoadingWidth = 200;
 		private const float LoadingHeight = 30;
 		private const float LoadingPaddingSize = 8;
 
 		private readonly Queue<Action> pLoadQueue = new();
-		private readonly GameStateManager pGameStateManager;
-		private readonly EntityManager pEntityManager;
-		private readonly RenderState pRenderState;
-		private readonly IWindow pMainWindow;
-		private readonly ISpriteBatch pSpriteBatch;
-		private readonly ITextRenderer pTextRenderer;
-		private readonly IResourceManager pResourceManager;
-		private readonly IAssetManager pAssetManager;
 
 		private Color pDefaultClearColor = Color.Black;
 
@@ -43,30 +44,9 @@ namespace REngine.Sandbox.States
 		public string Name => nameof(LoadPongState);
 
 
-		public LoadPongState(
-			GameStateManager gameStateManager,
-			EntityManager entityManager,
-			RenderState renderState,
-			IWindow mainWindow,
-			ISpriteBatch spriteBatch,
-			ITextRenderer textRenderer,
-			IResourceManager resourceManager,
-			IAssetManager assetManager
-		)
-		{
-			pGameStateManager = gameStateManager;
-			pEntityManager = entityManager;
-			pRenderState = renderState;
-			pMainWindow = mainWindow;
-			pSpriteBatch = spriteBatch;
-			pTextRenderer = textRenderer;
-			pResourceManager = resourceManager;
-			pAssetManager = assetManager;
-		}
-
 		public void OnStart()
 		{
-			pDefaultClearColor = pRenderState.DefaultClearColor;
+			pDefaultClearColor = renderState.DefaultClearColor;
 
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
 			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg", false));
@@ -79,9 +59,9 @@ namespace REngine.Sandbox.States
 			pLoadQueue.Enqueue(() =>
 			{
 				// Load blur screen into sprite batch
-				var resource = pResourceManager.GetResource("@sample/blur");
+				var resource = resourceManager.GetResource("@sample/blur");
 				if (resource.Value is ITexture texture)
-					pSpriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
+					spriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
 			});
 
 			pLoadCount = pLoadQueue.Count;
@@ -91,11 +71,11 @@ namespace REngine.Sandbox.States
 
 		private void SetupLoadSprites()
 		{
-			var root = pEntityManager.CreateEntity("Root Loading");
+			var root = entityManager.CreateEntity("Root Loading");
 			var rootTransform = root.CreateComponent<Transform2D>();
 			pLoadingTransform = rootTransform;
 
-			var spriteEntity = pEntityManager.CreateEntity("Loading Base");
+			var spriteEntity = entityManager.CreateEntity("Loading Base");
 			var spriteTransform = spriteEntity.CreateComponent<Transform2D>();
 			spriteTransform.Scale = new Vector2(LoadingWidth + LoadingPaddingSize * 2, LoadingHeight + LoadingPaddingSize * 2);
 
@@ -104,7 +84,7 @@ namespace REngine.Sandbox.States
 			var sprite = spriteEntity.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.Black;
 
-			spriteEntity = pEntityManager.CreateEntity("Loading Bar");
+			spriteEntity = entityManager.CreateEntity("Loading Bar");
 			pBarTransform = spriteEntity.CreateComponent<Transform2D>();
 			pBarTransform.Position = new Vector2(LoadingPaddingSize);
 			pBarTransform.Scale = new Vector2(0, LoadingHeight);
@@ -117,12 +97,12 @@ namespace REngine.Sandbox.States
 
 		public void OnUpdate()
 		{
-			pRenderState.DefaultClearColor = Color.White;
+			renderState.DefaultClearColor = Color.White;
 			if (pBarTransform is null || pLoadingTransform is null)
 				return;
 
 			// Center Sprite Bar
-			var pos = pMainWindow.Size.ToVector2() * 0.5f - new Vector2(LoadingWidth * 0.5f, LoadingHeight * 0.5f);
+			var pos = mainWindow.Size.ToVector2() * 0.5f - new Vector2(LoadingWidth * 0.5f, LoadingHeight * 0.5f);
 			pLoadingTransform.Position = pos;
 
 			if (pLoadQueue.TryDequeue(out var action))
@@ -130,7 +110,7 @@ namespace REngine.Sandbox.States
 			else
 			{
 				// If queue items is empty, then we must go to next state
-				pGameStateManager.SetState(PongStates.PongMainMenuState);
+				gameStateManager.SetState(PongStates.PongMainMenuState);
 				return;
 			}
 
@@ -140,8 +120,8 @@ namespace REngine.Sandbox.States
 
 		public void OnExit()
 		{
-			pRenderState.DefaultClearColor = pDefaultClearColor;
-			pEntityManager.DestroyAll();
+			renderState.DefaultClearColor = pDefaultClearColor;
+			entityManager.DestroyAll();
 		}
 
 		private IAudio LoadAudio(string assetName, bool isStreamed = true)
@@ -171,15 +151,15 @@ namespace REngine.Sandbox.States
 
 		private void LoadImage(string assetName, byte slotId)
 		{
-			var imageAsset = pAssetManager.GetAsset<ImageAsset>("Textures/"+assetName);
+			var imageAsset = assetManager.GetAsset<ImageAsset>("Textures/"+assetName);
 			var img = imageAsset.Image;
-			pSpriteBatch.SetTexture(slotId, img);
+			spriteBatch.SetTexture(slotId, img);
 		}
 
 		private void LoadFont(string assetName)
 		{
-			var fontAsset = pAssetManager.GetAsset<FontAsset>("Fonts/"+assetName);
-			pTextRenderer.SetFont(fontAsset.Font);
+			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/"+assetName);
+			textRenderer.SetFont(fontAsset.Font);
 		}
 	}
 }
