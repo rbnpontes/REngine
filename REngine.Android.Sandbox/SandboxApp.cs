@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Android.Views;
 using REngine.Android.Windows;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RPI;
@@ -39,6 +41,7 @@ namespace REngine.Android.Sandbox
 		public override void OnSetup(IServiceRegistry registry)
 		{
 			base.OnSetup(registry);
+			registry.Add<IAssetManager, AndroidAssetManager>();
 			Log.Debug(nameof(SandboxApp), "Setup");
 		}
 
@@ -52,6 +55,7 @@ namespace REngine.Android.Sandbox
 			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
 
+			provider.Get<RenderState>().DefaultClearColor = Color.Aqua;
 			provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
 
 			Log.Debug(nameof(SandboxApp), "Started");

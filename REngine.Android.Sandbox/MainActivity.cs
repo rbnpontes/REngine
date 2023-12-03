@@ -1,6 +1,7 @@
 using Android.Views;
 using REngine.Android.Windows;
 using REngine.Core;
+using REngine.Core.Resources;
 using WindowManager = REngine.Android.Windows.WindowManager;
 
 namespace REngine.Android.Sandbox
@@ -20,6 +21,8 @@ namespace REngine.Android.Sandbox
 			// Set our view from the "main" layout resource
 			SetContentView(Resource.Layout.activity_main);
 
+			if(ApplicationContext?.Assets != null)
+				AndroidAssetManager.PlatformAssetManager = ApplicationContext.Assets;
 			pSurfaceView = FindViewById<SurfaceView>(Resource.Id.gameView);
 			pApp = new SandboxApp();
 			pApp.CreateWindowAction = OnCreateWindow;

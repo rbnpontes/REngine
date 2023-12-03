@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if RENGINE_IMGUI
 namespace REngine.RPI
 {
 	public interface IImGuiSystem
@@ -12,3 +13,4 @@ namespace REngine.RPI
 		public event EventHandler? OnGui;
 	}
 }
+#endif

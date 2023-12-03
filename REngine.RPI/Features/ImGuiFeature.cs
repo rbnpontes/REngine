@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+#if RENGINE_IMGUI
 namespace REngine.RPI.Features
 {
     internal class ImGuiFeature : GraphicsRenderFeature
@@ -377,3 +378,4 @@ namespace REngine.RPI.Features
 		}
 	}
 }
+#endif

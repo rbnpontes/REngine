@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Mathematics;
 
-#if RENGINE_RENDERGRAPH
+#if RENGINE_RENDERGRAPH && RENGINE_IMGUI
 namespace REngine.RPI.RenderGraph
 {
 	[NodeTag("imgui-pass")]

@@ -14,7 +14,9 @@ namespace REngine.RPI.RenderGraph
 		{
 			registry
 				.Register<SpritebatchNode>()
+#if RENGINE_IMGUI
 				.Register<ImGuiNode>()
+#endif
 				.Register<ReadNode>()
 				.Register<WriteNode>()
 				.Register<RenderTargetNode>()

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Events;
+using REngine.Core.Resources;
 
 namespace REngine.Core
 {
@@ -99,8 +100,11 @@ namespace REngine.Core
 			ApplicationLifecyle.ExecuteSetup(registry);
 
 			pServiceProvider = registry.Build();
-			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "default_execution_pipeline.xml"), FileMode.Open))
-				pServiceProvider.Get<IExecutionPipeline>().Load(stream);
+
+			var assetManager = pServiceProvider.Get<IAssetManager>();
+			pServiceProvider.Get<IExecutionPipeline>().Load(
+				assetManager.GetStream("default_execution_pipeline.xml")
+			);
 
 			pSetupTime.Stop();
 			return this;

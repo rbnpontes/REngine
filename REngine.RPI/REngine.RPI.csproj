@@ -17,7 +17,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
 		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
+		<DefineConstants>TRACE;WINDOWS;RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">

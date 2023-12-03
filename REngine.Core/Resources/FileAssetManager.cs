@@ -22,7 +22,8 @@ namespace REngine.Core.Resources
 		}
 
 		private readonly Dictionary<ulong, AssetEntry> pEntries = new();
-		
+
+		private bool pStarted;
 		protected override void OnDispose()
 		{
 			pEntries.Clear();
@@ -30,9 +31,13 @@ namespace REngine.Core.Resources
 
 		protected override void OnStart()
 		{
+			if (pStarted)
+				return;
 			var settings = mServiceProvider.Get<EngineSettings>();
 			foreach (var searchPath in settings.AssetSearchPaths)
 				WalkAndCollectFiles(searchPath, searchPath);
+
+			pStarted = true;
 		}
 
 		private void WalkAndCollectFiles(string rootPath, string path)
@@ -62,6 +67,8 @@ namespace REngine.Core.Resources
 
 		public override AssetStream GetStream(string assetName)
 		{
+			if(!pStarted)
+				OnStart();
 			var hash = Hash.Digest(NormalizeAssetName(assetName));
 			if (!pEntries.TryGetValue(hash, out var entry))
 				throw new NotFoundAssetException(assetName);
