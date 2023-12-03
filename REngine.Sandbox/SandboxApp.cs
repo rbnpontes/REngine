@@ -16,12 +16,9 @@ using System.Threading.Tasks;
 
 namespace REngine.Sandbox
 {
-	internal class SandboxApp : App
+	internal class SandboxApp() : App(typeof(SandboxApp))
 	{
 		private SampleWindow? pSampleWindow;
-		public SandboxApp() : base(typeof(SandboxApp))
-		{
-		}
 
 		public override void OnSetupModules(List<IModule> modules)
 		{

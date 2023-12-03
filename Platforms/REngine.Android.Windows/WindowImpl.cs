@@ -112,8 +112,13 @@ namespace REngine.Android.Windows
 
 		public IWindow GetNativeWindow(out NativeWindow window)
 		{
+			// TODO: use better approach
+#if ANDROID
 			window = new NativeWindow() { AndroidNativeWindow = pCallback.NativeWindow };
 			return this;
+#else
+			throw new NotImplementedException();
+#endif
 		}
 
 		public IWindow ForwardKeyDownEvent(InputKey key)

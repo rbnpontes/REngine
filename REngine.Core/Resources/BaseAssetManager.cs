@@ -20,11 +20,13 @@ namespace REngine.Core.Resources
 		
 		private bool pDisposed;
 		protected BaseAssetManager(
+			ILoggerFactory loggerFactory,
+			EngineEvents engineEvents,
 			IServiceProvider serviceProvider)
 		{
 			mServiceProvider = serviceProvider;
-			mLogger = serviceProvider.Get<ILoggerFactory>().Build<IAssetManager>();
-			pEngineEvents = serviceProvider.Get<EngineEvents>();
+			mLogger = loggerFactory.Build<IAssetManager>();
+			pEngineEvents = engineEvents;
 			pEngineEvents.OnStop +=	HandleEngineStop;
 			pEngineEvents.OnStart += HandleEngineStart;
 		}

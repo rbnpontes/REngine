@@ -4,11 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
+using REngine.Core.IO;
 using REngine.Core.Mathematics;
 
 namespace REngine.Core.Resources
 {
-	public class FileAssetManager(IServiceProvider serviceProvider) : BaseAssetManager(serviceProvider)
+	public class FileAssetManager(
+		ILoggerFactory loggerFactory,
+		EngineEvents engineEvents,
+		IServiceProvider serviceProvider) : BaseAssetManager(loggerFactory, engineEvents, serviceProvider)
 	{
 		private struct AssetEntry
 		{
