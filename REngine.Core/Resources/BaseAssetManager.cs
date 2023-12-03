@@ -89,21 +89,20 @@ namespace REngine.Core.Resources
 			return this;
 		}
 
-		public virtual Asset? GetAsset(string assetName, Type assetType)
+		public void TryGetAsset(string assetName, Type assetType, out Asset? asset)
 		{
 			assetName = NormalizeAssetName(assetName);
+			var assetHash = Hash.Digest(assetName);
 #if DEBUG
 			if (!assetType.IsSubclassOf(typeof(Asset)))
 				throw new ArgumentException($"Asset Type must inherit {nameof(Asset)}");
 #endif
 
-			var assetHash = Hash.Digest(assetName);
-			if (mLoadedAssets.TryGetValue(assetHash, out var asset))
+			if (mLoadedAssets.TryGetValue(assetHash, out asset))
 			{
-				if (asset.GetType().IsAssignableTo(assetType))
-					return asset;
-				LogAssetNotFound();
-				return null;
+				if (!asset.GetType().IsAssignableTo(assetType))
+					LogAssetNotFound();
+				return;
 			}
 
 			var stream = GetStream(assetName);
@@ -111,7 +110,7 @@ namespace REngine.Core.Resources
 			if (asset is null)
 			{
 				LogAssetNotFound();
-				return null;
+				return;
 			}
 
 			mLogger.Info($"Loading Asset: {assetName}");
@@ -125,7 +124,7 @@ namespace REngine.Core.Resources
 #endif
 			mLogger.Success($"Loaded Asset: {assetName}");
 			mLoadedAssets[assetHash] = asset;
-			return asset;
+			return;
 
 			void LogAssetNotFound()
 			{
@@ -133,10 +132,21 @@ namespace REngine.Core.Resources
 			}
 		}
 
-		public T? GetAsset<T>(string assetName) where T : Asset
+		public void TryGetAsset<T>(string assetName, out T? asset) where T : Asset
 		{
-			var asset = (T?)GetAsset(assetName, typeof(T));
-			return asset;
+			TryGetAsset(assetName, typeof(T), out var tmpAsset);
+			asset = (T?)tmpAsset;
+		}
+		public virtual Asset GetAsset(string assetName, Type assetType)
+		{
+			TryGetAsset(assetName, assetType, out var asset);
+			return asset ?? throw new NotFoundAssetException(assetName);
+		}
+
+		public T GetAsset<T>(string assetName) where T : Asset
+		{
+			TryGetAsset<T>(assetName, out var asset);
+			return asset ?? throw new NotFoundAssetException(assetName);
 		}
 
 		private static string NormalizePath(string path)

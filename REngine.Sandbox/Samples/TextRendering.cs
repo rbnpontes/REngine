@@ -58,9 +58,6 @@ namespace REngine.Sandbox.Samples
 
 			// Load Font
 			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
-			if (fontAsset is null)
-				throw new NotFoundAssetException("Fonts/Anonymous Pro.ttf");
-			
 			pBatch = textRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 			pBatch.Text = pText = "Hello World";
 			pTextSize = (int)pBatch.Size;

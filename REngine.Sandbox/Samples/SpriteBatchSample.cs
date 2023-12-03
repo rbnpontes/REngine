@@ -10,73 +10,67 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.Sandbox.Samples
 {
 #if RENGINE_SPRITEBATCH
 	[Sample("SpriteBatch")]
-	internal class SpriteBatchSample : ISample
+	internal class SpriteBatchSample(
+		ISpriteBatch spriteBatch,
+		IRenderer renderer,
+		IEngine engine,
+		IAssetManager assetManager
+		) : ISample
 	{
-		public IWindow? Window { get; set; }
-		private ISpriteBatch? pSpriteBatch;
 		private IRenderFeature? pSpriteFeature;
-		private IRenderer? pRenderer;
-		private IEngine? pEngine;
-
+		public IWindow? Window { get; set; }
 		public void Dispose()
 		{
-			pRenderer?.RemoveFeature(pSpriteFeature);
-			pSpriteBatch?.ClearTextures();
+			renderer?.RemoveFeature(pSpriteFeature);
+			spriteBatch.ClearTextures();
 			pSpriteFeature?.Dispose();
 
-			if (pSpriteBatch != null)
-				pSpriteBatch.OnDraw -= OnDraw;
+			spriteBatch.OnDraw -= OnDraw;
 		}
 
 		public void Load(IServiceProvider provider)
 		{
-			pSpriteBatch = provider.Get<ISpriteBatch>();
-
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
-
+			ImageAsset sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
 			// Set Sprite on Spritebatch
-			pSpriteBatch.SetTexture(0, sprite.Image);
-			pSpriteFeature = pSpriteBatch.Feature;
+			spriteBatch.SetTexture(0, sprite.Image);
+			pSpriteFeature = spriteBatch.Feature;
 
-			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
-			pEngine = provider.Get<IEngine>();
-
-			pSpriteBatch.OnDraw += OnDraw;
+			renderer.AddFeature(pSpriteFeature);
+			spriteBatch.OnDraw += OnDraw;
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
-			if (pSpriteBatch?.IsReady == false)
+			if (!spriteBatch.IsReady)
 				return;
 
-			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
-			Size wndSize = Window?.Size ?? new Size();
-			Vector2 halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);
+			var elapsedTime = (float)engine.ElapsedTime / 1000.0f;
+			var wndSize = Window?.Size ?? new Size();
+			var halfSize = new Vector2(wndSize.Width / 2.0f, wndSize.Height / 2.0f);
 
-			float stagger = AnalogicTime(elapsedTime + 0.5f, 2.5f, 3);
-			float sineT = stagger * (float)Math.Sin(elapsedTime);
-			float cosT = stagger * (float)Math.Cos(elapsedTime);
+			var stagger = QuadTime(elapsedTime + 0.5f, 2.5f, 3);
+			var sineT = stagger * (float)Math.Sin(elapsedTime);
+			var cosT = stagger * (float)Math.Cos(elapsedTime);
 
 			// Draw Flickering Doge
-			pSpriteBatch?.Draw(new SpriteBatchInfo
+			spriteBatch.Draw(new SpriteBatchInfo
 			{
 				/*Batch texture slot*/
 				TextureSlot = 0,
-				Size = new Vector2(300) * AnalogicTime(elapsedTime, 1f, 2),
+				Size = new Vector2(300) * QuadTime(elapsedTime, 1f, 2),
 				Angle = elapsedTime,
 				Anchor = new Vector2(0.5f, 0.5f),
 				Position = halfSize + (new Vector2(cosT, sineT) * 150)
 			});
 			// Draw Colored Doge
-			pSpriteBatch?.Draw(new SpriteBatchInfo
+			spriteBatch.Draw(new SpriteBatchInfo
 			{
 				TextureSlot = 0,
 				Angle = elapsedTime,
@@ -91,7 +85,7 @@ namespace REngine.Sandbox.Samples
 		{
 		}
 
-		private float AnalogicTime(float t, float freq, float amplitude)
+		private static float QuadTime(float t, float freq, float amplitude)
 		{
 			t = (float)(Math.Sin(t * freq) * amplitude);
 			t = Math.Clamp(t, -(float)Math.Round(freq), (float)Math.Round(freq));

@@ -9,28 +9,29 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Mathematics;
+using REngine.Core.Resources;
 using REngine.RPI;
 
 namespace REngine.Sandbox.Samples
 {
 	[Sample("SpriteBatch - Effect")]
-	internal class SpriteBatchEffectSample : ISample
+	internal class SpriteBatchEffectSample(
+		IRenderer renderer,
+		ISpriteBatch spriteBatch,
+		IAssetManager assetManager) : ISample
 	{
 		private readonly BasicSpriteEffect pSpriteEffect = new("Sample Effect");
 
 		private IRenderFeature? pSpriteFeature;
-		private ISpriteBatch? pSpriteBatch;
-		private IRenderer? pRenderer;
 		public IWindow? Window { get; set; }
 		public void Dispose()
 		{
 			pSpriteEffect.Dispose();
 
-			pRenderer?.RemoveFeature(pSpriteFeature);
+			renderer.RemoveFeature(pSpriteFeature);
 			pSpriteFeature?.Dispose();
 
-			if(pSpriteBatch != null)
-				pSpriteBatch.OnDraw -= OnDraw;
+			spriteBatch.OnDraw -= OnDraw;
 		}
 
 		public void Load(IServiceProvider provider)
@@ -39,25 +40,22 @@ namespace REngine.Sandbox.Samples
 			pSpriteEffect.PixelShader = new FileShaderStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders/sprite_smpl_effect_ps.hlsl"));
 
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
+			renderer = provider.Get<IRenderer>();
+			spriteBatch = provider.Get<ISpriteBatch>();
+			spriteBatch.SetTexture(0, sprite.Image);
 
-			pRenderer = provider.Get<IRenderer>();
-			pSpriteBatch = provider.Get<ISpriteBatch>();
-			pSpriteBatch.SetTexture(0, sprite.Image);
-
-			pRenderer.AddFeature(pSpriteFeature = pSpriteBatch.Feature);
-			pSpriteBatch.OnDraw += OnDraw;
+			renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
+			spriteBatch.OnDraw += OnDraw;
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
-			if (pSpriteBatch is null || Window is null)
+			if (Window is null)
 				return;
 
 			var size = Window.Size;
-			pSpriteBatch.Draw(new SpriteBatchInfo
+			spriteBatch.Draw(new SpriteBatchInfo
 			{
 				Effect = pSpriteEffect,
 				Anchor = new Vector2(0.5f, 0.5f),

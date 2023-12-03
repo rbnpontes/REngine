@@ -13,34 +13,27 @@ namespace REngine.Assets
 		Tga,
 		Hdr
 	}
-	public class ImageAsset : IAsset
+	public class ImageAsset : Asset
 	{
 		public ImageType ImageType { get; set; } = ImageType.Unknow;
-		public string Name { get; set; } = string.Empty;
 		public string Checksum { get; private set; } = string.Empty;
-		public Image Image { get; set; } = new Image();
-		public int Size { get => Image.Data.Length; }
-
+		public Image Image { get; private set; } = new Image();
 		public ImageAsset() { }
 		public ImageAsset(string name, ImageType imageType = ImageType.Unknow)
 		{
-			Name = name;
 			ImageType = imageType;
 		}
-
-		public Task Load(Stream stream)
+		protected override void OnLoad(AssetStream stream)
 		{
-			return Task.Run(() =>
+			var img = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+			var dataInfo = new ImageDataInfo
 			{
-				ImageResult img = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
-				ImageDataInfo dataInfo = new ImageDataInfo
-				{
-					Components = 4,
-					Data = img.Data,
-					Size = new ImageSize((ushort)img.Width, (ushort)img.Height)
-				};
-				Image.SetData(dataInfo);
-			});
+				Components = 4,
+				Data = img.Data,
+				Size = new ImageSize((ushort)img.Width, (ushort)img.Height)
+			};
+			Image.SetData(dataInfo);
+			mSize = img.Data.Length;
 		}
 
 		public Task Save(ImageType imageType, Stream stream)
@@ -56,7 +49,7 @@ namespace REngine.Assets
 				throw new Exception("You must set a ImageType before save, Or call specialized Save method from ImageAsset.");
 			return Task.Run(() =>
 			{
-				StbImageWriteSharp.ImageWriter writer = new StbImageWriteSharp.ImageWriter();
+				var writer = new StbImageWriteSharp.ImageWriter();
 				var colorComponents = GetColorComponents(Image.Components);
 				switch (imgType)
 				{
@@ -79,9 +72,9 @@ namespace REngine.Assets
 			});
 		}
 
-		public void Dispose()
+		protected override void OnDispose()
 		{
-			Image = new Image();
+			Image = Image.Empty();
 		}
 
 		private StbImageWriteSharp.ColorComponents GetColorComponents(byte components)

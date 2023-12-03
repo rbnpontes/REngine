@@ -42,7 +42,9 @@ namespace REngine.Core.Resources
 		 * If asset is reachable, then a <see cref="Asset"/> object
 		 * will return, otherwise a null object will return instead
 		 */
-		public Asset? GetAsset(string assetName, Type assetType);
-		public T? GetAsset<T>(string assetName) where T : Asset;
+		public Asset GetAsset(string assetName, Type assetType);
+		public T GetAsset<T>(string assetName) where T : Asset;
+		public void TryGetAsset(string assetName, Type assetType, out Asset? asset);
+		public void TryGetAsset<T>(string assetName, out T? asset) where T : Asset;
 	}
 }

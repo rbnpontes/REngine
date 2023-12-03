@@ -27,7 +27,8 @@ namespace REngine.Sandbox.States
 		IWindow mainWindow,
 		RenderState renderState,
 		GameStateManager gameStateManager,
-		IVariableManager variableManager)
+		IVariableManager variableManager,
+		IAssetManager assetManager)
 		: IGameState
 	{
 		private readonly Color pDefaultClearColor = renderState.DefaultClearColor;
@@ -41,10 +42,7 @@ namespace REngine.Sandbox.States
 		public void OnStart()
 		{
 			mainWindow.Fullscreen();
-			using ImageAsset sprite = new("EngineLogo-Sdf.png");
-			using (FileStream stream = new(Path.Join(EngineSettings.AssetsPath, "Textures", sprite.Name),
-				       FileMode.Open, FileAccess.Read))
-				sprite.Load(stream).Wait();
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/EngineLogo-Sdf.png");
 			spriteBatch.SetTexture(0, sprite.Image);
 
 			var audioAsset = new StreamedAudioAsset();

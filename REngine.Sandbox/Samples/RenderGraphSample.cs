@@ -59,17 +59,11 @@ namespace REngine.Sandbox.Samples
 				return;
 
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
-
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
 			spriteBatch.SetTexture(0, sprite.Image);
 
 			// Load Font
 			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
-			if (fontAsset is null)
-				throw new NotFoundAssetException("Fonts/Anonymous Pro.ttf");
-			
 			pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 			pTextBatch.Text = "Render Graph Sample";
 			pTextBatch.Size = 24;

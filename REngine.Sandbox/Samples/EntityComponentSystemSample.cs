@@ -9,6 +9,7 @@ using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
+using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
@@ -16,9 +17,14 @@ using REngine.RPI.Components;
 namespace REngine.Sandbox.Samples
 {
 	[Sample("Entity Component System")]
-	internal class EntityComponentSystemSample : ISample
+	internal class EntityComponentSystemSample(
+		IRenderer renderer,
+		IImGuiSystem imGuiSystem,
+		IAssetManager assetManager,
+		ISpriteBatch spriteBatch,
+		EntityManager entityManager) : ISample
 	{
-		private readonly List<SpriteComponent> pComponents = new();
+		private readonly List<SpriteComponent> pComponents = [];
 		private readonly Random pRandom = new();
 		private readonly object pSync = new();
 
@@ -27,30 +33,17 @@ namespace REngine.Sandbox.Samples
 
 		private readonly Queue<SpriteComponent> pComponents2Remove = new();
 
-		private bool pHasSceneFile;
+		private bool pHasSceneFile = File.Exists(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Scenes/sprite_scene.rscene"));
 		
-		private EntityManager? pEntityManager;
-
-		private IRenderer? pRenderer;
-		private IImGuiSystem? pImGuiSystem;
 		private IRenderFeature? pRenderFeature;
-		private IServiceProvider? pServiceProvider;
-
 		public IWindow? Window { get; set; }
-
-		public EntityComponentSystemSample()
-		{
-			pHasSceneFile = File.Exists(pSceneFilePath);
-		}
 
 		public void Dispose()
 		{
 			pComponents.ForEach(x => x.Owner?.Dispose());
 
-			pRenderer?.RemoveFeature(pRenderFeature);
-
-			if(pImGuiSystem != null)
-				pImGuiSystem.OnGui -= OnGui;
+			renderer.RemoveFeature(pRenderFeature);
+			imGuiSystem.OnGui -= OnGui;
 		}
 
 		public void Load(IServiceProvider provider)
@@ -58,24 +51,16 @@ namespace REngine.Sandbox.Samples
 			if (Window is null)
 				return;
 
-			pServiceProvider = provider;
-			pRenderer = provider.Get<IRenderer>();
-			pEntityManager = provider.Get<EntityManager>();
-			var spriteBatch = provider.Get<ISpriteBatch>();
-
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
-
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
 			spriteBatch.SetTexture(0, sprite.Image);
-
-			pRenderer = provider.Get<IRenderer>();
+			
+			renderer = provider.Get<IRenderer>();
 			// To sprite component work, we must add sprite batch render feature
-			pRenderer.AddFeature(pRenderFeature = spriteBatch.Feature);
+			renderer.AddFeature(pRenderFeature = spriteBatch.Feature);
 
-			pImGuiSystem = provider.Get<IImGuiSystem>();
-			pImGuiSystem.OnGui += OnGui;
+			imGuiSystem = provider.Get<IImGuiSystem>();
+			imGuiSystem.OnGui += OnGui;
 
 			var wndSize = Window.Size;
 			InstantiateSpriteComponent(
@@ -89,16 +74,11 @@ namespace REngine.Sandbox.Samples
 
 		private void InstantiateSpriteComponent(Vector2 position, float rotation)
 		{
-			if (pServiceProvider is null || pEntityManager is null)
-				return;
 			lock (pSync)
 			{
-				var entity = pEntityManager.CreateEntity($"Sprite Component #{pComponents.Count}");
+				var entity = entityManager.CreateEntity($"Sprite Component #{pComponents.Count}");
 
 				var spriteComponent = entity.CreateComponent<SpriteComponent>();
-
-				entity.AddComponent(spriteComponent);
-
 				spriteComponent.Transform.Position = position;
 				spriteComponent.Transform.Rotation = rotation;
 
@@ -194,7 +174,7 @@ namespace REngine.Sandbox.Samples
 				SaveScene();
 			if (ImGui.Button("Clear Scene"))
 			{
-				pEntityManager?.DestroyAll();
+				entityManager.DestroyAll();
 				pComponents.Clear();
 			}
 		}
@@ -203,11 +183,11 @@ namespace REngine.Sandbox.Samples
 		{
 			lock (pSync)
 			{
-				pEntityManager?.DestroyAll();
-				pEntityManager?.Load(pSceneFilePath);
+				entityManager.DestroyAll();
+				entityManager.Load(pSceneFilePath);
 				pComponents.Clear();
 
-				var entities = pEntityManager?.GetEntities() ?? Array.Empty<Entity>();
+				var entities = entityManager.GetEntities() ?? Array.Empty<Entity>();
 				foreach (var entity in entities)
 				{
 					var component = entity.GetComponent<SpriteComponent>();
@@ -228,7 +208,7 @@ namespace REngine.Sandbox.Samples
 
 			lock (pSync)
 			{
-				pEntityManager?.Save(pSceneFilePath);
+				entityManager?.Save(pSceneFilePath);
 				if(!pHasSceneFile)
 					pHasSceneFile = true;
 			}

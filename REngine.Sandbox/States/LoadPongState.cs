@@ -171,11 +171,7 @@ namespace REngine.Sandbox.States
 
 		private void LoadImage(string assetName, byte slotId)
 		{
-			var imageAsset = new ImageAsset(assetName);
-			using (FileStream stream = new(Path.Join(EngineSettings.AssetsTexturesPath, assetName), FileMode.Open,
-				       FileAccess.Read))
-				imageAsset.Load(stream).Wait();
-
+			var imageAsset = pAssetManager.GetAsset<ImageAsset>("Textures/"+assetName);
 			var img = imageAsset.Image;
 			pSpriteBatch.SetTexture(slotId, img);
 		}
@@ -183,8 +179,6 @@ namespace REngine.Sandbox.States
 		private void LoadFont(string assetName)
 		{
 			var fontAsset = pAssetManager.GetAsset<FontAsset>("Fonts/"+assetName);
-			if (fontAsset is null)
-				return;
 			pTextRenderer.SetFont(fontAsset.Font);
 		}
 	}

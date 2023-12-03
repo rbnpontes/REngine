@@ -9,37 +9,32 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.Sandbox.Samples
 {
 #if RENGINE_SPRITEBATCH
 	[Sample("SpriteBatch - Instanced")]
-	internal class SpriteBatchInstanced : ISample
+	internal class SpriteBatchInstanced(
+		ISpriteBatch spriteBatch,
+		IRenderer renderer,
+		IEngine engine,
+		IAssetManager assetManager) : ISample
 	{
-		public IWindow? Window { get; set; }
+		private readonly Size pInstancingSpriteGridSize = new Size(20, 20);
 
-		private ISpriteBatch? pSpriteBatch;
 		private IRenderFeature? pSpriteFeature;
-		private IRenderer? pRenderer;
-		private IEngine? pEngine;
-
 		private ISpriteInstancing? pInstancingObject;
-
-		private Size pInstancingSpriteGridSize;
-
-		public SpriteBatchInstanced()
-		{
-			pInstancingSpriteGridSize = new Size(20, 20);
-		}
+		
+		public IWindow? Window { get; set; }
 
 		public void Dispose()
 		{
-			pRenderer?.RemoveFeature(pSpriteFeature);
-			pSpriteBatch?.ClearTextures();
+			renderer?.RemoveFeature(pSpriteFeature);
+			spriteBatch.ClearTextures();
 			pSpriteFeature?.Dispose();
 
-			if(pSpriteBatch != null)
-				pSpriteBatch.OnDraw -= OnDraw;
+			spriteBatch.OnDraw -= OnDraw;
 
 			pInstancingObject = null;
 
@@ -51,36 +46,31 @@ namespace REngine.Sandbox.Samples
 
 		public void Load(IServiceProvider provider)
 		{
-			pSpriteBatch = provider.Get<ISpriteBatch>();
+			spriteBatch = provider.Get<ISpriteBatch>();
 
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
 
 			// Set Sprite on Spritebatch
-			pSpriteBatch.SetTexture(0, sprite.Image);
+			spriteBatch.SetTexture(0, sprite.Image);
 			// Allocates Instancing Object
-			pInstancingObject = pSpriteBatch.GetInstancing(pInstancingSpriteGridSize.Width * pInstancingSpriteGridSize.Height);
+			pInstancingObject = spriteBatch.GetInstancing(pInstancingSpriteGridSize.Width * pInstancingSpriteGridSize.Height);
+			pSpriteFeature = spriteBatch.Feature;
+			renderer.AddFeature(pSpriteFeature);
 
-			pSpriteFeature = pSpriteBatch.Feature;
-
-			pRenderer = provider.Get<IRenderer>().AddFeature(pSpriteFeature);
-			pEngine = provider.Get<IEngine>();
-
-			pSpriteBatch.OnDraw += OnDraw;
+			spriteBatch.OnDraw += OnDraw;
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
-			if (pSpriteBatch?.IsReady == false || pInstancingObject is null)
+			if (spriteBatch.IsReady == false || pInstancingObject is null)
 				return;
 
-			float elapsedTime = (float)(pEngine?.ElapsedTime ?? 0.0) / 1000.0f;
-			Size wndSize = Window?.Size ?? new Size();
+			var elapsedTime = (float)engine.ElapsedTime / 1000.0f;
+			var wndSize = Window?.Size ?? new Size();
 
 			UpdateInstances(pInstancingObject, elapsedTime, wndSize);
-			pSpriteBatch?.Draw(0, pInstancingObject);
+			spriteBatch?.Draw(0, pInstancingObject);
 		}
 
 		public void Update(IServiceProvider provider)
@@ -89,13 +79,13 @@ namespace REngine.Sandbox.Samples
 		
 		private void UpdateInstances(ISpriteInstancing instancing, float elapsed, Size wndSize)
 		{
-			Vector2 size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
-			Vector2 anchor = new Vector2(0.5f, 0.5f);
+			var size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
+			var anchor = new Vector2(0.5f, 0.5f);
 
-			for (int i = 0; i < instancing.Length; ++i)
+			for (var i = 0; i < instancing.Length; ++i)
 			{
-				int x = i % pInstancingSpriteGridSize.Width;
-				int y = i / pInstancingSpriteGridSize.Height;
+				var x = i % pInstancingSpriteGridSize.Width;
+				var y = i / pInstancingSpriteGridSize.Height;
 
 				instancing
 					.SetSize(i, size)

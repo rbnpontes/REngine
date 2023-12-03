@@ -9,6 +9,7 @@ using ImGuiNET;
 using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
@@ -18,45 +19,32 @@ using REngine.RPI.RenderGraph;
 namespace REngine.Sandbox.Samples
 {
 	[Sample("Post Process")]
-	internal class PostProcessSample : ISample
+	internal class PostProcessSample(
+		IVariableManager varMgr,
+		IRenderGraph renderGraph,
+		IRenderer renderer,
+		IImGuiSystem imGuiSys,
+		EntityManager entityMgr,
+		ISpriteBatch spriteBatch,
+		IAssetManager assetManager)
+		: ISample
 	{
-		private readonly IVariableManager pVarMgr;
-		private readonly IRenderGraph pRenderGraph;
-		private readonly IRenderer pRenderer;
-		private readonly IImGuiSystem pImGuiSystem;
-		private readonly EntityManager pEntityMgr;
-		private readonly IVar pVar;
+		private readonly IVariableManager pVarMgr = varMgr;
+		private readonly IVar pVar = varMgr.GetVar("@vars/sample/postprocess-effect");
 
 		private IRenderFeature? pFeature;
 		public IWindow? Window { get; set; }
 
 
-		public PostProcessSample(
-			IVariableManager varMgr,
-			IRenderGraph renderGraph,
-			IRenderer renderer,
-			IImGuiSystem imGuiSys,
-			EntityManager entityMgr
-		)
-		{
-			pVarMgr = varMgr;
-			pRenderGraph = renderGraph;
-			pRenderer = renderer;
-			pImGuiSystem = imGuiSys;
-			pEntityMgr = entityMgr;
-
-			pVar = varMgr.GetVar("@vars/sample/postprocess-effect");
-		}
-
 		public void Dispose()
 		{
-			pRenderer.RemoveFeature(pFeature);
+			renderer.RemoveFeature(pFeature);
 			pFeature.Dispose();
 
-			pEntityMgr.DestroyAll();
+			entityMgr.DestroyAll();
 
-			pImGuiSystem.OnGui -= OnGui;
-			pRenderer.AddFeature(pImGuiSystem.Feature, 100);
+			imGuiSys.OnGui -= OnGui;
+			renderer.AddFeature(imGuiSys.Feature, 100);
 		}
 
 		public void Load(IServiceProvider provider)
@@ -65,23 +53,19 @@ namespace REngine.Sandbox.Samples
 				return;
 
 			// Load Sprite
-			ImageAsset sprite = new("doge.png");
-			using (FileStream stream = new(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Textures/doge.jpg"), FileMode.Open))
-				sprite.Load(stream).Wait();
-
-			provider.Get<ISpriteBatch>().SetTexture(0, sprite.Image);
-
-
-			var rootEntry = pRenderGraph.LoadFromFile(
+			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
+			spriteBatch.SetTexture(0, sprite.Image);
+			
+			var rootEntry = renderGraph.LoadFromFile(
 				Path.Join(EngineSettings.AssetsPath, "postprocess-rendergraph.xml")
 			);
 
-			pFeature = new RenderGraphFeature(pRenderGraph, rootEntry);
-			pRenderer.AddFeature(pFeature);
+			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
+			renderer.AddFeature(pFeature);
 
-			pRenderer.RemoveFeature(pImGuiSystem.Feature);
+			renderer.RemoveFeature(imGuiSys.Feature);
 
-			pImGuiSystem.OnGui += OnGui;
+			imGuiSys.OnGui += OnGui;
 
 			CreateSprites(Window.Size);
 		}
@@ -96,7 +80,7 @@ namespace REngine.Sandbox.Samples
 				var scale = 10 + (float)rnd.NextDouble() * 100;
 				var rot = (float)rnd.NextDouble();
 
-				var entity = pEntityMgr.CreateEntity($"Sprite #{i}");
+				var entity = entityMgr.CreateEntity($"Sprite #{i}");
 				var transform = entity.CreateComponent<Transform2D>();
 				var sprite = entity.CreateComponent<SpriteComponent>();
 				sprite.Anchor = new Vector2(0.5f);
