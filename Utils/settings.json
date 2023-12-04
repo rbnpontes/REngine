@@ -14,7 +14,8 @@
     "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2FlibTracyClient.so?alt=media"
   },
   "MacOS" : {
-    "libfreetype.dylib" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/osx-x64%2Flibfreetype.dylib?alt=media"
+    "libfreetype.dylib" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/osx-x64%2Flibfreetype.dylib?alt=media",
+    "libcimgui.dylib" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/osx-x64%2Fcimgui.dylib?alt=media"
   },
   "Android" : {
     "Arm64_V8A" : {

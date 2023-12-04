@@ -10,6 +10,8 @@ I'm excited to share my open-source game engine project with you. This is a pers
 Clone this repository by the command line above
 
     https://github.com/rbnpontes/REngine.git
+
+Run `update_dependencies.bat` or `update_dependencies.sh` if you are under linux.
     
 Then, restore nuget packages(you can do this easily on Visual Studio)
 Build and Run.
@@ -56,6 +58,10 @@ Perform the same steps on Linux, copy the published or built project, and transf
 5. How to enable Tracy Profiler ? Answer: If you're under Visual Studio, just select `Debug-Profiler` or `Release-Profiler` configuration
 6. I need to use Tracy on Linux. Answer: To use on linux you must build manualy tracy with CMAKE parameters: 
 `-DTRACY_FIBERS=ON -DTRACY_DELAYED_INIT=ON -DTRACY_MANUAL_LIFETIME=ON -DBUILD_SHARED_LIBS=ON`
+7. `update_dependencies.bat` or `update_dependencies.sh` is not working. Answer: 
+You can run manually this command `.\Utils\winREngine.DependencyTool.exe -o dependencies` or `./Utils/linuxREngine.DependencyTool -o dependencies` if your are under linux
+8. External Downloaded Dependencies is not work. Answer: if third party dependencies is not work, you can build all dependencies manually.
+Basically you must generate correct libraries( Windows=.dll, Linux=.so, and so on) and place under `dependencies` folder.
 
 # Samples
 ![REngine Samples](https://github.com/rbnpontes/REngine/blob/main/doc/sample.gif)
@@ -86,7 +92,15 @@ Perform the same steps on Linux, copy the published or built project, and transf
 ### Tray Support
 ![Tracy Profiler](https://github.com/rbnpontes/REngine/blob/main/doc/tracy_profiler.gif)
 
-### Huge Thanks to Support JetBrains
+## Third Party Credits
+- Tracy (https://github.com/clibequilibrium/Tracy-CSharp | MIT) (https://github.com/wolfpld/tracy | BSD)
+- SFML (https://www.sfml-dev.org/ | ZLIB/Libpng)  (https://www.sfml-dev.org/download/sfml.net/)
+- FreeType (https://github.com/ryancheung/FreeTypeSharp | MIT) (https://freetype.org/ | FTL or GPL)
+- ImGui (https://github.com/ImGuiNET/ImGui.NET | MIT) (https://github.com/ocornut/imgui | MIT) 
+- Diligent Engine (https://github.com/DiligentGraphics/DiligentEngine | Apache 2.0)
+- GLFW (https://github.com/ForeverZer0/glfw-net | MIT) (https://www.glfw.org/ | Zlib/Libpng)
+- JSON.Net (https://www.newtonsoft.com/json | MIT)
+## Huge Thanks to Support JetBrains
 
 I want to express my heartfelt gratitude to JetBrains for providing a full license of their products and making my hobby become a reality.
 Purchase JetBrains; it's an incredible product, and as a developer, you won't regret it.

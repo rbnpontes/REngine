@@ -14,10 +14,10 @@
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
-	  <DefineConstants>TRACE</DefineConstants>
+	  <DefineConstants>$(DefineConstants);TRACE;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-	  <DefineConstants>$(DefineConstants);RENGINE_IMGUI;PROFILER</DefineConstants>
+	  <DefineConstants>$(DefineConstants);RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Platforms\REngine.Android.Windows\REngine.Android.Windows.csproj" />

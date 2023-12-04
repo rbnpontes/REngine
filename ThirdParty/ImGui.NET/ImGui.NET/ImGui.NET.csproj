@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>A .NET wrapper for the Dear ImGui library.</Description>
+    <AssemblyVersion>1.90.0.1</AssemblyVersion>
+    <Authors>Eric Mellino</Authors>
+    <TargetFrameworks>net8.0;</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>portable</DebugType>
+    <AssemblyName>ImGui.NET</AssemblyName>
+    <PackageId>ImGui.NET</PackageId>
+    <PackageVersion>$(AssemblyVersion)$(PackagePrereleaseIdentifier)</PackageVersion>
+    <PackageTags>ImGui ImGui.NET Immediate Mode GUI</PackageTags>
+    <PackageProjectUrl>https://github.com/mellinoe/imgui.net</PackageProjectUrl>
+    <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\ImGui.NET.xml</DocumentationFile>
+    <RootNamespace>ImGuiNET</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0" />
+    <PackageReference Include="System.Buffers" Version="4.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ImPlot.NET</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ImNodes.NET</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
+    <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\cimgui.dll">
+      <Link>runtimes/win-x64/native/cimgui.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\libcimgui.so">
+      <Link>runtimes/linux-x64/native/libcimgui.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)\dependencies\runtimes\osx-x64\libcimgui.dylib">
+      <Link>runtimes/osx/native/libcimgui.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">
+    <EmbeddedResource
+            Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libfreetype.so"
+            Link="libs\x86_64\libcimgui.so"/>
+    <EmbeddedResource
+            Include="$(SolutionDir)\dependencies\runtimes\android\x86\libfreetype.so"
+            Link="libs\x86\libcimgui.so"/>
+    <EmbeddedResource
+            Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libfreetype.so"
+            Link="libs\armeabi-v7a\libcimgui.so"/>
+    <EmbeddedResource
+            Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libfreetype.so"
+            Link="libs\arm64-v8a\libcimgui.so"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Generated\" />
+  </ItemGroup>
+</Project>

@@ -17,7 +17,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
 		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>TRACE;WINDOWS;RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH</DefineConstants>
+		<DefineConstants>TRACE;WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
@@ -42,12 +42,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ImGui.NET" Version="1.90.0.1" />
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
+		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="Assets\Fonts\Anonymous Pro.ttf">
