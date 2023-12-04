@@ -8,36 +8,41 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
 		<TargetFramework>net8.0-android</TargetFramework>
 		<DefineConstants>$(DefineConstants);ANDROID;FULL_DEBUG</DefineConstants>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Profiler'">
 	  <DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Linux'">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
 		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release-Profiler'">
 	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug-Android-Profiler' ">
+	  <TargetFramework>net8.0-android</TargetFramework>
+	  <DefineConstants>$(DefineConstants);ANDROID;FULL_DEBUG</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -51,12 +56,18 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">
+		<EmbeddedNativeLibrary
+				Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libREngine-DiligentNativeDriver.so"
+				Link="libs\arm64-v8a\libREngine-DiligentNativeDriver.so"/>
+		<EmbeddedNativeLibrary
+				Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libREngine-DiligentNativeDriver.so"
+				Link="libs\armeabi-v7a\libREngine-DiligentNativeDriver.so"/>
 		<EmbeddedNativeLibrary 
-			Include="runtimes\android\x86_64\libREngine-DiligentNativeDriver.so"
+			Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libREngine-DiligentNativeDriver.so"
 			Link="libs\x86_64\libREngine-DiligentNativeDriver.so"/>
-		<!--<EmbeddedNativeLibrary
-			Include=".\runtimes\android\armeabi-v7a\libREngine-DiligentNativeDriver.so"
-			Link="libs\armeabi-v7a\libREngine-DiligentNativeDriver.so"/>-->
+		<EmbeddedNativeLibrary
+				Include="$(SolutionDir)\dependencies\runtimes\android\x86\libREngine-DiligentNativeDriver.so"
+				Link="libs\x86\libREngine-DiligentNativeDriver.so"/>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Debug-Profiler' or '$(Configuration)'=='Release' or '$(Configuration)'=='Release-Profiler'">

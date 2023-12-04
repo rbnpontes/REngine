@@ -99,10 +99,44 @@ namespace REngine.Core.Runtimes
 			}
 
 			Logger?.Debug("Fallback to default loading");
-			if (!NativeLibrary.TryLoad(libName, assembly,
-				    DllImportSearchPath.ApplicationDirectory | DllImportSearchPath.UserDirectories |
-				    DllImportSearchPath.UseDllDirectoryForDependencies,
-				    out result)) throw new FileLoadException($"Failed to load native lib {libName}.");
+            
+			libName = libName
+				.Replace(".so", string.Empty)
+				.Replace(".dll", string.Empty)
+				.Replace(".dylib", string.Empty);
+
+			Logger?.Debug("Try Load without Extension");
+			
+			var success = NativeLibrary.TryLoad(libName, assembly,
+				DllImportSearchPath.ApplicationDirectory | DllImportSearchPath.UserDirectories | DllImportSearchPath.UseDllDirectoryForDependencies,
+				out result);
+
+			if (!success)
+				success = NativeLibrary.TryLoad(libName, out result);
+
+			if (!success)
+			{
+				Logger?.Debug("Try Load with Extension");
+
+				if (OperatingSystem.IsWindows())
+					libName += ".dll";
+				else if (OperatingSystem.IsLinux() || OperatingSystem.IsAndroid())
+					libName += ".so";
+				else if (OperatingSystem.IsMacOS())
+					libName += ".dylib";
+
+				success = NativeLibrary.TryLoad(libName, assembly,
+					DllImportSearchPath.ApplicationDirectory | DllImportSearchPath.UserDirectories |
+					DllImportSearchPath.UseDllDirectoryForDependencies,
+					out result);
+			}
+
+			if (!success)
+				success = NativeLibrary.TryLoad(libName, out result);
+			
+			if (!success) 
+				throw new FileLoadException($"Failed to load native '{libName}'.");
+            
 			sLoadedLibs[libHashCode] = result;
 			return result;
 		}
@@ -186,7 +220,7 @@ namespace REngine.Core.Runtimes
 					.Split(':').Where(x => !string.IsNullOrEmpty(x)).ToList()
 				);
 			}
-
+			
 			Logger?.Debug("Preloading Libs: " + string.Join(Environment.NewLine, libs2Load));
 			foreach (var lib in libs2Load)
 			{

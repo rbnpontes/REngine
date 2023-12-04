@@ -132,5 +132,6 @@ $RECYCLE.BIN/
 
 _NCrunch*
 **/.vs/**
-/REngine.RHI.NativeDriver/runtimes/android/x86_64/libREngine-DiligentNativeDriver.so
-/REngine.RHI.NativeDriver/runtimes/android/x86/libREngine-DiligentNativeDriver.so
+dependencies
+.idea/
+REngine.sln.DotSettings

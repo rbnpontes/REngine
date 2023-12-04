@@ -10,12 +10,14 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<PlatformTarget>x64</PlatformTarget>
+		<Configurations>Debug;Release;Debug-Android-Profiler</Configurations>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 	  <DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DefineConstants>$(DefineConstants);RENGINE_IMGUI</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	  <DefineConstants>$(DefineConstants);RENGINE_IMGUI;PROFILER</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Platforms\REngine.Android.Windows\REngine.Android.Windows.csproj" />

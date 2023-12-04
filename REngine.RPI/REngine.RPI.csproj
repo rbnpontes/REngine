@@ -8,7 +8,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android</Configurations>
+		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -34,6 +34,11 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
 		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Android-Profiler|x64' ">
+	  <TargetFramework>net8.0-android</TargetFramework>
+	  <DefineConstants>TRACE;WINDOWS;RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
