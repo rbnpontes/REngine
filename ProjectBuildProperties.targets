@@ -1,0 +1,41 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- Base Project Configuration -->
+    <PropertyGroup>
+        <Platforms>x64</Platforms>
+        <PlatformTarget>x64</PlatformTarget>
+        <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
+        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
+        <DefineConstants>$(DefineConstants);RENGINE_IMGUI;RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH</DefineConstants>
+    </PropertyGroup>
+    
+    <!-- Helper Variables -->
+    <PropertyGroup>
+        <IsWindows Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Release' or '$(Configuration)'=='Debug-Profiler'">1</IsWindows>
+        <IsLinux Condition="$(Configuration.Contains('Linux'))">1</IsLinux>
+        <IsMacOS Condition="$(Configuration.Contains('MacOS'))">1</IsMacOS>
+        <IsAndroid Condition="$(Configuration.Contains('Android'))">1</IsAndroid>
+        <IsDesktop Condition="'$(IsAndroid)'!='1'">1</IsDesktop>
+        <IsProfilerEnabled Condition="$(Configuration.Contains('Profiler'))">1</IsProfilerEnabled>
+        <IsDebug Condition="$(Configuration.StartsWith('Debug'))">1</IsDebug>
+    </PropertyGroup>
+    
+    <!-- Project Define Constants -->
+    <PropertyGroup Condition="'$(IsDebug)'=='1'">
+        <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsWindows)'=='1'">
+        <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsLinux)'=='1'">
+        <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsMacOS)'=='1'">
+        <DefineConstants>$(DefineConstants);MACOS</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsAndroid)'=='1'">
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsProfilerEnabled)'=='1'">
+        <DefineConstants>$(DefineConstants);PROFILER</DefineConstants>
+    </PropertyGroup>
+</Project>

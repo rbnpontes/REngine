@@ -1,0 +1,168 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
+    <PropertyGroup Condition="'$(IsAndroid)'=='1'">
+        <TargetFramework>net8.0-android</TargetFramework>
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+    </PropertyGroup>
+    
+    <!-- Begin Desktop Dependencies -->
+        <!-- Begin Windows Dependencies -->
+            <ItemGroup Condition="'$(IsWindows)'=='1'">
+                <!-- Driver Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\REngine-DiligentNativeDriver.dll">
+                    <Link>runtimes/win-x64/native/REngine-DiligentNativeDriver.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- ImGui Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\cimgui.dll">
+                    <Link>runtimes/win-x64/native/cimgui.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- FreeType Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\freetype.dll">
+                    <Link>runtimes\win-x64\native\freetype.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- GLFW Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\glfw3.dll">
+                    <Link>runtimes\win-x64\native\glfw3.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+            </ItemGroup>
+            <ItemGroup Condition="'$(IsWindows)'=='1' and '$(IsProfilerEnabled)' == '1'">
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\TracyClient.dll">
+                    <Link>runtimes\win-x64\native\TracyClient.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+            </ItemGroup>
+        <!-- End Windows Dependencies -->
+        <!-- Begin Linux Dependencies -->
+            <ItemGroup Condition="'$(IsLinux)'=='1'">
+                <!-- Driver Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libREngine-DiligentNativeDriver.so">
+                    <Link>runtimes/linux-x64/native/libREngine-DiligentNativeDriver.so</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- ImGui Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libcimgui.so">
+                    <Link>runtimes/linux-x64/native/libcimgui.so</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- FreeType Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libfreetype.so">
+                    <Link>runtimes\linux-x64\native\libfreetype.so</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+                <!-- GLFW Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libglfw.so">
+                    <Link>runtimes\linux-x64\native\libglfw.so</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+            </ItemGroup>
+            <ItemGroup Condition="'$(IsLinux)'=='1' and '$(IsProfilerEnabled)'=='1'">
+                <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libTracyClient.so">
+                    <Link>runtimes\linux-x64\native\libTracyClient.so</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+            </ItemGroup>
+        <!-- End Linux Dependencies -->
+        <!-- Begin MacOS Dependencies -->
+            <ItemGroup Condition="'$(IsMacOS)'=='1'">
+            </ItemGroup>
+            <ItemGroup Condition="'$(IsMacOS)'=='1' and '$(IsProfilerEnabled)'=='1'">
+            </ItemGroup>
+        <!-- End MacOS Dependencies -->
+    <!-- End Desktop Dependencies -->
+    
+    <!-- Begin Android Dependencies -->
+        <ItemGroup Condition="'$(IsAndroid)'=='1'">
+            <!-- ImGui Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libcimgui.so">
+                <Link>libs\x86_64\libcimgui.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libcimgui.so">
+                <Link>libs\x86\libcimgui.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libcimgui.so">
+                <Link>libs\armeabi-v7a\libcimgui.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libcimgui.so">
+                <Link>libs\arm64-v8a\libcimgui.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <!-- FreeType Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libfreetype.so">
+                <Link>libs/x86_64/libfreetype.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86\libfreetype.so">
+                <Link>libs/x86/libfreetype.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\armeabi-v7a\libfreetype.so">
+                <Link>libs/armeabi-v7a/libfreetype.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\arm64-v8a\libfreetype.so">
+                <Link>libs/arm64-v8a/libfreetype.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <!-- Driver Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\arm64-v8a\libREngine-DiligentNativeDriver.so">
+                <Link>libs/arm64-v8a/libREngine-DiligentNativeDriver.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\armeabi-v7a\libREngine-DiligentNativeDriver.so">
+                <Link>libs/armeabi-v7a/libREngine-DiligentNativeDriver.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libREngine-DiligentNativeDriver.so">
+                <Link>libs/x86_64/libREngine-DiligentNativeDriver.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86\libREngine-DiligentNativeDriver.so">
+                <Link>libs/x86/libREngine-DiligentNativeDriver.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+        </ItemGroup>
+        <ItemGroup Condition="'$(IsAndroid)'=='1' and '$(IsProfilerEnabled)' == '1'">
+        <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libTracyClient.so">
+            <Link>libs/x86_64/libTracyClient.so</Link>
+            <Abi>x86_64</Abi>
+        </AndroidNativeLibrary>
+        <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86\libTracyClient.so">
+            <Link>libs/x86/libTracyClient.so</Link>
+            <Abi>x86</Abi>
+        </AndroidNativeLibrary>
+        <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\armeabi-v7a\libTracyClient.so">
+            <Link>libs/armeabi-v7a/libTracyClient.so</Link>
+            <Abi>armeabi-v7a</Abi>
+        </AndroidNativeLibrary>
+        <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\arm64-v8a\libTracyClient.so">
+            <Link>libs/arm64-v8a/libTracyClient.so</Link>
+            <Abi>arm64-v8a</Abi>
+        </AndroidNativeLibrary>
+    </ItemGroup>
+    <!-- End Android Dependencies -->
+    
+    <!-- Begin Asset Files -->
+        <!-- Desktop Copy Command -->
+        <ItemGroup Condition="'$(IsDesktop)'=='1'">
+            <FilesToCopy Include="$(SolutionDir)/Assets/**/*.*" />
+        </ItemGroup>
+        <Target Name="CopyFiles" AfterTargets="Build" Condition="'$(IsDesktop)'=='1'">
+            <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutputPath)/Assets" />
+        </Target>
+    <!-- End Asset Files -->
+</Project>
