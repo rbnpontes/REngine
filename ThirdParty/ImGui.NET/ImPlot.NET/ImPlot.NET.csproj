@@ -13,7 +13,16 @@
     <PackageProjectUrl>https://github.com/mellinoe/imgui.net</PackageProjectUrl>
     <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\ImPlot.NET.xml</DocumentationFile>
     <RootNamespace>ImPlotNET</RootNamespace>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler' or '$(Configuration)'=='Release-Android'">
+    <TargetFramework>net8.0-android</TargetFramework>
+    <DefineConstants>$(DefineConstants);ANDROID;DEBUG</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0" />

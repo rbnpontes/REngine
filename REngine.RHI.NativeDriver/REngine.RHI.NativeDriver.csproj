@@ -12,39 +12,30 @@
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
-		<DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Profiler'">
+	  <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release-Profiler'">
+		<DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
 		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>$(DefineConstants);ANDROID;FULL_DEBUG</DefineConstants>
+		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)'=='Debug-Profiler'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;FULL_DEBUG</DefineConstants>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug-Android-Profiler' ">
+		<TargetFramework>net8.0-android</TargetFramework>
+		<DefineConstants>$(DefineConstants);ANDROID;PROFILER</DefineConstants>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug-Linux'">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
-		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)'=='Release-Profiler'">
-	  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition=" '$(Configuration)' == 'Debug-Android-Profiler' ">
-	  <TargetFramework>net8.0-android</TargetFramework>
-	  <DefineConstants>$(DefineConstants);ANDROID;FULL_DEBUG</DefineConstants>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<Compile Remove="bin\**" />
 		<EmbeddedResource Remove="bin\**" />

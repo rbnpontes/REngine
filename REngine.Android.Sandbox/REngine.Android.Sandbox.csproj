@@ -13,11 +13,14 @@
 		<Configurations>Debug;Release;Debug-Android-Profiler</Configurations>
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler'">
 	  <DefineConstants>$(DefineConstants);TRACE;RENGINE_IMGUI</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release-Android'">
 	  <DefineConstants>$(DefineConstants);RENGINE_IMGUI</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a;x86_64</AndroidSupportedAbis>
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Platforms\REngine.Android.Windows\REngine.Android.Windows.csproj" />

@@ -25,7 +25,7 @@ public static unsafe partial class PInvoke
 {
 #if WINDOWS
     private const string LibraryName = "TracyClient";
-#elif ANDROID
+#elif ANDROID || LINUX
     private const string LibraryName = "libTracyClient.so";
 #endif
     #region API

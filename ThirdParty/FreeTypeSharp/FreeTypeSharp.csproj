@@ -4,24 +4,24 @@
 		<RootNamespace>FreeTypeSharp</RootNamespace>
 		<AssemblyName>FreeTypeSharp</AssemblyName>
 		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<TargetFrameworks>net8.0;</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
 		<Configurations>Debug;Release;Debug-Android</Configurations>
-		
 		<Description>A modern cross-platform managed FreeType2 library.</Description>
 		<PackageTags>freetype2;.net6.0;</PackageTags>
 		<PackageId>FreeTypeSharp</PackageId>
 		<Configurations>Debug;Release;Debug-Android-Profiler</Configurations>
-		<Platforms>AnyCPU;x64</Platforms>
+		<Platforms>x64</Platforms>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
-		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
-	</PropertyGroup>
-	
 <!--	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-ios' or '$(TargetFramework)' == 'net6.0-tvos'">-->
 <!--		<IsBindingProject>true</IsBindingProject>-->
 <!--		<SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>-->
 <!--	</PropertyGroup>-->
 
+	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler' or '$(Configuration)'=='Release-Android'">
+		<TargetFramework>net8.0-android</TargetFramework>
+		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+	</PropertyGroup>
+	
 	<ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
 		<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\freetype.dll">
 			<Link>runtimes\win-x64\native\freetype.dll</Link>
@@ -40,19 +40,37 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">
-		<EmbeddedResource
-				Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libfreetype.so"
-				Link="libs\x86_64\libfreetype.so"/>
-		<EmbeddedResource
-				Include="$(SolutionDir)\dependencies\runtimes\android\x86\libfreetype.so"
-				Link="libs\x86\libfreetype.so"/>
-		<EmbeddedResource
-				Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libfreetype.so"
-				Link="libs\armeabi-v7a\libfreetype.so"/>
-		<EmbeddedResource
-				Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libfreetype.so"
-				Link="libs\arm64-v8a\libfreetype.so"/>
+		<AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libfreetype.so">
+			<Link>libs/x86_64/libfreetype.so</Link>
+			<Abi>x86_64</Abi>
+		</AndroidNativeLibrary>
+		<AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86\libfreetype.so">
+			<Link>libs/x86/libfreetype.so</Link>
+			<Abi>x86</Abi>
+		</AndroidNativeLibrary>
+		<AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\armeabi-v7a\libfreetype.so">
+			<Link>libs/armeabi-v7a/libfreetype.so</Link>
+			<Abi>armeabi-v7a</Abi>
+		</AndroidNativeLibrary>
+		<AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\arm64-v8a\libfreetype.so">
+			<Link>libs/arm64-v8a/libfreetype.so</Link>
+			<Abi>arm64-v8a</Abi>
+		</AndroidNativeLibrary>
 	</ItemGroup>
+<!--	<ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">-->
+<!--		<EmbeddedResource-->
+<!--				Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libfreetype.so"-->
+<!--				Link="libs\x86_64\libfreetype.so"/>-->
+<!--		<EmbeddedResource-->
+<!--				Include="$(SolutionDir)\dependencies\runtimes\android\x86\libfreetype.so"-->
+<!--				Link="libs\x86\libfreetype.so"/>-->
+<!--		<EmbeddedResource-->
+<!--				Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libfreetype.so"-->
+<!--				Link="libs\armeabi-v7a\libfreetype.so"/>-->
+<!--		<EmbeddedResource-->
+<!--				Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libfreetype.so"-->
+<!--				Link="libs\arm64-v8a\libfreetype.so"/>-->
+<!--	</ItemGroup>-->
 <!--	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">-->
 <!--		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\arm64-v8a\libfreetype.so" Link="libs\arm64-v8a\libfreetype.so" />-->
 <!--		<EmbeddedNativeLibrary Include=".\Dependencies\FreeType2\android\armeabi-v7a\libfreetype.so" Link="libs\armeabi-v7a\libfreetype.so" />-->
