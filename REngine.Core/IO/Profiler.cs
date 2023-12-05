@@ -46,6 +46,7 @@ namespace REngine.Core.IO
 		private readonly object pSync = new();
 
 		private CString? pFrameName;
+		private bool pDisabled;
 #endif
 		public bool IsDisposed { get; private set; }
 
@@ -60,14 +61,16 @@ namespace REngine.Core.IO
 
 		internal Profiler()
 		{
+			pDisabled = Debugger.IsAttached;
 #if PROFILER
-			TracyStartupProfiler();
+			if(!pDisabled)
+				TracyStartupProfiler();
 #endif
 		}
 
 		public void BeginFrame(string frame)
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return;
 #if PROFILER
 			pFrameName ??= (CString)frame;
@@ -76,7 +79,7 @@ namespace REngine.Core.IO
 		}
 		public void EndFrame()
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return;
 #if PROFILER
 			if (pFrameName is null)
@@ -90,7 +93,7 @@ namespace REngine.Core.IO
 			[CallerFilePath] string scriptPath = "",
 			[CallerLineNumber] int lineNumber = 0)
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return new DummyProfilerScope();
 #if PROFILER
 			lock (pSync)
@@ -124,7 +127,7 @@ namespace REngine.Core.IO
 
 		public void BeginTask(string fiberName)
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return;
 #if PROFILER
 			lock (pSync)
@@ -144,7 +147,7 @@ namespace REngine.Core.IO
 
 		public void EndTask(string fiberName)
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return;
 #if PROFILER
 			lock (pSync)
@@ -159,7 +162,7 @@ namespace REngine.Core.IO
 
 		public void Dispose()
 		{
-			if (IsDisposed)
+			if (IsDisposed || pDisabled)
 				return;
 #if PROFILER
 			lock (pSync)

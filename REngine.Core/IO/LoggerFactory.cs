@@ -24,17 +24,17 @@ namespace REngine.Core.IO
 		public ILoggerFactory Log(LogSeverity severity, string tag, object[] args);
 	}
 
-	internal class NonGenericLoggerImpl : ILogger
+	public sealed class NonGenericLogger : ILogger
 	{
 		private readonly ILoggerFactory pFactory;
 		private readonly string pTag;
 
-		public NonGenericLoggerImpl(ILoggerFactory factory, Type type)
+		public NonGenericLogger(ILoggerFactory factory, Type type)
 		{
 			pFactory = factory;
 			pTag = type.Name;
 		}
-		public NonGenericLoggerImpl(ILoggerFactory factory, string tagName, Type type)
+		public NonGenericLogger(ILoggerFactory factory, string tagName, Type type)
 		{
 			pFactory = factory;
 			pTag = tagName + "::" + type.Name;
@@ -91,7 +91,7 @@ namespace REngine.Core.IO
 
 		public ILogger Use(Type type)
 		{
-			return new NonGenericLoggerImpl(pFactory, pTag, type);
+			return new NonGenericLogger(pFactory, pTag, type);
 		}
 
 		public ILogger Warning(params object[] args)
@@ -100,19 +100,19 @@ namespace REngine.Core.IO
 			return this;
 		}
 	}
-	internal class LoggerImpl<T> : ILogger<T>
+	public sealed class Logger<T> : ILogger<T>
 	{
 		private readonly ILoggerFactory pFactory;
 
 		private string pTag;
 		private IDisposable? pProfilerScope;
 
-		public LoggerImpl(ILoggerFactory factory)
+		public Logger(ILoggerFactory factory)
 		{
 			pFactory = factory;
 			pTag = typeof(T).Name;
 		}
-		public LoggerImpl(ILoggerFactory factory, string tagName)
+		public Logger(ILoggerFactory factory, string tagName)
 		{
 			pFactory = factory;
 			pTag = tagName + "::" + typeof(T).Name;
@@ -170,7 +170,7 @@ namespace REngine.Core.IO
 
 		public ILogger<U> Use<U>()
 		{
-			return new LoggerImpl<U>(pFactory, pTag);
+			return new Logger<U>(pFactory, pTag);
 		}
 
 		public ILogger<T> Warning(params object[] args)
@@ -283,11 +283,11 @@ namespace REngine.Core.IO
 	{
 		public ILogger<T> Build<T>()
 		{
-			return new LoggerImpl<T>(this);
+			return new Logger<T>(this);
 		}
 		public ILogger Build(Type type)
 		{
-			return new NonGenericLoggerImpl(this, type);
+			return new NonGenericLogger(this, type);
 		}
 
 		public ILoggerFactory Log(LogSeverity severity, string tag, object[] args)
@@ -301,25 +301,6 @@ namespace REngine.Core.IO
 	{
 		protected override void OnAsyncExecuteLog(LogSeverity severity, string log)
 		{
-#if ANDROID
-			switch (severity)
-			{
-				case LogSeverity.Error:
-				case LogSeverity.Critical:
-					Android.Util.Log.Error(nameof(REngine), log);
-					break;
-				case LogSeverity.Debug:
-					Android.Util.Log.Debug(nameof(REngine), log);
-					break;
-				case LogSeverity.Success:
-				case LogSeverity.Info:
-					Android.Util.Log.Info(nameof(REngine), log);
-					break;
-				case LogSeverity.Warning:
-					Android.Util.Log.Warn(nameof(REngine), log);
-					break;
-			}
-#else
 			Debug.WriteLine(log);
 
 			ConsoleColor currColor = Console.ForegroundColor;
@@ -344,7 +325,6 @@ namespace REngine.Core.IO
 			}
 			Console.WriteLine(log);
 			Console.ForegroundColor = currColor;
-#endif
 		}
 	}
 

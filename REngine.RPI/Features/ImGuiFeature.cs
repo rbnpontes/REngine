@@ -9,6 +9,8 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
+using REngine.RPI.Resources;
 
 #if RENGINE_IMGUI
 namespace REngine.RPI.Features
@@ -143,7 +145,7 @@ namespace REngine.RPI.Features
 				pResourceBinding?.Dispose();
 				pPipeline?.Dispose();
 
-				var pipeline = CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager);
+				var pipeline = CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager, setupInfo.AssetManager);
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
@@ -245,10 +247,10 @@ namespace REngine.RPI.Features
 				.SetBlendFactors(Color.Black);
 		}
 
-		private IPipelineState CreatePipelineState(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr)
+		private IPipelineState CreatePipelineState(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr, IAssetManager assetManager)
 		{
-			IShader vs = CreateShader(shaderMgr, ShaderType.Vertex);
-			IShader ps = CreateShader(shaderMgr, ShaderType.Pixel);
+			IShader vs = CreateShader(shaderMgr, assetManager, ShaderType.Vertex);
+			IShader ps = CreateShader(shaderMgr, assetManager, ShaderType.Pixel);
 
 			GraphicsPipelineDesc ci = new();
 			ci.Name = "ImGui PSO";
@@ -273,19 +275,16 @@ namespace REngine.RPI.Features
 			return pipeline;
 		}
 		
-		private IShader CreateShader(IShaderManager shaderMgr, ShaderType shaderType)
+		private IShader CreateShader(IShaderManager shaderMgr, IAssetManager assetManager, ShaderType shaderType)
 		{
-			string shaderPath = Path.Join(
-				AppDomain.CurrentDomain.BaseDirectory,
-				"Assets/Shaders"
-			);
+			ShaderAsset shaderAsset;
 			switch (shaderType)
 			{
 				case ShaderType.Vertex:
-					shaderPath = Path.Join(shaderPath, "imgui_vs.hlsl");
+					shaderAsset = assetManager.GetAsset<ShaderAsset>("Shaders/imgui_vs.hlsl");
 					break;
-				case ShaderType.Pixel:
-					shaderPath = Path.Join(shaderPath, "imgui_ps.hlsl");
+				case ShaderType.Pixel: 
+					shaderAsset = assetManager.GetAsset<ShaderAsset>("Shaders/imgui_ps.hlsl");
 					break;
 				default:
 					throw new NotSupportedException();
@@ -294,7 +293,7 @@ namespace REngine.RPI.Features
 			return shaderMgr.GetOrCreate(new ShaderCreateInfo
 			{
 				Type = shaderType,
-				SourceCode = File.ReadAllText(shaderPath),
+				SourceCode = shaderAsset.ShaderCode,
 				Name = $"ImGui Shader ({shaderType})"
 			});
 		}

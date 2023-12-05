@@ -4,35 +4,11 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
-		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
-		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>$(DefineConstants);DEBUG;ANDROID</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);DEBUG;PROFILER</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);PROFILER</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Android-Profiler|x64' ">
-	  <TargetFramework>net8.0-android</TargetFramework>
-	  <DefineConstants>$(DefineConstants);DEBUG;ANDROID</DefineConstants>
-	</PropertyGroup>
-
+	
+	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+	
 	<ItemGroup>
 	  <PackageReference Include="SFML.Audio" Version="2.5.1" />
 	  <PackageReference Include="StbImageSharp" Version="2.27.13" />

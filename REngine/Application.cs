@@ -27,20 +27,27 @@ namespace REngine.Sandbox
 
 		protected App(Type inheritanceType)
 		{
-			FileLoggerFactory fileLoggerFactory = new FileLoggerFactory(EngineSettings.LoggerPath);
+			pLoggerFactory = OnCreateLoggerFactory();
+			Logger = pLoggerFactory.Build(inheritanceType);
+
+			NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
+			NativeReferences.PreloadLibs();
+		}
+
+		protected virtual ILoggerFactory OnCreateLoggerFactory()
+		{
+			ILoggerFactory result;
+			var fileLoggerFactory = new FileLoggerFactory(EngineSettings.LoggerPath);
 #if DEBUG
-			pLoggerFactory = new ComposedLoggerFactory(new ILoggerFactory[]
+			result = new ComposedLoggerFactory(new ILoggerFactory[]
 			{
 				new DebugLoggerFactory(),
 				fileLoggerFactory
 			});
 #else
-			pLoggerFactory = fileLoggerFactory;
+			result = fileLoggerFactory;
 #endif
-			Logger = pLoggerFactory.Build(inheritanceType);
-
-			NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
-			NativeReferences.PreloadLibs();
+			return result;
 		}
 		public virtual void OnExit(IServiceProvider provider)
 		{

@@ -1,27 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>A .NET wrapper for the imnodes library.</Description>
-    <AssemblyVersion>0.3.0</AssemblyVersion>
-    <Authors>Eric Mellino</Authors>
     <TargetFramework>net8.0</TargetFramework>
+    <AssemblyVersion>0.3.0</AssemblyVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>portable</DebugType>
-    <AssemblyName>ImNodes.NET</AssemblyName>
-    <PackageId>ImNodes.NET</PackageId>
-    <PackageVersion>$(AssemblyVersion)$(PackagePrereleaseIdentifier)</PackageVersion>
-    <PackageTags>imnodes ImGui ImGui.NET Immediate Mode GUI</PackageTags>
-    <PackageProjectUrl>https://github.com/mellinoe/imgui.net</PackageProjectUrl>
+    <Authors>Eric Mellino</Authors>
+    <Description>A .NET wrapper for the imnodes library.</Description>
     <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\imnodes.NET.xml</DocumentationFile>
     <RootNamespace>imnodesNET</RootNamespace>
-    <Platforms>x64</Platforms>
-    <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler' or '$(Configuration)'=='Release-Android'">
-    <TargetFramework>net8.0-android</TargetFramework>
-    <DefineConstants>$(DefineConstants);ANDROID;DEBUG</DefineConstants>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
   
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />

@@ -9,7 +9,9 @@ using Android.Util;
 using Android.Views;
 using REngine.Android.Windows;
 using REngine.Core;
+using REngine.Core.Android;
 using REngine.Core.DependencyInjection;
+using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
@@ -23,6 +25,11 @@ namespace REngine.Android.Sandbox
 	internal class SandboxApp() : App(typeof(SandboxApp))
 	{
 		public Func<WindowManager, IWindow> CreateWindowAction { get; set; } = (_)=> throw new NotImplementedException();
+
+		protected override ILoggerFactory OnCreateLoggerFactory()
+		{
+			return new AndroidLoggerFactory();
+		}
 
 		public override void OnSetupModules(List<IModule> modules)
 		{
@@ -52,6 +59,7 @@ namespace REngine.Android.Sandbox
 			IRenderer renderer = provider.Get<IRenderer>();
 			IImGuiSystem imGuiSystem = provider.Get<IImGuiSystem>();
 
+			imGuiSystem.OnGui += OnGui;
 			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
 
@@ -61,9 +69,17 @@ namespace REngine.Android.Sandbox
 			Log.Debug(nameof(SandboxApp), "Started");
 		}
 
+#if RENGINE_IMGUI
+		private void OnGui(object? sender, EventArgs e)
+		{
+			OnGui();
+		}
+#endif
+		protected virtual void OnGui() {}
+
 		protected override void OnSetupEngineSettings(EngineSettings engineSettings)
 		{
-			engineSettings.JobsThreadCount = 1;
+			engineSettings.JobsThreadCount = 0;
 		}
 
 		private void OnBeforeStop(object? sender, EventArgs e)

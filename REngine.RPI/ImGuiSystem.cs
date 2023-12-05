@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Core.Resources;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace REngine.RPI
@@ -195,6 +196,7 @@ namespace REngine.RPI
 		private readonly ILogger<IImGuiSystem> pLogger;
 		private readonly IExecutionPipelineVar pUpdateRateVar;
 		private readonly RPIEvents pRPIEvents;
+		private readonly IAssetManager pAssetManager;
 
 		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
@@ -228,7 +230,8 @@ namespace REngine.RPI
 			ILoggerFactory factory,
 			RenderSettings renderSettings,
 			RPIEvents rpiEvents,
-			IServiceProvider provider
+			IServiceProvider provider,
+			IAssetManager assetManager
 		)
 		{ 
 			pEngineEvents = engineEvents;
@@ -239,6 +242,7 @@ namespace REngine.RPI
 			pLogger = factory.Build<IImGuiSystem>();
 			pRPIEvents = rpiEvents;
 			pProvider = provider;
+			pAssetManager = assetManager;
 
 			pImGuiSettingsPath = Path.Join(EngineSettings.AppDataPath, "imgui_settings.ini");
 			pUpdateRateVar = executionPipeline.GetOrCreateVar(DefaultVars.ImGuiUpdateRate);

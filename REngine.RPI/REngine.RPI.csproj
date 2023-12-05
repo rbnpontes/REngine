@@ -1,43 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
-		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
 	</PropertyGroup>
 
-	<!-- Windows Settings -->
-	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-		<DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<!-- Android Settings -->
-	<PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
-		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>$(DefineConstants);TRACE;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)' == 'Debug-Android-Profiler' ">
-		<TargetFramework>net8.0-android</TargetFramework>
-		<DefineConstants>$(DefineConstants);TRACE;WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-	<!-- Linux Settings -->
-	<PropertyGroup Condition="'$(Configuration)'=='Debug-Linux'">
-		<DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI;RENGINE_RENDERGRAPH</DefineConstants>
-	</PropertyGroup>
-
+	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+	
 	<ItemGroup>
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 	</ItemGroup>
@@ -45,67 +15,5 @@
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
 		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Update="Assets\Fonts\Anonymous Pro.ttf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Fonts\DroidSans.ttf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Fonts\Roboto-Medium.ttf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\copy_rt_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\PostProcess\blur.hlsl">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\PostProcess\crt_ps.hlsl">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\PostProcess\grayscale_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\imgui_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\imgui_vs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\PostProcess\invertcolors_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\PostProcess\sepiatone_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\postprocess_vs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\rounded_sprite_effect_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\text_cs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\text_vs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\text_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\cube_feat_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\cube_feat_vs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\spritebatch_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\spritebatch_vs.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 </Project>

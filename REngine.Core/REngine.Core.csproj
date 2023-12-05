@@ -4,49 +4,11 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Platforms>x64</Platforms>
-        <PlatformTarget>x64</PlatformTarget>
-        <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'=='Debug-Android'">
-        <TargetFramework>net8.0-android</TargetFramework>
-        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Debug-Android-Profiler'">
-        <TargetFramework>net8.0-android</TargetFramework>
-        <DefineConstants>$(DefineConstants);TRACE;ANDROID;DEBUG;PROFILER</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-        <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Debug-Profiler'">
-        <DefineConstants>$(DefineConstants);DEBUG;WINDOWS;PROFILER</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-        <Optimize>True</Optimize>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Release-Profiler'">
-        <DefineConstants>$(DefineConstants);WINDOWS;PROFILER</DefineConstants>
-        <Optimize>True</Optimize>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Debug-Linux'">
-        <DefineConstants>$(DefineConstants);DEBUG;LINUX</DefineConstants>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Compile Remove="bin\**"/>
-        <EmbeddedResource Remove="bin\**"/>
-        <None Remove="bin\**"/>
-    </ItemGroup>
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
     <ItemGroup>
         <None Include="..\.editorconfig" Link=".editorconfig"/>
     </ItemGroup>
@@ -56,10 +18,5 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ThirdParty\Tracy\Tracy.csproj"/>
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="Assets\default_execution_pipeline.xml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
 </Project>

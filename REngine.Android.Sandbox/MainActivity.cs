@@ -1,6 +1,9 @@
+using System.Text;
+using Android.Util;
 using Android.Views;
 using REngine.Android.Windows;
 using REngine.Core;
+using REngine.Core.Android;
 using REngine.Core.Resources;
 using WindowManager = REngine.Android.Windows.WindowManager;
 
@@ -69,6 +72,20 @@ namespace REngine.Android.Sandbox
 			}
 			catch (Exception e)
 			{
+				var err = new StringBuilder();
+				err.Append($"Error Type: {e.GetType().Name}");
+				err.AppendLine($"Message: {e.Message}");
+				err.AppendLine($"StackTrace: {e.StackTrace}");
+				if (e.InnerException != null)
+				{
+					var innerException = e.InnerException;
+					err.AppendLine("------- Inner Exception -------");
+					err.AppendLine($"Error Type: {innerException.GetType().Name}");
+					err.AppendLine($"Message: {innerException.Message}");
+					err.AppendLine($"StackTrace: {innerException.StackTrace}");
+				}
+
+				Log.Error(nameof(MainActivity), err.ToString());
 				RunOnUiThread(() => throw e);
 			}
 		}

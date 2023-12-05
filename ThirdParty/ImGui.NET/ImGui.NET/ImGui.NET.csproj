@@ -3,14 +3,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>ImGuiNET</RootNamespace>
     <AssemblyName>ImGui.NET</AssemblyName>
-    <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
     <TargetFramework>net8.0</TargetFramework>
-    <Configurations>Debug;Release;Debug-Android</Configurations>
     <Description>A .NET wrapper for the Dear ImGui library.</Description>
     <Configurations>Debug;Release;Debug-Android-Profiler</Configurations>
-    <Platforms>x64</Platforms>
-    <PlatfcormTarget>x64</PlatfcormTarget>
   </PropertyGroup>
+
+  <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
   
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
@@ -26,51 +24,6 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Debug-Profiler' or '$(Configuration)'=='Release'">
-    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug-Linux' or '$(Configuration)'=='Release-Linux'">
-    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler' or '$(Configuration)'=='Release-Android'">
-    <TargetFramework>net8.0-android</TargetFramework>
-    <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
-  </PropertyGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
-    <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\cimgui.dll">
-      <Link>runtimes/win-x64/native/cimgui.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\dependencies\runtimes\linux-x64\native\libcimgui.so">
-      <Link>runtimes/linux-x64/native/libcimgui.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\dependencies\runtimes\osx-x64\native\libcimgui.dylib">
-      <Link>runtimes/osx-x64/native/libcimgui.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">
-      <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libcimgui.so">
-        <Link>libs\x86_64\libcimgui.so</Link>
-        <Abi>x86_64</Abi>
-      </AndroidNativeLibrary>
-      <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libcimgui.so">
-        <Link>libs\x86\libcimgui.so</Link>
-        <Abi>x86</Abi>
-      </AndroidNativeLibrary>
-      <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libcimgui.so">
-        <Link>libs\armeabi-v7a\libcimgui.so</Link>
-        <Abi>armeabi-v7a</Abi>
-      </AndroidNativeLibrary>
-      <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libcimgui.so">
-        <Link>libs\arm64-v8a\libcimgui.so</Link>
-        <Abi>arm64-v8a</Abi>
-      </AndroidNativeLibrary>
-  </ItemGroup>
-  
   <ItemGroup>
     <Folder Include="Generated\" />
   </ItemGroup>

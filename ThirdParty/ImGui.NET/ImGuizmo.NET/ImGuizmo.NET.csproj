@@ -1,32 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>A .NET wrapper for the ImGuizmo library.</Description>
-    <AssemblyVersion>1.61.0</AssemblyVersion>
-    <Authors>Eric Mellino</Authors>
     <TargetFramework>net8.0</TargetFramework>
+    <AssemblyVersion>1.61.0</AssemblyVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>portable</DebugType>
+    <Authors>Eric Mellino</Authors>
+    <Description>A .NET wrapper for the ImGuizmo library.</Description>
     <AssemblyName>ImGuizmo.NET</AssemblyName>
-    <PackageId>ImGuizmo.NET</PackageId>
-    <PackageVersion>$(AssemblyVersion)$(PackagePrereleaseIdentifier)</PackageVersion>
-    <PackageTags>ImGuizmo ImGui ImGui.NET Immediate Mode GUI</PackageTags>
-    <PackageProjectUrl>https://github.com/mellinoe/imgui.net</PackageProjectUrl>
     <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\ImGuizmo.NET.xml</DocumentationFile>
     <RootNamespace>ImPlotNET</RootNamespace>
-    <Platforms>x64</Platforms>
-    <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
   </PropertyGroup>
+
+  <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+  
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0" />
     <PackageReference Include="System.Buffers" Version="4.4.0" />
   </ItemGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)'=='Debug-Android' or '$(Configuration)'=='Debug-Android-Profiler' or '$(Configuration)'=='Release-Android'">
-    <TargetFramework>net8.0-android</TargetFramework>
-    <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
-  </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />

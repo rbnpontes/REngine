@@ -6,6 +6,7 @@ using System.Linq;
 using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 #if RENGINE_RENDERGRAPH
 namespace REngine.RPI.RenderGraph
@@ -20,6 +21,7 @@ namespace REngine.RPI.RenderGraph
 		private IRenderTargetManager? pRenderTargetMgr;
 		private GraphicsSettings? pGraphicsSettings;
 		private RenderState? pRenderState;
+		private IAssetManager? pAssetManager;
 
 		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
@@ -37,6 +39,7 @@ namespace REngine.RPI.RenderGraph
 			pRenderTargetMgr ??= provider.Get<IRenderTargetManager>();
 			pGraphicsSettings ??= provider.Get<GraphicsSettings>();
 			pRenderState ??= provider.Get<RenderState>();
+			pAssetManager ??= provider.Get<IAssetManager>();
 
 			base.OnRun(provider);
 		}
@@ -56,7 +59,8 @@ namespace REngine.RPI.RenderGraph
 				pShaderMgr,
 				pRenderTargetMgr,
 				pGraphicsSettings,
-				pRenderState
+				pRenderState,
+				pAssetManager
 			);
 
 			var feature = pFeature;

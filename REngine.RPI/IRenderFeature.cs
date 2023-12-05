@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.RPI
 {
@@ -17,6 +18,7 @@ namespace REngine.RPI
 		public IRenderTargetManager RenderTargetManager;
 		public GraphicsSettings GraphicsSettings;
 		public RenderState RenderState;
+		public IAssetManager AssetManager;
 
 		public RenderFeatureSetupInfo(
 			IGraphicsDriver driver, 
@@ -26,7 +28,8 @@ namespace REngine.RPI
 			IShaderManager shaderMgr,
 			IRenderTargetManager renderTargetMgr,
 			GraphicsSettings graphicsSettings,
-			RenderState renderState
+			RenderState renderState,
+			IAssetManager assetManager
 			)
 		{
 			Driver = driver;
@@ -37,6 +40,7 @@ namespace REngine.RPI
 			GraphicsSettings = graphicsSettings;
 			RenderState = renderState;
 			RenderTargetManager = renderTargetMgr;
+			AssetManager = assetManager;
 		}
 	}
 

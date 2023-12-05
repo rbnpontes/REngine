@@ -1,19 +1,21 @@
 #if ANDROID
 using Android.Content.Res;
 using REngine.Core.IO;
+using REngine.Core.Resources;
 
-namespace REngine.Core.Resources;
+namespace REngine.Core.Android;
 
-public class AndroidAssetManager : BaseAssetManager
+public class AndroidAssetManager(
+    ILoggerFactory loggerFactory,
+    EngineEvents engineEvents,
+    IServiceProvider serviceProvider)
+    : BaseAssetManager(loggerFactory, engineEvents, serviceProvider)
 {
     private readonly List<string> pAssetEntries = [];
     private bool pStarted;
     // TODO: change this to a better approach
     public static AssetManager? PlatformAssetManager { get; set; }
-    
-    public AndroidAssetManager(ILoggerFactory loggerFactory, EngineEvents engineEvents, IServiceProvider serviceProvider) : base(loggerFactory, engineEvents, serviceProvider)
-    {
-    }
+
     protected override void OnStart()
     {
         if (pStarted)
@@ -63,7 +65,18 @@ public class AndroidAssetManager : BaseAssetManager
             OnStart();
         if (PlatformAssetManager is null)
             throw new NullReferenceException($"Platform {nameof(AssetManager)} must be set to get stream.");
-        return new AssetStream(assetName, PlatformAssetManager.Open(assetName));
+        var stream = PlatformAssetManager.Open(assetName, Access.Buffer);
+        // Copy AssetManager Stream to MemoryStream
+        // This is required because AssetManager does not 
+        // provide Stream Length on Compressed Data, this causes
+        // Exception when IAssetManager tries to Load an asset.
+        var memStream = new MemoryStream();
+        stream.CopyTo(memStream);
+        stream.Dispose();
+        // When copy occurs, position is advanced to data length
+        // We must reset to 0, otherwise Read operations will not work
+        memStream.Position = 0;
+        return new AssetStream(assetName, memStream);
     }
 }
 #endif

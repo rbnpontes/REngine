@@ -15,6 +15,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 using REngine.RPI.Events;
 
 namespace REngine.RPI
@@ -32,6 +33,7 @@ namespace REngine.RPI
 		private readonly IPipelineStateManager pPipelineMgr;
 		private readonly IShaderManager pShaderMgr;
 		private readonly IRenderTargetManager pRenderTargetMgr;
+		private readonly IAssetManager pAssetManager;
 		#endregion
 
 		private readonly EngineEvents pEngineEvents;
@@ -85,7 +87,8 @@ namespace REngine.RPI
 			IRenderTargetManager renderTargetMgr,
 			IExecutionPipeline pipeline,
 			IEngine engine,
-			GraphicsSettings graphicsSettings)
+			GraphicsSettings graphicsSettings,
+			IAssetManager assetManager)
 		{
 			pProvider = provider;
 			pLogger = logger;
@@ -99,6 +102,7 @@ namespace REngine.RPI
 			pExecutionPipeline = pipeline;
 			pEngine = engine;
 			pGraphicsSettings = graphicsSettings;
+			pAssetManager = assetManager;
 
 			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
@@ -334,7 +338,8 @@ namespace REngine.RPI
 				pShaderMgr,
 				pRenderTargetMgr,
 				pGraphicsSettings,
-				pRenderState
+				pRenderState,
+				pAssetManager
 			);
 
 			pExecutionPipeline

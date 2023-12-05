@@ -4,35 +4,11 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
-		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
-		<TargetFramework>net8.0-android</TargetFramework>
-	</PropertyGroup>
-	
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Android-Profiler|x64' ">
-	  <TargetFramework>net8.0-android</TargetFramework>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-		<DefineConstants>LINUX</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-		<DefineConstants>OSX</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-	  <Compile Remove="bin\**" />
-	  <EmbeddedResource Remove="bin\**" />
-	  <None Remove="bin\**" />
-	</ItemGroup>
+	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+	
 	<ItemGroup>
 	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
 	</ItemGroup>
