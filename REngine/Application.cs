@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Assets;
+using REngine.Core.Resources;
 using REngine.Core.Runtimes;
 
 namespace REngine.Sandbox
@@ -60,6 +61,7 @@ namespace REngine.Sandbox
 			RenderSettings?		renderSettings		= provider.GetOrDefault<RenderSettings>();
 			DriverSettings?		driverSettings		= provider.GetOrDefault<DriverSettings>();
 			GraphicsSettings?	graphicsSettings	= provider.GetOrDefault<GraphicsSettings>();
+			AssetManagerSettings assetSettings 		= provider.GetOrDefault<AssetManagerSettings>();
 
 			Logger.Info("Writing Settings Before Exit.");
 			if(engineSettings != null)
@@ -70,6 +72,8 @@ namespace REngine.Sandbox
 				WriteSettings(EngineSettings.DriverSettingsPath, driverSettings);
 			if(graphicsSettings != null)
 				WriteSettings(EngineSettings.GraphicsSettingsPath, graphicsSettings);
+			if(assetSettings != null)
+				WriteSettings(EngineSettings.AssetManagerSettingsPath, assetSettings);
 		}
 
 		private void WriteSettings<T>(string path, T data)
@@ -116,6 +120,12 @@ namespace REngine.Sandbox
 			{
 				using FileStream stream = new FileStream(EngineSettings.RenderSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);
 				return RenderSettings.FromStream(stream);
+			});
+			registry.Add(() =>
+			{
+				using FileStream stream = new FileStream(EngineSettings.AssetManagerSettingsPath, FileMode.OpenOrCreate,
+					FileAccess.Read);
+				return AssetManagerSettings.FromStream(stream);
 			});
 
 			ISwapChain? swapChain = null;

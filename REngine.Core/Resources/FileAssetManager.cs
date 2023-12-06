@@ -33,8 +33,8 @@ namespace REngine.Core.Resources
 		{
 			if (pStarted)
 				return;
-			var settings = mServiceProvider.Get<EngineSettings>();
-			foreach (var searchPath in settings.AssetSearchPaths)
+			var settings = mServiceProvider.Get<AssetManagerSettings>();
+			foreach (var searchPath in settings.FileSettings.SearchPaths)
 				WalkAndCollectFiles(searchPath, searchPath);
 
 			pStarted = true;

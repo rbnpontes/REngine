@@ -26,6 +26,7 @@ namespace REngine.Core
 		{
 			registry
 				.Add<EngineSettings>()
+				.Add<AssetManagerSettings>()
 				.Add<EntityManager>()
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IAssetManager, FileAssetManager>()
