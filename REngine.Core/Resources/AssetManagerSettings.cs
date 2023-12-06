@@ -13,7 +13,7 @@ public class FileAssetManagerSettings
 
 public class HttpAssetManagerSettings
 {
-     public string MetadataUrl { get; set; } = "http://127.0.0.1/metadata.json";
+     public string MetadataUrl { get; set; } = "http://127.0.0.1/metadata";
 }
 public class AssetManagerSettings
 {

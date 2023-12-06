@@ -34,6 +34,9 @@ namespace REngine.Core.Resources
 			if (pStarted)
 				return;
 			var settings = mServiceProvider.Get<AssetManagerSettings>();
+			if (settings.FileSettings is null)
+				throw new NullReferenceException(
+					$"{nameof(FileAssetManagerSettings)} is required on {nameof(FileAssetManager)}");
 			foreach (var searchPath in settings.FileSettings.SearchPaths)
 				WalkAndCollectFiles(searchPath, searchPath);
 

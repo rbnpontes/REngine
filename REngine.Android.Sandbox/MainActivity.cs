@@ -76,13 +76,32 @@ namespace REngine.Android.Sandbox
 				err.Append($"Error Type: {e.GetType().Name}");
 				err.AppendLine($"Message: {e.Message}");
 				err.AppendLine($"StackTrace: {e.StackTrace}");
-				if (e.InnerException != null)
+				
+				var depthCount = 1;
+				var innerException = e.InnerException;
+				while (innerException != null)
 				{
-					var innerException = e.InnerException;
+					var spacemenChars = new char[depthCount];
+					for (var i = 0; i < depthCount; ++i)
+						spacemenChars[i] = '\t';
+					err.Append(spacemenChars);
 					err.AppendLine("------- Inner Exception -------");
+					err.Append(spacemenChars);
 					err.AppendLine($"Error Type: {innerException.GetType().Name}");
+					err.Append(spacemenChars);
 					err.AppendLine($"Message: {innerException.Message}");
-					err.AppendLine($"StackTrace: {innerException.StackTrace}");
+					err.Append(spacemenChars);
+					err.AppendLine("StackTrace:");
+
+					var stackTrace = (innerException.StackTrace ?? string.Empty).Split('\n');
+					foreach (var stackTraceLine in stackTrace)
+					{
+						err.Append(spacemenChars);
+						err.AppendLine(stackTraceLine);
+					}
+
+					innerException = innerException.InnerException;
+					++depthCount;
 				}
 
 				Log.Error(nameof(MainActivity), err.ToString());

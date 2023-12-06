@@ -48,8 +48,14 @@ namespace REngine.Android.Sandbox
 		public override void OnSetup(IServiceRegistry registry)
 		{
 			base.OnSetup(registry);
-			registry.Add<IAssetManager, AndroidAssetManager>();
-			Log.Debug(nameof(SandboxApp), "Setup");
+			var assetManagerSettings = new AssetManagerSettings();
+			if(assetManagerSettings.HttpSettings != null)
+				assetManagerSettings.HttpSettings.MetadataUrl = "http://asset.rengine.com/metadata";
+			
+			// registry.Add<IAssetManager, AndroidAssetManager>();
+			registry
+				.Add(()=> assetManagerSettings)
+				.Add<IAssetManager, HttpAssetManager>();
 		}
 
 		public override void OnStart(IServiceProvider provider)

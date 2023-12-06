@@ -29,9 +29,11 @@ public sealed class HttpAssetManager(
             if (!res.IsSuccessStatusCode)
                 throw new HttpAssetMetadataDownload(settings.HttpSettings.MetadataUrl);
             var data = await res.Content.ReadAsStringAsync();
+            mLogger.Debug("Metadata:", data);
             var assetAddresses = (data ?? string.Empty).FromJson<Dictionary<string, string>>();
             if (assetAddresses is null)
                 throw new HttpAssetMetadataParse(data);
+            pAssetAddresses = assetAddresses;
         }).Wait();
         pStarted = true;
     }

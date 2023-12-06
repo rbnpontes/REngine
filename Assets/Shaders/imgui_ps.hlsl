@@ -8,7 +8,7 @@ struct PSInput
     float2 uv       : TEXCOORD;
 };
 
-float4 main(in PSInput input) : SV_Target
+float4 main(in PSInput ps_input) : SV_Target
 {
-    return input.color * g_texture.Sample(g_texture_sampler, input.uv);
+    return ps_input.color * g_texture.Sample(g_texture_sampler, ps_input.uv);
 }
