@@ -4,20 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Reflection;
 
 namespace REngine.RPI.Features
 {
-	public class BasicFeaturesFactory
+	public class BasicFeaturesFactory(IServiceProvider serviceProvider)
 	{
-		private GraphicsSettings pSettings;
-		public BasicFeaturesFactory(GraphicsSettings settings) 
-		{
-			pSettings = settings;
-		}
-
 		public ICubeRenderFeature CreateCubeFeature()
 		{
-			return new CubeRenderFeature(pSettings);
+			return ActivatorExtended.CreateInstance<CubeRenderFeature>(serviceProvider) 
+			       ?? throw new NullReferenceException($"Could not possible to Create {nameof(ICubeRenderFeature)}");
 		}
 	}
 }

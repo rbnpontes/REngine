@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
+using REngine.RPI.Resources;
 
 namespace REngine.RPI.Features
 {
@@ -113,7 +115,11 @@ namespace REngine.RPI.Features
 
 			pVertexBuffer = CreateVertexBuffer(setupInfo.Driver.Device);
 			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
-			pPipeline = CreatePipeline(setupInfo.PipelineStateManager, setupInfo.ShaderManager, setupInfo.BufferManager);
+			pPipeline = CreatePipeline(
+				setupInfo.PipelineStateManager, 
+				setupInfo.ShaderManager, 
+				setupInfo.BufferManager,
+				setupInfo.AssetManager);
 			pSwapChain = setupInfo.Renderer.SwapChain;
 			pObjectCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Object);
 			pCamCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Camera);
@@ -155,41 +161,42 @@ namespace REngine.RPI.Features
 			command.Unmap(buffer, MapType.Write);
 		}
 
-		protected virtual IShader LoadShader(IShaderManager shaderMgr, ShaderType type)
+		protected virtual IShader LoadShader(IShaderManager shaderMgr, ShaderType type, IAssetManager assetManager)
 		{
 			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
 			ShaderCreateInfo shaderCI = new ShaderCreateInfo
 			{
 				Type = type
 			};
-
 			switch (type)
 			{
 				case ShaderType.Vertex:
 					{
 						shaderCI.Name = "Cube Vertex Shader";
-						shaderPath = Path.Join(shaderPath, "cube_feat_vs.hlsl");
+						shaderCI.SourceCode = assetManager.GetAsset<ShaderAsset>("Shaders/cube_feat_vs.hlsl").ShaderCode;
 					}
 					break;
 				case ShaderType.Pixel:
 					{
 						shaderCI.Name = "Cube Pixel Shader";
-						shaderPath = Path.Join(shaderPath, "cube_feat_ps.hlsl");
+						shaderCI.SourceCode = assetManager.GetAsset<ShaderAsset>("Shaders/cube_feat_ps.hlsl").ShaderCode;
 					}
 					break;
 				default:
 					throw new NotImplementedException();
 			}
-
-			shaderCI.SourceCode = File.ReadAllText(shaderPath);
-
+			
 			return shaderMgr.GetOrCreate(shaderCI);
 		}
 
-		protected virtual IPipelineState CreatePipeline(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr, IBufferManager bufferMgr)
+		protected virtual IPipelineState CreatePipeline(
+			IPipelineStateManager pipelineMgr, 
+			IShaderManager shaderMgr, 
+			IBufferManager bufferMgr, 
+			IAssetManager assetManager)
 		{
-			IShader vsShader = LoadShader(shaderMgr, ShaderType.Vertex);
-			IShader psShader = LoadShader(shaderMgr, ShaderType.Pixel);
+			IShader vsShader = LoadShader(shaderMgr, ShaderType.Vertex, assetManager);
+			IShader psShader = LoadShader(shaderMgr, ShaderType.Pixel, assetManager);
 
 			pPipelineDesc.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
 			pPipelineDesc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
