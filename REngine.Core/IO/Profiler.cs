@@ -46,8 +46,8 @@ namespace REngine.Core.IO
 		private readonly object pSync = new();
 
 		private CString? pFrameName;
-		private bool pDisabled;
 #endif
+		private bool pDisabled;
 		public bool IsDisposed { get; private set; }
 
 		public static Profiler Instance

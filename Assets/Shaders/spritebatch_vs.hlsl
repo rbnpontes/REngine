@@ -64,22 +64,22 @@ struct PSOutput {
 	float2 uv		: TEXCOORD0;
 	float4 color	: COLOR0;
 };
-void main(in PSInput input, out PSOutput output) 
+void main(in PSInput vs_input, out PSOutput ps_output) 
 {
 #ifdef RENGINE_INSTANCED
-	float2 position = float2(input.positionAndScale.x, input.positionAndScale.y);
-	float2 scale = float2(input.positionAndScale.z, input.positionAndScale.w);
-	float2 anchor = float2(input.rotationAndAnchor.x, input.rotationAndAnchor.y);
-	float rotation = input.rotationAndAnchor.z;
+	float2 position = float2(vs_input.positionAndScale.x, vs_input.positionAndScale.y);
+	float2 scale = float2(vs_input.positionAndScale.z, vs_input.positionAndScale.w);
+	float2 anchor = float2(vs_input.rotationAndAnchor.x, vs_input.rotationAndAnchor.y);
+	float rotation = vs_input.rotationAndAnchor.z;
 
 	float4x4 transform = mul(createScale(scale), createTranslate((scale * anchor) * float2(-1, -1)));
 	transform = mul(transform, createRotation(rotation));
 	transform = mul(transform, createTranslate(position));
-	float4 pos = mul(mul(g_projection, transpose(transform)), float4(input.pos, 0.0, 1.0));
+	float4 pos = mul(mul(g_projection, transpose(transform)), float4(vs_input.pos, 0.0, 1.0));
 #else
-	float4 pos = mul(mul(g_projection, g_transform), float4(input.pos, 0.0, 1.0));
+	float4 pos = mul(mul(g_projection, g_transform), float4(vs_input.pos, 0.0, 1.0));
 #endif
-	output.pos = pos;
-	output.uv = input.uv;
-	output.color = g_color;
+	ps_output.pos = pos;
+	ps_output.uv = vs_input.uv;
+	ps_output.color = g_color;
 }

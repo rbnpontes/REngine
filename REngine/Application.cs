@@ -100,7 +100,7 @@ namespace REngine.Sandbox
 			if (!Directory.Exists(EngineSettings.AppDataPath))
 				Directory.CreateDirectory(EngineSettings.AppDataPath);
 
-			var processorCount = Environment.ProcessorCount;
+			var processorCount = Math.Min(Environment.ProcessorCount, EngineSettings.MaxAllowedJobs);
 			registry.Add(() =>
 			{
 				using FileStream stream = new FileStream(EngineSettings.EngineSettingsPath, FileMode.OpenOrCreate, FileAccess.Read);

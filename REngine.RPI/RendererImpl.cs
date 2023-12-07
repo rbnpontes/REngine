@@ -261,6 +261,8 @@ namespace REngine.RPI
 
 		private void UpdateFixedBufferData(SwapChainSize size)
 		{
+			if (pDriver is null)
+				throw new NullReferenceException("Driver is required");
 			pLogger.Debug("Updating Fixed Buffer Data");
 
 			var proj = Matrix4x4.CreateOrthographicOffCenterLeftHanded(0, size.Width, size.Height, 0, 0.0f, 1.0f);

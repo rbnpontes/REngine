@@ -78,15 +78,15 @@ float3 crt_effect(float3 color, float uv_x, float screen_width)
     return color * 1.0 - 0.65 * float3(crt, crt, crt);
 }
 
-float4 main(in PSInput input) : SV_TARGET
+float4 main(in PSInput ps_input) : SV_TARGET
 {
-	const float2 uv = curve_uv(input.uv, 1.1f, 4.48, 2.0, 0.92);
-    const float t = wave(input.time.x, 0.00017, float3(6.3, 20.3, 10.23), float3(0, 0, 0.3));
+	const float2 uv = curve_uv(ps_input.uv, 1.1f, 4.48, 2.0, 0.92);
+    const float t = wave(ps_input.time.x, 0.00017, float3(6.3, 20.3, 10.23), float3(0, 0, 0.3));
 
     float3 color = chromatic_aberration(uv + t, float3(0.001, 0.002, 0.0));
 	color += ghost_effect(uv + t, 0.98, float3(0.08, 0.05, 0.08), float3(0.0028, 0.02, 0.0018));
-    color *= scans_effect(color, uv, input.time.x * 0.001);
-    color = crt_effect(color, input.uv.x, input.screenSize.x);
+    color *= scans_effect(color, uv, ps_input.time.x * 0.001);
+    color = crt_effect(color, ps_input.uv.x, ps_input.screenSize.x);
 
     if (uv.x < 0.0 || uv.x > 1.0)
         color *= 0.0;

@@ -64,7 +64,7 @@ namespace REngine.Sandbox
 			return new DriverSettings
 			{
 #if WINDOWS
-				Backend = GraphicsBackend.Vulkan,
+				Backend = GraphicsBackend.OpenGL,
 #else
 				Backend = GraphicsBackend.Vulkan,
 #endif

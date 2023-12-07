@@ -161,8 +161,11 @@
         <ItemGroup Condition="'$(IsDesktop)'=='1'">
             <FilesToCopy Include="$(SolutionDir)/Assets/**/*.*" />
         </ItemGroup>
+<!--        <Target Name="CopyFiles" AfterTargets="Build" Condition="'$(IsDesktop)'=='1'">-->
+<!--            <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutputPath)/Assets" />-->
+<!--        </Target>-->
         <Target Name="CopyFiles" AfterTargets="Build" Condition="'$(IsDesktop)'=='1'">
-            <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutputPath)/Assets" />
+            <Copy SourceFiles="@(FilesToCopy)" DestinationFiles="@(FilesToCopy->'$(OutputPath)/Assets/%(RecursiveDir)%(Filename)%(Extension)')" />
         </Target>
     <!-- End Asset Files -->
 </Project>

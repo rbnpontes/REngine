@@ -50,7 +50,7 @@ namespace REngine.Android.Sandbox
 			base.OnSetup(registry);
 			var assetManagerSettings = new AssetManagerSettings();
 			if(assetManagerSettings.HttpSettings != null)
-				assetManagerSettings.HttpSettings.MetadataUrl = "http://asset.rengine.com/metadata";
+				assetManagerSettings.HttpSettings.MetadataUrl = "http://192.168.1.4/metadata";
 			
 			// registry.Add<IAssetManager, AndroidAssetManager>();
 			registry
@@ -69,7 +69,6 @@ namespace REngine.Android.Sandbox
 			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
 
-			provider.Get<RenderState>().DefaultClearColor = Color.Aqua;
 			provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
 
 			Log.Debug(nameof(SandboxApp), "Started");
