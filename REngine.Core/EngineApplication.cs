@@ -9,11 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Events;
 using REngine.Core.Resources;
+using REngine.Core.Runtimes;
 
 namespace REngine.Core
 {
 	public interface IEngineApplication
 	{
+		public void OnSetLogger(ILogger logger);
 		public void OnSetupModules(List<IModule> modules);
 		public void OnSetup(IServiceRegistry registry);
 		public void OnStart(IServiceProvider provider);
@@ -26,116 +28,6 @@ namespace REngine.Core
 		public IEngineStartup Setup();
 		public IEngineStartup Start();
 		public IEngineStartup Run();
-	}
-
-	internal class EngineStartupImpl(IEngineApplication app) : IEngineStartup
-	{
-		private readonly Stopwatch pEngineStartTime = new();
-		private readonly Stopwatch pSetupTime = new();
-		private readonly Stopwatch pStartTime = new();
-
-		private IServiceProvider? pServiceProvider;
-
-		public IEngineStartup Run()
-		{
-			var loggerFactory = pServiceProvider.Get<ILoggerFactory>();
-			var logger = loggerFactory.Build<IEngineStartup>();
-
-			var engine = pServiceProvider.Get<IEngine>();
-			var events = pServiceProvider.Get<EngineEvents>();
-			events.OnUpdate += HandleUpdate;
-
-			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-			{
-				if (e.ExceptionObject is Exception exception)
-					logger.Error(exception.Message);
-				logger.Error(e.ExceptionObject.ToString());
-			};
-
-			logger.Debug("Starting");
-
-			pStartTime.Start();
-			engine.Start();
-			pStartTime.Stop();
-
-			logger.Debug("Starting Game Loop");
-
-			ApplicationLifecyle.ExecuteRun();
-
-			pEngineStartTime.Stop();
-
-			logger
-				.Info($"Engine is Ready.")
-				.Info($"Setup Time: {pSetupTime.Elapsed}")
-				.Info($"Start Time: {pStartTime.Elapsed}")
-				.Info($"Total Time: {pEngineStartTime.Elapsed}");
-
-			while (!engine.IsStopped)
-				engine.ExecuteFrame();
-			logger.Debug("Exiting");
-			app.OnExit(pServiceProvider);
-			return this;
-		}
-
-		private void HandleUpdate(object? sender, UpdateEventArgs args)
-		{
-			if (pServiceProvider is null)
-				throw new NullReferenceException("IServiceProvider is null");
-			app.OnUpdate(pServiceProvider);
-		}
-
-		public IEngineStartup Setup()
-		{
-			pEngineStartTime.Start();
-			pSetupTime.Start();
-
-			IServiceRegistry registry = ServiceRegistryFactory.Build();
-			List<IModule> modules = new List<IModule>();
-
-			SetupModules(modules);
-
-			modules.ForEach(x => x.Setup(registry));
-
-			app.OnSetup(registry);
-			ApplicationLifecyle.ExecuteSetup(registry);
-
-			pServiceProvider = registry.Build();
-
-			var assetManager = pServiceProvider.Get<IAssetManager>();
-			pServiceProvider.Get<IExecutionPipeline>().Load(
-				assetManager.GetStream("default_execution_pipeline.xml")
-			);
-
-			pSetupTime.Stop();
-			return this;
-		}
-
-		private void SetupModules(List<IModule> modules)
-		{
-			modules.Add(new CoreModule());
-			app.OnSetupModules(modules);
-		}
-
-		public IEngineStartup Start()
-		{
-			if (pServiceProvider is null)
-				throw new NullReferenceException("IServiceProvider is null");
-
-			ApplicationLifecyle.ExecuteStart(pServiceProvider);
-			app.OnStart(pServiceProvider);
-			return this;
-		}
-	}
-
-	public static class EngineApplication
-	{
-		public static IEngineStartup CreateStartup(IEngineApplication app)
-		{
-			return new EngineStartupImpl(app);
-		}
-		public static IEngineStartup CreateStartup<T>() where T: IEngineApplication
-		{
-			return new EngineStartupImpl(Activator.CreateInstance<T>());
-		}
+		public IEngineStartup Stop();
 	}
 }

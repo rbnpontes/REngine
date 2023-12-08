@@ -15,10 +15,8 @@ namespace REngine.Android.Windows
 {
 	internal class WindowImpl : IWindow
 	{
-		private readonly SurfaceView pSurfaceView;
-		private readonly SurfaceCallback pCallback;
+		private readonly GameView pGameView;
 
-		private Rectangle pBounds;
 		private bool pDisposed;
 
 		public event WindowEvent? OnUpdate;
@@ -38,17 +36,17 @@ namespace REngine.Android.Windows
 			get => string.Empty;
 			set {}
 		}
-		public IntPtr Handle => pCallback.Handle;
+		public IntPtr Handle => pGameView.Handle;
 
 		public Rectangle Bounds
 		{
-			get => pBounds;
+			get => pGameView.Bounds;
 			set {}
 		}
 
 		public Size Size
 		{
-			get => pBounds.Size;
+			get => pGameView.Size;
 			set {}
 		}
 
@@ -64,12 +62,9 @@ namespace REngine.Android.Windows
 		public bool IsMinimized => false;
 		public bool IsFullscreen => false;
 
-		public WindowImpl(SurfaceView surfaceView, SurfaceCallback callback)
+		public WindowImpl(GameView gameView)
 		{
-			pSurfaceView = surfaceView;
-			pCallback = callback;
-			pSurfaceView.Holder?.AddCallback(pCallback);
-			UpdateBounds();
+			pGameView = gameView;
 		}
 
 		public void Dispose()
@@ -96,7 +91,6 @@ namespace REngine.Android.Windows
 
 		public IWindow Update()
 		{
-			UpdateBounds();
 			return this;
 		}
 
@@ -114,7 +108,7 @@ namespace REngine.Android.Windows
 		{
 			// TODO: use better approach
 #if ANDROID
-			window = new NativeWindow() { AndroidNativeWindow = pCallback.NativeWindow };
+			window = new NativeWindow() { AndroidNativeWindow = pGameView.NativeWindow };
 			return this;
 #else
 			throw new NotImplementedException();
@@ -134,16 +128,6 @@ namespace REngine.Android.Windows
 		public IWindow ForwardInputEvent(int utf32Char)
 		{
 			return this;
-		}
-
-		private void UpdateBounds()
-		{
-			pBounds = new Rectangle(
-				pSurfaceView.Left,
-				pSurfaceView.Top,
-				pSurfaceView.Width,
-				pSurfaceView.Height
-			);
 		}
 	}
 }

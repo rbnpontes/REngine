@@ -2,7 +2,6 @@
 using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Threading;
-using Android.Views;
 using IWindowManager = REngine.Core.IWindowManager;
 
 namespace REngine.Android.Windows
@@ -75,9 +74,9 @@ namespace REngine.Android.Windows
 			throw new NotSupportedException();
 		}
 
-		public IWindow Create(SurfaceView surfaceView, SurfaceCallback callback)
+		public IWindow Create(GameView gameView)
 		{
-			var window = new WindowImpl(surfaceView, callback);
+			var window = new WindowImpl(gameView);
 			pWindows.Add(window);
 			return window;
 		}

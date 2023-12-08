@@ -4,12 +4,10 @@
 		<TargetFramework>net8.0-android</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<PlatformTarget>x64</PlatformTarget>
-		<Configurations>Debug;Release;Debug-Android-Profiler</Configurations>
-		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
+	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+	
 	<ItemGroup>
 		<ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
 	</ItemGroup>

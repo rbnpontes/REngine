@@ -219,8 +219,10 @@ namespace REngine.RHI.NativeDriver
 			disposables.ForEach(x => x.Dispose());
 
 			if (result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create shader");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible to create shader");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible to create shader");
 			return new ShaderImpl(result.value, createInfo);
 		}
 

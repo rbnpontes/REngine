@@ -9,7 +9,11 @@ namespace REngine.Core
 {
 	public class EngineSettings : IMergeable<EngineSettings>
 	{
-		public static readonly int MaxAllowedJobs = 5;
+#if ANDROID
+		public static readonly int MaxAllowedJobs = 3;
+#else
+		public static readonly int MaxAllowedJobs = 10;
+#endif
 		public static readonly string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine");
 		public static readonly string LoggerPath = Path.Combine(AppDataPath, "rengine.log");
 		public static readonly string EngineSettingsPath = Path.Combine(AppDataPath, "engine.rcfgs");
@@ -51,7 +55,7 @@ namespace REngine.Core
 		/// </summary>
 		public int IdleWaitTimeMs { get; set; } = 100;
 
-		public int JobsThreadCount { get; set; }
+		public int JobsThreadCount { get; set; } = -1;
 
 		public void Merge(EngineSettings value)
 		{

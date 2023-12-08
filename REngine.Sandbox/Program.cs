@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using REngine.Core.Desktop;
 
 namespace REngine.Sandbox
 {
@@ -18,7 +19,7 @@ namespace REngine.Sandbox
 		[STAThread]
 		static void Main()
 		{
-			EngineApplication
+			DesktopEngineInstance
 				.CreateStartup<SandboxApp>()
 				.Setup()
 				.Start()

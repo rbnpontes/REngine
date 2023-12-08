@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Serialization;
 
 namespace REngine.RHI.DiligentDriver
 {
@@ -170,8 +171,28 @@ namespace REngine.RHI.DiligentDriver
 #endif
 #if WINDOWS
 		public GraphicsBackend Backend { get; set; } = GraphicsBackend.D3D11;
+#elif ANDROID
+		public GraphicsBackend Backend { get; set; } = GraphicsBackend.OpenGL;
 #else
 		public GraphicsBackend Backend { get; set; } = GraphicsBackend.Vulkan;
 #endif
+
+		public void Merge(DriverSettings settings)
+		{
+#if WINDOWS
+			D3D12 = settings.D3D12;
+#endif
+			Vulkan = settings.Vulkan;
+			AdapterId = settings.AdapterId;
+			EnableValidation = settings.EnableValidation;
+			Backend = settings.Backend;
+		}
+		public static DriverSettings FromStream(Stream stream)
+		{
+			DriverSettings? settings;
+			using (var reader = new StreamReader(stream))
+				settings = reader.ReadToEnd().FromJson<DriverSettings>();
+			return settings ?? new DriverSettings();
+		}
 	}
 }

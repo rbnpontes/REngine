@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Mathematics;
+using REngine.RPI.Resources;
 
 namespace REngine.RPI.Features
 {
@@ -147,10 +148,10 @@ namespace REngine.RPI.Features
 				pTexturedPipeline?.Dispose();
 				pVBuffer?.Dispose();
 
-				IShader vertexShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex, false, false);
-				IShader instancedVertexShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex, false, true);
-				IShader pixelShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel, false, false);
-				IShader texturedPixelShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel, true, false);
+				IShader vertexShader = LoadShader(setupInfo.ShaderManager, setupInfo.AssetManager, ShaderType.Vertex, false, false);
+				IShader instancedVertexShader = LoadShader(setupInfo.ShaderManager, setupInfo.AssetManager, ShaderType.Vertex, false, true);
+				IShader pixelShader = LoadShader(setupInfo.ShaderManager, setupInfo.AssetManager, ShaderType.Pixel, false, false);
+				IShader texturedPixelShader = LoadShader(setupInfo.ShaderManager, setupInfo.AssetManager, ShaderType.Pixel, true, false);
 
 				IPipelineState defaultPipeline = CreatePipeline(setupInfo.PipelineStateManager, vertexShader, pixelShader, false);
 				IPipelineState texturedPipeline = CreatePipeline(setupInfo.PipelineStateManager, vertexShader, texturedPixelShader, false);
@@ -495,33 +496,36 @@ namespace REngine.RPI.Features
 			return pipelineMgr.GetOrCreate(desc);
 		}
 
-		private static IShader LoadShader(IShaderManager shaderMgr, ShaderType type, bool hasTexture, bool instanced)
+		private static IShader LoadShader(IShaderManager shaderMgr, IAssetManager assetManager, ShaderType type, bool hasTexture, bool instanced)
 		{
-			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
 			ShaderCreateInfo shaderCI = new ShaderCreateInfo
 			{
 				Type = type
 			};
 
+			var assetPath = string.Empty;
 			switch (type)
 			{
 				case ShaderType.Vertex:
 					{
 						shaderCI.Name = "Spritebatch Vertex Shader";
-						shaderPath = Path.Join(shaderPath, "spritebatch_vs.hlsl");
+						assetPath = "Shaders/spritebatch_vs.hlsl";
+						if (instanced)
+							assetPath = "Shaders/spritebatch_instanced_vs.hlsl";
 					}
 					break;
 				case ShaderType.Pixel:
 					{
 						shaderCI.Name = "Spritebatch Pixel Shader";
-						shaderPath = Path.Join(shaderPath, "spritebatch_ps.hlsl");
+						assetPath = "Shaders/spritebatch_ps.hlsl";
 					}
 					break;
 				default:
 					throw new NotImplementedException();
 			}
 
-			shaderCI.SourceCode = File.ReadAllText(shaderPath);
+			shaderCI.SourceCode = assetManager.GetAsset<ShaderAsset>(assetPath).ShaderCode;
+
 			if (hasTexture)
 			{
 				shaderCI.Name = shaderCI.Name + "(TEXTURED)";

@@ -1,32 +1,16 @@
-﻿#ifdef RENGINE_INSTANCED
-cbuffer ObjectConstants {
-	float4 g_color;
-};
-#else
-cbuffer ObjectConstants {
+﻿cbuffer ObjectConstants {
 	float4x4 g_transform;
 	float4 g_color;
 };
-#endif
 cbuffer FrameConstants
 {
     float4x4 g_projection;
 };
 
-#ifdef RENGINE_INSTANCED
-struct PSInput {
-	float2 pos : ATTRIB0;
-	float2 uv : ATTRIB1;
-	// Instance values
-	float4 positionAndScale		: ATTRIB2;
-	float4 rotationAndAnchor	: ATTRIB3;
-};
-#else
 struct PSInput {
 	float2 pos : ATTRIB0;
 	float2 uv : ATTRIB1;
 };
-#endif
 
 
 #define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
@@ -58,28 +42,15 @@ float4x4 createTranslate(float2 position) {
 	return result;
 }
 
-
 struct PSOutput {
 	float4 pos		: SV_POSITION;
 	float2 uv		: TEXCOORD0;
 	float4 color	: COLOR0;
 };
-void main(in PSInput vs_input, out PSOutput ps_output) 
+void main(in PSInput vs_input, out PSOutput ps_input) 
 {
-#ifdef RENGINE_INSTANCED
-	float2 position = float2(vs_input.positionAndScale.x, vs_input.positionAndScale.y);
-	float2 scale = float2(vs_input.positionAndScale.z, vs_input.positionAndScale.w);
-	float2 anchor = float2(vs_input.rotationAndAnchor.x, vs_input.rotationAndAnchor.y);
-	float rotation = vs_input.rotationAndAnchor.z;
-
-	float4x4 transform = mul(createScale(scale), createTranslate((scale * anchor) * float2(-1, -1)));
-	transform = mul(transform, createRotation(rotation));
-	transform = mul(transform, createTranslate(position));
-	float4 pos = mul(mul(g_projection, transpose(transform)), float4(vs_input.pos, 0.0, 1.0));
-#else
 	float4 pos = mul(mul(g_projection, g_transform), float4(vs_input.pos, 0.0, 1.0));
-#endif
-	ps_output.pos = pos;
-	ps_output.uv = vs_input.uv;
-	ps_output.color = g_color;
+	ps_input.pos = pos;
+	ps_input.uv = vs_input.uv;
+	ps_input.color = g_color;
 }

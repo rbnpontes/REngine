@@ -9,66 +9,57 @@ using REngine.RPI.Features;
 using REngine.Windows;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 
 namespace REngine.Sandbox
 {
-	internal class SandboxApp() : App(typeof(SandboxApp))
+	internal class SandboxApp : IEngineApplication
 	{
-		private SampleWindow? pSampleWindow;
-
-		public override void OnSetupModules(List<IModule> modules)
+		private readonly SampleWindow pSampleWindow = new();
+		public void OnSetLogger(ILogger logger)
 		{
-			base.OnSetupModules(modules);
-			modules.Add(new WindowsModule());
 		}
 
-		protected override IWindow OnSetupWindow(IWindowManager windowManager)
+		public void OnSetupModules(List<IModule> modules)
 		{
-			pSampleWindow = new SampleWindow();
-			return windowManager.Create(new WindowCreationInfo
-			{
-				Title = "[REngine] Samples",
-				Size = new System.Drawing.Size(800, 500)
-			});
 		}
-		public override void OnStart(IServiceProvider provider)
-		{
-			base.OnStart(provider);
 
+		public void OnSetup(IServiceRegistry registry)
+		{
+		}
+
+		public void OnStart(IServiceProvider provider)
+		{
+			var window = provider.Get<IWindow>();
+			window.Title = "[REngine] Samples";
+			window.Size = new Size(800, 500);
 #if RENGINE_IMGUI
-			IRenderer renderer = provider.Get<IRenderer>();
-			IImGuiSystem imGuiSystem = provider.Get<IImGuiSystem>();
+			var renderer = provider.Get<IRenderer>();
+			var imGuiSystem = provider.Get<IImGuiSystem>();
 
 			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
 #endif
 			provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
-			pSampleWindow?.EngineStart(provider);
+			pSampleWindow.EngineStart(provider);
 		}
 
 		private void OnBeforeStop(object? sender, EventArgs e)
 		{
-			pSampleWindow?.EngineStop();
+			pSampleWindow.EngineStop();
 		}
 
-		public override void OnUpdate(IServiceProvider provider)
+		public void OnUpdate(IServiceProvider provider)
 		{
-			pSampleWindow?.EngineUpdate(provider);
+			pSampleWindow.EngineUpdate(provider);
 		}
 
-		protected override DriverSettings OnCreateDriverSettings(IServiceProvider serviceProvider)
+		public void OnExit(IServiceProvider provider)
 		{
-			return new DriverSettings
-			{
-#if WINDOWS
-				Backend = GraphicsBackend.OpenGL,
-#else
-				Backend = GraphicsBackend.Vulkan,
-#endif
-			};
 		}
 	}
 }

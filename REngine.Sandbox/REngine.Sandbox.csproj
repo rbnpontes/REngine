@@ -63,7 +63,6 @@
 
 	<ItemGroup Condition="'$(Configuration)' != 'Debug-Android'">
 		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
-		<ProjectReference Include="..\REngine\REngine.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -73,6 +72,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj" />
 	  <ProjectReference Include="..\REngine.Contents\REngine.Contents.csproj" />
 	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
 	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />

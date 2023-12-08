@@ -12,7 +12,7 @@ struct PSInput {
 float4 main(in PSInput ps_input) : SV_TARGET{
 	float4 result = float4(1.0, 1.0, 1.0, 1.0);
 #if RENGINE_ENABLED_TEXTURE
-	result = g_texture.Sample(g_texture_sampler, input.uv);
+	result = g_texture.Sample(g_texture_sampler, ps_input.uv);
 #endif
 	result = result * ps_input.color;
 	return result;

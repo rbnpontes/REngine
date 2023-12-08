@@ -16,6 +16,5 @@
 	  <ProjectReference Include="..\Platforms\REngine.Android.Windows\REngine.Android.Windows.csproj" />
 	  <ProjectReference Include="..\Platforms\REngine.Core.Android\REngine.Core.Android.csproj" />
 	  <ProjectReference Include="..\REngine.Contents\REngine.Contents.csproj" />
-	  <ProjectReference Include="..\REngine\REngine.csproj" />
 	</ItemGroup>
 </Project>
