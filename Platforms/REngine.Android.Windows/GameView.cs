@@ -18,6 +18,7 @@ public sealed class GameView : SurfaceView, ISurfaceHolderCallback
     
     public GameView(Context? context) : base(context)
     {
+        Holder?.AddCallback(this);
     }
 
     public void SetCallback(IGameViewCallback callback)

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Events;
 using REngine.Core.IO;
+using REngine.Core.Reflection;
 using REngine.Core.Resources;
 using REngine.Core.Runtimes;
 using REngine.Core.Serialization;
@@ -227,7 +228,8 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     {
         using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read);
         using var reader = new StreamReader(stream);
-        return reader.ReadToEnd().FromJson<T>() ?? throw new NullReferenceException();
+        var json = reader.ReadToEnd();
+        return json.FromJson<T>() ?? ActivatorExtended.CreateInstance<T>([]);
     }
     
     protected virtual void OnReady()

@@ -25,15 +25,12 @@ namespace REngine.Android.Sandbox
 	{
 		public override void OnSetup(IServiceRegistry registry)
 		{
+			var assetManager = new AssetManagerSettings();
+			if (assetManager.HttpSettings is not null)
+				assetManager.HttpSettings.MetadataUrl = "http://192.168.1.4/metadata";
 			registry
+				.Add(()=> assetManager)
 				.Add<IAssetManager, HttpAssetManager>();
-		}
-
-		public override void OnStart(IServiceProvider provider)
-		{
-			var assetManagerSettings = provider.Get<AssetManagerSettings>();
-			if(assetManagerSettings.HttpSettings != null)
-				assetManagerSettings.HttpSettings.MetadataUrl = "http://192.168.1.4/metadata";
 		}
 
 		protected override void OnGui()

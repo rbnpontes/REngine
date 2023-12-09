@@ -6,7 +6,6 @@
     <Authors>Eric Mellino</Authors>
     <Description>A .NET wrapper for the ImGuizmo library.</Description>
     <AssemblyName>ImGuizmo.NET</AssemblyName>
-    <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\ImGuizmo.NET.xml</DocumentationFile>
     <RootNamespace>ImPlotNET</RootNamespace>
   </PropertyGroup>
 
