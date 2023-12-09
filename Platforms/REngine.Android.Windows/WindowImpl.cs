@@ -75,6 +75,7 @@ namespace REngine.Android.Windows
 		{
 			if(pDisposed) return;
 
+			pGameView.SetCallback(null);
 			pDisposed = true;
 		}
 

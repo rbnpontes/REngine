@@ -8,6 +8,5 @@ namespace REngine.Core.Android;
 
 public abstract class GameActivity<T> : BaseGameActivity where T : IEngineApplication
 {
-    private readonly IEngineApplication pApp = ActivatorExtended.CreateInstance<T>([]);
-    public override IEngineApplication OnGetEngineApplication() => pApp;
+    public override IEngineApplication OnGetEngineApplication() => ActivatorExtended.CreateInstance<T>([]);
 }

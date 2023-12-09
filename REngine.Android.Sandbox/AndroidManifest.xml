@@ -7,6 +7,7 @@
           android:roundIcon="@mipmap/appicon_round" 
           android:supportsRtl="true"
           android:usesCleartextTraffic="true"
+          android:persistent="true"
           android:debuggable="true">
   </application>
   <uses-permission android:name="android.permission.INTERNET" />

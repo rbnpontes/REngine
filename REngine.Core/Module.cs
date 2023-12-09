@@ -20,7 +20,15 @@ namespace REngine.Core
 	{
 		static CoreModule()
 		{
-			NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly, Runtimes.NativeReferences.DefaultDllImportResolver);
+			try
+			{
+				NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly,
+					Runtimes.NativeReferences.DefaultDllImportResolver);
+			}
+			catch
+			{
+				// ignored
+			}
 		}
 		public void Setup(IServiceRegistry registry)
 		{

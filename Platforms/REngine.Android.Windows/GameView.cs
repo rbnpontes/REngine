@@ -21,7 +21,7 @@ public sealed class GameView : SurfaceView, ISurfaceHolderCallback
         Holder?.AddCallback(this);
     }
 
-    public void SetCallback(IGameViewCallback callback)
+    public void SetCallback(IGameViewCallback? callback)
     {
         pCallback = callback;
     }

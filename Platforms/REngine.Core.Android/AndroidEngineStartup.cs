@@ -156,9 +156,20 @@ internal class AndroidEngineInstance : EngineInstance
         void RunFrame()
         {
             if (engine.IsStopped)
+            {
+                RunStop();
                 return;
+            }
+            
             engine.ExecuteFrame();
             gameHandler.Post(RunFrame);
+        }
+
+        void RunStop()
+        {
+            Logger.Info("Exiting App");
+            App.OnExit(Provider);
+            OnStop();
         }
     }
     protected override void OnStop()

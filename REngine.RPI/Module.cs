@@ -15,50 +15,57 @@ using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
-	// ReSharper disable once InconsistentNaming
-	public sealed class RPIModule : IModule
-	{
-		public void Setup(IServiceRegistry registry)
-		{
-
-			NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, NativeReferences.DefaultDllImportResolver);
+    // ReSharper disable once InconsistentNaming
+    public sealed class RPIModule : IModule
+    {
+        public void Setup(IServiceRegistry registry)
+        {
+            try
+            {
+                // If Import has been added, we must skip
+                NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, NativeReferences.DefaultDllImportResolver);
+            }
+            catch
+            {
+                // ignored
+            }
 #if RENGINE_RENDERGRAPH
-			RenderGraphModule.Setup(registry);
-			var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
-			NodeGraphsModule.Setup(renderGraphRegistry);
+            RenderGraphModule.Setup(registry);
+            var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();
+            NodeGraphsModule.Setup(renderGraphRegistry);
 #endif
 
-			EventsModule.Setup(registry);
+            EventsModule.Setup(registry);
 
-			registry
+            registry
 #if RENGINE_RENDERGRAPH
-				.Add(()=> renderGraphRegistry)
+                .Add(() => renderGraphRegistry)
 #endif
-				.Add<RenderSettings>()
-				.Add<RenderState>()
-				.Add(
-					(deps) => ((ILoggerFactory)deps[0]).Build<IRenderer>(),
-					new Type[] { typeof(ILoggerFactory) }
-				)
-				.Add(
-					(deps) => ((ILoggerFactory)deps[0]).Build<IBufferManager>(),
-					new Type[] { typeof(ILoggerFactory) }
-				)
-				.Add<IShaderManager, ShaderManagerImpl>()
-				.Add<IPipelineStateManager, PipelineStateManagerImpl>()
-				.Add<IBufferManager, BufferManagerImpl>()
-				.Add<IRenderTargetManager, RenderTargetManagerImpl>()
-				.Add<IRenderer, RendererImpl>()
-				.Add<ITextRenderer, TextRendererImpl>()
+                .Add<RenderSettings>()
+                .Add<RenderState>()
+                .Add(
+                    (deps) => ((ILoggerFactory)deps[0]).Build<IRenderer>(),
+                    new Type[] { typeof(ILoggerFactory) }
+                )
+                .Add(
+                    (deps) => ((ILoggerFactory)deps[0]).Build<IBufferManager>(),
+                    new Type[] { typeof(ILoggerFactory) }
+                )
+                .Add<IShaderManager, ShaderManagerImpl>()
+                .Add<IPipelineStateManager, PipelineStateManagerImpl>()
+                .Add<IBufferManager, BufferManagerImpl>()
+                .Add<IRenderTargetManager, RenderTargetManagerImpl>()
+                .Add<IRenderer, RendererImpl>()
+                .Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
-				.Add<SpriteBatcher>()
-				.Add<SpriteTextureManager>()
-				.Add<ISpriteBatch, SpriteBatchImpl>()
+                .Add<SpriteBatcher>()
+                .Add<SpriteTextureManager>()
+                .Add<ISpriteBatch, SpriteBatchImpl>()
 #endif
 #if RENGINE_IMGUI
-				.Add<IImGuiSystem, ImGuiSystem>()
+                .Add<IImGuiSystem, ImGuiSystem>()
 #endif
-				.Add<BasicFeaturesFactory>();
-		}
-	}
+                .Add<BasicFeaturesFactory>();
+        }
+    }
 }

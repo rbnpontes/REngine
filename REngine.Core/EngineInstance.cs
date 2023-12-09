@@ -20,6 +20,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     private ILogger? pLogger;
     private IServiceProvider? pServiceProvider;
 
+    public IEngineApplication App => app;
     public IServiceProvider Provider
     {
         get
@@ -84,10 +85,6 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         OnReady();
 
         RunGameLoop(engine);
-        
-        Logger.Debug("Exiting");
-        app.OnExit(Provider);
-        OnStop();
         return this;
     }
 
@@ -95,6 +92,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     {
         while (!engine.IsStopped)
             engine.ExecuteFrame();
+        
+        Logger.Debug("Exiting");
+        app.OnExit(Provider);
+        OnStop();
     }
     
     private void HandleUpdate(object? sender, UpdateEventArgs args)
