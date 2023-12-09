@@ -1,11 +1,13 @@
 using System.Diagnostics;
 using Android.Content.Res;
+using Android.OS;
 using Android.Views;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.Android.Windows;
 using REngine.Assets;
+using REngine.Core.Threading;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
@@ -18,7 +20,7 @@ namespace REngine.Core.Android;
 internal class AndroidEngineInstance : EngineInstance
 {
     private readonly ILoggerFactory pLoggerFactory;
-    private readonly Activity pActivity;
+    private readonly BaseGameActivity pActivity;
     private readonly REngine.Android.Windows.GameView pGameView;
     private readonly AssetManager pAssetManager;
 
@@ -27,7 +29,7 @@ internal class AndroidEngineInstance : EngineInstance
     private readonly DriverSettings pDriverSettings = new();
     
     public AndroidEngineInstance(
-        Activity activity,
+        BaseGameActivity activity,
         REngine.Android.Windows.GameView gameView,
         AssetManager assetManager,
         IEngineApplication engineApplication) : base(engineApplication)
@@ -43,6 +45,9 @@ internal class AndroidEngineInstance : EngineInstance
         pActivity = activity;
         pGameView = gameView;
         pAssetManager = assetManager;
+
+        if(pActivity.CacheDir?.AbsolutePath is not null)
+            EngineSettings.AppDataPath = pActivity.CacheDir.AbsolutePath;
     }
     
     protected override ILoggerFactory OnGetLoggerFactory()
@@ -121,15 +126,41 @@ internal class AndroidEngineInstance : EngineInstance
             .Add(() => pRenderSettings)
             .Add(() => pDriverSettings);
     }
+    
+    protected override void OnStart()
+    {
+        base.OnStart();
+
+#if RENGINE_IMGUI
+        var imGuiSystem = Provider.Get<IImGuiSystem>();
+        imGuiSystem.SetFontScale(pActivity.GetDpi());
+#endif
+    }
 
     protected override void OnWriteSettings()
     {
         base.OnWriteSettings();
+        
         WriteSettings(EngineSettings.GraphicsSettingsPath, pGraphicsSettings);
         WriteSettings(EngineSettings.RenderSettingsPath, pRenderSettings);
         WriteSettings(EngineSettings.DriverSettingsPath, pDriverSettings);
     }
+    
+    protected override void RunGameLoop(IEngine engine)
+    {
+        var gameHandler = new Handler(Looper.MainLooper);
+        var runFrameAction = RunFrame;
+        gameHandler.Post(runFrameAction);
+        return;
 
+        void RunFrame()
+        {
+            if (engine.IsStopped)
+                return;
+            engine.ExecuteFrame();
+            gameHandler.Post(RunFrame);
+        }
+    }
     protected override void OnStop()
     {
         DriverFactory.OnDriverMessage -= OnDriverMessage;

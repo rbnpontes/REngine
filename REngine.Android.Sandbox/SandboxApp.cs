@@ -27,7 +27,7 @@ namespace REngine.Android.Sandbox
 		{
 			var assetManager = new AssetManagerSettings();
 			if (assetManager.HttpSettings is not null)
-				assetManager.HttpSettings.MetadataUrl = "http://192.168.1.4/metadata";
+				assetManager.HttpSettings.MetadataUrl = "http://192.168.1.9/metadata";
 			registry
 				.Add(()=> assetManager)
 				.Add<IAssetManager, HttpAssetManager>();

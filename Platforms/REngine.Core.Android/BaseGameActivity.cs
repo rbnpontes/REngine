@@ -38,4 +38,9 @@ public abstract class BaseGameActivity : Activity
         pGameLogic?.Stop();
     }
     public virtual void OnEngineError(Exception error){}
+
+    public float GetDpi()
+    {
+        return Resources?.DisplayMetrics?.Density ?? 1.0f;
+    }
 }

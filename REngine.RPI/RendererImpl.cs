@@ -347,9 +347,10 @@ namespace REngine.RPI
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())
 				.AddEvent(DefaultEvents.RenderId, (_) => HandleRender())
-				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures())
-				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
-
+				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures());
+// #if !ANDROID // Disable SwapChain present on Android, this must be done on Android Main Thread
+// #endif
+			pExecutionPipeline.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
 
 			pLogger.EndProfile("Start Time");
 			pRenderEvents.ExecuteBeforeReady(this);

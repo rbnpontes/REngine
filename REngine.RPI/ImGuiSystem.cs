@@ -397,6 +397,12 @@ namespace REngine.RPI
 			ImGui.GetIO().AddKeyEvent(pKeys[(int)e.Key], true);
 		}
 
+		public void SetFontScale(float scale)
+		{
+			var io = ImGui.GetIO();
+			io.FontGlobalScale = scale;
+		}
+		
 		private double pLastElapsed = 0;
 		private void HandleDraw()
 		{
@@ -415,7 +421,6 @@ namespace REngine.RPI
 			pLastElapsed = curr;
 
 			io.DisplaySize = new Vector2(swapChain.Size.Width, swapChain.Size.Height);
-			io.FontGlobalScale = ((float)swapChain.Size.Width / swapChain.Size.Height);
 			
 			io.AddMousePosEvent(pInput.MousePosition.X, pInput.MousePosition.Y);
 			io.AddMouseWheelEvent(pInput.MouseWheel.X, pInput.MouseWheel.Y);

@@ -11,6 +11,7 @@ namespace REngine.RPI
 	{
 		public IGraphicsRenderFeature Feature { get; }
 		public event EventHandler? OnGui;
+		public void SetFontScale(float fontScale);
 	}
 }
 #endif

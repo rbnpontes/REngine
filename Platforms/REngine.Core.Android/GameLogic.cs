@@ -15,7 +15,6 @@ internal class GameLogic(
     public void Stop()
     {
         pEngineStartup?.Stop();
-        pGameTask?.Wait(0);
     }
     
     private void StartEngine(REngine.Android.Windows.GameView gameView)
@@ -70,7 +69,7 @@ internal class GameLogic(
 
             Log.Error(GetType().Name, err.ToString());
             activity.OnEngineError(e);
-            activity.RunOnUiThread(()=> throw e);
+            throw;
         }
     }
 
@@ -81,10 +80,10 @@ internal class GameLogic(
 
     public void OnGameViewReady(REngine.Android.Windows.GameView view)
     {
-        pGameTask = Task.Factory.StartNew(() =>
+        activity.RunOnUiThread(() =>
         {
             StartEngine(view);
-        }, TaskCreationOptions.LongRunning);
+        });
     }
 
     public void OnGameViewDestroy(REngine.Android.Windows.GameView view)

@@ -41,6 +41,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     }
 
     protected abstract ILoggerFactory OnGetLoggerFactory();
+
     public virtual IEngineStartup Run()
     {
         var engine = Provider.Get<IEngine>();
@@ -82,13 +83,20 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
         OnReady();
 
-        while (!engine.IsStopped)
-            engine.ExecuteFrame();
+        RunGameLoop(engine);
+        
         Logger.Debug("Exiting");
         app.OnExit(Provider);
         OnStop();
         return this;
     }
+
+    protected virtual void RunGameLoop(IEngine engine)
+    {
+        while (!engine.IsStopped)
+            engine.ExecuteFrame();
+    }
+    
     private void HandleUpdate(object? sender, UpdateEventArgs args)
     {
         OnUpdate();
@@ -97,7 +105,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     protected virtual void OnUpdate()
     {
     }
-    public IEngineStartup Setup()
+    public virtual IEngineStartup Setup()
     {
         pEngineStartTime.Start();
         pSetupTime.Start();

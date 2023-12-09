@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Android.Graphics;
@@ -16,6 +17,7 @@ namespace REngine.Android.Windows
 	internal class WindowImpl : IWindow
 	{
 		private readonly GameView pGameView;
+		private readonly WindowTouchListener pTouchListener;
 
 		private bool pDisposed;
 
@@ -65,6 +67,8 @@ namespace REngine.Android.Windows
 		public WindowImpl(GameView gameView)
 		{
 			pGameView = gameView;
+			pTouchListener = new WindowTouchListener(this);
+			pGameView.SetOnTouchListener(pTouchListener);
 		}
 
 		public void Dispose()
@@ -128,6 +132,35 @@ namespace REngine.Android.Windows
 		public IWindow ForwardInputEvent(int utf32Char)
 		{
 			return this;
+		}
+
+		public IWindow ForwardMouseMove(Vector2 position)
+		{
+			OnMouseMove?.Invoke(this, 
+				new WindowMouseEventArgs(MouseKey.None, pGameView, pGameView.NativeWindow)
+				{
+					Position = position
+				}
+			);
+			return this;
+		}
+
+		public IWindow ForwardMouseDown(MouseKey mouseKey)
+		{
+			ForwardMouseAction(mouseKey, true);
+			return this;
+		}
+
+		public IWindow ForwardMouseUp(MouseKey mouseKey)
+		{
+			ForwardMouseAction(mouseKey, false);
+			return this;
+		}
+
+		private void ForwardMouseAction(MouseKey mouseKey, bool isDown)
+		{
+			var evt = new WindowMouseEventArgs(mouseKey, pGameView, pGameView.NativeWindow);
+			(isDown ? OnMouseDown : OnMouseUp)?.Invoke(this, evt);
 		}
 	}
 }
