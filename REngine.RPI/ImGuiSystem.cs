@@ -214,10 +214,7 @@ namespace REngine.RPI
 		public UIntSize FontSize { get; private set; } = new UIntSize();
 		public byte[] FontData { get; private set; } = Array.Empty<byte>();
 
-		public IGraphicsRenderFeature Feature
-		{
-			get => GetFeature();
-		}
+		public IGraphicsRenderFeature Feature => GetFeature();
 
 		public event EventHandler? OnGui;
 
