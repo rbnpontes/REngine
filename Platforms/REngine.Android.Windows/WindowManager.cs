@@ -16,7 +16,7 @@ namespace REngine.Android.Windows
 		private bool pDisposed;
 
 		public IReadOnlyList<IWindow> Windows => pWindows;
-		public Vector2 VideoScale { get; } = Vector2.Zero;
+		public Vector2 VideoScale { get; } = Vector2.One;
 
 		public WindowManager(
 			ILoggerFactory loggerFactory,

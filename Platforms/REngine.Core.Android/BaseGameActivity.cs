@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Text;
 using Android.Util;
 using Android.Views;
@@ -42,5 +43,14 @@ public abstract class BaseGameActivity : Activity
     public float GetDpi()
     {
         return Resources?.DisplayMetrics?.Density ?? 1.0f;
+    }
+
+    public Vector2 GetVideoScale()
+    {
+        var dpi = GetDpi();
+        return new Vector2(
+            (Resources?.DisplayMetrics?.WidthPixels ?? 1.0f) / dpi,
+            (Resources?.DisplayMetrics?.HeightPixels ?? 1.0f) / dpi
+        );
     }
 }

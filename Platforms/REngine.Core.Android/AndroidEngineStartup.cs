@@ -134,7 +134,9 @@ internal class AndroidEngineInstance : EngineInstance
 
 #if RENGINE_IMGUI
         var imGuiSystem = Provider.Get<IImGuiSystem>();
-        imGuiSystem.SetFontScale(pActivity.GetDpi());
+        var dpi = pActivity.GetDpi();
+        // Scale UI to correctly DPI
+        imGuiSystem.ScaleUi(dpi);
 #endif
     }
 

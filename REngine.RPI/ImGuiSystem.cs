@@ -295,8 +295,21 @@ namespace REngine.RPI
 
 			var io = ImGuiNET.ImGui.GetIO();
 			io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.DockingEnable;
-			//var fontCfgs = new ImFontConfig();
-			io.Fonts.AddFontDefault();
+			var fontConfig = new ImFontConfig
+			{
+				FontDataOwnedByAtlas = 1,
+				OversampleH = 2,
+				OversampleV = 1,
+				GlyphMaxAdvanceX = float.MaxValue,
+				RasterizerMultiply = 1.0f,
+				RasterizerDensity = 1.0f,
+				EllipsisChar = ushort.MaxValue,
+				SizePixels = 13
+			};
+#if ANDROID
+			fontConfig.SizePixels = 24;
+#endif
+			io.Fonts.AddFontDefault(new ImFontConfigPtr(&fontConfig));
 			io.Fonts.Build();
 
 			io.DisplaySize.X = io.DisplaySize.Y = 1;
@@ -307,10 +320,6 @@ namespace REngine.RPI
 				var videoScale = wndManager.VideoScale;
 				io.FontGlobalScale = (videoScale.X + videoScale.Y) / 2.0f;
 			}
-
-#if ANDROID
-			ImGui.GetStyle().ScaleAllSizes(3.0f);
-#endif
             
 			AllocateFontBuffer();
 
@@ -397,6 +406,11 @@ namespace REngine.RPI
 		{
 			var io = ImGui.GetIO();
 			io.FontGlobalScale = scale;
+		}
+
+		public void ScaleUi(float scale)
+		{
+			ImGui.GetStyle().ScaleAllSizes(scale);
 		}
 		
 		private double pLastElapsed = 0;
