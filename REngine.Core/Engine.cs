@@ -3,10 +3,11 @@ using System.Diagnostics;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Events;
 using REngine.Core.IO;
+using REngine.Core.Mathematics;
 using Timer = REngine.Core.Timing.Timer;
 namespace REngine.Core
 {
-	internal class EngineImpl : IEngine
+	public class Engine : IEngine
 	{
 		private readonly Stopwatch pStopwatch;
 		private readonly EngineEvents pEvents;
@@ -19,29 +20,39 @@ namespace REngine.Core
 		private IWindow? pMainWindow;
 
 		private bool pStopped;
+		private ulong pMainThreadId;
+
+		protected ILogger<IEngine> Logger { get; private set; }
+		
 		public double DeltaTime { get => pTimer.DeltaTime; }
 		public double ElapsedTime { get => pTimer.Elapsed; }
 
 		public bool IsStopped { get => pStopped; }
+		public bool IsMainThread => pMainThreadId == Hash.Digest(Thread.CurrentThread.Name);
+		public virtual bool IsKeyboardVisible => false;
 
-		public EngineImpl(
+		public Engine(
 			IServiceProvider provider,
 			EngineEvents events,
 			IExecutionPipeline pipeline,
 			EngineSettings settings,
-			IServiceProvider serviceProvider) 
+			ILoggerFactory loggerFactory) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
 			pStopwatch = Stopwatch.StartNew();
 			pExecPipeline = pipeline;
 			pEngineSettings = settings;
-			pServiceProvider = serviceProvider;
+			pServiceProvider = provider;
+			Logger = loggerFactory.Build<IEngine>();
 		}
 
 		public IEngine Start()
 		{
-			Thread.CurrentThread.Name = "REngine - Main Thread";
+			var threadName = "REngine - Main Thread";
+			Thread.CurrentThread.Name = threadName;
+			pMainThreadId = Hash.Digest(threadName);
+			
 			// Try get main window
 			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
 
@@ -93,6 +104,23 @@ namespace REngine.Core
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
 			return this;
+		}
+
+		public virtual IEngine ShowKeyboard()
+		{
+			PrintUnsupportedFeature(nameof(ShowKeyboard));
+			return this;
+		}
+
+		public virtual IEngine HideKeyboard()
+		{
+			PrintUnsupportedFeature(nameof(HideKeyboard));
+			return this;
+		}
+
+		protected void PrintUnsupportedFeature(string featureName)
+		{
+			Logger.Warning($"{featureName} is not supported on this platform");
 		}
 	}
 }

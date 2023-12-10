@@ -158,6 +158,12 @@ namespace REngine.Android.Windows
 			return this;
 		}
 
+		public IWindow ForwardMouseWheel(Vector2 axis)
+		{
+			OnMouseWheel?.Invoke(this, new WindowMouseWheelEventArgs(axis, pGameView, pGameView.NativeWindow));
+			return this;
+		}
+		
 		private void ForwardMouseAction(MouseKey mouseKey, bool isDown)
 		{
 			var evt = new WindowMouseEventArgs(mouseKey, pGameView, pGameView.NativeWindow);

@@ -76,6 +76,7 @@ internal class AndroidEngineInstance : EngineInstance
             .Add(() => pGameView)
             .Add(() => pAssetManager)
             .Add<IAssetManager, AndroidAssetManager>()
+            .Add<IEngine, AndroidEngine>()
             .Add(
                 (deps) => OnCreateWindow((IWindowManager)deps[0]),
                 [typeof(IWindowManager)]

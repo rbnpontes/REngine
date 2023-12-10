@@ -39,7 +39,7 @@ namespace REngine.Core
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IAssetManager, FileAssetManager>()
 				.Add<IInput, InputImpl>()
-				.Add<IEngine, EngineImpl>()
+				.Add<IEngine, Engine>()
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
 				.Add<ExecutionPipelineNodeRegistry>()

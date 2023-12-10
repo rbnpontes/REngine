@@ -42,6 +42,13 @@ internal class WindowTouchListener(WindowImpl window) : Java.Lang.Object, View.I
             case MotionEventActions.Move:
                 window.ForwardMouseMove(new Vector2(e.GetX(evtPointerIdx), e.GetY(evtPointerIdx)));
                 break;
+            case MotionEventActions.Scroll:
+            {
+                var axisX = e.GetAxisValue(Axis.Hscroll, evtPointerIdx);
+                var axisY = e.GetAxisValue(Axis.Vscroll, evtPointerIdx);
+                window.ForwardMouseWheel(new Vector2(axisX, axisY));
+            }
+                break;
         }
 
         return true;

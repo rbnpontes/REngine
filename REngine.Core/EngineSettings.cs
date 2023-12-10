@@ -24,6 +24,9 @@ namespace REngine.Core
 		public static string PipelineCachePath => Path.Combine(AppDataPath, "pipeline-cache.bin");
 		public static string PipelineItemsPath => Path.Combine(AppDataPath, "pipelines.rcache");
 		public static string AssetManagerSettingsPath => Path.Combine(AppDataPath, "assetmgr.rcfgs");
+#if RENGINE_IMGUI
+		public static string ImGuiSettingsPath => Path.Combine(AppDataPath, "imgui.ini");
+#endif
 
 #if ANDROID
 		public static string AssetsPath => Path.Join(AppDomain.CurrentDomain.BaseDirectory, "../Assets");
