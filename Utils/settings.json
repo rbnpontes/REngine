@@ -27,7 +27,8 @@
       "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibcsfml-system.so?alt=media",
       "libsfml-activity.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-activity.so?alt=media",
       "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-audio.so?alt=media",
-      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-system.so?alt=media"
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibopenal.so?alt=media"
     },
     "Armeabi_V7A" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Fcimgui.so?alt=media",
@@ -38,7 +39,8 @@
       "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibcsfml-system.so?alt=media",
       "libsfml-activity.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-activity.so?alt=media",
       "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-audio.so?alt=media",
-      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-system.so?alt=media"
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibopenal.so?alt=media"
     },
     "X86_64" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Fcimgui.so?alt=media",
@@ -49,7 +51,8 @@
       "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibcsfml-system.so?alt=media",
       "libsfml-activity.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-activity.so?alt=media",
       "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-audio.so?alt=media",
-      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-system.so?alt=media"
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibopenal.so?alt=media"
     },
     "X86" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Fcimgui.so?alt=media",
@@ -60,7 +63,8 @@
       "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibcsfml-system.so?alt=media",
       "libsfml-activity.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-activity.so?alt=media",
       "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-audio.so?alt=media",
-      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-system.so?alt=media"
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibopenal.so?alt=media"
     }
   }
 }

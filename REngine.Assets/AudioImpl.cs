@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using REngine.Core.IO;
 using REngine.Core.Resources;
 using SFML.Audio;
-using SFML.System;
 
 namespace REngine.Assets
 {

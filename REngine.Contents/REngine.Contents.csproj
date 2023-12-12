@@ -217,6 +217,23 @@
                 <Link>libs/x86/libREngine-DiligentNativeDriver.so</Link>
                 <Abi>x86</Abi>
             </AndroidNativeLibrary>
+            <!-- OpenAL Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\arm64-v8a\libopenal.so">
+                <Link>libs/arm64-v8a/libopenal.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\armeabi-v7a\libopenal.so">
+                <Link>libs/armeabi-v7a/libopenal.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libopenal.so">
+                <Link>libs/x86_64/libopenal.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86\libopenal.so">
+                <Link>libs/x86/libopenal.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
         </ItemGroup>
         <ItemGroup Condition="'$(IsAndroid)'=='1' and '$(IsProfilerEnabled)' == '1'">
         <AndroidNativeLibrary Include="$(SolutionDir)dependencies\runtimes\android\x86_64\libTracyClient.so">
