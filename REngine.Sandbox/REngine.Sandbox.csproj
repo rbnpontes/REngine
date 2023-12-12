@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<OutputType>Exe</OutputType>
-		<StartupObject>REngine.Sandbox.Program</StartupObject>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <OutputType>Exe</OutputType>
+        <StartupObject>REngine.Sandbox.Program</StartupObject>
+    </PropertyGroup>
 
-	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
-	
-	<PropertyGroup Condition="'$(IsRelease)'=='1'">
-		<OutputType>WinExe</OutputType>
-	</PropertyGroup>
-	
-	<ItemGroup Condition="'$(IsDesktop)'=='1'">
-	  <ProjectReference Include="..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj" />
-	  <ProjectReference Include="..\Samples\REngine.Sandbox.Samples\REngine.Sandbox.Samples.csproj" />
-	</ItemGroup>
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+
+    <PropertyGroup Condition="'$(IsRelease)'=='1'">
+        <OutputType>WinExe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsDesktop)'=='1'">
+        <ProjectReference Include="..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj"/>
+        <ProjectReference Include="..\Samples\REngine.Sandbox.Samples\REngine.Sandbox.Samples.csproj"/>
+    </ItemGroup>
 </Project>

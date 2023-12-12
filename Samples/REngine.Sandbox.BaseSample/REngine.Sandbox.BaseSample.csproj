@@ -5,9 +5,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
+    
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
     </ItemGroup>
-
 </Project>

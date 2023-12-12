@@ -5,20 +5,21 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup Condition="'$(IsAndroid)'=='1'">
-      <ProjectReference Include="..\..\Platforms\REngine.Core.Android\REngine.Core.Android.csproj" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(IsDesktop)'=='1'">
-      <ProjectReference Include="..\..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj" />
-      <ProjectReference Include="..\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj" />
-    </ItemGroup>
     
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
+    <PropertyGroup Condition="'$(IsAndroid)'=='1'">
+        <TargetFramework>net8.0-android</TargetFramework>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(IsDesktop)'=='1'">
+        <ProjectReference Include="..\..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(IsAndroid)'=='1'">
+        <ProjectReference Include="..\..\Platforms\REngine.Core.Android\REngine.Core.Android.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj"/>
+        <ProjectReference Include="..\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj"/>
+    </ItemGroup>
 </Project>
