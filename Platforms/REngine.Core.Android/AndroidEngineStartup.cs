@@ -173,6 +173,8 @@ internal class AndroidEngineInstance : EngineInstance
             Logger.Info("Exiting App");
             App.OnExit(Provider);
             OnStop();
+
+            Logger.Info("Finished!!!");
         }
     }
     protected override void OnStop()

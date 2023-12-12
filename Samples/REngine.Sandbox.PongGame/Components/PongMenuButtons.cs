@@ -11,10 +11,9 @@ using REngine.Core.Mathematics;
 using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
 using REngine.RPI.Components;
-using REngine.RPI.RenderGraph;
-using REngine.Sandbox.States;
+using REngine.Sandbox.PongGame.States;
 
-namespace REngine.Sandbox.Components
+namespace REngine.Sandbox.PongGame.Components
 {
 	internal abstract class PongMenuButtons(IServiceProvider provider)
 		: Behavior(provider)

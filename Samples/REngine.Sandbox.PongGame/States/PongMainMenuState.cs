@@ -11,9 +11,9 @@ using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI.RenderGraph;
-using REngine.Sandbox.Components;
+using REngine.Sandbox.PongGame.Components;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	internal class PongMainMenuState(
 		EntityManager entityMgr,

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using REngine.Assets;
+﻿using System.Numerics;
 using REngine.Core.Resources;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	internal static class PongVariables
 	{

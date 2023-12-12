@@ -9,8 +9,9 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Resources;
 using REngine.RPI;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox.Samples
+namespace REngine.Sandbox.Samples.BasicSamples
 {
 	[Sample("Audio Sample")]
 	internal class AudioSample(

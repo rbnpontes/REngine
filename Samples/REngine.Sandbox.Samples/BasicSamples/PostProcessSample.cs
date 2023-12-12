@@ -15,8 +15,9 @@ using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.Features;
 using REngine.RPI.RenderGraph;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox.Samples
+namespace REngine.Sandbox.Samples.BasicSamples
 {
 	[Sample("Post Process")]
 	internal class PostProcessSample(

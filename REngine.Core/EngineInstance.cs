@@ -96,6 +96,8 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         Logger.Debug("Exiting");
         app.OnExit(Provider);
         OnStop();
+
+        Logger.Info("Finished!!!");
     }
     
     private void HandleUpdate(object? sender, UpdateEventArgs args)

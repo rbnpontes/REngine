@@ -1,14 +1,7 @@
-using REngine.Core;
-using REngine.Core.DependencyInjection;
-using REngine.RHI;
-using REngine.RHI.DiligentDriver;
-using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+#if DESKTOP
 using REngine.Core.Desktop;
-
+using REngine.Sandbox.Samples;
+#endif
 namespace REngine.Sandbox
 {
 	internal static class Program
@@ -19,11 +12,15 @@ namespace REngine.Sandbox
 		[STAThread]
 		static void Main()
 		{
+#if DESKTOP
 			DesktopEngineInstance
-				.CreateStartup<SandboxApp>()
+				.CreateStartup<SampleApp>()
 				.Setup()
 				.Start()
 				.Run();
+#else
+			Console.WriteLine("Unsupported Platform. Build this Project with Linux or Windows Configuration");
+#endif
 		}
 	}
 }

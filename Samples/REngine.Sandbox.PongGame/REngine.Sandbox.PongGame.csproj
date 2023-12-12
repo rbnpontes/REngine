@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\REngine.Assets\REngine.Assets.csproj" />
+      <ProjectReference Include="..\..\REngine.RPI\REngine.RPI.csproj" />
+      <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj" />
+    </ItemGroup>
+    
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
+</Project>

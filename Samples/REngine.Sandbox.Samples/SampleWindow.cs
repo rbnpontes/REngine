@@ -1,34 +1,22 @@
 ﻿using ImGuiNET;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
-using REngine.Core.Threading;
 using REngine.RPI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using REngine.Core.Reflection;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox
+namespace REngine.Sandbox.Samples
 {
 	internal class SampleWindow
 	{
-		class SampleItem 
+		private class SampleItem(Type type, string name)
 		{
-			public Type Type { get; private set; }
-			public string Name { get; private set; }
-
-			public SampleItem(Type type, string name)
-			{
-				Type = type;
-				Name = name;
-			}
+			public Type Type { get; private set; } = type;
+			public string Name { get; private set; } = name;
 		}
 
-		private readonly List<SampleItem> pSamples = new();
+		private readonly List<SampleItem> pSamples = [];
 
 		private SampleItem? pLastSampleItem;
 		private ISample? pLastSample;
@@ -41,7 +29,7 @@ namespace REngine.Sandbox
 
 		private void CollectSamples()
 		{
-			HashSet<string> addedSamples = new();
+			HashSet<string> addedSamples = [];
 			Assembly
 				.GetExecutingAssembly()
 				.GetTypes()
@@ -49,7 +37,7 @@ namespace REngine.Sandbox
 				.ToList()
 				.ForEach(type =>
 				{
-					SampleAttribute? attr = type.GetCustomAttribute<SampleAttribute>();
+					var attr = type.GetCustomAttribute<SampleAttribute>();
 					if (addedSamples.Contains(attr?.SampleName ?? string.Empty))
 						return;
 					var sample = new SampleItem(type, attr?.SampleName ?? type.Name);
@@ -83,7 +71,7 @@ namespace REngine.Sandbox
 			CollectSamples();
 
 			pServiceProvider = provider;
-			SampleItem? item = pSamples.FirstOrDefault();
+			var item = pSamples.FirstOrDefault();
 			if (item != null)
 				LoadSample(item);
 

@@ -8,9 +8,9 @@ using REngine.Core;
 using REngine.Core.Logic;
 using REngine.Core.WorldManagement;
 using REngine.RPI.Components;
-using REngine.Sandbox.Components;
+using REngine.Sandbox.PongGame.Components;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	internal class PongGameOverState(
 		EntityManager entityManager,

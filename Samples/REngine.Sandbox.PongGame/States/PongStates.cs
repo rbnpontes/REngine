@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Mathematics;
+using REngine.Sandbox.PongGame.States;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	public static class PongStates
 	{

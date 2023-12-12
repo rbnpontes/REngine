@@ -71,6 +71,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Core.Desktop", "Pla
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox.Samples", "Samples\REngine.Sandbox.Samples\REngine.Sandbox.Samples.csproj", "{1D8424C6-B41C-4735-A1EB-96E808EA0399}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox.PongGame", "Samples\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj", "{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox.BaseSample", "Samples\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj", "{8D7DCD69-C466-4D65-A955-190197E9CA74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -378,6 +384,48 @@ Global
 		{B7144223-AC7C-4EFE-9A63-FFF408DC259A}.Release|x64.Deploy.0 = Release|x64
 		{B7144223-AC7C-4EFE-9A63-FFF408DC259A}.Release-Profiler|x64.ActiveCfg = Release-Profiler|x64
 		{B7144223-AC7C-4EFE-9A63-FFF408DC259A}.Release-Profiler|x64.Build.0 = Release-Profiler|x64
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug|x64.Build.0 = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Release|x64.ActiveCfg = Release|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Release|x64.Build.0 = Release|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399}.Release-Profiler|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Release|x64.ActiveCfg = Release|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Release|x64.Build.0 = Release|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC}.Release-Profiler|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Release|x64.ActiveCfg = Release|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Release|x64.Build.0 = Release|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Release-Profiler|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -398,6 +446,9 @@ Global
 		{8A110BDB-DC8C-4FBD-83B8-6D10E6B9E818} = {1DB13791-CCAF-42A7-830B-85241C369497}
 		{C788C399-EB26-485B-A92E-4389187BC11B} = {0F7B4701-8DD5-4EAA-A3CB-9E8AEA41F9AF}
 		{B7144223-AC7C-4EFE-9A63-FFF408DC259A} = {1DB13791-CCAF-42A7-830B-85241C369497}
+		{1D8424C6-B41C-4735-A1EB-96E808EA0399} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
+		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
+		{8D7DCD69-C466-4D65-A955-190197E9CA74} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

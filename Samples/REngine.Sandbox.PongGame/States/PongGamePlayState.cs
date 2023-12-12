@@ -15,16 +15,16 @@ using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.SpriteEffects;
-using REngine.Sandbox.Components;
+using REngine.Sandbox.PongGame.Components;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	internal class PongGamePlayState(EntityManager entityManager,
 			IWindow mainWindow,
 			IInput input,
 			GameStateManager gameStateManager,
 			IEngine engine,
-			IImGuiSystem imguiSystem)
+			IImGuiSystem imGuiSystem)
 		: IGameState
 	{
 #if PROFILER
@@ -95,7 +95,7 @@ namespace REngine.Sandbox.States
 
 #if DEBUG
 			if(PongVariables.EnableDebug)
-				imguiSystem.OnGui += OnGui;
+				imGuiSystem.OnGui += OnGui;
 #endif
 		}
 
@@ -166,9 +166,9 @@ namespace REngine.Sandbox.States
 				{
 					PongVariables.EnableDebug = !PongVariables.EnableDebug;
 					if (PongVariables.EnableDebug)
-						imguiSystem.OnGui += OnGui;
+						imGuiSystem.OnGui += OnGui;
 					else
-						imguiSystem.OnGui -= OnGui;
+						imGuiSystem.OnGui -= OnGui;
 				}
 #endif
 
@@ -195,7 +195,7 @@ namespace REngine.Sandbox.States
 				PongVariables.BackgroundAudio.Pitch = 1;
 #if DEBUG
 			if(PongVariables.EnableDebug)
-				imguiSystem.OnGui -= OnGui;
+				imGuiSystem.OnGui -= OnGui;
 #endif
 			entityManager.DestroyAll();
 		}

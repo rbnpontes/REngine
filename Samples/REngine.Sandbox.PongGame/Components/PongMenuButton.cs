@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI.Components;
-using REngine.Sandbox.States;
+using REngine.Sandbox.PongGame.States;
 
-namespace REngine.Sandbox.Components
+namespace REngine.Sandbox.PongGame.Components
 {
 	internal class PongMenuButton(IServiceProvider provider) : Behavior(provider)
 	{

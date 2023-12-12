@@ -14,8 +14,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Resources;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox.Samples
+namespace REngine.Sandbox.Samples.BasicSamples
 {
 	[Sample("Render Graph")]
 	internal class RenderGraphSample(

@@ -19,7 +19,7 @@ using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.RenderGraph;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	public class SplashScreenState(
 		ISpriteBatch spriteBatch,

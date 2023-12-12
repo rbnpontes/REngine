@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using REngine.Assets;
 using REngine.Core;
 using REngine.Core.Logic;
@@ -16,7 +11,7 @@ using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.RenderGraph;
 
-namespace REngine.Sandbox.States
+namespace REngine.Sandbox.PongGame.States
 {
 	internal class LoadPongState(
 		GameStateManager gameStateManager,

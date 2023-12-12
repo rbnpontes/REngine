@@ -13,8 +13,9 @@ using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox.Samples
+namespace REngine.Sandbox.Samples.BasicSamples
 {
 	[Sample("Entity Component System")]
 	internal class EntityComponentSystemSample(

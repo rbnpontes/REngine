@@ -17,11 +17,15 @@
         <IsDesktop Condition="'$(IsAndroid)'!='1'">1</IsDesktop>
         <IsProfilerEnabled Condition="$(Configuration.Contains('Profiler'))">1</IsProfilerEnabled>
         <IsDebug Condition="$(Configuration.StartsWith('Debug'))">1</IsDebug>
+        <IsRelease Condition="$(Configuration.StartsWith('Release'))">1</IsRelease>
     </PropertyGroup>
     
     <!-- Project Define Constants -->
     <PropertyGroup Condition="'$(IsDebug)'=='1'">
         <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsRelease)'=='1'">
+        <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(IsWindows)'=='1'">
         <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
@@ -34,6 +38,9 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(IsAndroid)'=='1'">
         <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsDesktop)'=='1'">
+        <DefineConstants>$(DefineConstants);DESKTOP</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(IsProfilerEnabled)'=='1'">
         <DefineConstants>$(DefineConstants);PROFILER</DefineConstants>

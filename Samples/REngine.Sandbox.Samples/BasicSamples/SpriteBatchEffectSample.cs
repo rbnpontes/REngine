@@ -11,8 +11,9 @@ using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.RPI;
+using REngine.Sandbox.BaseSample;
 
-namespace REngine.Sandbox.Samples
+namespace REngine.Sandbox.Samples.BasicSamples
 {
 	[Sample("SpriteBatch - Effect")]
 	internal class SpriteBatchEffectSample(
