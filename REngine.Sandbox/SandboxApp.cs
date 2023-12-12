@@ -14,36 +14,20 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Desktop;
 using REngine.Core.IO;
 
 namespace REngine.Sandbox
 {
-	internal class SandboxApp : IEngineApplication
+	internal class SandboxApp : App
 	{
 		private readonly SampleWindow pSampleWindow = new();
-		public void OnSetLogger(ILogger logger)
+		public override void OnStart(IServiceProvider provider)
 		{
-		}
-
-		public void OnSetupModules(List<IModule> modules)
-		{
-		}
-
-		public void OnSetup(IServiceRegistry registry)
-		{
-		}
-
-		public void OnStart(IServiceProvider provider)
-		{
-			var window = provider.Get<IWindow>();
+			var window = MainWindow;
 			window.Title = "[REngine] Samples";
 			window.Size = new Size(800, 500);
-#if RENGINE_IMGUI
-			var renderer = provider.Get<IRenderer>();
-			var imGuiSystem = provider.Get<IImGuiSystem>();
-
-			renderer.AddFeature(imGuiSystem.Feature, 1000/*ImGui Feature must execute at last*/);
-#endif
+			
 			provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
 			pSampleWindow.EngineStart(provider);
 		}
@@ -53,13 +37,9 @@ namespace REngine.Sandbox
 			pSampleWindow.EngineStop();
 		}
 
-		public void OnUpdate(IServiceProvider provider)
+		public override void OnUpdate(IServiceProvider provider)
 		{
 			pSampleWindow.EngineUpdate(provider);
-		}
-
-		public void OnExit(IServiceProvider provider)
-		{
 		}
 	}
 }

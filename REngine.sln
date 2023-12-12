@@ -69,6 +69,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Tools.AssetServer",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Core.Desktop", "Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj", "{B7144223-AC7C-4EFE-9A63-FFF408DC259A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
