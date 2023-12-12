@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox.PongGame", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Sandbox.BaseSample", "Samples\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj", "{8D7DCD69-C466-4D65-A955-190197E9CA74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFML.Audio", "ThirdParty\SFML.Audio\SFML.Audio.csproj", "{C009E25C-67A9-4744-9AD8-42D4FDC71810}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -396,6 +398,20 @@ Global
 		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug-Android|x64.Build.0 = Debug-Android|x64
 		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug|x64.ActiveCfg = Debug|x64
 		{8D7DCD69-C466-4D65-A955-190197E9CA74}.Debug|x64.Build.0 = Debug|x64
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug|x64.Build.0 = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release|x64.ActiveCfg = Release|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release|x64.Build.0 = Release|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release-Profiler|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -419,6 +435,7 @@ Global
 		{1D8424C6-B41C-4735-A1EB-96E808EA0399} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
 		{4DA70C50-8B2C-45B4-A879-D6C107AFD0AC} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
 		{8D7DCD69-C466-4D65-A955-190197E9CA74} = {10E1A4DB-7BAF-4677-862F-2C1B981FCAAF}
+		{C009E25C-67A9-4744-9AD8-42D4FDC71810} = {A47643E2-2AC1-4DF1-BEE3-2AE63C7901B5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

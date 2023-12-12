@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SFML.Audio</RootNamespace>
+    <AssemblyName>SFML.Audio</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WebPage>https://github.com/SFML/SFML.Net/</WebPage>
+  </PropertyGroup>
+
+  <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+</Project>
