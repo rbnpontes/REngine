@@ -379,8 +379,10 @@ namespace REngine.RPI
 
 		private void HandleInput(object? sender, InputTextEventArgs e)
 		{
-			string text = e.Text;
-			char c = text.ElementAt(0);
+			var text = e.Text;
+			if (string.IsNullOrEmpty(text))
+				return;
+			var c = text.ElementAt(0);
 			
 			// ImGui only accepts ascii chars
 			if (!char.IsAscii(c))

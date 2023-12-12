@@ -4,6 +4,7 @@ using Android.Graphics;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
+using Android.Views.InputMethods;
 using Size = System.Drawing.Size;
 
 namespace REngine.Android.Windows;
@@ -11,6 +12,7 @@ namespace REngine.Android.Windows;
 public sealed class GameView : SurfaceView, ISurfaceHolderCallback
 {
     private IGameViewCallback? pCallback;
+    private IGameViewKeyboardListener? pKeyboardListener;
  
     public IntPtr NativeWindow { get; private set; } = IntPtr.Zero;
     public Rectangle Bounds => new Rectangle(Left, Top, Width, Height);
@@ -19,11 +21,17 @@ public sealed class GameView : SurfaceView, ISurfaceHolderCallback
     public GameView(Context? context) : base(context)
     {
         Holder?.AddCallback(this);
+        Focusable = true;
     }
 
     public void SetCallback(IGameViewCallback? callback)
     {
         pCallback = callback;
+    }
+
+    public void SetKeyboardListener(IGameViewKeyboardListener? callback)
+    {
+        pKeyboardListener = callback;
     }
     
     private void UpdateNativeWindowPtr(ISurfaceHolder holder)
@@ -50,5 +58,30 @@ public sealed class GameView : SurfaceView, ISurfaceHolderCallback
     {
         UpdateNativeWindowPtr(holder);
         pCallback?.OnGameViewDestroy(this);
+    }
+
+    public override IInputConnection? OnCreateInputConnection(EditorInfo? outAttrs)
+    {
+        if (outAttrs != null)
+            outAttrs.ImeOptions = ImeFlags.NoFullscreen;
+        return base.OnCreateInputConnection(outAttrs);
+    }
+
+    public override bool OnKeyDown(Keycode keyCode, KeyEvent? e)
+    {
+        if (e is null || pKeyboardListener is null)
+            return base.OnKeyDown(keyCode, e);
+        
+        var handled = pKeyboardListener.OnGameViewKeyDown(keyCode, e.UnicodeChar);
+        return handled || base.OnKeyDown(keyCode, e);
+    }
+
+    public override bool OnKeyUp(Keycode keyCode, KeyEvent? e)
+    {
+        if(pKeyboardListener is null)
+            return base.OnKeyUp(keyCode, e);
+
+        var handled = pKeyboardListener.OnGameViewKeyUp(keyCode);
+        return handled || base.OnKeyUp(keyCode, e);
     }
 }

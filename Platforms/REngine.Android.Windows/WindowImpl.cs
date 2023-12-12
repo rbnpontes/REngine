@@ -17,7 +17,6 @@ namespace REngine.Android.Windows
 	internal class WindowImpl : IWindow
 	{
 		private readonly GameView pGameView;
-		private readonly WindowTouchListener pTouchListener;
 
 		private bool pDisposed;
 
@@ -67,8 +66,10 @@ namespace REngine.Android.Windows
 		public WindowImpl(GameView gameView)
 		{
 			pGameView = gameView;
-			pTouchListener = new WindowTouchListener(this);
-			pGameView.SetOnTouchListener(pTouchListener);
+			var touchListener = new WindowTouchListener(this);
+			var keyListener = new KeyboardListener(this);
+			pGameView.SetOnTouchListener(touchListener);
+			pGameView.SetKeyboardListener(keyListener);
 		}
 
 		public void Dispose()
@@ -76,6 +77,7 @@ namespace REngine.Android.Windows
 			if(pDisposed) return;
 
 			pGameView.SetCallback(null);
+			pGameView.SetKeyboardListener(null);
 			pDisposed = true;
 		}
 
@@ -122,16 +124,29 @@ namespace REngine.Android.Windows
 
 		public IWindow ForwardKeyDownEvent(InputKey key)
 		{
+			ForwardKeyEvent(key, true);
 			return this;
 		}
 
 		public IWindow ForwardKeyUpEvent(InputKey key)
 		{
+			ForwardKeyEvent(key, false);
 			return this;
 		}
 
+		private void ForwardKeyEvent(InputKey key, bool isDown)
+		{
+			var args = new WindowInputEventArgs(key, pGameView, pGameView.NativeWindow);
+			if(isDown)
+				OnKeyDown?.Invoke(this, args);
+			else
+				OnKeyUp?.Invoke(this, args);
+		}
 		public IWindow ForwardInputEvent(int utf32Char)
 		{
+			OnInput?.Invoke(this, new WindowInputTextEventArgs(
+				char.ConvertFromUtf32(utf32Char), pGameView, pGameView.NativeWindow)
+			);
 			return this;
 		}
 
