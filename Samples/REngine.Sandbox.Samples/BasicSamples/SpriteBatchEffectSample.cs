@@ -21,7 +21,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		ISpriteBatch spriteBatch,
 		IAssetManager assetManager) : ISample
 	{
-		private readonly BasicSpriteEffect pSpriteEffect = new("Sample Effect");
+		private readonly BasicSpriteEffect pSpriteEffect = new("Sample Effect", assetManager);
 
 		private IRenderFeature? pSpriteFeature;
 		public IWindow? Window { get; set; }
@@ -38,7 +38,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		public void Load(IServiceProvider provider)
 		{
 			// ReSharper disable once StringLiteralTypo
-			pSpriteEffect.PixelShader = new FileShaderStream(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders/sprite_smpl_effect_ps.hlsl"));
+			pSpriteEffect.PixelShader = new StreamedShaderStream(assetManager.GetStream("Shaders/sprite_smpl_effect_ps.hlsl"));
 
 			// Load Sprite
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");

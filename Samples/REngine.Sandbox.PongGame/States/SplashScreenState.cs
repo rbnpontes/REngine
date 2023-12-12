@@ -49,7 +49,7 @@ namespace REngine.Sandbox.PongGame.States
 			pAudio = audioAsset.Audio;
 			pAudioAsset = audioAsset;
 
-			var effect = new BasicSpriteEffect("Engine Effect");
+			var effect = new BasicSpriteEffect("Engine Effect", assetManager);
 			effect.PixelShader =
 				new FileShaderStream(Path.Join(EngineSettings.AssetsShadersPath, "engine_logo_effect.hlsl"));
 

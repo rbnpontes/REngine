@@ -5,16 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Resources;
 
 namespace REngine.RPI.Features
 {
-	public class CopyRenderTargetFeature : PostProcessFeature
+	public class CopyRenderTargetFeature(IAssetManager assetManager) : PostProcessFeature
 	{
 		protected override ShaderStream OnGetShaderCode()
 		{
-			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPath, "copy_rt_ps.hlsl")
-			);
+			return new StreamedShaderStream(assetManager.GetStream("Shaders/copy_rt_ps.hlsl"));
 		}
 	}
 }

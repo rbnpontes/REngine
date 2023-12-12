@@ -57,9 +57,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
 			spriteBatch.SetTexture(0, sprite.Image);
 			
-			var rootEntry = renderGraph.LoadFromFile(
-				Path.Join(EngineSettings.AssetsPath, "postprocess-rendergraph.xml")
-			);
+			var rootEntry = renderGraph.Load("postprocess-rendergraph.xml");
 
 			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
 			renderer.AddFeature(pFeature);

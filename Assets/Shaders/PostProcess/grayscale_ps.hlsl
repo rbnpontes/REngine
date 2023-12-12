@@ -12,7 +12,11 @@ struct PSInput
 
 float4 main(in PSInput ps_input) : SV_TARGET
 {
-    float4 color = g_texture.Sample(g_texture_sampler, ps_input.uv);
+    float2 uv = ps_input.uv;
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
+    float4 color = g_texture.Sample(g_texture_sampler, uv);
     float x = (color.r + color.g + color.b) / 3.0f;
     return float4(x, x, x, color.a);
 }

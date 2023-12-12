@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI.Constants;
 
@@ -20,7 +21,7 @@ namespace REngine.RPI
 		public abstract IShaderResourceBinding OnGetSRB();
 	}
 
-	public class BasicSpriteEffect : SpriteEffect
+	public class BasicSpriteEffect(string effectName, IAssetManager assetManager) : SpriteEffect
 	{
 		private bool pDisposed;
 		private ITexture? pMainTexture;
@@ -58,12 +59,7 @@ namespace REngine.RPI
 			}
 		}
 
-		public override string EffectName { get; }
-
-		public BasicSpriteEffect(string effectName)
-		{
-			EffectName = effectName;
-		}
+		public override string EffectName => effectName;
 
 		private ShaderStream GetShaderStream(ShaderType type)
 		{
@@ -72,20 +68,15 @@ namespace REngine.RPI
 			{
 				case ShaderType.Vertex:
 				{
-					pVertexShaderStream ??= new FileShaderStream(
-						// ReSharper disable once StringLiteralTypo
-						Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders/spritebatch_vs.hlsl")
-					);
+					pVertexShaderStream ??=
+						new StreamedShaderStream(assetManager.GetStream("Shaders/spritebatch_vs.hlsl"));
 					stream = pVertexShaderStream;
 				}
 					break;
 				case ShaderType.Pixel:
 				{
-					pPixelShaderStream ??= new FileShaderStream(
-						// ReSharper disable once StringLiteralTypo
-						Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders/spritebatch_ps.hlsl")
-					);
-
+					pPixelShaderStream ??=
+						new StreamedShaderStream(assetManager.GetStream("Shaders/spritebatch_ps.hlsl"));
 					stream = pPixelShaderStream;
 				}
 					break;
@@ -256,10 +247,6 @@ namespace REngine.RPI
 
 	}
 
-	public sealed class DefaultSpriteEffect : BasicSpriteEffect
-	{
-		public DefaultSpriteEffect() : base(nameof(DefaultSpriteEffect))
-		{
-		}
-	}
+	public sealed class DefaultSpriteEffect(IAssetManager assetManager)
+		: BasicSpriteEffect(nameof(DefaultSpriteEffect), assetManager);
 }

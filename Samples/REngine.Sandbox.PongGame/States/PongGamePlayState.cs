@@ -10,6 +10,7 @@ using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Logic;
 using REngine.Core.Mathematics;
+using REngine.Core.Resources;
 using REngine.Core.Storage;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
@@ -24,7 +25,8 @@ namespace REngine.Sandbox.PongGame.States
 			IInput input,
 			GameStateManager gameStateManager,
 			IEngine engine,
-			IImGuiSystem imGuiSystem)
+			IImGuiSystem imGuiSystem,
+			IAssetManager assetManager)
 		: IGameState
 	{
 #if PROFILER
@@ -70,7 +72,7 @@ namespace REngine.Sandbox.PongGame.States
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
-			sprite.Effect = new RoundedEffect();
+			sprite.Effect = new RoundedEffect(assetManager);
 
 			pRoot.AddChild(pBall);
 			pRoot.AddChild(pBar);

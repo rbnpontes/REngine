@@ -72,12 +72,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			
 			pEnableSpritebatchVar = variableManager.GetVar("@vars/spritebatch/enabled");
 
-			var rootEntry = renderGraph.LoadFromFile(
-				Path.Join(
-					AppDomain.CurrentDomain.BaseDirectory,
-					"Assets/default-rendergraph.xml"
-				)
-			);
+			// ReSharper disable once StringLiteralTypo
+			var rootEntry = renderGraph.Load("default-rendergraph.xml");
 
 			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
 			renderer.AddFeature(pFeature);

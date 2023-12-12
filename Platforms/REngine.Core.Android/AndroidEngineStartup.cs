@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Android.Content.Res;
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
@@ -200,10 +201,16 @@ internal class AndroidEngineInstance : EngineInstance
             case DbgMsgSeverity.Warning:
             case DbgMsgSeverity.Error:
             case DbgMsgSeverity.FatalError:
+            {
+                Log.Error("DiligentEngine", e.Message);
                 Logger.Critical($"Diligent Engine: {e.Severity} in {e.Function}() ({e.File}, {e.Line}): {e.Message}");
+            }
                 break;
             case DbgMsgSeverity.Info:
+            {
+                Log.Info("DiligentEngine", e.Message);
                 Logger.Info($"Diligent Engine: {e.Severity} {e.Message}");
+            }
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

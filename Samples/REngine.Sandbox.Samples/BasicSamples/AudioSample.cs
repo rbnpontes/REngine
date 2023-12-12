@@ -13,6 +13,7 @@ using REngine.Sandbox.BaseSample;
 
 namespace REngine.Sandbox.Samples.BasicSamples
 {
+#if DESKTOP
 	[Sample("Audio Sample")]
 	internal class AudioSample(
 		IImGuiSystem imGuiSystem,
@@ -129,4 +130,5 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 		}
 	}
+#endif
 }

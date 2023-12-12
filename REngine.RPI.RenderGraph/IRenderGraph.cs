@@ -14,7 +14,7 @@ namespace REngine.RPI.RenderGraph
 	public interface IRenderGraph
 	{
 		public RenderGraphEntry? RootEntry { get; set; }
-		public RenderGraphEntry LoadFromFile(string filePath);
+		public RenderGraphEntry Load(string assetPath);
 		public RenderGraphEntry Load(Stream stream);
 		/// <summary>
 		/// Execute Render Graph. You must set an RootEntry first

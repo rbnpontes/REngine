@@ -46,9 +46,8 @@ namespace REngine.Sandbox.PongGame
 				.RegisterState<PongGamePlayState>()
 				.RegisterState<PongGameOverState>();
 
-			var rootEntry = renderGraph.LoadFromFile(
-				Path.Join(EngineSettings.AssetsPath, "ponggame-rendergraph.xml")
-			);
+			// ReSharper disable once StringLiteralTypo
+			var rootEntry = renderGraph.Load("ponggame-rendergraph.xml");
 
 			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
 			renderer.AddFeature(pFeature);

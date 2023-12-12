@@ -1,4 +1,4 @@
-﻿#if RENGINE_ENABLED_TEXTURE
+﻿#ifdef RENGINE_ENABLED_TEXTURE
 Texture2D g_texture;
 SamplerState g_texture_sampler;
 #endif
@@ -11,7 +11,7 @@ struct PSInput {
 
 float4 main(in PSInput ps_input) : SV_TARGET{
 	float4 result = float4(1.0, 1.0, 1.0, 1.0);
-#if RENGINE_ENABLED_TEXTURE
+#ifdef RENGINE_ENABLED_TEXTURE
 	result = g_texture.Sample(g_texture_sampler, ps_input.uv);
 #endif
 	result = result * ps_input.color;

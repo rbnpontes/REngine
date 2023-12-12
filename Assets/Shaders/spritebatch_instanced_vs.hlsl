@@ -67,8 +67,8 @@ void main(in PSInput vs_input, out PSOutput ps_input)
 	float2 anchor = vs_input.rotationAndAnchor.xy;
 	float rotation = vs_input.rotationAndAnchor.z;
 
-	const float4x4 translate_m = createTranslate((scale * anchor) * float2(-1, -1));
-	const float4x4 scale_m = createScale(scale);
+	float4x4 translate_m = createTranslate((scale * anchor) * float2(-1, -1));
+	float4x4 scale_m = createScale(scale);
 	
 	float4x4 transform = mul(scale_m, translate_m);
 	transform = mul(transform, createRotation(rotation));

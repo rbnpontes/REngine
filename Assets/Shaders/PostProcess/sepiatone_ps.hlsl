@@ -12,7 +12,12 @@ struct PSInput
 
 float4 main(in PSInput ps_input) : SV_TARGET
 {
-    float4 base = g_texture.Sample(g_texture_sampler, ps_input.uv);
+    float2 uv = ps_input.uv;
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
+    
+    float4 base = g_texture.Sample(g_texture_sampler, uv);
     float3 color = base.xyz;
     float3x3 sepiaTransform = float3x3(
         0.393, 0.768, 0.189,

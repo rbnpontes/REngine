@@ -80,7 +80,11 @@ float3 crt_effect(float3 color, float uv_x, float screen_width)
 
 float4 main(in PSInput ps_input) : SV_TARGET
 {
-	const float2 uv = curve_uv(ps_input.uv, 1.1f, 4.48, 2.0, 0.92);
+    float2 uv = curve_uv(ps_input.uv, 1.1f, 4.48, 2.0, 0.92);
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
+    
     const float t = wave(ps_input.time.x, 0.00017, float3(6.3, 20.3, 10.23), float3(0, 0, 0.3));
 
     float3 color = chromatic_aberration(uv + t, float3(0.001, 0.002, 0.0));

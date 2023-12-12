@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
+using REngine.Core.Resources;
 using REngine.RPI.Features;
 using REngine.RPI.Features.PostProcess;
 using REngine.RPI.RenderGraph.Annotations;
@@ -11,7 +13,7 @@ using REngine.RPI.RenderGraph.Annotations;
 namespace REngine.RPI.RenderGraph.PostProcess
 {
 	[NodeTag("postprocess.blur")]
-	public class BlurNode : PostProcessNode
+	public sealed class BlurNode() : PostProcessNode(nameof(BlurNode))
 	{
 		private const string DirectionsPropKey = "directions";
 		private const string QualityPropKey = "quality";
@@ -21,12 +23,7 @@ namespace REngine.RPI.RenderGraph.PostProcess
 		private static readonly ulong QualityHashKey = Hash.Digest(QualityPropKey);
 		private static readonly ulong SizeHashKey = Hash.Digest(SizePropKey);
 
-		private readonly BlurPostProcess pFeature = new();
-
-		public BlurNode() : base(nameof(BlurNode))
-		{
-		}
-
+		private BlurPostProcess? pFeature;
 		protected override void OnSetup(IDictionary<ulong, string> properties)
 		{
 			if(properties.TryGetValue(DirectionsHashKey, out var directions))
@@ -41,6 +38,7 @@ namespace REngine.RPI.RenderGraph.PostProcess
 
 		protected override PostProcessFeature GetPostProcessFeature()
 		{
+			pFeature ??= new BlurPostProcess(ServiceProvider.Get<IAssetManager>());
 			return pFeature;
 		}
 	}

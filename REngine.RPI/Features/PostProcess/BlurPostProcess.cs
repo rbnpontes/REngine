@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI.Constants;
 
 namespace REngine.RPI.Features.PostProcess
 {
-	public sealed class BlurPostProcess : PostProcessFeature
+	public sealed class BlurPostProcess(IAssetManager assetManager) : PostProcessFeature
 	{
 		private IBuffer? pCBuffer;
 		public float Directions { get; set; } = 16;
@@ -21,9 +22,7 @@ namespace REngine.RPI.Features.PostProcess
 		public float Size { get; set; } = 8;
 		protected override ShaderStream OnGetShaderCode()
 		{
-			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPostProcessPath, "blur.hlsl")
-			);
+			return new StreamedShaderStream(assetManager.GetStream("Shaders/PostProcess/blur.hlsl"));
 		}
 
 		protected override void OnExecute(ICommandBuffer command)

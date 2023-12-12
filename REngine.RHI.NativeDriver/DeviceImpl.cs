@@ -165,6 +165,8 @@ namespace REngine.RHI.NativeDriver
 			if (result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create graphics pipeline state");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible create graphics pipeline state");
 			return new GraphicsPipelineImpl(desc, result.value);
 		}
 
