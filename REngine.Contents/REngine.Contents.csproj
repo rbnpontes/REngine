@@ -84,6 +84,88 @@
     
     <!-- Begin Android Dependencies -->
         <ItemGroup Condition="'$(IsAndroid)'=='1'">
+            <!-- CSFML Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libcsfml-audio.so">
+                <Link>libs\x86_64\libcsfml-audio.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libcsfml-system.so">
+                <Link>libs\x86_64\libcsfml-system.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libcsfml-audio.so">
+                <Link>libs\x86\libcsfml-audio.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libcsfml-system.so">
+                <Link>libs\x86\libcsfml-system.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libcsfml-audio.so">
+                <Link>libs\armeabi-v7a\libcsfml-audio.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libcsfml-system.so">
+                <Link>libs\armeabi-v7a\libcsfml-system.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libcsfml-audio.so">
+                <Link>libs\arm64-v8a\libcsfml-audio.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libcsfml-system.so">
+                <Link>libs\arm64-v8a\libcsfml-system.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <!-- SFML Dependencies -->
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libsfml-audio.so">
+                <Link>libs\x86_64\libsfml-audio.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libsfml-system.so">
+                <Link>libs\x86_64\libsfml-system.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libsfml-activity.so">
+                <Link>libs\x86_64\libsfml-activity.so</Link>
+                <Abi>x86_64</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libsfml-audio.so">
+                <Link>libs\x86\libsfml-audio.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libsfml-system.so">
+                <Link>libs\x86\libsfml-system.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86\libsfml-activity.so">
+                <Link>libs\x86\libsfml-activity.so</Link>
+                <Abi>x86</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libsfml-audio.so">
+                <Link>libs\armeabi-v7a\libsfml-audio.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libsfml-system.so">
+                <Link>libs\armeabi-v7a\libsfml-system.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\armeabi-v7a\libsfml-activity.so">
+                <Link>libs\armeabi-v7a\libsfml-activity.so</Link>
+                <Abi>armeabi-v7a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libsfml-audio.so">
+                <Link>libs\arm64-v8a\libsfml-audio.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libsfml-system.so">
+                <Link>libs\arm64-v8a\libsfml-system.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
+            <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\arm64-v8a\libsfml-activity.so">
+                <Link>libs\arm64-v8a\libsfml-activity.so</Link>
+                <Abi>arm64-v8a</Abi>
+            </AndroidNativeLibrary>
             <!-- ImGui Dependencies -->
             <AndroidNativeLibrary Include="$(SolutionDir)\dependencies\runtimes\android\x86_64\libcimgui.so">
                 <Link>libs\x86_64\libcimgui.so</Link>
