@@ -30,9 +30,18 @@ namespace REngine.Sandbox.Samples
 		private void CollectSamples()
 		{
 			HashSet<string> addedSamples = [];
-			Assembly
-				.GetExecutingAssembly()
-				.GetTypes()
+			CollectSamples(AppDomain.CurrentDomain.GetAssemblies(), addedSamples);
+		}
+
+		private void CollectSamples(IEnumerable<Assembly> assemblies, ISet<string> addedSamples)
+		{
+			foreach (var assembly in assemblies)
+				CollectSamples(assembly, addedSamples);
+		}
+
+		private void CollectSamples(Assembly assembly, ISet<string> addedSamples)
+		{
+			assembly.GetTypes()
 				.Where(type => typeof(ISample).IsAssignableFrom(type) && !type.IsInterface)
 				.ToList()
 				.ForEach(type =>

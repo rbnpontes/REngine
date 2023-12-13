@@ -64,7 +64,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			spriteBatch.SetTexture(0, sprite.Image);
 
 			// Load Font
-			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
+			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous-Pro.ttf");
 			pTextBatch = provider.Get<ITextRenderer>().SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 			pTextBatch.Text = "Render Graph Sample";
 			pTextBatch.Size = 24;

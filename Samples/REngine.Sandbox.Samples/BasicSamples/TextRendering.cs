@@ -58,7 +58,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
 
 			// Load Font
-			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous Pro.ttf");
+			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous-Pro.ttf");
 			pBatch = textRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
 			pBatch.Text = pText = "Hello World";
 			pTextSize = (int)pBatch.Size;
