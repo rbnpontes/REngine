@@ -18,7 +18,8 @@ namespace REngine.Sandbox.PongGame.States
 	internal class PongMainMenuState(
 		EntityManager entityMgr,
 		IWindow mainWindow,
-		GameStateManager gameStateManager)
+		GameStateManager gameStateManager,
+		IEngine engine)
 		: IGameState
 	{
 		public string Name => nameof(PongMainMenuState);
@@ -57,7 +58,7 @@ namespace REngine.Sandbox.PongGame.States
 
 		private void ExecuteStop()
 		{
-			mainWindow.Close();
+			engine.Stop();
 		}
 	}
 }

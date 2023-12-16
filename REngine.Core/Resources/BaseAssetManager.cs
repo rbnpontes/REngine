@@ -86,6 +86,8 @@ namespace REngine.Core.Resources
 			foreach(var asset in mLoadedAssets.Values)
 				asset.Dispose();
 			mLoadedAssets.Clear();
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
 			return this;
 		}
 

@@ -16,7 +16,6 @@ float4 main(in PSInput ps_input) : SV_TARGET
 #ifdef GLSL
     uv.y = 1.0f - uv.y;
 #endif
-    
     float4 base = g_texture.Sample(g_texture_sampler, uv);
     float3 color = base.xyz;
     float3x3 sepiaTransform = float3x3(

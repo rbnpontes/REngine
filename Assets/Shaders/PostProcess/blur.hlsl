@@ -30,7 +30,6 @@ float4 main(in PSInput ps_input) : SV_TARGET
 #ifdef GLSL
     uv.y = 1.0f - uv.y;
 #endif
-
     float initialQuality = 1.0 / g_quality;
 
     float incr = RENGINE_DOUBLE_PI / g_directions;

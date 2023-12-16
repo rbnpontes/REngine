@@ -176,6 +176,7 @@ internal class AndroidEngineInstance : EngineInstance
             OnStop();
 
             Logger.Info("Finished!!!");
+            pActivity.OnEngineStop();
         }
     }
     protected override void OnStop()

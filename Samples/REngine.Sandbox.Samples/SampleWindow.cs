@@ -4,6 +4,7 @@ using REngine.Core.DependencyInjection;
 using REngine.RPI;
 using System.Reflection;
 using REngine.Core.Reflection;
+using REngine.Core.Resources;
 using REngine.Sandbox.BaseSample;
 
 namespace REngine.Sandbox.Samples
@@ -17,9 +18,12 @@ namespace REngine.Sandbox.Samples
 		}
 
 		private readonly List<SampleItem> pSamples = [];
-
+		private readonly object pSync = new();
+		
 		private SampleItem? pLastSampleItem;
 		private ISample? pLastSample;
+		private bool pSampleReady;
+		
 		private IServiceProvider? pServiceProvider;
 		private IWindow? pGameWindow;
 
@@ -62,17 +66,24 @@ namespace REngine.Sandbox.Samples
 			if (pServiceProvider is null)
 				return;
 
-			pLastSample?.Dispose();
-			pLastSample = null;
+			lock (pSync)
+			{
+				pLastSample?.Dispose();
+				pLastSample = null;
 
-			if (ActivatorExtended.CreateInstance(pServiceProvider, item.Type) is not ISample sample)
-				throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
+				if (ActivatorExtended.CreateInstance(pServiceProvider, item.Type) is not ISample sample)
+					throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
 
-			sample.Window = pServiceProvider.Get<IWindow>();
-			sample.Load(pServiceProvider);
+				sample.Window = pServiceProvider.Get<IWindow>();
+				
+				// Force Assets Unload
+				pServiceProvider.Get<IAssetManager>().UnloadAssets();
+				
+				pLastSampleItem = item;
+				pLastSample = sample;
 
-			pLastSampleItem = item;
-			pLastSample = sample;
+				pSampleReady = false;
+			}
 		}
 
 		public void EngineStart(IServiceProvider provider)
@@ -92,7 +103,16 @@ namespace REngine.Sandbox.Samples
 
 		public void EngineUpdate(IServiceProvider provider) 
 		{
-			pLastSample?.Update(provider);
+			lock (pSync)
+			{
+				if(pSampleReady)
+					pLastSample?.Update(provider);
+				else
+				{
+					pLastSample?.Load(provider);
+					pSampleReady = true;
+				}
+			}
 		}
 
 		public void EngineStop()
@@ -101,9 +121,10 @@ namespace REngine.Sandbox.Samples
 			pLastSample = null;
 		}
 
+		private bool pOpenedWindow = true;
 		private void OnGui(object? sender, EventArgs e)
 		{
-			if (ImGui.Begin("Samples"))
+			if (ImGui.Begin("Samples", ref pOpenedWindow))
 			{
 				RenderSampleList();
 
@@ -113,8 +134,8 @@ namespace REngine.Sandbox.Samples
 				RenderToggleVsyncButton();
 				RenderFullscreenButton();
 
-				ImGui.End();
 			}
+			ImGui.End();
 		}
 
 		private void RenderFullscreenButton()

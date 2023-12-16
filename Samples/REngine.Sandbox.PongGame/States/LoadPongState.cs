@@ -142,7 +142,7 @@ namespace REngine.Sandbox.PongGame.States
 
 		private void LoadFont(string assetName)
 		{
-			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/"+assetName);
+			var fontAsset = assetManager.GetAsset<FontAsset>(assetName);
 			textRenderer.SetFont(fontAsset.Font);
 		}
 	}

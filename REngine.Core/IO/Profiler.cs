@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 #if PROFILER
 using bottlenoselabs.C2CS.Runtime;
 using Tracy;
+using Tracy.Generated;
 using static Tracy.PInvoke;
 #endif
 namespace REngine.Core.IO
@@ -61,7 +62,6 @@ namespace REngine.Core.IO
 
 		internal Profiler()
 		{
-			pDisabled = Debugger.IsAttached;
 #if PROFILER
 			if(!pDisabled)
 				TracyStartupProfiler();
@@ -98,26 +98,32 @@ namespace REngine.Core.IO
 #if PROFILER
 			lock (pSync)
 			{
-				if (!pTraceAllocMap.TryGetValue(funcName, out var tuple))
-				{
-					var source = (CString)scriptPath;
-					var func = (CString)funcName;
+				// if (!pTraceAllocMap.TryGetValue(funcName, out var tuple))
+				// {
+				// 	var source = (CString)scriptPath;
+				// 	var func = (CString)funcName;
+				//
+				// 	tuple = (source, func);
+				// 	pTraceAllocMap.Add(funcName, tuple);
+				// }
 
-					tuple = (source, func);
-					pTraceAllocMap.Add(funcName, tuple);
-				}
+				// var srcLoc = TracyAllocSrcloc(
+				// 	(uint)lineNumber,
+				// 	tuple.Item1,
+				// 	2,
+				// 	tuple.Item2,
+				// 	2);
 
-				var srcLoc = TracyAllocSrcloc(
-					(uint)lineNumber,
-					tuple.Item1,
-					(ulong)scriptPath.Length,
-					tuple.Item2,
-					(ulong)funcName.Length);
+				var srcLoc = TracyProfiler.AllocSourceLocation(
+					lineNumber,
+					scriptPath,
+					funcName);
+				
 				var ctx = TracyEmitZoneBeginAlloc(srcLoc, 1);
-
+				
 				if (color != default)
 					TracyEmitZoneColor(ctx, (uint)color);
-
+				
 				return new ProfilerScope(ctx, this);
 			}
 #else

@@ -31,6 +31,17 @@ public static unsafe partial class PInvoke
     #region API
 
     [CNode(Kind = "Function")]
+    [LibraryImport(LibraryName, EntryPoint = "___tracy_malloc")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial ulong TracyMalloc(ulong size);
+    
+    [CNode(Kind = "Function")]
+    [LibraryImport(LibraryName, EntryPoint = "___tracy_free")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial void TracyFree(ulong size);
+    
+    
+    [CNode(Kind = "Function")]
     [LibraryImport(LibraryName, EntryPoint = "___tracy_alloc_srcloc")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial ulong TracyAllocSrcloc(uint line, CString source, ulong sourceSz, CString function, ulong functionSz);
@@ -309,7 +320,7 @@ public static unsafe partial class PInvoke
     [LibraryImport(LibraryName, EntryPoint = "___tracy_shutdown_profiler")]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial void TracyShutdownProfiler();
-
+    
 	#endregion
 
 	#region Types

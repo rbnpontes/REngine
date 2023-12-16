@@ -23,7 +23,7 @@ struct PSOutput
     float fontScale : TEXCOORD1;
 };
 
-void main(in VSInput vs_input, out PSOutput ps_output)
+void main(in VSInput vs_input, out PSOutput ps_input)
 {
     float2 atlasSize = vs_input.positionAndAtlasSize.zw;
     float4 normalizedBounds = float4(
@@ -54,8 +54,8 @@ void main(in VSInput vs_input, out PSOutput ps_output)
     position *= 1.0f / g_positionAndSizes.w;
     position *= g_positionAndSizes.z;
     
-    ps_output.fontScale = 1.0f / g_positionAndSizes.z;
-    ps_output.pos = mul(g_projection, float4(position + g_positionAndSizes.xy, 0.0, 1.0));
-	ps_output.color = g_color;
-	ps_output.uv = uv;
+    ps_input.fontScale = 1.0f / g_positionAndSizes.z;
+    ps_input.pos = mul(g_projection, float4(position + g_positionAndSizes.xy, 0.0, 1.0));
+	ps_input.color = g_color;
+	ps_input.uv = uv;
 }

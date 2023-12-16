@@ -68,18 +68,16 @@ namespace SFML.Audio
         /// <param name="bytes">Byte array containing the file contents</param>
         /// <exception cref="LoadingFailedException" />
         ////////////////////////////////////////////////////////////
-        public SoundBuffer(byte[] bytes) :
+        public unsafe SoundBuffer(byte[] bytes) :
             base(IntPtr.Zero)
         {
-            GCHandle pin = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            try
-            {
-                CPointer = sfSoundBuffer_createFromMemory(pin.AddrOfPinnedObject(), Convert.ToUInt64(bytes.Length));
-            }
-            finally
-            {
-                pin.Free();
-            }
+            var dataSize = bytes.Length * sizeof(byte);
+            var ptr = Marshal.AllocHGlobal(dataSize);
+            fixed(byte* buffer = bytes)
+                Buffer.MemoryCopy(buffer, ptr.ToPointer(), dataSize, dataSize);
+            
+            CPointer = sfSoundBuffer_createFromMemory(ptr, (ulong)dataSize);
+            Marshal.FreeHGlobal(ptr);
             if (CPointer == IntPtr.Zero)
             {
                 throw new LoadingFailedException("sound buffer");
@@ -147,30 +145,21 @@ namespace SFML.Audio
         /// second. The higher, the better the quality.
         /// </summary>
         ////////////////////////////////////////////////////////////
-        public uint SampleRate
-        {
-            get { return sfSoundBuffer_getSampleRate(CPointer); }
-        }
+        public uint SampleRate => CPointer == IntPtr.Zero ? 0 : sfSoundBuffer_getSampleRate(CPointer);
 
         ////////////////////////////////////////////////////////////
         /// <summary>
         /// Number of channels (1 = mono, 2 = stereo)
         /// </summary>
         ////////////////////////////////////////////////////////////
-        public uint ChannelCount
-        {
-            get { return sfSoundBuffer_getChannelCount(CPointer); }
-        }
+        public uint ChannelCount => CPointer == IntPtr.Zero ? 0 : sfSoundBuffer_getChannelCount(CPointer);
 
         ////////////////////////////////////////////////////////////
         /// <summary>
         /// Total duration of the buffer
         /// </summary>
         ////////////////////////////////////////////////////////////
-        public Time Duration
-        {
-            get { return sfSoundBuffer_getDuration(CPointer); }
-        }
+        public Time Duration => CPointer == IntPtr.Zero ? Time.Zero : sfSoundBuffer_getDuration(CPointer);
 
         ////////////////////////////////////////////////////////////
         /// <summary>
@@ -184,6 +173,8 @@ namespace SFML.Audio
         {
             get
             {
+                if (CPointer == IntPtr.Zero)
+                    return [];
                 short[] SamplesArray = new short[sfSoundBuffer_getSampleCount(CPointer)];
                 Marshal.Copy(sfSoundBuffer_getSamples(CPointer), SamplesArray, 0, SamplesArray.Length);
                 return SamplesArray;

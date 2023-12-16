@@ -24,19 +24,19 @@ public sealed class AndroidLoggerFactory : BaseLoggerFactory, ILoggerFactory
             {
                 case LogSeverity.Critical:
                 case LogSeverity.Error:
-                    global::Android.Util.Log.Error(tag, log);
+                    global::Android.Util.Log.Error(nameof(REngine), log);
                     break;
                 case LogSeverity.Warning:
-                    global::Android.Util.Log.Warn(tag, log);
+                    global::Android.Util.Log.Warn(nameof(REngine), log);
                     break;
                 case LogSeverity.Success:
-                    global::Android.Util.Log.Info(tag, log);
+                    global::Android.Util.Log.Info(nameof(REngine), log);
                     break;
                 case LogSeverity.Debug:
-                    global::Android.Util.Log.Debug(tag, log);
+                    global::Android.Util.Log.Debug(nameof(REngine), log);
                     break;
                 case LogSeverity.Info:
-                    global::Android.Util.Log.Info(tag, log);
+                    global::Android.Util.Log.Info(nameof(REngine), log);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(severity), severity, null);

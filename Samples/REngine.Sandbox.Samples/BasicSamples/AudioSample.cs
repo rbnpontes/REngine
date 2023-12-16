@@ -19,6 +19,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		IAssetManager assetManager) : ISample
 	{
 		private IAudio? pAudio;
+		private IAudio? pMemAudio;
 
 		public void Dispose()
 		{
@@ -31,7 +32,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			// Streamed Audio Asset owns FileStream
 			// When Audio Asset goes to dispose
 			// File stream will dispose too.
-			pAudio = assetManager.GetAsset<StreamedAudioAsset>("Sounds/silent_wood_by_purrplecat.ogg").Audio;
+			pAudio = assetManager.GetAsset<AudioAsset>("Sounds/silent_wood_by_purrplecat.ogg").Audio;
 			imGuiSystem.OnGui += OnGui;
 		}
 

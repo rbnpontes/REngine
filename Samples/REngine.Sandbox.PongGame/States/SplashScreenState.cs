@@ -41,7 +41,7 @@ namespace REngine.Sandbox.PongGame.States
 
 		public void OnStart()
 		{
-			mainWindow.Fullscreen();
+			//mainWindow.Fullscreen();
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/EngineLogo-Sdf.png");
 			spriteBatch.SetTexture(0, sprite.Image);
 
@@ -50,8 +50,7 @@ namespace REngine.Sandbox.PongGame.States
 			pAudioAsset = audioAsset;
 
 			var effect = new BasicSpriteEffect("Engine Effect", assetManager);
-			effect.PixelShader =
-				new FileShaderStream(Path.Join(EngineSettings.AssetsShadersPath, "engine_logo_effect.hlsl"));
+			effect.PixelShader = new StreamedShaderStream(assetManager.GetStream("Shaders/engine_logo_effect.hlsl"));
 
 			var entity = entityManager.CreateEntity("Engine Logo");
 			entity.Enabled = false;

@@ -11,7 +11,7 @@ namespace REngine.Sandbox.PongGame.States
 		public const byte MenuResumeButtonSlot = 4;
 		public const byte MenuBackgroundSlot = 5;
 
-		public const string DefaultFont = "Anonymous-Pro.ttf";
+		public const string DefaultFont = "Fonts/Anonymous-Pro.ttf";
 
 		public const float MenuButtonMargin = 8;
 

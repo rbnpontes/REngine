@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.Core.WorldManagement;
+using REngine.RHI;
 using REngine.RPI.Components;
 using REngine.RPI.RenderGraph;
 using REngine.Sandbox.PongGame.Components;
@@ -18,6 +20,7 @@ namespace REngine.Sandbox.PongGame.Components
 	internal abstract class BlurMenu(IServiceProvider provider) : PongMenuButtons(provider)
 	{
 		private readonly IVar pBlurVar = provider.Get<IVariableManager>().GetVar("@vars/pong/blur");
+		private readonly GraphicsBackend pBackend = provider.Get<IGraphicsDriver>().Backend;
 		private Transform2D? pBackground;
 
 		protected override void OnSetVisible(bool value)
@@ -34,7 +37,8 @@ namespace REngine.Sandbox.PongGame.Components
 			var sprite = bgEntity.CreateComponent<SpriteComponent>();
 			sprite.TextureSlot = PongVariables.MenuBackgroundSlot;
 			sprite.Color = Color.White;
-
+			if(pBackend == GraphicsBackend.OpenGL)
+				sprite.Anchor = new Vector2(0, 1f);
 			base.OnSetup();
 		}
 
@@ -43,6 +47,8 @@ namespace REngine.Sandbox.PongGame.Components
 			if (pBackground is null)
 				return;
 			pBackground.Scale = mMainWindow.Size.ToVector2();
+			if (pBackend == GraphicsBackend.OpenGL)
+				pBackground.Scale = new Vector2(pBackground.Scale.X, pBackground.Scale.Y * -1);
 			base.OnUpdate(deltaTime);
 		}
 
