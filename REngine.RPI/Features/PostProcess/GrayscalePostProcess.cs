@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Resources;
+using REngine.RHI;
 
 namespace REngine.RPI.Features.PostProcess
 {
@@ -15,5 +16,12 @@ namespace REngine.RPI.Features.PostProcess
         {
             return new StreamedShaderStream(assetManager.GetStream("Shaders/PostProcess/grayscale_ps.hlsl"));
         }
+#if PROFILER
+        protected override void OnExecute(ICommandBuffer command)
+        {
+            using(Profiler.Instance.Begin())
+                base.OnExecute(command);
+        }
+#endif
     }
 }

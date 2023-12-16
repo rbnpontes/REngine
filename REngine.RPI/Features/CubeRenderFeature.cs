@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 using REngine.Core.Resources;
 using REngine.RPI.Resources;
 
@@ -129,6 +130,9 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			ITextureView? backbuffer = GetBackBuffer();
 			ITextureView? depthbuffer = GetDepthBuffer();
 

@@ -84,6 +84,9 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			if (pPipeline is null || pBinding is null || pWriteRenderTarget is null || pReadTexture is null) 
 				return;
 

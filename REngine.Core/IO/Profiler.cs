@@ -98,22 +98,6 @@ namespace REngine.Core.IO
 #if PROFILER
 			lock (pSync)
 			{
-				// if (!pTraceAllocMap.TryGetValue(funcName, out var tuple))
-				// {
-				// 	var source = (CString)scriptPath;
-				// 	var func = (CString)funcName;
-				//
-				// 	tuple = (source, func);
-				// 	pTraceAllocMap.Add(funcName, tuple);
-				// }
-
-				// var srcLoc = TracyAllocSrcloc(
-				// 	(uint)lineNumber,
-				// 	tuple.Item1,
-				// 	2,
-				// 	tuple.Item2,
-				// 	2);
-
 				var srcLoc = TracyProfiler.AllocSourceLocation(
 					lineNumber,
 					scriptPath,

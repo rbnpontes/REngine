@@ -27,6 +27,9 @@ namespace REngine.RPI.Features.PostProcess
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			if (pCBuffer is null)
 				return;
 

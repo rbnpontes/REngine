@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.RPI.Resources;
 
@@ -244,6 +245,9 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif		
 			pCommandBuffer = command;
 			var backbuffer = GetBackBuffer();
 			var depthbuffer = GetDepthBuffer();

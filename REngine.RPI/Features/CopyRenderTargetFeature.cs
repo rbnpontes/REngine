@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Resources;
+using REngine.RHI;
 
 namespace REngine.RPI.Features
 {
@@ -15,5 +16,12 @@ namespace REngine.RPI.Features
 		{
 			return new StreamedShaderStream(assetManager.GetStream("Shaders/copy_rt_ps.hlsl"));
 		}
+#if PROFILER
+		protected override void OnExecute(ICommandBuffer command)
+		{
+			using(Profiler.Instance.Begin())
+				base.OnExecute(command);
+		}
+#endif
 	}
 }
