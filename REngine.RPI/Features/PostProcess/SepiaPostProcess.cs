@@ -5,16 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Resources;
+using REngine.RHI;
 
 namespace REngine.RPI.Features.PostProcess
 {
-	public class SepiaPostProcess : PostProcessFeature
+	public class SepiaPostProcess(IAssetManager assetManager) : PostProcessFeature
 	{
 		protected override ShaderStream OnGetShaderCode()
 		{
-			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPostProcessPath, "sepiatone_ps.hlsl")
-			);
+			return new StreamedShaderStream(assetManager.GetStream("Shaders/PostProcess/sepiatone_ps.hlsl"));
 		}
+#if PROFILER
+		protected override void OnExecute(ICommandBuffer command)
+		{
+			using(Profiler.Instance.Begin())
+				base.OnExecute(command);
+		}
+#endif
 	}
 }

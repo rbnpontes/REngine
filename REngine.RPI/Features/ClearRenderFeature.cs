@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 using REngine.RHI;
 
 namespace REngine.RPI.Features
@@ -38,6 +39,9 @@ namespace REngine.RPI.Features
 
 		public IRenderFeature Execute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			var swapChain = pRenderer?.SwapChain;
 			if (pRenderState is null || pRenderer is null || swapChain is null)
 				return this;

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 
 namespace REngine.RPI.Features
 {
@@ -40,6 +41,9 @@ namespace REngine.RPI.Features
 
 		public IRenderFeature Execute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			pRenderGraph.RootEntry = pEntry;
 			pRenderGraph.Execute();
 			return this;

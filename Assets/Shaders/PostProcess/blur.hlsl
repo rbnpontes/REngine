@@ -23,11 +23,13 @@ struct PSInput
 
 #define RENGINE_DOUBLE_PI 6.28318530718
 
-float4 main(in PSInput input) : SV_TARGET
+float4 main(in PSInput ps_input) : SV_TARGET
 {
-    float2 radius = float2(g_size, g_size) / input.screenSize;
-    float2 uv = input.uv;
-
+    float2 radius = float2(g_size, g_size) / ps_input.screenSize;
+    float2 uv = ps_input.uv;
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
     float initialQuality = 1.0 / g_quality;
 
     float incr = RENGINE_DOUBLE_PI / g_directions;

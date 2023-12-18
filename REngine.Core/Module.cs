@@ -20,7 +20,15 @@ namespace REngine.Core
 	{
 		static CoreModule()
 		{
-			NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly, Runtimes.NativeReferences.DefaultDllImportResolver);
+			try
+			{
+				NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly,
+					Runtimes.NativeReferences.DefaultDllImportResolver);
+			}
+			catch
+			{
+				// ignored
+			}
 		}
 		public void Setup(IServiceRegistry registry)
 		{
@@ -31,7 +39,7 @@ namespace REngine.Core
 				.Add<ILoggerFactory, DebugLoggerFactory>()
 				.Add<IAssetManager, FileAssetManager>()
 				.Add<IInput, InputImpl>()
-				.Add<IEngine, EngineImpl>()
+				.Add<IEngine, Engine>()
 				.Add<EngineEvents>()
 				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
 				.Add<ExecutionPipelineNodeRegistry>()

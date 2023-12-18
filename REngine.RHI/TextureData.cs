@@ -31,10 +31,10 @@ namespace REngine.RHI
 
 	public class ByteTextureData : ITextureData
 	{
-		private GCHandle? pHandle;
+		private IntPtr pData = IntPtr.Zero;
 
 		public IntPtr Data {
-			get => pHandle?.AddrOfPinnedObject() ?? IntPtr.Zero;
+			get => pData;
 			set => throw new NotSupportedException(); 
 		}
 		public IBuffer? SrcBuffer { get => null; set => throw new NotSupportedException(); }
@@ -54,20 +54,20 @@ namespace REngine.RHI
 		}
 		~ByteTextureData()
 		{
-			pHandle?.Free();
-			pHandle = null;
+			if(pData != IntPtr.Zero)
+				Marshal.FreeHGlobal(pData);
 		}
 
-		public void SetData(byte[] data)
+		public unsafe void SetData(byte[] data)
 		{
-			pHandle?.Free();
-			pHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			if(pData != IntPtr.Zero)
+				Marshal.FreeHGlobal(pData);
 
-		}
-		public byte[] GetData()
-		{
-			byte[] data = (byte[])(pHandle?.Target ?? new byte[0]);
-			return data;
+			var dataSize = data.Length * sizeof(byte);
+			pData = Marshal.AllocHGlobal(dataSize);
+
+			fixed (byte* ptr = data)
+				Buffer.MemoryCopy(ptr, pData.ToPointer(), dataSize, dataSize);
 		}
 	}
 }

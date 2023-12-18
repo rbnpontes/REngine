@@ -13,8 +13,17 @@ namespace REngine.Assets
 	{
 		static AssetsModule()
 		{
-			NativeLibrary.SetDllImportResolver(typeof(SFML.Audio.Music).Assembly, Core.Runtimes.NativeReferences.DefaultDllImportResolver);
-			NativeLibrary.SetDllImportResolver(typeof(FreeTypeSharp.NativeObject).Assembly, Core.Runtimes.NativeReferences.DefaultDllImportResolver);
+			try
+			{
+				NativeLibrary.SetDllImportResolver(typeof(SFML.Audio.Music).Assembly,
+					Core.Runtimes.NativeReferences.DefaultDllImportResolver);
+				NativeLibrary.SetDllImportResolver(typeof(FreeTypeSharp.NativeObject).Assembly,
+					Core.Runtimes.NativeReferences.DefaultDllImportResolver);
+			}
+			catch
+			{
+				// ignored
+			}
 		}
 
 		public void Setup(IServiceRegistry registry)

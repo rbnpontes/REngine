@@ -13,6 +13,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Resources;
 
 namespace REngine.RPI
 {
@@ -78,13 +79,15 @@ namespace REngine.RPI
 		private readonly GraphicsSettings pGraphicsSettings;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IRenderer pRenderer;
+		private readonly IAssetManager pAssetManager;
 
 		private readonly LinkedList<InternalBatch> pBatches = new();
-		private readonly Dictionary<int, FontEntry> pFonts = new();
+		private readonly Dictionary<ulong, FontEntry> pFonts = new();
 
 		private readonly object pSync = new();
 
 		private bool pDisposed;
+		private GraphicsBackend pBackend;
 
 		private IDevice? pDevice;
 		private IPipelineState? pPipeline;
@@ -94,7 +97,8 @@ namespace REngine.RPI
 			ILoggerFactory loggerFactory,
 			GraphicsSettings graphicsSettings,
 			EngineEvents engineEvents,
-			IRenderer renderer
+			IRenderer renderer,
+			IAssetManager assetManager
 		) 
 		{
 			pBufferProvider = bufferProvider;
@@ -102,6 +106,7 @@ namespace REngine.RPI
 			pGraphicsSettings = graphicsSettings;
 			pEngineEvents = engineEvents;
 			pRenderer = renderer;
+			pAssetManager = assetManager;
 
 			engineEvents.OnStop += HandleEngineStop;
 		}
@@ -151,6 +156,23 @@ namespace REngine.RPI
 
 		private ITexture AllocateTexture(Font font, Image image)
 		{
+			var backend = GetBackend();
+			if (backend == GraphicsBackend.OpenGL)
+			{
+				var tmp = image;
+				image = new Image();
+				image.SetData(new ImageDataInfo
+				{
+					Data = new byte[tmp.Size.Width * tmp.Size.Height * 4],
+					Components = 4,
+					Size = tmp.Size
+				});
+
+				for (ushort x = 0; x < tmp.Size.Width; ++x)
+				for (ushort y = 0; y < tmp.Size.Height; ++y)
+					image.SetPixel(tmp.GetPixel(x, y), x, y);
+			}
+			
 			var texture = GetDevice().CreateTexture(new TextureDesc
 			{
 				Name = $"Font ({font.Name}) Texture",
@@ -159,7 +181,7 @@ namespace REngine.RPI
 				BindFlags = BindFlags.ShaderResource,
 				Usage = Usage.Default,
 				Dimension = TextureDimension.Tex2D,
-				Format = TextureFormat.R8UNorm
+				Format = backend == GraphicsBackend.OpenGL ? TextureFormat.RGBA8UNorm : TextureFormat.R8UNorm,
 			}, new ITextureData[] { 
 				new ByteTextureData(image.Data, image.Stride) 
 			});
@@ -217,31 +239,35 @@ namespace REngine.RPI
 
 		private IShader LoadShader(ShaderType shaderType)
 		{
-			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
-			ShaderCreateInfo shaderCI = new ShaderCreateInfo
+			var shaderCI = new ShaderCreateInfo
 			{
 				Type = shaderType
 			};
 
+			ShaderAsset asset;
 			switch (shaderType)
 			{
 				case ShaderType.Vertex:
 					{
 						shaderCI.Name = "Text Renderer Vertex Shader";
-						shaderPath = Path.Join(shaderPath, "text_vs.hlsl");
+						asset = pAssetManager.GetAsset<ShaderAsset>("Shaders/text_vs.hlsl");
 					}
 					break;
 				case ShaderType.Pixel:
 					{
 						shaderCI.Name = "Text Renderer Pixel Shader";
-						shaderPath = Path.Join(shaderPath, "text_ps.hlsl");
+						asset = pAssetManager.GetAsset<ShaderAsset>("Shaders/text_ps.hlsl");
 					}
 					break;
+				case ShaderType.Compute:
+				case ShaderType.Geometry:
+				case ShaderType.Hull:
+				case ShaderType.Domain:
 				default:
 					throw new NotImplementedException();
 			}
 
-			shaderCI.SourceCode = File.ReadAllText(shaderPath);
+			shaderCI.SourceCode = asset.ShaderCode;
 			return GetDevice().CreateShader(shaderCI);
 		}
 
@@ -255,7 +281,7 @@ namespace REngine.RPI
 			if(string.IsNullOrEmpty(fontName))
 				throw new ArgumentNullException(nameof(fontName));
 
-			int fontHashCode = fontName.GetHashCode();
+			var fontHashCode = Hash.Digest(fontName);
 			lock (pSync)
 			{
 				FontEntry? fontEntry;
@@ -292,18 +318,17 @@ namespace REngine.RPI
 		public TextRendererBatch CreateBatch(string fontName)
 		{
 			if (string.IsNullOrEmpty(fontName))
-				throw new ArgumentNullException("font name cannot be null or empty. Font must register first with SetFont method.");
+				throw new ArgumentNullException(nameof(fontName));
 
 			if (pPipeline is null)
 				pPipeline = BuildPipeline();
 
-			FontEntry? fontEntry;
-			pFonts.TryGetValue(fontName.GetHashCode(), out fontEntry);
+			pFonts.TryGetValue(Hash.Digest(fontName), out var fontEntry);
 
 			if (fontEntry is null)
 				throw new NullReferenceException($"Font '{fontName}' not found. Did you call SetFont method first ?");
 
-			InternalBatch batch = new InternalBatch(
+			var batch = new InternalBatch(
 				this,
 				pDevice,
 				pPipeline,
@@ -322,6 +347,16 @@ namespace REngine.RPI
 			if (pDevice is null)
 				throw new TextRendererException("Empty Graphics Driver. It seems renderer was not initialized");
 			return pDevice;
+		}
+
+		private GraphicsBackend GetBackend()
+		{
+			if (pBackend != GraphicsBackend.Unknow)
+				return pBackend;
+			var driver = pRenderer.Driver;
+			if (driver is null)
+				return pBackend;
+			return pBackend = driver.Backend;
 		}
 	}
 }

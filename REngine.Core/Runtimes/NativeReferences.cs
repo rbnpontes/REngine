@@ -130,8 +130,14 @@ namespace REngine.Core.Runtimes
 					DllImportSearchPath.UseDllDirectoryForDependencies,
 					out result);
 			}
-
+			
 			if (!success)
+				success = NativeLibrary.TryLoad(libName, out result);
+
+			if ((OperatingSystem.IsAndroid() || OperatingSystem.IsLinux()) && !libName.StartsWith("lib"))
+				libName = "lib" + libName;
+			
+			if(!success)
 				success = NativeLibrary.TryLoad(libName, out result);
 			
 			if (!success) 

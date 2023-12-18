@@ -112,9 +112,17 @@ namespace REngine.Core.DependencyInjection
 			resolver.Resolve(services);
 
 			// execute post dependencies. this dependencies requires IServiceProvider created
-			foreach(var pair in pPostDependencies) 
-				services.Add(pair.Key, pair.Value(provider));
-			
+			var postDependencies = pPostDependencies.ToList();
+			// post dependencies can insert new dependencies on registry
+			// in this case, we must loop until no dependencies was added
+			while (postDependencies.Count > 0)
+			{
+				pPostDependencies.Clear();
+				foreach (var pair in postDependencies)
+					services.Add(pair.Key, pair.Value(provider));
+
+				postDependencies = pPostDependencies.ToList();
+			}
 			return provider;
 		}
 	}

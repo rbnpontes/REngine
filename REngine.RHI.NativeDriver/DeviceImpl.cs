@@ -165,6 +165,8 @@ namespace REngine.RHI.NativeDriver
 			if (result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create graphics pipeline state");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible create graphics pipeline state");
 			return new GraphicsPipelineImpl(desc, result.value);
 		}
 
@@ -219,8 +221,10 @@ namespace REngine.RHI.NativeDriver
 			disposables.ForEach(x => x.Dispose());
 
 			if (result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create shader");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible to create shader");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible to create shader");
 			return new ShaderImpl(result.value, createInfo);
 		}
 
@@ -229,16 +233,14 @@ namespace REngine.RHI.NativeDriver
 			return CreateTexture(desc, Array.Empty<ITextureData>());
 		}
 
-		public ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
+		public unsafe ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
 		{
-			ArrayPointer<TextureDataDTO> data = new(
-				subresources
-					.Select(x =>
-					{
-						TextureDataDTO.Fill(x, out TextureDataDTO output);
-						return output;
-					})
-					.ToArray()
+			ReadOnlySpan<TextureDataDTO> data = new(subresources
+				.Select(x =>
+				{
+					TextureDataDTO.Fill(x, out var output);
+					return output;
+				}).ToArray()
 			);
 			TextureDescDTO.Fill(desc, out TextureDescDTO output);
 
@@ -246,23 +248,27 @@ namespace REngine.RHI.NativeDriver
 
 			lock (pSync)
 			{
-				uint subresourcesCount = (uint)subresources.Count();
-				rengine_device_create_texture(
-					Handle,
-					ref output,
-					data.Handle,
-					subresourcesCount,
-					ref result
-				);
+				fixed (TextureDataDTO* dataPtr = data)
+				{
+					var subResourcesCount = (uint)subresources.Count();
+					rengine_device_create_texture(
+						Handle,
+						ref output,
+						new IntPtr(dataPtr),
+						subResourcesCount,
+						ref result
+					);
+				}
 			}
 
 			if (output.name != IntPtr.Zero)
 				Marshal.FreeHGlobal(output.name);
-			data.Dispose();
 
 			if (result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create texture");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible create texture");
 			return new TextureImpl(result.value);
 		}
 	}

@@ -10,7 +10,11 @@ struct PSInput
     float2 time : TEXCOORD3;
 };
 
-float4 main(in PSInput input) : SV_TARGET
+float4 main(in PSInput ps_input) : SV_TARGET
 {
-    return g_texture.Sample(g_texture_sampler, input.uv);
+    float2 uv = ps_input.uv;
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
+    return g_texture.Sample(g_texture_sampler, uv);
 }

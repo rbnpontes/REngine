@@ -35,9 +35,7 @@ namespace REngine.Assets
 		private SoundWrapperAudio? pAudio;
 		protected override IAudio OnBuildAudio(Stream stream)
 		{
-			using var memStream = new MemoryStream();
-			stream.CopyTo(memStream);
-			var buffer = new SFML.Audio.SoundBuffer(memStream.ToArray());
+			var buffer = new SFML.Audio.SoundBuffer(stream);
 			var sound = new SFML.Audio.Sound(buffer);
 			pAudio = new SoundWrapperAudio(sound);
 			return pAudio;

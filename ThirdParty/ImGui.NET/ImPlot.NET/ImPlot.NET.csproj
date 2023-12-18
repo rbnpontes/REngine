@@ -6,7 +6,6 @@
     <AssemblyName>ImPlot.NET</AssemblyName>
     <Authors>Eric Mellino</Authors>
     <Description>A .NET wrapper for the ImPlot library.</Description>
-    <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\ImPlot.NET.xml</DocumentationFile>
     <RootNamespace>ImPlotNET</RootNamespace>
   </PropertyGroup>
 

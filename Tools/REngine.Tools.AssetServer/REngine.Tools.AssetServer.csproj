@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
+    <ItemGroup>
+      <PackageReference Include="NetCoreServer" Version="8.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -195,10 +195,10 @@ namespace REngine.RPI
 		private readonly IInput pInput;
 		private readonly ILogger<IImGuiSystem> pLogger;
 		private readonly IExecutionPipelineVar pUpdateRateVar;
-		private readonly RPIEvents pRPIEvents;
+		private readonly RPIEvents pRpiEvents;
 		private readonly IAssetManager pAssetManager;
+		private readonly IEngine pEngine;
 
-		private readonly string pImGuiSettingsPath;
 		private readonly object pSync = new();
 		private readonly Mutex pMutex = new();
 
@@ -214,10 +214,7 @@ namespace REngine.RPI
 		public UIntSize FontSize { get; private set; } = new UIntSize();
 		public byte[] FontData { get; private set; } = Array.Empty<byte>();
 
-		public IGraphicsRenderFeature Feature
-		{
-			get => GetFeature();
-		}
+		public IGraphicsRenderFeature Feature => GetFeature();
 
 		public event EventHandler? OnGui;
 
@@ -231,7 +228,8 @@ namespace REngine.RPI
 			RenderSettings renderSettings,
 			RPIEvents rpiEvents,
 			IServiceProvider provider,
-			IAssetManager assetManager
+			IAssetManager assetManager,
+			IEngine engine
 		)
 		{ 
 			pEngineEvents = engineEvents;
@@ -240,11 +238,11 @@ namespace REngine.RPI
 			pRenderer = renderer;
 			pInput = input;
 			pLogger = factory.Build<IImGuiSystem>();
-			pRPIEvents = rpiEvents;
+			pRpiEvents = rpiEvents;
 			pProvider = provider;
 			pAssetManager = assetManager;
+			pEngine = engine;
 
-			pImGuiSettingsPath = Path.Join(EngineSettings.AppDataPath, "imgui_settings.ini");
 			pUpdateRateVar = executionPipeline.GetOrCreateVar(DefaultVars.ImGuiUpdateRate);
 			pUpdateRateVar.Value = renderSettings.ImGuiUpdateRate;
 
@@ -271,7 +269,7 @@ namespace REngine.RPI
 			pInput.OnKeyDown -= HandleKeyDown;
 			pInput.OnKeyUp -= HandleKeyUp;
 
-			pRPIEvents.OnUpdateSettings -= HandleUpdateSettings;
+			pRpiEvents.OnUpdateSettings -= HandleUpdateSettings;
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
 
@@ -288,7 +286,7 @@ namespace REngine.RPI
 			Dispose();
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private unsafe void HandleEngineStart(object? sender, EventArgs e)
 		{
 			pImGuiCtx = ImGuiNET.ImGui.CreateContext();	
 			ImGuiNET.ImGui.SetCurrentContext(pImGuiCtx);
@@ -297,7 +295,21 @@ namespace REngine.RPI
 
 			var io = ImGuiNET.ImGui.GetIO();
 			io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.DockingEnable;
-			io.Fonts.AddFontDefault();
+			var fontConfig = new ImFontConfig
+			{
+				FontDataOwnedByAtlas = 1,
+				OversampleH = 2,
+				OversampleV = 1,
+				GlyphMaxAdvanceX = float.MaxValue,
+				RasterizerMultiply = 1.0f,
+				RasterizerDensity = 1.0f,
+				EllipsisChar = ushort.MaxValue,
+				SizePixels = 13
+			};
+#if ANDROID
+			fontConfig.SizePixels = 24;
+#endif
+			io.Fonts.AddFontDefault(new ImFontConfigPtr(&fontConfig));
 			io.Fonts.Build();
 
 			io.DisplaySize.X = io.DisplaySize.Y = 1;
@@ -308,7 +320,7 @@ namespace REngine.RPI
 				var videoScale = wndManager.VideoScale;
 				io.FontGlobalScale = (videoScale.X + videoScale.Y) / 2.0f;
 			}
-
+            
 			AllocateFontBuffer();
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
@@ -340,42 +352,37 @@ namespace REngine.RPI
 
 		private void LoadImGuiSettings()
 		{
-			if (!File.Exists(pImGuiSettingsPath))
+			if (!File.Exists(EngineSettings.ImGuiSettingsPath))
 				return;
-			pLogger.Info("Loading ImGui Settings: " + pImGuiSettingsPath);
-			using (FileStream stream = new(pImGuiSettingsPath, FileMode.Open, FileAccess.Read))
+			pLogger.Debug("Loading ImGui Settings");
+			using FileStream stream = new(EngineSettings.ImGuiSettingsPath, FileMode.Open, FileAccess.Read);
+			char[] buffer = new char[stream.Length];
+			int nextIdx = 0;
+			while(nextIdx < buffer.Length)
 			{
-				char[] buffer = new char[stream.Length];
-				int nextIdx = 0;
-				while(nextIdx < buffer.Length)
-				{
-					buffer[nextIdx] = (char)stream.ReadByte();
-					++nextIdx;
-				}
-				pLogger.Debug("\n" + new string(buffer));
-
-				ImGuiNET.ImGui.LoadIniSettingsFromMemory(buffer);
+				buffer[nextIdx] = (char)stream.ReadByte();
+				++nextIdx;
 			}
+			pLogger.Debug("\n" + new string(buffer));
+
+			ImGuiNET.ImGui.LoadIniSettingsFromMemory(buffer);
 		}
 
 		private void SaveImGuiSettings()
 		{
 			pLogger.Info("Saving ImGui Settings");
-			using(FileStream stream = new(pImGuiSettingsPath, FileMode.OpenOrCreate, FileAccess.Write))
-			{
-				using(TextWriter writer = new StreamWriter(stream))
-				{
-					string settings = ImGuiNET.ImGui.SaveIniSettingsToMemory();
-					pLogger.Debug("\n"+settings);
-					writer.Write(settings);
-				}
-			}
+			using FileStream stream = new(EngineSettings.ImGuiSettingsPath, FileMode.OpenOrCreate, FileAccess.Write);
+			using TextWriter writer = new StreamWriter(stream);
+			var settings = ImGuiNET.ImGui.SaveIniSettingsToMemory();
+			writer.Write(settings);
 		}
 
 		private void HandleInput(object? sender, InputTextEventArgs e)
 		{
-			string text = e.Text;
-			char c = text.ElementAt(0);
+			var text = e.Text;
+			if (string.IsNullOrEmpty(text))
+				return;
+			var c = text.ElementAt(0);
 			
 			// ImGui only accepts ascii chars
 			if (!char.IsAscii(c))
@@ -397,6 +404,17 @@ namespace REngine.RPI
 			ImGui.GetIO().AddKeyEvent(pKeys[(int)e.Key], true);
 		}
 
+		public void SetFontScale(float scale)
+		{
+			var io = ImGui.GetIO();
+			io.FontGlobalScale = scale;
+		}
+
+		public void ScaleUi(float scale)
+		{
+			ImGui.GetStyle().ScaleAllSizes(scale);
+		}
+		
 		private double pLastElapsed = 0;
 		private void HandleDraw()
 		{
@@ -415,14 +433,8 @@ namespace REngine.RPI
 			pLastElapsed = curr;
 
 			io.DisplaySize = new Vector2(swapChain.Size.Width, swapChain.Size.Height);
-			io.AddMousePosEvent(pInput.MousePosition.X, pInput.MousePosition.Y);
-			io.AddMouseWheelEvent(pInput.MouseWheel.X, pInput.MouseWheel.Y);
-
-			io.AddMouseButtonEvent(0, pInput.GetMouseDown(MouseKey.Left));
-			io.AddMouseButtonEvent(1, pInput.GetMouseDown(MouseKey.Right));
-			io.AddMouseButtonEvent(2, pInput.GetMouseDown(MouseKey.Middle));
-			io.AddMouseButtonEvent(3, pInput.GetMouseDown(MouseKey.XButton1));
-			io.AddMouseButtonEvent(4, pInput.GetMouseDown(MouseKey.XButton2));
+			
+			FillMouseEvents(ref io);
 
 			io.KeyCtrl = pInput.GetKeyDown(InputKey.Control);
 			io.KeyShift = pInput.GetKeyDown(InputKey.Shift);
@@ -430,13 +442,17 @@ namespace REngine.RPI
 
 			lock (pSync)
 			{
-				io.AddInputCharactersUTF8(pTextToInsert);
+				if(!string.IsNullOrEmpty(pTextToInsert))
+					io.AddInputCharactersUTF8(pTextToInsert);
 				pTextToInsert = string.Empty;
 			}
 
 			ImGuiNET.ImGui.SetCurrentContext(pImGuiCtx);
 
 			ImGuiNET.ImGui.NewFrame();
+#if ANDROID
+			CheckKeyboard(ref io);
+#endif
 #if DEBUG
 			ImGuiNET.ImGui.ShowDemoWindow();
 #endif
@@ -449,6 +465,40 @@ namespace REngine.RPI
 			pMutex.ReleaseMutex();
 		}
 
+		private void FillMouseEvents(ref ImGuiIOPtr io)
+		{
+			io.AddMousePosEvent(pInput.MousePosition.X, pInput.MousePosition.Y);
+			io.AddMouseWheelEvent(pInput.MouseWheel.X, pInput.MouseWheel.Y);
+
+			var leftDown = pInput.GetMouseDown(MouseKey.Left);
+			var rightDown = pInput.GetMouseDown(MouseKey.Right);
+			var middleDown = pInput.GetMouseDown(MouseKey.Middle);
+			var button1Down = pInput.GetMouseDown(MouseKey.XButton1);
+			var button2Down = pInput.GetMouseDown(MouseKey.XButton2);
+#if ANDROID
+			var hasAnyKeyDown = leftDown || rightDown || middleDown || button1Down || button2Down;
+			if(hasAnyKeyDown)
+				io.AddMouseSourceEvent(ImGuiMouseSource.TouchScreen);
+#endif
+			
+			io.AddMouseButtonEvent(0, leftDown);
+			io.AddMouseButtonEvent(1, rightDown);
+			io.AddMouseButtonEvent(2, middleDown);
+			io.AddMouseButtonEvent(3, button1Down);
+			io.AddMouseButtonEvent(4, button2Down);
+			
+		}
+#if ANDROID
+		private void CheckKeyboard(ref ImGuiIOPtr io)
+		{
+			var wantTextInput = io is { WantCaptureKeyboard: true, WantTextInput: true };
+			if (!wantTextInput && pEngine.IsKeyboardVisible)
+				pEngine.HideKeyboard();
+			else if(wantTextInput && !pEngine.IsKeyboardVisible)
+				pEngine.ShowKeyboard();
+		}
+#endif
+		
 		public void BeginRender()
 		{
 			pMutex.WaitOne();

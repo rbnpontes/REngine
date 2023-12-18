@@ -90,34 +90,18 @@ namespace REngine.Core.IO
 			if (wnd != null)
 				BindWindow(wnd);
 
-			pExecution.AddEvent(DefaultEvents.UpdateBeginId, (_) => HandleKeys());
+			pExecution
+				.AddEvent(DefaultEvents.UpdateBeginId, (_) => ApplyMouseWheelDeadZone())
+				.AddEvent(DefaultEvents.UpdateEndId, (_) => UpdateKeyPresses());
 		}
 
-		private void HandleKeys()
+		private void ApplyMouseWheelDeadZone()
 		{
 			lock (pSync)
 			{
-				for(int i =0; i < pPressKeys.Length; ++i)
-				{
-					// Promote pressed key to only down keys, this will make our press behavior
-					if (pPressKeys[i] == 1)
-					{
-						pPressKeys[i] = 2;
-						OnKeyPressed?.Invoke(this, new InputEventArgs { Key = (InputKey)i });
-					}
-				}
-				for(int i =0; i < pMouseKeys.Length; ++i)
-				{
-					if (pMouseKeys[i] == 1)
-					{
-						pMouseKeys[i] = 2;
-						OnMousePressed?.Invoke(this, new InputMouseEventArgs { Key = (MouseKey)i });
-					}
-				}
-
 				// Apply Deadzone
-				float mouseWheelX = MouseWheel.X;
-				float mouseWheelY = MouseWheel.Y;
+				var mouseWheelX = MouseWheel.X;
+				var mouseWheelY = MouseWheel.Y;
 
 				if (MouseWheel.X >= MouseWheelXDeadZone.X && MouseWheel.X <= MouseWheelXDeadZone.Y)
 					mouseWheelX = 0;
@@ -125,6 +109,31 @@ namespace REngine.Core.IO
 					mouseWheelY = 0;
 
 				MouseWheel = new Vector2(mouseWheelX, mouseWheelY);
+			}
+		}
+
+		private void UpdateKeyPresses()
+		{
+			lock (pSync)
+			{
+				// When key is down, the held value is 1
+				// But at end of frame we increase to 2
+				// This will make our method and events GetKeyPress and GetMousePress
+				// to be triggered
+				for(var i =0; i < pPressKeys.Length; ++i)
+				{
+					if (pPressKeys[i] != 1) continue;
+					
+					pPressKeys[i] = 2;
+					OnKeyPressed?.Invoke(this, new InputEventArgs { Key = (InputKey)i });
+				}
+				for(var i =0; i < pMouseKeys.Length; ++i)
+				{
+					if (pMouseKeys[i] != 1) continue;
+					
+					pMouseKeys[i] = 2;
+					OnMousePressed?.Invoke(this, new InputMouseEventArgs { Key = (MouseKey)i });
+				}
 			}
 		}
 

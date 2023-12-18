@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI.Constants;
 
@@ -83,6 +84,9 @@ namespace REngine.RPI.Features
 
 		protected override void OnExecute(ICommandBuffer command)
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin();
+#endif
 			if (pPipeline is null || pBinding is null || pWriteRenderTarget is null || pReadTexture is null) 
 				return;
 
@@ -100,8 +104,8 @@ namespace REngine.RPI.Features
 
 		protected virtual IPipelineState OnBuildPipelineState(in RenderFeatureSetupInfo setupInfo)
 		{
-			var vsShader = LoadShader(setupInfo.ShaderManager, ShaderType.Vertex);
-			var psShader = LoadShader(setupInfo.ShaderManager, ShaderType.Pixel);
+			var vsShader = LoadShader(setupInfo.AssetManager, setupInfo.ShaderManager, ShaderType.Vertex);
+			var psShader = LoadShader(setupInfo.AssetManager, setupInfo.ShaderManager, ShaderType.Pixel);
 
 			GraphicsPipelineDesc desc = new();
 			if (pWriteRenderTarget is not null)
@@ -125,7 +129,7 @@ namespace REngine.RPI.Features
 			return setupInfo.PipelineStateManager.GetOrCreate(desc);
 		}
 
-		private IShader LoadShader(IShaderManager shaderManager, ShaderType shaderType)
+		private IShader LoadShader(IAssetManager assetManager, IShaderManager shaderManager, ShaderType shaderType)
 		{
 			OnBuildShaderCreateInfo(shaderManager, shaderType, out var shaderCI);
 			ShaderStream shaderStream; 
@@ -135,9 +139,7 @@ namespace REngine.RPI.Features
 				case ShaderType.Vertex:
 				{
 					shaderCI.Name = "PostProcess Vertex Shader";
-					shaderStream = new FileShaderStream(
-						Path.Join(EngineSettings.AssetsShadersPath, "postprocess_vs.hlsl")
-					);
+					shaderStream = new StreamedShaderStream(assetManager.GetStream("Shaders/postprocess_vs.hlsl"));
 				}
 					break;
 				case ShaderType.Pixel:

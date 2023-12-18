@@ -5,16 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core;
 using REngine.Core.IO;
+using REngine.Core.Resources;
+using REngine.RHI;
 
 namespace REngine.RPI.Features.PostProcess
 {
-	public sealed class InvertPostProcess : PostProcessFeature
+	public sealed class InvertPostProcess(IAssetManager assetManager) : PostProcessFeature
 	{
 		protected override ShaderStream OnGetShaderCode()
 		{
-			return new FileShaderStream(
-				Path.Join(EngineSettings.AssetsShadersPostProcessPath, "invertcolors_ps.hlsl")
-			);
+			return new StreamedShaderStream(assetManager.GetStream("Shaders/PostProcess/invertcolors_ps.hlsl"));
 		}
+#if PROFILER
+		protected override void OnExecute(ICommandBuffer command)
+		{
+			using(Profiler.Instance.Begin())
+				base.OnExecute(command);
+		}
+#endif
 	}
 }

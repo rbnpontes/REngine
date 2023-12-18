@@ -10,9 +10,13 @@ struct PSInput
     float4 color : COLOR0;
 };
 
-float4 main(in PSInput input) : SV_Target
+float4 main(in PSInput ps_input) : SV_Target
 {
-    float d = g_texture.Sample(g_texture_sampler, input.uv).a;
+    float2 uv = ps_input.uv;
+#ifdef GLSL
+    uv.y = 1.0f - uv.y;
+#endif
+    float d = g_texture.Sample(g_texture_sampler, ps_input.uv).a;
     float a = smoothstep(0.5 - SMOOTHING_SCALE, 0.5 + SMOOTHING_SCALE, d);
     return float4(a, a, a, 1.0f);
 	//const float smoothing = 0.5f;

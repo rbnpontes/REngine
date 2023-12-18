@@ -5,13 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Reflection;
 
 namespace REngine.RPI.RenderGraph
 {
 	public sealed class RenderGraphRegistry
 	{
-		private Dictionary<string, Type> pTypes = new Dictionary<string, Type>();
-
+		private readonly Dictionary<string, Type> pTypes = new Dictionary<string, Type>();
 		public RenderGraphRegistry Register<T>() where T : RenderGraphNode
 		{
 			Type type = typeof(T);
@@ -28,7 +28,7 @@ namespace REngine.RPI.RenderGraph
 			if (!pTypes.TryGetValue(tagName, out Type? type))
 				throw new NotRegisteredNode(tagName);
 
-			var obj = Activator.CreateInstance(type);
+			var obj = ActivatorExtended.CreateInstance(type, []);
 			if (obj is null)
 				throw new NullReferenceException($"Can´t create {type.FullName} type.");
 			return (RenderGraphNode)obj;

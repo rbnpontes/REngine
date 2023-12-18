@@ -18,9 +18,9 @@ float4 BgraToRgba(float4 pixel) {
 	return float4(pixel.b, pixel.g, pixel.r, pixel.a);
 }
 
-void main(in PSInput input, out PSOutput output)
+void main(in PSInput ps_input, out PSOutput ps_output)
 {
-	output.color = input.color;
+	ps_output.color = ps_input.color;
 	// .NET reads image as BGRA format, then we need to change to RGBA
 	//output.color = BgraToRgba(g_MainTexture.Sample(g_MainTexture_sampler, input.uv));
 }

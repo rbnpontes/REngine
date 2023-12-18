@@ -4,14 +4,22 @@
     "freetype.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Ffreetype.dll?alt=media",
     "glfw3.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fglfw3.dll?alt=media",
     "REngine-DiligentNativeDriver.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FREngine-DiligentNativeDriver.dll?alt=media",
-    "TracyClient.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FTracyClient.dll?alt=media"
+    "TracyClient.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FTracyClient.dll?alt=media",
+    "csfml-audio.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-audio.dll?alt=media",
+    "csfml-system.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-system.dll?alt=media",
+    "sfml-audio.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-audio.dll?alt=media",
+    "sfml-system.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-system.dll?alt=media"
   },
   "Linux" : {
     "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibcimgui.so?alt=media",
     "libfreetype.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibfreetype.so?alt=media",
     "libglfw.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibglfw.so?alt=media",
     "libREngine-DiligentNativeDriver.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2FlibREngine-DiligentNativeDriver.so?alt=media",
-    "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2FlibTracyClient.so?alt=media"
+    "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2FlibTracyClient.so?alt=media",
+    "libcsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibcsfml-audio.so?alt=media",
+    "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibcsfml-system.so?alt=media",
+    "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibsfml-audio.so?alt=media",
+    "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibsfml-system.so?alt=media"
   },
   "MacOS" : {
     "libfreetype.dylib" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/osx-x64%2Flibfreetype.dylib?alt=media",
@@ -22,25 +30,45 @@
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Fcimgui.so?alt=media",
       "libfreetype.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibfreetype.so?alt=media",
       "libREngine-DiligentNativeDriver.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2FlibREngine-DiligentNativeDriver.so?alt=media",
-      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2FlibTracyClient.so?alt=media"
+      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2FlibTracyClient.so?alt=media",
+      "libcsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibcsfml-audio.so?alt=media",
+      "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibcsfml-system.so?alt=media",
+      "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-audio.so?alt=media",
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farm64-v8a%2Flibopenal.so?alt=media"
     },
     "Armeabi_V7A" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Fcimgui.so?alt=media",
       "libfreetype.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibfreetype.so?alt=media",
       "libREngine-DiligentNativeDriver.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2FlibREngine-DiligentNativeDriver.so?alt=media",
-      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2FlibTracyClient.so?alt=media"
+      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2FlibTracyClient.so?alt=media",
+      "libcsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibcsfml-audio.so?alt=media",
+      "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibcsfml-system.so?alt=media",
+      "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-audio.so?alt=media",
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Farmeabi-v7a%2Flibopenal.so?alt=media"
     },
     "X86_64" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Fcimgui.so?alt=media",
       "libfreetype.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibfreetype.so?alt=media",
       "libREngine-DiligentNativeDriver.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2FlibREngine-DiligentNativeDriver.so?alt=media",
-      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2FlibTracyClient.so?alt=media"
+      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2FlibTracyClient.so?alt=media",
+      "libcsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibcsfml-audio.so?alt=media",
+      "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibcsfml-system.so?alt=media",
+      "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-audio.so?alt=media",
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86_64%2Flibopenal.so?alt=media"
     },
     "X86" : {
       "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Fcimgui.so?alt=media",
       "libfreetype.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibfreetype.so?alt=media",
       "libREngine-DiligentNativeDriver.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2FlibREngine-DiligentNativeDriver.so?alt=media",
-      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2FlibTracyClient.so?alt=media"
+      "libTracyClient.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2FlibTracyClient.so?alt=media",
+      "libcsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibcsfml-audio.so?alt=media",
+      "libcsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibcsfml-system.so?alt=media",
+      "libsfml-audio.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-audio.so?alt=media",
+      "libsfml-system.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibsfml-system.so?alt=media",
+      "libopenal.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/android%2Fx86%2Flibopenal.so?alt=media"
     }
   }
 }

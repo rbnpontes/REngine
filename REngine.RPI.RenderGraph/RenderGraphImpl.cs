@@ -4,40 +4,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Resources;
 
 namespace REngine.RPI.RenderGraph
 {
-	internal class RenderGraphImpl : IRenderGraph
+	internal class RenderGraphImpl(
+		RenderGraphRegistry registry, 
+		IServiceProvider provider,
+		IAssetManager assetManager) : IRenderGraph
 	{
-		private readonly RenderGraphRegistry pRegistry;
-		private readonly IServiceProvider pProvider;
-
 		public RenderGraphEntry? RootEntry { get; set; }
-
-		public RenderGraphImpl(RenderGraphRegistry registry, IServiceProvider provider)
-		{
-			pRegistry = registry;
-			pProvider = provider;
-		}
 
 		public IRenderGraph Execute()
 		{
 			if (RootEntry is null)
 				throw new NullReferenceException("Can´t execute Render Graph, RootEntry is null.");
-			RootEntry.Value.Root.Run(pProvider);
+			RootEntry.Value.Root.Run(provider);
 			return this;
 		}
 
 		public RenderGraphEntry Load(Stream stream)
 		{
-			RenderGraphResolver resolver = new RenderGraphResolver(pRegistry);
+			RenderGraphResolver resolver = new RenderGraphResolver(registry);
 			return resolver.Load(stream);
 		}
 
-		public RenderGraphEntry LoadFromFile(string filePath)
+		public RenderGraphEntry Load(string assetPath)
 		{
-			using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-				return Load(stream);
+			return Load(assetManager.GetStream(assetPath));
 		}
 
 		public RenderGraphNode? FindNode(string nodeName)

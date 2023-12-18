@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Android.Graphics;
@@ -15,10 +16,8 @@ namespace REngine.Android.Windows
 {
 	internal class WindowImpl : IWindow
 	{
-		private readonly SurfaceView pSurfaceView;
-		private readonly SurfaceCallback pCallback;
+		private readonly GameView pGameView;
 
-		private Rectangle pBounds;
 		private bool pDisposed;
 
 		public event WindowEvent? OnUpdate;
@@ -38,17 +37,17 @@ namespace REngine.Android.Windows
 			get => string.Empty;
 			set {}
 		}
-		public IntPtr Handle => pCallback.Handle;
+		public IntPtr Handle => pGameView.Handle;
 
 		public Rectangle Bounds
 		{
-			get => pBounds;
+			get => pGameView.Bounds;
 			set {}
 		}
 
 		public Size Size
 		{
-			get => pBounds.Size;
+			get => pGameView.Size;
 			set {}
 		}
 
@@ -64,18 +63,21 @@ namespace REngine.Android.Windows
 		public bool IsMinimized => false;
 		public bool IsFullscreen => false;
 
-		public WindowImpl(SurfaceView surfaceView, SurfaceCallback callback)
+		public WindowImpl(GameView gameView)
 		{
-			pSurfaceView = surfaceView;
-			pCallback = callback;
-			pSurfaceView.Holder?.AddCallback(pCallback);
-			UpdateBounds();
+			pGameView = gameView;
+			var touchListener = new WindowTouchListener(this);
+			var keyListener = new KeyboardListener(this);
+			pGameView.SetOnTouchListener(touchListener);
+			pGameView.SetKeyboardListener(keyListener);
 		}
 
 		public void Dispose()
 		{
 			if(pDisposed) return;
 
+			pGameView.SetCallback(null);
+			pGameView.SetKeyboardListener(null);
 			pDisposed = true;
 		}
 
@@ -96,7 +98,6 @@ namespace REngine.Android.Windows
 
 		public IWindow Update()
 		{
-			UpdateBounds();
 			return this;
 		}
 
@@ -114,7 +115,7 @@ namespace REngine.Android.Windows
 		{
 			// TODO: use better approach
 #if ANDROID
-			window = new NativeWindow() { AndroidNativeWindow = pCallback.NativeWindow };
+			window = new NativeWindow() { AndroidNativeWindow = pGameView.NativeWindow };
 			return this;
 #else
 			throw new NotImplementedException();
@@ -123,27 +124,65 @@ namespace REngine.Android.Windows
 
 		public IWindow ForwardKeyDownEvent(InputKey key)
 		{
+			ForwardKeyEvent(key, true);
 			return this;
 		}
 
 		public IWindow ForwardKeyUpEvent(InputKey key)
 		{
+			ForwardKeyEvent(key, false);
 			return this;
 		}
 
+		private void ForwardKeyEvent(InputKey key, bool isDown)
+		{
+			var args = new WindowInputEventArgs(key, pGameView, pGameView.NativeWindow);
+			if(isDown)
+				OnKeyDown?.Invoke(this, args);
+			else
+				OnKeyUp?.Invoke(this, args);
+		}
 		public IWindow ForwardInputEvent(int utf32Char)
 		{
+			OnInput?.Invoke(this, new WindowInputTextEventArgs(
+				char.ConvertFromUtf32(utf32Char), pGameView, pGameView.NativeWindow)
+			);
 			return this;
 		}
 
-		private void UpdateBounds()
+		public IWindow ForwardMouseMove(Vector2 position)
 		{
-			pBounds = new Rectangle(
-				pSurfaceView.Left,
-				pSurfaceView.Top,
-				pSurfaceView.Width,
-				pSurfaceView.Height
+			OnMouseMove?.Invoke(this, 
+				new WindowMouseEventArgs(MouseKey.None, pGameView, pGameView.NativeWindow)
+				{
+					Position = position
+				}
 			);
+			return this;
+		}
+
+		public IWindow ForwardMouseDown(MouseKey mouseKey)
+		{
+			ForwardMouseAction(mouseKey, true);
+			return this;
+		}
+
+		public IWindow ForwardMouseUp(MouseKey mouseKey)
+		{
+			ForwardMouseAction(mouseKey, false);
+			return this;
+		}
+
+		public IWindow ForwardMouseWheel(Vector2 axis)
+		{
+			OnMouseWheel?.Invoke(this, new WindowMouseWheelEventArgs(axis, pGameView, pGameView.NativeWindow));
+			return this;
+		}
+		
+		private void ForwardMouseAction(MouseKey mouseKey, bool isDown)
+		{
+			var evt = new WindowMouseEventArgs(mouseKey, pGameView, pGameView.NativeWindow);
+			(isDown ? OnMouseDown : OnMouseUp)?.Invoke(this, evt);
 		}
 	}
 }

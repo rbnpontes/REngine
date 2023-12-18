@@ -6,6 +6,7 @@ using REngine.Core.Resources;
 namespace REngine.Core.Android;
 
 public class AndroidAssetManager(
+    AssetManager assetManager,
     ILoggerFactory loggerFactory,
     EngineEvents engineEvents,
     IServiceProvider serviceProvider)
@@ -13,22 +14,18 @@ public class AndroidAssetManager(
 {
     private readonly List<string> pAssetEntries = [];
     private bool pStarted;
-    // TODO: change this to a better approach
-    public static AssetManager? PlatformAssetManager { get; set; }
 
     protected override void OnStart()
     {
         if (pStarted)
             return;
-        if (PlatformAssetManager is null)
-            throw new NullReferenceException($"Android {nameof(AssetManager)} is required.");
-        WalkAndCollectAssets(String.Empty, PlatformAssetManager);
+        WalkAndCollectAssets(string.Empty);
         pStarted = true;
     }
 
-    private void WalkAndCollectAssets(string path, AssetManager assetMgr)
+    private void WalkAndCollectAssets(string path)
     {
-        var files = assetMgr.List(path) ?? [];
+        var files = assetManager.List(path) ?? [];
         var directories = new List<string>();
         
         foreach (var file in files)
@@ -36,7 +33,7 @@ public class AndroidAssetManager(
             var filePath = path + file;
             try
             {
-                assetMgr.Open(filePath).Dispose();
+                assetManager.Open(filePath).Dispose();
                 pAssetEntries.Add(filePath);
             }
             catch // If fails, probably is a directory
@@ -46,7 +43,7 @@ public class AndroidAssetManager(
         }
 
         foreach (var dir in directories)    
-            WalkAndCollectAssets(dir+"/", assetMgr);
+            WalkAndCollectAssets(dir+"/");
     }
 
     protected override void OnDispose()
@@ -63,9 +60,7 @@ public class AndroidAssetManager(
     {
         if (!pStarted)
             OnStart();
-        if (PlatformAssetManager is null)
-            throw new NullReferenceException($"Platform {nameof(AssetManager)} must be set to get stream.");
-        var stream = PlatformAssetManager.Open(assetName, Access.Buffer);
+        var stream = assetManager.Open(assetName, Access.Buffer);
         // Copy AssetManager Stream to MemoryStream
         // This is required because AssetManager does not 
         // provide Stream Length on Compressed Data, this causes

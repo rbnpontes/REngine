@@ -17,6 +17,15 @@ namespace REngine.RHI
 		public byte DefaultTextureAnisotropy { get; set; } = 4;
 		public TextureFilterMode DefaultTextureFilterMode { get; set; } = TextureFilterMode.Trilinear;
 
+		public void Merge(GraphicsSettings settings)
+		{
+			DefaultSwapChainBufferCount = settings.DefaultSwapChainBufferCount;
+			DefaultColorFormat = settings.DefaultColorFormat;
+			DefaultDepthFormat = settings.DefaultDepthFormat;
+			DefaultTextureAnisotropy = settings.DefaultTextureAnisotropy;
+			DefaultTextureFilterMode = settings.DefaultTextureFilterMode;
+		}
+		
 		public static GraphicsSettings FromStream(Stream stream)
 		{
 			GraphicsSettings? settings;

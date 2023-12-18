@@ -1,5 +1,3 @@
-
-
 # REngine
 ![Engine Logo](https://github.com/rbnpontes/REngine/blob/main/doc/EngineLogo_sm.jpg)
 
@@ -20,48 +18,34 @@ Build and Run.
 If you are under windows, you just need to build and run `REngine.Sandbox` project. (Again, you can do easily with Visual Studio.)
 
 ## Linux Build
-Before Build, you must have the follow libraries on your system:
+Before Build, you must have the follow libraries on your system to execute engine:
 `libFLAC.so.8, libdl.so, vulkan(LIB or SDK)`
+Do the same steps before and execute.
 
-If you are using Linux, you will need to build the graphics engine driver first. To accomplish this, clone the driver repository and build it using CMake. 
-
-> Ensure that you have CMake and C++ tools installed on your Linux
-> system.
-
-If you don't have access to a Linux machine, you can also build the Linux library using Windows Subsystem for Linux (WSL) on a Windows system.
-
-**Open terminal and run the above command line**
-
-    git clone https://github.com/rbnpontes/REngine-DiligentNativeDriver
-
-**Before build driver, publish or build `REngine.Sandbox` project with DotNet command**    
-
-Inside `REngine-DiligentNativeDriver` run the above command line through terminal. (You must have [Vulkan SDK](https://vulkan.lunarg.com/doc/view/latest/linux/getting_started_ubuntu.html) installed on your environment).
-
-    cmake -S . -B ./build-linux -G "Unix Makefiles"
-
-And
-
-    cmake --build ./build-linux
-    
-After completing the build process, copy the `libREngine-DiligentNativeDriver.so` file to the runtime path of the published or built engine directory.
+## Android Build
+Make sure you have Android SDK, NDK Tools and Xamarin installed in your machine
+After that, Do the sames steps before and execute `REngine.Android.Sandbox`
 
 ## Steam Deck Build
 Perform the same steps on Linux, copy the published or built project, and transfer it to your Steam Deck. The Steam Deck OS is Linux-based, so you should encounter no issues in this regard.
 
 ## Troubleshooting
 
-1. Does engine works with MacOS ? Answer: NO, but its could be easy to port, feel free to open PR for that.
+1. Does the engine work with MacOS? 
+**Answer:** NO, but its could be easy to port, feel free to open PR for that.
 2. Can i collaborate ? Answer: Yeah, feel free to open PR
-3. I can´t build project, or something is wrong. Answer: Feel free to send me a e-mail to rbnpontes@gmail.com
-4. I want a feature, how can i request? Answer: Open your request on issues tab, if i know how to-do i can prioritize
-5. How to enable Tracy Profiler ? Answer: If you're under Visual Studio, just select `Debug-Profiler` or `Release-Profiler` configuration
-6. I need to use Tracy on Linux. Answer: To use on linux you must build manualy tracy with CMAKE parameters: 
-`-DTRACY_FIBERS=ON -DTRACY_DELAYED_INIT=ON -DTRACY_MANUAL_LIFETIME=ON -DBUILD_SHARED_LIBS=ON`
-7. `update_dependencies.bat` or `update_dependencies.sh` is not working. Answer: 
+3. I can't build the project, or something is wrong. 
+**Answer:** Feel free to send me a e-mail to [rbnpontes@gmail.com](mailto:rbnpontes@gmail.com)
+4. I want a feature; how can I request it? 
+**Answer:** Open your request on the issues tab. If I know how to do it, I can prioritize it.
+5. How to enable Tracy Profiler ? 
+**Answer:** If you're using Visual Studio, just select `Debug-Profiler`, `Debug-Profiler-Android` or `Release-Profiler` configuration
+6. `update_dependencies.bat` or `update_dependencies.sh` is not working. Answer: 
 You can run manually this command `.\Utils\winREngine.DependencyTool.exe -o dependencies` or `./Utils/linuxREngine.DependencyTool -o dependencies` if your are under linux
-8. External Downloaded Dependencies is not work. Answer: if third party dependencies is not work, you can build all dependencies manually.
-Basically you must generate correct libraries( Windows=.dll, Linux=.so, and so on) and place under `dependencies` folder.
+7. External Downloaded Dependencies is not work. Answer: if third party dependencies is not work, you can build all dependencies manually.
+Basically you must generate correct libraries( Windows=.dll, Linux=.so, and so on) and place under `dependencies` folder. (On tracy lib, you must build from this repo: https://github.com/rbnpontes/tracy)
+8. I want to build REngine Diligent Driver. 
+**Answer:** Great, clone this repo https://github.com/rbnpontes/REngine-DiligentNativeDriver, build and place libs under `dependencies`
 
 # Samples
 ![REngine Samples](https://github.com/rbnpontes/REngine/blob/main/doc/sample.gif)
@@ -91,6 +75,9 @@ Basically you must generate correct libraries( Windows=.dll, Linux=.so, and so o
 
 ### Tray Support
 ![Tracy Profiler](https://github.com/rbnpontes/REngine/blob/main/doc/tracy_profiler.gif)
+
+### Android Support
+![Android](https://github.com/rbnpontes/REngine/blob/main/doc/android_pong.png)
 
 ## Third Party Credits
 - Tracy (https://github.com/clibequilibrium/Tracy-CSharp | MIT) (https://github.com/wolfpld/tracy | BSD)

@@ -9,24 +9,32 @@ namespace REngine.Core
 {
 	public class EngineSettings : IMergeable<EngineSettings>
 	{
-		public static readonly string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine");
-		public static readonly string LoggerPath = Path.Combine(AppDataPath, "rengine.log");
-		public static readonly string EngineSettingsPath = Path.Combine(AppDataPath, "engine.rcfgs");
-		public static readonly string RenderSettingsPath = Path.Combine(AppDataPath, "render.rcfgs");
-		public static readonly string GraphicsSettingsPath = Path.Combine(AppDataPath, "graphics.rcfgs");
-		public static readonly string DriverSettingsPath = Path.Combine(AppDataPath, "driver.rcfgs");
-		public static readonly string ShaderCachePath = Path.Combine(AppDataPath, "shader-cache");
-		public static readonly string PipelineCachePath = Path.Combine(AppDataPath, "pipeline-cache.bin");
-		public static readonly string PipelineItemsPath = Path.Combine(AppDataPath, "pipelines.rcache");
-		public static readonly string AssetManagerSettingsPath = Path.Combine(AppDataPath, "assetmgr.rcfgs");
+#if ANDROID
+		public static readonly int MaxAllowedJobs = 3;
+#else
+		public static readonly int MaxAllowedJobs = 10;
+#endif
+		public static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine");
+		public static string LoggerPath => Path.Combine(AppDataPath, "rengine.log");
+		public static string EngineSettingsPath => Path.Combine(AppDataPath, "engine.rcfgs");
+		public static string RenderSettingsPath => Path.Combine(AppDataPath, "render.rcfgs");
+		public static string GraphicsSettingsPath => Path.Combine(AppDataPath, "graphics.rcfgs");
+		public static string DriverSettingsPath => Path.Combine(AppDataPath, "driver.rcfgs");
+		public static string ShaderCachePath => Path.Combine(AppDataPath, "shader-cache");
+		public static string PipelineCachePath => Path.Combine(AppDataPath, "pipeline-cache.bin");
+		public static string PipelineItemsPath => Path.Combine(AppDataPath, "pipelines.rcache");
+		public static string AssetManagerSettingsPath => Path.Combine(AppDataPath, "assetmgr.rcfgs");
+#if RENGINE_IMGUI
+		public static string ImGuiSettingsPath => Path.Combine(AppDataPath, "imgui.ini");
+#endif
 
 #if ANDROID
-		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "../Assets");
+		public static string AssetsPath => Path.Join(AppDomain.CurrentDomain.BaseDirectory, "../Assets");
 #else
-		public static readonly string AssetsPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+		public static string AssetsPath => Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
 #endif
-		public static readonly string AssetsShadersPath = Path.Join(AssetsPath, "Shaders");
-		public static readonly string AssetsShadersPostProcessPath = Path.Join(AssetsShadersPath, "PostProcess");
+		public static string AssetsShadersPath => Path.Join(AssetsPath, "Shaders");
+		public static string AssetsShadersPostProcessPath => Path.Join(AssetsShadersPath, "PostProcess");
 
 		/// <summary>
 		/// Defines initial available entity slots
@@ -50,7 +58,7 @@ namespace REngine.Core
 		/// </summary>
 		public int IdleWaitTimeMs { get; set; } = 100;
 
-		public int JobsThreadCount { get; set; }
+		public int JobsThreadCount { get; set; } = -1;
 
 		public void Merge(EngineSettings value)
 		{

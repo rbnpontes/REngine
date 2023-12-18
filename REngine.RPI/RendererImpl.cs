@@ -162,6 +162,9 @@ namespace REngine.RPI
 
 		public IRenderer Compile()
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin($"{nameof(IRenderer)}.{nameof(Compile)}");
+#endif
 			if (IsDisposed || pDriver is null)
 				return this;
 
@@ -183,32 +186,44 @@ namespace REngine.RPI
 
 		public IRenderer Render()
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin($"{nameof(IRenderer)}.{nameof(Render)}");
+#endif
 			// TODO: make this multi-thread
 			if (IsDisposed || pDriver is null)
 				return this;
 			
 			// if swap chain has been set, then we must clear
-			if(pSwapChain != null)
+			if (pSwapChain != null)
 			{
 				var swapChainSize = pSwapChain.Size;
+					UpdateFixedFrameBuffer();
 
-				UpdateFixedFrameBuffer();
-
-				var colorBuffer = pSwapChain.ColorBuffer;
-				pDriver.ImmediateCommand
-					.SetRT(colorBuffer, pSwapChain.DepthBuffer)
-					.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
-					.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
-					.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags, pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
+#if PROFILER
+				using (Profiler.Instance.Begin($"{nameof(IRenderer)}|Set Def. States and Clear RTs"))
+				{
+#endif
+					var colorBuffer = pSwapChain.ColorBuffer;
+					pDriver.ImmediateCommand
+						.SetRT(colorBuffer, pSwapChain.DepthBuffer)
+						.SetViewport(pRenderState.Viewport, swapChainSize.Width, swapChainSize.Height)
+						.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
+						.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags,
+							pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
 
 #if RENGINE_RENDERGRAPH
-				if (pMainBackBufferResource is null)
-					throw new EngineFatalException("Main BackBuffer Resource is null. It seems IRenderer does not filled this field");
-				if (pMainDepthBufferResource is null)
-					throw new EngineFatalException("Main DepthBuffer Resource is null. It seems IRenderer does not filled this field");
-				
-				pMainBackBufferResource.Value = colorBuffer;
-				pMainDepthBufferResource.Value = pSwapChain.DepthBuffer;
+					if (pMainBackBufferResource is null)
+						throw new EngineFatalException(
+							"Main BackBuffer Resource is null. It seems IRenderer does not filled this field");
+					if (pMainDepthBufferResource is null)
+						throw new EngineFatalException(
+							"Main DepthBuffer Resource is null. It seems IRenderer does not filled this field");
+
+					pMainBackBufferResource.Value = colorBuffer;
+					pMainDepthBufferResource.Value = pSwapChain.DepthBuffer;
+#endif
+#if PROFILER
+				}
 #endif
 			}
 
@@ -261,6 +276,8 @@ namespace REngine.RPI
 
 		private void UpdateFixedBufferData(SwapChainSize size)
 		{
+			if (pDriver is null)
+				throw new NullReferenceException("Driver is required");
 			pLogger.Debug("Updating Fixed Buffer Data");
 
 			var proj = Matrix4x4.CreateOrthographicOffCenterLeftHanded(0, size.Width, size.Height, 0, 0.0f, 1.0f);
@@ -280,6 +297,9 @@ namespace REngine.RPI
 
 		private void UpdateFixedFrameBuffer()
 		{
+#if PROFILER
+			using var _ = Profiler.Instance.Begin($"{nameof(IRenderer)}.{nameof(UpdateFixedFrameBuffer)}");
+#endif
 			if (pDriver is null)
 				return;
 
@@ -345,9 +365,10 @@ namespace REngine.RPI
 			pExecutionPipeline
 				.AddEvent(DefaultEvents.RenderBeginId, (_) => HandleBeginRender())
 				.AddEvent(DefaultEvents.RenderId, (_) => HandleRender())
-				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures())
-				.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
-
+				.AddEvent(DefaultEvents.RenderPrepareId, (_) => PrepareFeatures());
+// #if !ANDROID // Disable SwapChain present on Android, this must be done on Android Main Thread
+// #endif
+			pExecutionPipeline.AddEvent(DefaultEvents.SwapChainPresentId, (_) => HandlePresent());
 
 			pLogger.EndProfile("Start Time");
 			pRenderEvents.ExecuteBeforeReady(this);

@@ -1,135 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <OutputType>Exe</OutputType>
+        <StartupObject>REngine.Sandbox.Program</StartupObject>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<OutputType>Exe</OutputType>
-	</PropertyGroup>
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
-	  <OutputType>Exe</OutputType>
-	</PropertyGroup>
+    <PropertyGroup Condition="'$(IsRelease)'=='1'">
+        <OutputType>WinExe</OutputType>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-	  <OutputType>Exe</OutputType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<OutputType>WinExe</OutputType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-	  <OutputType>WinExe</OutputType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-		<OutputType>Exe</OutputType>
-	</PropertyGroup>
-	
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
-		<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
-		<StartupObject>REngine.Sandbox.Program</StartupObject>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Android|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;PROFILER</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Profiler|x64'">
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI;PROFILER</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Linux|x64'">
-	  <DefineConstants>$(DefineConstants);LINUX;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Android-Profiler|x64' ">
-	  <OutputType>Exe</OutputType>
-	  <DefineConstants>$(DefineConstants);WINDOWS;RENGINE_SPRITEBATCH;RENGINE_IMGUI</DefineConstants>
-	</PropertyGroup>
-
-	<ItemGroup Condition="'$(Configuration)' != 'Debug-Android'">
-		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
-		<ProjectReference Include="..\REngine\REngine.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Remove="bin\**" />
-		<EmbeddedResource Remove="bin\**" />
-		<None Remove="bin\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
-	  <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
-	  <ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
-	  <ProjectReference Include="..\REngine.RPI\REngine.RPI.csproj" />
-	  <ProjectReference Include="..\REngine.Windows\REngine.Windows.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Update="Assets\ponggame-rendergraph.xml">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\postprocess-rendergraph.xml">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\engine_logo_effect.hlsl">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Shaders\sprite_smpl_effect_ps.hlsl">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\blip_pop.ogg">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\block_click.ogg">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\doge_bonk.ogg">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\LICENSE.txt">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\menu_selection.ogg">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Sounds\silent_wood_by_purrplecat.ogg">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\doge.jpg">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\EngineLogo-Sdf.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\menu-exit-button.png">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\menu-play-button.png">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\menu-restart-button.png">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Assets\Textures\menu-resume-button.png">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="cube_ps.hlsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
+    <ItemGroup Condition="'$(IsDesktop)'=='1'">
+        <ProjectReference Include="..\Platforms\REngine.Core.Desktop\REngine.Core.Desktop.csproj"/>
+        <ProjectReference Include="..\Samples\REngine.Sandbox.Samples\REngine.Sandbox.Samples.csproj"/>
+    </ItemGroup>
 </Project>

@@ -25,7 +25,7 @@ namespace REngine.RPI.RenderGraph
 		public static void Setup(IServiceRegistry registry)
 		{
 			registry
-				.Add(() => GetBaseRegistry())
+				.Add(GetBaseRegistry)
 				.Add<IVariableManager, VariableManager>()
 				.Add<IResourceManager, ResourceManagerImpl>()
 				.Add<IRenderGraph, RenderGraphImpl>();

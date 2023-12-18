@@ -5,7 +5,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Eric Mellino</Authors>
     <Description>A .NET wrapper for the imnodes library.</Description>
-    <DocumentationFile Condition="'$(Configuration)' == 'Release'">$(OutputPath)\imnodes.NET.xml</DocumentationFile>
     <RootNamespace>imnodesNET</RootNamespace>
   </PropertyGroup>
 

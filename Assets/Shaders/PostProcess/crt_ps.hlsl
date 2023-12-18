@@ -50,16 +50,16 @@ float3 chromatic_aberration(float2 uv, float3 offsets)
 float3 ghost_effect(float2 uv, float uv_scale, float3 threshold, float3 offsets)
 {
     float3 color = float3(
-        threshold.r * g_texture.Sample(g_texture_sampler, uv_scale * (uv + offsets)).r,
-        threshold.g * g_texture.Sample(g_texture_sampler, uv_scale * (uv - offsets)).g,
-        threshold.b * g_texture.Sample(g_texture_sampler, uv_scale * (uv + offsets)).b
+        threshold.r * g_texture.Sample(g_texture_sampler, uv_scale * (uv + offsets.x)).r,
+        threshold.g * g_texture.Sample(g_texture_sampler, uv_scale * (uv - offsets.y)).g,
+        threshold.b * g_texture.Sample(g_texture_sampler, uv_scale * (uv + offsets.z)).b
     );
     return color;
 }
 
 float3 scans_effect(float3 color, float2 uv, float t)
 {
-	const float scans = clamp(0.35 + 0.35 * sin(3.5 * t + uv.y * 1.5), 0.0, 1.0);
+	float scans = clamp(0.35 + 0.35 * sin(3.5 * t + uv.y * 1.5), 0.0, 1.0);
 
     float s = pow(scans, 0.1);
     s = 0.4 + 0.7 * s;
@@ -73,25 +73,31 @@ float3 scans_effect(float3 color, float2 uv, float t)
 
 float3 crt_effect(float3 color, float uv_x, float screen_width)
 {
-    const float x = fmod(uv_x * screen_width, 2.0);
-    const float crt = clamp((x - 1.0) * 2.0, 0.0, 1.0);
+    float x = fmod(uv_x * screen_width, 2.0);
+    float crt = clamp((x - 1.0) * 2.0, 0.0, 1.0);
     return color * 1.0 - 0.65 * float3(crt, crt, crt);
 }
 
-float4 main(in PSInput input) : SV_TARGET
+float4 main(in PSInput ps_input) : SV_TARGET
 {
-	const float2 uv = curve_uv(input.uv, 1.1f, 4.48, 2.0, 0.92);
-    const float t = wave(input.time.x, 0.00017, float3(6.3, 20.3, 10.23), float3(0, 0, 0.3));
+    float2 texcoords = ps_input.uv;
+#ifdef GLSL
+    texcoords.y = 1.0f - texcoords.y;
+#endif
+    float2 uv = curve_uv(texcoords, 1.1f, 4.48, 2.0, 0.92);
+    
+    float t = wave(ps_input.time.x, 0.00017, float3(6.3, 20.3, 10.23), float3(0, 0, 0.3));
+    float2 tvec = float2(t, t);
 
-    float3 color = chromatic_aberration(uv + t, float3(0.001, 0.002, 0.0));
-	color += ghost_effect(uv + t, 0.98, float3(0.08, 0.05, 0.08), float3(0.0028, 0.02, 0.0018));
-    color *= scans_effect(color, uv, input.time.x * 0.001);
-    color = crt_effect(color, input.uv.x, input.screenSize.x);
+    float3 color = chromatic_aberration(uv + tvec, float3(0.001, 0.002, 0.0));
+	color += ghost_effect(uv + tvec, 0.98, float3(0.08, 0.05, 0.08), float3(0.0028, 0.02, 0.0018));
+    color *= scans_effect(color, uv, ps_input.time.x * 0.001);
+    color = crt_effect(color, ps_input.uv.x, ps_input.screenSize.x);
 
     if (uv.x < 0.0 || uv.x > 1.0)
-        color *= 0.0;
+        color *= float3(0.0, 0.0, 0.0);
     if (uv.y < 0.0 || uv.y > 1.0)
-        color *= 0.0;
+        color *= float3(0.0, 0.0, 0.0);
 
 	return float4(color * 1.1, 1.0);
 }

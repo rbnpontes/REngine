@@ -10,12 +10,12 @@
 	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
 	
 	<ItemGroup>
-	  <PackageReference Include="SFML.Audio" Version="2.5.1" />
 	  <PackageReference Include="StbImageSharp" Version="2.27.13" />
 	  <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
 	  <ProjectReference Include="..\ThirdParty\FreeTypeSharp\FreeTypeSharp.csproj" />
+	  <ProjectReference Include="..\ThirdParty\SFML.Audio\SFML.Audio.csproj" />
 	</ItemGroup>
 </Project>
