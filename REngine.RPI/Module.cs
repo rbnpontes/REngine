@@ -56,6 +56,7 @@ namespace REngine.RPI
                 .Add<IBufferManager, BufferManagerImpl>()
                 .Add<IRenderTargetManager, RenderTargetManagerImpl>()
                 .Add<IRenderer, RendererImpl>()
+                .Add<IShaderResourceBindingCache, ShaderResourceBindingCacheImpl>()
                 .Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
                 .Add<SpriteBatcher>()

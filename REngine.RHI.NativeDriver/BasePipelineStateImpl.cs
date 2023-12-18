@@ -8,55 +8,64 @@ using System.Threading.Tasks;
 
 namespace REngine.RHI.NativeDriver
 {
-	internal abstract class BasePipelineStateImpl : NativeObject, IBasePipelineState
+	internal abstract class BasePipelineStateImpl(IntPtr handle, GPUObjectType objectType)
+		: NativeObject(handle), IBasePipelineState
 	{
 		[DllImport(Constants.Lib)]
 		protected static extern void rengine_pipelinestate_createresourcebinding(
 			IntPtr pipeline,
 			ref ResultNative result
 		);
+		
+		private readonly Dictionary<IntPtr, IShaderResourceBinding> pShaderResourceBindings = new();
+		private DefaultShaderResourceBinding? pDefaultShaderResourceBinding;
 
-		private IShaderResourceBinding? pDefaultSRB;
-
-		public string Name 
-		{ 
-			get => GetName();
-		}
-
-		public GPUObjectType ObjectType { get; private set; }
-
-		public BasePipelineStateImpl(IntPtr handle, GPUObjectType objectType) : base(handle)
-		{
-			ObjectType = objectType;
-		}
-
+		public IShaderResourceBinding[] ShaderResourceBindings => pShaderResourceBindings.Values.ToArray();
+		public string Name => GetName();
+		public GPUObjectType ObjectType => objectType;
 		protected abstract string GetName();
-
-		public IShaderResourceBinding CreateResourceBinding()
+		
+		private IntPtr AllocateShaderResourceBinding()
 		{
 			ResultNative result = new();
 			rengine_pipelinestate_createresourcebinding(Handle, ref result);
-
+			
 			if (result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create SRB");
-			return new ShaderResourceBindingImpl(result.value);
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Could not possible to create {nameof(IShaderResourceBinding)}.");
+			if (result.value != IntPtr.Zero)
+				throw new NullReferenceException($"Could not possible to create {nameof(IShaderResourceBinding)}.");
+			return result.value;
 		}
-
+		public IShaderResourceBinding CreateResourceBinding()
+		{
+			return new ShaderResourceBindingImpl(AllocateShaderResourceBinding(), this);
+		}
+		public bool HasShaderResourceBinding(IShaderResourceBinding srb)
+		{
+			return pShaderResourceBindings.ContainsKey(srb.Handle);
+		}
 		public IShaderResourceBinding GetResourceBinding()
 		{
-			pDefaultSRB ??= CreateResourceBinding();
-			return pDefaultSRB;
+			pDefaultShaderResourceBinding ??= new DefaultShaderResourceBinding(AllocateShaderResourceBinding(), this);
+			return pDefaultShaderResourceBinding;
 		}
-
 		protected override void BeforeRelease()
 		{
-			if (pDefaultSRB is null)
+			if (pDefaultShaderResourceBinding is null)
 				return;
-			if (pDefaultSRB.IsDisposed)
+			if (pDefaultShaderResourceBinding.IsDisposed)
 				return;
-			pDefaultSRB.Dispose();
+			pDefaultShaderResourceBinding.UnlockRelease();
+			pDefaultShaderResourceBinding.Dispose();
+			
+			foreach(var pair in pShaderResourceBindings)
+				pair.Value.Dispose();
+			pShaderResourceBindings.Clear();
 		}
-
 		public abstract ulong ToHash();
+		public void RemoveShaderResourceBinding(IntPtr ptr)
+		{
+			pShaderResourceBindings.Remove(ptr);
+		}
 	}
 }

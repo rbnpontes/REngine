@@ -10,6 +10,8 @@ namespace REngine.RHI
 
 	public interface IBasePipelineState : IGPUObject, IHashable
 	{
+		public IShaderResourceBinding[] ShaderResourceBindings { get; }
+		public bool HasShaderResourceBinding(IShaderResourceBinding srb);
 		public IShaderResourceBinding GetResourceBinding();
 		public IShaderResourceBinding CreateResourceBinding();
 	}
