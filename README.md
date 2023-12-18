@@ -92,6 +92,9 @@ Basically you must generate correct libraries( Windows=.dll, Linux=.so, and so o
 ### Tray Support
 ![Tracy Profiler](https://github.com/rbnpontes/REngine/blob/main/doc/tracy_profiler.gif)
 
+### Android Support
+![Android](https://github.com/rbnpontes/REngine/blob/main/doc/android_pong.png)
+
 ## Third Party Credits
 - Tracy (https://github.com/clibequilibrium/Tracy-CSharp | MIT) (https://github.com/wolfpld/tracy | BSD)
 - SFML (https://www.sfml-dev.org/ | ZLIB/Libpng)  (https://www.sfml-dev.org/download/sfml.net/)
