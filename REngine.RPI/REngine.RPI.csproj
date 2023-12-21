@@ -12,6 +12,7 @@
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
 		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />

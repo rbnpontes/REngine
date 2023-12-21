@@ -17,7 +17,7 @@ public sealed class ResourceMappingEntry(
         return hash;
     }
 }
-public sealed class ResourceMapping
+public sealed class ResourceMapping : IHashable
 {
     private readonly Dictionary<ulong, ResourceMappingEntry> pEntries = new();
 
@@ -53,5 +53,10 @@ public sealed class ResourceMapping
     {
         var entry = new ResourceMappingEntry(name, type, obj);
         pEntries.TryAdd(entry.ToHash(), entry);
+    }
+
+    public ulong ToHash()
+    {
+        return pEntries.Aggregate<KeyValuePair<ulong, ResourceMappingEntry>, ulong>(1, (current, res) => Hash.Combine(current, res.Key));
     }
 }

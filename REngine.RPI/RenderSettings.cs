@@ -21,7 +21,7 @@ namespace REngine.RPI
 #if RENGINE_SPRITEBATCH
 		public uint SpriteBatchInitialSize { get; set; } = 8;
 		public uint SpriteBatchTextsInitialSize { get; set; } = 1;
-		public uint SpriteBatchInitialInstanceSize { get; set; } = 512;
+		public uint SpriteBatchInitialInstanceSize { get; set; } = 2;
 		/// <summary>
 		/// When batches goes to resize, the above calc will be applied on new Array length
 		/// NewLength = OldLength + (SpriteBatchInitialSize * SpriteBatchExpansionRatio)

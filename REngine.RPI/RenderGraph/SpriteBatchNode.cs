@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace REngine.RPI.RenderGraph
 {
 	[NodeTag("spritebatch-pass")]
-	public class SpritebatchNode : GraphicsRenderFeatureNode
+	public class SpriteBatchNode : GraphicsRenderFeatureNode
 	{
 		private static readonly ulong[] sExpectedWriteResources =
 		{
@@ -19,7 +19,7 @@ namespace REngine.RPI.RenderGraph
 		};
 
 		private IRenderFeature? pFeature;
-		public SpritebatchNode() : base(nameof(SpritebatchNode))
+		public SpriteBatchNode() : base(nameof(SpriteBatchNode))
 		{
 		}
 

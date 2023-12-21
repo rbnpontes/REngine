@@ -53,13 +53,9 @@ namespace REngine.Core.Resources
 		/// </summary>
 		/// <param name="stream"></param>
 		/// <returns>A readable task</returns>
-		public Task Load(AssetStream stream)
+		public void Load(AssetStream stream)
 		{
-			return Task.Run(() =>
-			{
-				lock(mSync)
-					TryLoadAsset(stream);
-			});
+			TryLoadAsset(stream);
 		}
 
 		private void TryLoadAsset(AssetStream stream)

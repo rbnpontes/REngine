@@ -120,7 +120,7 @@ namespace REngine.Core.Resources
 			var profileKey = $"Load {assetName} Time";
 			mLogger.Profile(profileKey);
 #endif
-			asset.Load(stream).Wait();
+			asset.Load(stream);
 #if DEBUG
 			mLogger.EndProfile(profileKey);
 #endif

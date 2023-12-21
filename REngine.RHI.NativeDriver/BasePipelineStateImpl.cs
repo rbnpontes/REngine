@@ -32,7 +32,7 @@ namespace REngine.RHI.NativeDriver
 			
 			if (result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Could not possible to create {nameof(IShaderResourceBinding)}.");
-			if (result.value != IntPtr.Zero)
+			if (result.value == IntPtr.Zero)
 				throw new NullReferenceException($"Could not possible to create {nameof(IShaderResourceBinding)}.");
 			return result.value;
 		}

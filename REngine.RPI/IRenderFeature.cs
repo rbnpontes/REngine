@@ -8,40 +8,28 @@ using REngine.Core.Resources;
 
 namespace REngine.RPI
 {
-	public struct RenderFeatureSetupInfo
+	public struct RenderFeatureSetupInfo(
+		IGraphicsDriver driver,
+		IRenderer renderer,
+		IBufferManager bufferMgr,
+		IPipelineStateManager pipelineStateMgr,
+		IShaderManager shaderMgr,
+		IRenderTargetManager renderTargetMgr,
+		GraphicsSettings graphicsSettings,
+		RenderState renderState,
+		IAssetManager assetManager,
+		IShaderResourceBindingCache shaderResourceBindingCache)
 	{
-		public IGraphicsDriver Driver;
-		public IRenderer Renderer;
-		public IBufferManager BufferManager;
-		public IPipelineStateManager PipelineStateManager;
-		public IShaderManager ShaderManager;
-		public IRenderTargetManager RenderTargetManager;
-		public GraphicsSettings GraphicsSettings;
-		public RenderState RenderState;
-		public IAssetManager AssetManager;
-
-		public RenderFeatureSetupInfo(
-			IGraphicsDriver driver, 
-			IRenderer renderer, 
-			IBufferManager bufferMgr,
-			IPipelineStateManager pipelineStateMgr,
-			IShaderManager shaderMgr,
-			IRenderTargetManager renderTargetMgr,
-			GraphicsSettings graphicsSettings,
-			RenderState renderState,
-			IAssetManager assetManager
-			)
-		{
-			Driver = driver;
-			Renderer = renderer;
-			BufferManager = bufferMgr;
-			PipelineStateManager = pipelineStateMgr;
-			ShaderManager = shaderMgr;
-			GraphicsSettings = graphicsSettings;
-			RenderState = renderState;
-			RenderTargetManager = renderTargetMgr;
-			AssetManager = assetManager;
-		}
+		public readonly IGraphicsDriver Driver = driver;
+		public readonly IRenderer Renderer = renderer;
+		public readonly IBufferManager BufferManager = bufferMgr;
+		public readonly IPipelineStateManager PipelineStateManager = pipelineStateMgr;
+		public readonly IShaderManager ShaderManager = shaderMgr;
+		public readonly IRenderTargetManager RenderTargetManager = renderTargetMgr;
+		public readonly GraphicsSettings GraphicsSettings = graphicsSettings;
+		public readonly RenderState RenderState = renderState;
+		public readonly IAssetManager AssetManager = assetManager;
+		public readonly IShaderResourceBindingCache ShaderResourceBindingCache = shaderResourceBindingCache;
 	}
 
 	public interface IRenderFeature : IDisposable

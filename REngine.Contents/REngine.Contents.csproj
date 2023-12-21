@@ -36,6 +36,36 @@
                     <Link>runtimes\win-x64\native\glfw3.dll</Link>
                     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
                 </Content>
+				<!-- GLFW Dependency -->
+                <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\glfw3.dll">
+                    <Link>runtimes\win-x64\native\glfw3.dll</Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                </Content>
+				<!-- CSFML Audio Dependency -->
+				<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\csfml-audio-2.dll">
+					<Link>runtimes\win-x64\native\csfml-audio-2.dll</Link>
+					<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				</Content>
+				<!-- CSFML System Dependency -->
+				<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\csfml-system-2.dll">
+					<Link>runtimes\win-x64\native\csfml-system-2.dll</Link>
+					<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				</Content>
+				<!-- SFML Audio Dependency -->
+				<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\sfml-audio-2.dll">
+					<Link>runtimes\win-x64\native\sfml-audio-2.dll</Link>
+					<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				</Content>
+				<!-- SFML System Dependency -->
+				<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\sfml-system-2.dll">
+					<Link>runtimes\win-x64\native\sfml-system-2.dll</Link>
+					<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				</Content>
+				<!-- OpenAL Dependency -->
+				<Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\openal32.dll">
+					<Link>runtimes\win-x64\native\openal32.dll</Link>
+					<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				</Content>
             </ItemGroup>
             <ItemGroup Condition="'$(IsWindows)'=='1' and '$(IsProfilerEnabled)' == '1'">
                 <Content Include="$(SolutionDir)\dependencies\runtimes\win-x64\native\TracyClient.dll">

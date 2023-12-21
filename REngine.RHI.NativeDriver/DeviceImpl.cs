@@ -57,8 +57,10 @@ namespace REngine.RHI.NativeDriver
 				Marshal.FreeHGlobal(output.name);
 
 			if (result.error != IntPtr.Zero)
-				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? "Could not possible create Buffer");
+				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Could not possible create {nameof(IBuffer)}");
 
+			if (result.value == IntPtr.Zero)
+				throw new NullReferenceException($"Could not possible to create {nameof(IBuffer)}");
 			return new BufferImpl(result.value);
 		}
 

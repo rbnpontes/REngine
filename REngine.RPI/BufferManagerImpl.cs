@@ -26,8 +26,7 @@ namespace REngine.RPI
 		private bool pDisposed;
 
 		private IGraphicsDriver? pDriver;
-
-
+		
 		public BufferManagerImpl(
 			ILogger<IBufferManager> logger,
 			RendererEvents rendererEvents,
@@ -118,7 +117,7 @@ namespace REngine.RPI
 				Size = bufferSize,
 				BindFlags = BindFlags.VertexBuffer,
 				Usage = dynamic ? Usage.Dynamic : Usage.Default,
-				AccessFlags = CpuAccessFlags.Write
+				AccessFlags = dynamic ? CpuAccessFlags.Write : CpuAccessFlags.None
 			});
 		}
 

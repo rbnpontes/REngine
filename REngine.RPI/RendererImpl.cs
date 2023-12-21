@@ -359,7 +359,8 @@ namespace REngine.RPI
 				pRenderTargetMgr,
 				pGraphicsSettings,
 				pRenderState,
-				pAssetManager
+				pAssetManager,
+				pProvider.Get<IShaderResourceBindingCache>()
 			);
 
 			pExecutionPipeline

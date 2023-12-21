@@ -49,7 +49,7 @@ namespace REngine.Core.WorldManagement
 			pData = newEntities;
 		}
 
-		protected void ValidateId(int id)
+		protected virtual void ValidateId(int id)
 		{
 			if (id < 0 || id >= pData.Length)
 				throw new IndexOutOfRangeException("Invalid ID");
