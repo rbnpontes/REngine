@@ -47,8 +47,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			imGuiSystem.OnGui -= OnGui;
 			renderer?.AddFeature(imGuiSystem.Feature, 100);
 
-			spriteBatch.OnDraw -= OnDraw;
-			spriteBatch.ClearTexture(0);
+			// spriteBatch.OnDraw -= OnDraw;
+			// spriteBatch.ClearTexture(0);
 			pTextBatch?.Dispose();
 
 			GC.SuppressFinalize(this);
@@ -61,7 +61,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			// Load Sprite
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
-			spriteBatch.SetTexture(0, sprite.Image);
+			//spriteBatch.SetTexture(0, sprite.Image);
 
 			// Load Font
 			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous-Pro.ttf");
@@ -83,19 +83,19 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			);
 
 			imGuiSystem.OnGui += OnGui;
-			spriteBatch.OnDraw += OnDraw;
+			//spriteBatch.OnDraw += OnDraw;
 		}
 
 		private void OnDraw(object? sender, EventArgs e)
 		{
 			var bounds = pSpriteRect;
-			spriteBatch.Draw(new SpriteBatchInfo
-			{
-				TextureSlot =0,
-				Position = bounds.GetPosition(),
-				Size = bounds.GetSize().ToVector2(),
-			});
-			spriteBatch.Draw(pTextBatch);
+			// spriteBatch.Draw(new SpriteBatchInfo
+			// {
+			// 	TextureSlot =0,
+			// 	Position = bounds.GetPosition(),
+			// 	Size = bounds.GetSize().ToVector2(),
+			// });
+			// spriteBatch.Draw(pTextBatch);
 		}
 
 		private void OnGui(object? sender, EventArgs e)

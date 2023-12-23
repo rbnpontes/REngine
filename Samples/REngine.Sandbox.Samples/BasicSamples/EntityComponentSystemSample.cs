@@ -54,11 +54,11 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			// Load Sprite
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
-			spriteBatch.SetTexture(0, sprite.Image);
+			//spriteBatch.SetTexture(0, sprite.Image);
 			
 			renderer = provider.Get<IRenderer>();
 			// To sprite component work, we must add sprite batch render feature
-			renderer.AddFeature(pRenderFeature = spriteBatch.Feature);
+			//renderer.AddFeature(pRenderFeature = spriteBatch.Feature);
 
 			imGuiSystem = provider.Get<IImGuiSystem>();
 			imGuiSystem.OnGui += OnGui;

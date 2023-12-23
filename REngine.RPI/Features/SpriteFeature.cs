@@ -10,19 +10,13 @@ using REngine.RPI.Structs;
 namespace REngine.RPI.Features;
 
 public sealed class SpriteFeature(
-    SpriteBatchSystem batchSys,
+    BatchSystem batchSystem,
     SpriteInstancedBatchSystem instancedBatchSys,
     IShaderResourceBindingCache srbCache,
     IBufferManager bufferMgr) : GraphicsRenderFeature
 {
-    private struct SpriteBatchConstantData
-    {
-        public Matrix4x4 Transform;
-        public Vector4 Color;
-    }
-
-    private IPipelineState? pPipeline;
-    private IPipelineState? pTexturedPipeline;
+    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+    
     private IPipelineState? pInstancedPipeline;
     private IPipelineState? pTexturedInstancedPipeline;
 
@@ -36,43 +30,15 @@ public sealed class SpriteFeature(
 
     protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
     {
-        pPipeline ??= CreatePipeline(setupInfo, false, false);
-        pTexturedPipeline ??= CreatePipeline(setupInfo, true, false);
         pInstancedPipeline ??= CreatePipeline(setupInfo, false, true);
         pTexturedInstancedPipeline ??= CreatePipeline(setupInfo, true, true);
 
         IsDirty = false;
     }
-
-    private void SetupSpriteBatch(SpriteBatch batch)
+    
+    private void SetupInstanceSpriteBatch(SpriteInstance batch)
     {
-        if (!batch.IsDirty || pPipeline is null || pTexturedPipeline is null)
-            return;
-        batch.Lock();
-
-        var resourceMapping = new ResourceMapping();
-        resourceMapping
-            .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, bufferMgr.GetBuffer(BufferGroupType.Frame))
-            .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferMgr.GetBuffer(BufferGroupType.Object));
-        
-        var pipeline = pPipeline;
-        if (batch.Texture is not null)
-        {
-            pipeline = pTexturedPipeline;
-            resourceMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture,
-                batch.Texture.GetDefaultView(TextureViewType.ShaderResource));
-        }
-
-        var srb = srbCache.Build(pipeline, resourceMapping);
-        batchSys.SetPipelineState(batch.Id, pipeline);
-        batchSys.SetShaderResourceBinding(batch.Id, srb);
-        batchSys.RemoveDirtyState(batch.Id);
-        
-        batch.Unlock();
-    }
-    private void SetupInstanceSpriteBatch(SpriteInstanceBatch batch)
-    {
-        if (!batch.IsDirty ||  pInstancedPipeline is null || pTexturedPipeline is null)
+        if (!batch.IsDirty ||  pInstancedPipeline is null)
             return;
         
         batch.Lock();
@@ -103,8 +69,6 @@ public sealed class SpriteFeature(
     {
         pCommandBuffer = command;
 
-		batchSys.ForEach(SetupSpriteBatch);
-
 		instancedBatchSys.UpdateTransforms();
 		instancedBatchSys.ForEach(SetupInstanceSpriteBatch);
 
@@ -115,51 +79,14 @@ public sealed class SpriteFeature(
             return;
 
         command.SetRT(backbuffer, depthbuffer);
+
+        foreach (var batch in pBatchGroup)
+            batch.Render(command);
         
-        batchSys.ForEach(ExecuteSpriteBatch);
         instancedBatchSys.ForEach(ExecuteSpriteInstanceBatch);
     }
 
-    private void ExecuteSpriteBatch(SpriteBatch batch)
-    {
-        if (pCommandBuffer is null)
-            return;
-        
-        batch.Lock();
-        var enabled = batch.Enabled;
-        var position = batch.Position;
-        var anchor = batch.Anchor;
-        var angle = batch.Angle;
-        var size = batch.Size;
-        var pipeline = batch.PipelineState;
-        var srb = batch.ShaderResourceBinding;
-        var color = batch.Color;
-        batch.Unlock();
-
-        if (!enabled)
-            return;
-            
-        // Update Sprite Transform
-        var buffer = bufferMgr.GetBuffer(BufferGroupType.Object);
-        var mapped = pCommandBuffer.Map<SpriteBatchConstantData>(buffer, MapType.Write, MapFlags.Discard);
-        mapped[0] = new SpriteBatchConstantData
-        {
-            Transform = GetTransform(position, anchor, angle, size),
-            Color = color.ToVector4()
-        };
-        pCommandBuffer.Unmap(buffer, MapType.Write);
-        
-        pCommandBuffer
-            .SetPipeline(pipeline)
-            .CommitBindings(srb)
-            .Draw(new DrawArgs()
-            {
-                NumVertices = 4,
-                NumInstances = 1
-            });
-    }
-    
-    private unsafe void ExecuteSpriteInstanceBatch(SpriteInstanceBatch batch)
+    private unsafe void ExecuteSpriteInstanceBatch(SpriteInstance batch)
     {
         if (pCommandBuffer is null)
             return;
@@ -302,10 +229,5 @@ public sealed class SpriteFeature(
         shaderCi.Macros.Add("RENGINE_INSTANCED", "1");
 
         return setupInfo.ShaderManager.GetOrCreate(shaderCi);
-    }
-    private static Matrix4x4 GetTransform(in Vector3 position, in Vector2 anchor, float rotation, in Vector2 scale)
-    {
-        var transform = Matrix4x4.CreateScale(new Vector3(scale, 1.0f)) * Matrix4x4.CreateTranslation(new Vector3((scale * anchor) * new Vector2(-1), 0));
-        return transform * Matrix4x4.CreateRotationZ(rotation) * Matrix4x4.CreateTranslation(position);
     }
 }

@@ -9,11 +9,11 @@ using REngine.Core.Resources;
 
 namespace REngine.RPI.SpriteEffects
 {
-	public sealed class RoundedEffect : BasicSpriteEffect
-	{
-		public RoundedEffect(IAssetManager assetManager) : base(nameof(RoundedEffect), assetManager)
-		{
-			PixelShader = new StreamedShaderStream(assetManager.GetStream("Shaders/rounded_sprite_effect_ps.hlsl"));
-		}
-	}
+	// public sealed class RoundedEffect : BasicSpriteEffect
+	// {
+	// 	public RoundedEffect(IAssetManager assetManager) : base(nameof(RoundedEffect), assetManager)
+	// 	{
+	// 		PixelShader = new StreamedShaderStream(assetManager.GetStream("Shaders/rounded_sprite_effect_ps.hlsl"));
+	// 	}
+	// }
 }

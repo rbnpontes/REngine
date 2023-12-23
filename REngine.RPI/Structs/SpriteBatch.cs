@@ -6,7 +6,7 @@ using REngine.RHI;
 
 namespace REngine.RPI.Structs;
 
-public struct SpriteBatchItem()
+public struct SpriteBatchItem(SpriteEffect effect)
 {
     public object Sync = new();
     public Vector3 Position = Vector3.Zero;
@@ -17,11 +17,10 @@ public struct SpriteBatchItem()
     public float Angle = 0f;
     public bool Enabled = true;
     public bool Dirty = false;
-    public SpriteEffect? Effect = null;
-    public ITexture? Texture = null;
-    public IShaderResourceBinding? ShaderResourceBinding = null;
-    public IPipelineState? PipelineState = null;
-    public SpriteBatch? RefBatch = null;
+    public int BatchIndex = -1;
+    
+    public SpriteEffect Effect = effect;
+    public Sprite? RefSprite = null;
 }
 
 public struct SpriteInstanceBatchElement()
@@ -46,5 +45,5 @@ public struct SpriteInstanceBatchItem(IBuffer instancingBuffer)
     public IShaderResourceBinding? ShaderResourceBinding = null;
     public IPipelineState? PipelineState = null;
     public IBuffer InstanceBuffer = instancingBuffer;
-    public SpriteInstanceBatch? RefBatch = null;
+    public SpriteInstance? RefBatch = null;
 }

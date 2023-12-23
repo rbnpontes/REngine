@@ -15,13 +15,13 @@ public sealed class SpriteInstancedBatchSystem(
 {
     private readonly object pSync = new();
 
-    public SpriteInstanceBatch CreateBatch(int numInstances = 0, bool dynamic = false)
+    public SpriteInstance CreateBatch(uint numInstances = 0, bool dynamic = false)
     {
-        SpriteInstanceBatch batch;
+        SpriteInstance batch;
         lock (pSync)
         {
             var id = Acquire();
-            batch = new SpriteInstanceBatch(id, this);
+            batch = new SpriteInstance(id, this);
             pData[id] = new SpriteInstanceBatchItem(
                 bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<Matrix4x4>()), dynamic))
             {
@@ -45,6 +45,20 @@ public sealed class SpriteInstancedBatchSystem(
             pData[id].ShaderResourceBinding?.Dispose();
             pData[id].InstanceBuffer.Dispose();
             pAvailableIdx.Enqueue(id);
+        }
+    }
+
+    public void DestroyBatches()
+    {
+        lock (pSync)
+        {
+            if (pAvailableIdx.Count == pData.Length)
+                return;
+            foreach (var data in pData)
+                data.RefBatch?.Dispose();
+            
+            pAvailableIdx.Clear();
+            pData = [];
         }
     }
 
@@ -364,7 +378,7 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public void ForEach(Action<SpriteInstanceBatch> callback)
+    public void ForEach(Action<SpriteInstance> callback)
     {
         lock (pSync)
         {

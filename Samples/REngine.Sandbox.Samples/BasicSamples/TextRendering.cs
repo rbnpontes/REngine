@@ -46,7 +46,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			pBatch?.Dispose();
 			
-			spriteBatch.OnDraw -= OnDraw;
+			//spriteBatch.OnDraw -= OnDraw;
 			imGuiSystem.OnGui -= OnGui;
 		}
 
@@ -55,7 +55,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			if (Window is null)
 				return;
 			
-			renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
+			//renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
 
 			// Load Font
 			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous-Pro.ttf");
@@ -66,7 +66,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			pHorizontalSpacing = pBatch.HorizontalSpacing;
 			pVerticalSpacing = pBatch.VerticalSpacing;
 
-			spriteBatch.OnDraw += OnDraw;
+			//spriteBatch.OnDraw += OnDraw;
 
 			pColor = pBatch.Color.ToVector4();
 
@@ -149,7 +149,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			lock (pSync)
 				pLastBounds = pBatch.Bounds;
 
-			spriteBatch.Draw(pBatch);
+			//spriteBatch.Draw(pBatch);
 		}
 	}
 #endif

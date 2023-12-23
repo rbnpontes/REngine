@@ -21,20 +21,22 @@ namespace REngine.Sandbox.Samples.BasicSamples
 #if RENGINE_SPRITEBATCH
 	[Sample("SpriteBatch")]
 	internal class SpriteBatchSample(
-		SpriteBatchSystem spriteBatchSystem,
+		ISpriteBatch spriteBatch,
 		IRenderer renderer,
 		IEngine engine,
 		IAssetManager assetManager
 		) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private SpriteBatch? pFlickeredDoge;
-		private SpriteBatch? pColoredDoge;
+		private Sprite? pFlickeredDoge;
+		private Sprite? pColoredDoge;
+		private TextureSpriteEffect? pSpriteEffect;
 		public IWindow? Window { get; set; }
 		public void Dispose()
 		{
 			renderer?.RemoveFeature(pSpriteFeature);
 			pSpriteFeature?.Dispose();
+			pSpriteEffect?.Dispose();
 			
 			pFlickeredDoge?.Dispose();
 			pColoredDoge?.Dispose();
@@ -43,18 +45,20 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		public void Load(IServiceProvider provider)
 		{
 			// Load Sprite
-			TextureAsset sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
+			var spriteTex = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
 			// Set Sprite on Spritebatch
 			pSpriteFeature = ActivatorExtended.CreateInstance<SpriteFeature>(provider);
 			renderer.AddFeature(pSpriteFeature);
-
-			pFlickeredDoge = spriteBatchSystem.CreateBatch();
-			pColoredDoge = spriteBatchSystem.CreateBatch();
+			
+			pSpriteEffect = TextureSpriteEffect.Build(provider);
+			pSpriteEffect.Texture = spriteTex;
+			
+			pFlickeredDoge = spriteBatch.CreateSprite(pSpriteEffect);
+			pColoredDoge = spriteBatch.CreateSprite(pSpriteEffect);
 			
 			pFlickeredDoge.Lock();
 			pColoredDoge.Lock();
 			pFlickeredDoge.Color = Color.White;
-			pFlickeredDoge.Texture = pColoredDoge.Texture = sprite.Texture;
 			pFlickeredDoge.Unlock();
 			pColoredDoge.Unlock();
 		}

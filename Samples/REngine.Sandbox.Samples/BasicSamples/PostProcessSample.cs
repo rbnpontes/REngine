@@ -55,7 +55,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			// Load Sprite
 			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
-			spriteBatch.SetTexture(0, sprite.Image);
+			//spriteBatch.SetTexture(0, sprite.Image);
 			
 			var rootEntry = renderGraph.Load("postprocess-rendergraph.xml");
 

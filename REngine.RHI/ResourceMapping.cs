@@ -51,6 +51,8 @@ public sealed class ResourceMapping : IHashable
     
     private void InsertResource(ShaderType type, string name, IGPUObject obj)
     {
+        if (obj is ITexture texture)
+            obj = texture.GetDefaultView(TextureViewType.ShaderResource);
         var entry = new ResourceMappingEntry(name, type, obj);
         pEntries.TryAdd(entry.ToHash(), entry);
     }

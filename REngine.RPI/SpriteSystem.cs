@@ -1,33 +1,99 @@
 using System.Drawing;
 using System.Numerics;
+using REngine.Core.Mathematics;
 using REngine.Core.WorldManagement;
 using REngine.RHI;
+using REngine.RPI.Events;
 using REngine.RPI.Structs;
+using REngine.RPI.Utils;
 
 namespace REngine.RPI;
 
-public sealed class SpriteBatchSystem(
-    RenderSettings renderSettings) : BaseSystem<SpriteBatchItem>((int)renderSettings.SpriteBatchInitialSize)
+public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
 {
-    private readonly object pSync = new();
-
-    public SpriteBatch CreateBatch()
+    public const string BatchGroupName = nameof(Sprite);
+    internal class SpriteBatch(SpriteSystem system, int id, IBuffer constantBuffer) : QuadBatch
     {
-        SpriteBatch batch;
+        private struct GpuData()
+        {
+            public Matrix4x4 Transform = Matrix4x4.Identity;
+            public Vector4 Color = Vector4.One;
+        }
+        public override void Render(ICommandBuffer command)
+        {
+            Sprite? sprite;
+            lock (system.pSync)
+                sprite = system.pData[id].RefSprite;
+
+            if (sprite is null)
+                return;
+
+            sprite.Lock();
+            PipelineState = sprite.Effect.OnBuildPipeline();
+            ShaderResourceBinding = sprite.Effect.OnGetShaderResourceBinding();
+            
+            var gpuData = new GpuData
+            {
+                Transform = MatrixUtils.GetSpriteTransform(
+                    sprite.Position,
+                    sprite.Anchor,
+                    sprite.Angle,
+                    sprite.Size
+                ),
+                Color = sprite.Color.ToVector4()
+            };
+
+            sprite.Effect.UpdateBuffers();
+            
+            sprite.Unlock();
+            var mapped = command.Map<GpuData>(constantBuffer, MapType.Write, MapFlags.Discard);
+            mapped[0] = gpuData;
+            command.Unmap(constantBuffer, MapType.Write);
+            base.Render(command);
+        }
+    }
+    
+    private readonly object pSync = new();
+    private readonly RenderSettings pRenderSettings;
+    private readonly IBufferManager pBufferManager;
+    private readonly BatchGroup pBatchGroup;
+    private readonly SpriteEffect pDefaultEffect;
+    
+    public SpriteSystem(
+        RendererEvents rendererEvents,
+        RenderSettings renderSettings,
+        BatchSystem batchSystem,
+        IServiceProvider provider,
+        IBufferManager bufferManager
+    ) : base((int)renderSettings.SpriteBatchInitialSize)
+    {
+        pRenderSettings = renderSettings;
+        pBatchGroup = batchSystem.GetGroup(BatchGroupName);
+        pDefaultEffect = SpriteEffect.Build(provider);
+        pBufferManager = bufferManager;
+    }
+    
+    public Sprite Create(SpriteEffect? effect)
+    {
+        Sprite sprite;
         lock (pSync)
         {
             var id = Acquire();
-            batch = new SpriteBatch(id, this);
-            pData[id] = new SpriteBatchItem
+            var batch = new SpriteBatch(this, id, pBufferManager.GetBuffer(BufferGroupType.Object));
+            effect ??= pDefaultEffect;
+            
+            sprite = new Sprite(id, this);
+            pData[id] = new SpriteBatchItem(effect)
             {
-                RefBatch = batch
+                RefSprite = sprite,
+                BatchIndex = pBatchGroup.AddBatch(batch)
             };
         }
 
-        return batch;
+        return sprite;
     }
 
-    public SpriteBatchSystem Destroy(int id)
+    public void Destroy(int id)
     {
         lock (pSync)
         {
@@ -35,16 +101,28 @@ public sealed class SpriteBatchSystem(
             ValidateId(id);
 #endif
             var data = pData[id];
-            if (data.RefBatch is null)
-                return this;
-            data.RefBatch.Dispose();
-            data.RefBatch = null;
+            if (data.RefSprite is null)
+                return;
+            data.RefSprite.Dispose();
+            data.RefSprite = null;
+            pBatchGroup.RemoveBatch(data.BatchIndex);
             pAvailableIdx.Enqueue(id);
         }
-
-        return this;
     }
 
+    public void DestroyBatches()
+    {
+        lock (pSync)
+        {
+            if (pAvailableIdx.Count == pData.Length)
+                return;
+            foreach (var data in pData)
+                data.RefSprite?.Dispose();
+            
+            pAvailableIdx.Clear();
+            pData = [];
+        }
+    }
     public object GetObjectSync(int id)
     {
         object obj;
@@ -54,7 +132,7 @@ public sealed class SpriteBatchSystem(
             ValidateId(id);
 #endif
             var data = pData[id];
-            if (data.RefBatch is null)
+            if (data.RefSprite is null)
                 return this;
             obj = pData[id].Sync;
         }
@@ -139,40 +217,7 @@ public sealed class SpriteBatchSystem(
         }
     }
 
-    public ITexture? GetTexture(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].Texture;
-        }
-    }
-
-    public IShaderResourceBinding? GetShaderResourceBinding(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].ShaderResourceBinding;
-        }
-    }
-
-    public IPipelineState? GetPipelineState(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].PipelineState;
-        }
-    }
-
-    public SpriteEffect? GetEffect(int id)
+    public SpriteEffect GetEffect(int id)
     {
         lock (pSync)
         {
@@ -271,43 +316,7 @@ public sealed class SpriteBatchSystem(
         }
     }
 
-    public void SetTexture(int id, ITexture texture)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].Texture = texture;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void SetShaderResourceBinding(int id, IShaderResourceBinding? srb)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].ShaderResourceBinding = srb;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void SetPipelineState(int id, IPipelineState? pipelineState)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].PipelineState = pipelineState;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void SetEffect(int id, SpriteEffect? effect)
+    public void SetEffect(int id, SpriteEffect effect)
     {
         lock (pSync)
         {
@@ -330,29 +339,27 @@ public sealed class SpriteBatchSystem(
         }
     }
 
-    public SpriteBatchSystem ForEach(Action<SpriteBatch> callback)
+    public void ForEach(Action<Sprite> callback)
     {
         lock (pSync)
         {
             if (pAvailableIdx.Count == pData.Length)
-                return this;
+                return;
 
             foreach (var data in pData)
             {
-                if (data.RefBatch is null)
+                if (data.RefSprite is null)
                     continue;
-                callback(data.RefBatch);
+                callback(data.RefSprite);
             }
         }
-
-        return this;
     }
 
     protected override int GetExpansionSize() =>
         (int)Math.Round(
             Math.Max(
-                (float)renderSettings.SpriteBatchInitialSize * renderSettings.SpriteBatchExpansionRatio,
-                renderSettings.SpriteBatchInitialSize
+                (float)pRenderSettings.SpriteBatchInitialSize * pRenderSettings.SpriteBatchExpansionRatio,
+                pRenderSettings.SpriteBatchInitialSize
             )
         );
 
@@ -361,8 +368,10 @@ public sealed class SpriteBatchSystem(
         base.ValidateId(id);
         lock (pSync)
         {
-            if (pData[id].RefBatch is null)
+            if (pData[id].RefSprite is null)
                 throw new Exception("Invalid Sprite Batch. it seems this batch is already destroyed");
         }
     }
+    
+    
 }

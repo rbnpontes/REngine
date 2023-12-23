@@ -55,8 +55,8 @@ namespace REngine.Sandbox.PongGame.States
 			{
 				// Load blur screen into sprite batch
 				var resource = resourceManager.GetResource("@sample/blur");
-				if (resource.Value is ITexture texture)
-					spriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
+				// if (resource.Value is ITexture texture)
+				// 	spriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
 			});
 
 			pLoadCount = pLoadQueue.Count;
@@ -137,7 +137,7 @@ namespace REngine.Sandbox.PongGame.States
 		{
 			var imageAsset = assetManager.GetAsset<ImageAsset>("Textures/"+assetName);
 			var img = imageAsset.Image;
-			spriteBatch.SetTexture(slotId, img);
+			//spriteBatch.SetTexture(slotId, img);
 		}
 
 		private void LoadFont(string assetName)

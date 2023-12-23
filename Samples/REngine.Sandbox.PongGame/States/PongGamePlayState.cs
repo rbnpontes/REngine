@@ -15,7 +15,7 @@ using REngine.Core.Storage;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
-using REngine.RPI.SpriteEffects;
+// using REngine.RPkI.SpriteEffects;
 using REngine.Sandbox.PongGame.Components;
 
 namespace REngine.Sandbox.PongGame.States
@@ -72,7 +72,7 @@ namespace REngine.Sandbox.PongGame.States
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
-			sprite.Effect = new RoundedEffect(assetManager);
+			// sprite.Effect = new RoundedEffect(assetManager);
 
 			pRoot.AddChild(pBall);
 			pRoot.AddChild(pBar);

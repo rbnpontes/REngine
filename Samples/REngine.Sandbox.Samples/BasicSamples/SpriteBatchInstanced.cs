@@ -25,11 +25,10 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		IRenderer renderer,
 		IEngine engine,
 		IAssetManager assetManager,
-		IImGuiSystem imGuiSystem,
-		SpriteInstancedBatchSystem batchSystem) : ISample
+		IImGuiSystem imGuiSystem) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private SpriteInstanceBatch? pBatch;
+		private SpriteInstance? pBatch;
 
 		private int pGridSize = 30;
 		
@@ -53,7 +52,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			// Load Sprite
 			var sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
 			// Allocate Batch
-			pBatch = batchSystem.CreateBatch(pGridSize * pGridSize, true);
+			pBatch = spriteBatch.CreateInstancedBatch((uint)(pGridSize * pGridSize), true);
 			pBatch.Lock();
 			pBatch.Texture = sprite.Texture;
 			pBatch.Color = Color.White;
@@ -86,7 +85,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			UpdateInstances(pBatch, elapsedTime, wndSize);
 		}
 		
-		private void UpdateInstances(SpriteInstanceBatch batch, float elapsed, Size wndSize)
+		private void UpdateInstances(SpriteInstance batch, float elapsed, Size wndSize)
 		{
 			var size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
 			var anchor = new Vector2(0.5f, 0.5f);

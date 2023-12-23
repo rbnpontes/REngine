@@ -66,7 +66,7 @@ namespace REngine.RPI.Components
 				pTextBatch.HorizontalSpacing = HorizontalSpacing;
 				pTextBatch.VerticalSpacing = VerticalSpacing;
 
-				mSpriteBatch.Draw(pTextBatch);
+				//mSpriteBatch.Draw(pTextBatch);
 			}
 		}
 

@@ -49,7 +49,7 @@ namespace REngine.RPI.Components
 			mSpriteBatch = provider.Get<ISpriteBatch>();
 			mTransformSystem = provider.Get<Transform2DSystem>();
 
-			mSpriteBatch.OnDraw += HandleDraw;
+			//mSpriteBatch.OnDraw += HandleDraw;
 			pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, pBeginRenderAction = BeginRender);
 		}
 
@@ -73,7 +73,7 @@ namespace REngine.RPI.Components
 		protected virtual void OnBeginRender(){}
 		protected override void OnDispose()
 		{
-			mSpriteBatch.OnDraw -= HandleDraw;
+			//mSpriteBatch.OnDraw -= HandleDraw;
 			pExecutionPipeline.RemoveEvent(DefaultEvents.RenderBeginId, pBeginRenderAction);
 		}
 	}
@@ -99,7 +99,7 @@ namespace REngine.RPI.Components
 
 		public byte TextureSlot { get; set; } = byte.MaxValue;
 		[SerializationIgnore]
-		public BasicSpriteEffect? Effect { get; set; }
+		// public BasicSpriteEffect? Effect { get; set; }
 		public Vector2 Anchor { get; set; }
 		public Vector2 Offset { get; set; }
 		public Color Color { get; set; } = Color.White;
@@ -116,21 +116,21 @@ namespace REngine.RPI.Components
 			pInput = input;
 		}
 
-		private SpriteBatchInfo pBatchInfo = new();
+		//private SpriteBatchInfo pBatchInfo = new();
 		protected override void OnDraw(ISpriteBatch spriteBatch)
 		{
 			lock (sSync)
 			{
-				pBatchInfo.Position = pLastSnapshot.WorldPosition;
-				pBatchInfo.Angle = pLastSnapshot.WorldRotation;
-				pBatchInfo.Size = pLastSnapshot.Scale;
-				pBatchInfo.Anchor = Anchor;
-				pBatchInfo.Color = Color;
-				pBatchInfo.Offset = Offset;
-				pBatchInfo.TextureSlot = TextureSlot;
-				pBatchInfo.Effect = Effect;
-
-				spriteBatch.Draw(pBatchInfo);
+				// pBatchInfo.Position = pLastSnapshot.WorldPosition;
+				// pBatchInfo.Angle = pLastSnapshot.WorldRotation;
+				// pBatchInfo.Size = pLastSnapshot.Scale;
+				// pBatchInfo.Anchor = Anchor;
+				// pBatchInfo.Color = Color;
+				// pBatchInfo.Offset = Offset;
+				// pBatchInfo.TextureSlot = TextureSlot;
+				// pBatchInfo.Effect = Effect;
+				//
+				// spriteBatch.Draw(pBatchInfo);
 
 				ComputeMouseInput();
 			}
@@ -193,8 +193,8 @@ namespace REngine.RPI.Components
 		protected override void OnDispose()
 		{
 			base.OnDispose();
-			Effect?.Dispose();
-			Effect = null;
+			// Effect?.Dispose();
+			// Effect = null;
 		}
 	}
 }

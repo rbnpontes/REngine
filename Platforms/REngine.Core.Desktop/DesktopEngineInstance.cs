@@ -109,13 +109,13 @@ public sealed class DesktopEngineInstance : EngineInstance
     {
         switch (e.Severity)
         {
-            case DbgMsgSeverity.Warning:
             case DbgMsgSeverity.Error:
             case DbgMsgSeverity.FatalError:
+            case DbgMsgSeverity.Warning:
                 Logger.Critical($"Diligent Engine: {e.Severity} in {e.Function}() ({e.File}, {e.Line}): {e.Message}");
                 break;
             case DbgMsgSeverity.Info:
-                Logger.Info($"Diligent Engine: {e.Severity} {e.Message}");
+                Logger.Debug($"Diligent Engine: {e.Severity} {e.Message}");
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

@@ -57,12 +57,11 @@ namespace REngine.RPI
                 .Add<IRenderTargetManager, RenderTargetManagerImpl>()
                 .Add<IRenderer, RendererImpl>()
                 .Add<IShaderResourceBindingCache, ShaderResourceBindingCacheImpl>()
+                .Add<BatchSystem>()
                 .Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
-                .Add<SpriteBatchSystem>()
+                .Add<SpriteSystem>()
                 .Add<SpriteInstancedBatchSystem>()
-                .Add<SpriteBatcher>()
-                .Add<SpriteTextureManager>()
                 .Add<ISpriteBatch, SpriteBatchImpl>()
 #endif
 #if RENGINE_IMGUI
