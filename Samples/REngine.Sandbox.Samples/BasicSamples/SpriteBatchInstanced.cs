@@ -28,19 +28,18 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		IImGuiSystem imGuiSystem) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private SpriteInstance? pBatch;
-
+		private InstancedSprite? pSprite;
+		private TextureInstancedSpriteEffect? pEffect;
 		private int pGridSize = 30;
-		
 		public IWindow? Window { get; set; }
 
 		public void Dispose()
 		{
 			renderer?.RemoveFeature(pSpriteFeature);
 			pSpriteFeature?.Dispose();
-
-			pBatch?.Dispose();
-
+			pSprite?.Dispose();
+			pEffect?.Dispose();
+			
 			GC.SuppressFinalize(this);
 
 			GC.Collect();
@@ -51,12 +50,18 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 			// Load Sprite
 			var sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
+			pEffect = TextureInstancedSpriteEffect.Build(provider);
+			pEffect.Texture = sprite;
 			// Allocate Batch
-			pBatch = spriteBatch.CreateInstancedBatch((uint)(pGridSize * pGridSize), true);
-			pBatch.Lock();
-			pBatch.Texture = sprite.Texture;
-			pBatch.Color = Color.White;
-			pBatch.Unlock();
+			pSprite = spriteBatch.CreateSprite(new SpriteInstancedCreateInfo
+			{
+				NumInstances = (uint)(pGridSize * pGridSize),
+				Dynamic = true,
+				Effect = pEffect
+			});
+			pSprite.Lock();
+			pSprite.Color = Color.White;
+			pSprite.Unlock();
 			
 			// Allocate Render Feature
 			pSpriteFeature = ActivatorExtended.CreateInstance<SpriteFeature>(provider);
@@ -76,16 +81,16 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 		public void Update(IServiceProvider provider)
 		{
-			if (pBatch is null)
+			if (pSprite is null)
 				return;
 			
 			var elapsedTime = (float)engine.ElapsedTime / 1000.0f;
 			var wndSize = Window?.Size ?? new Size();
 
-			UpdateInstances(pBatch, elapsedTime, wndSize);
+			UpdateInstances(pSprite, elapsedTime, wndSize);
 		}
 		
-		private void UpdateInstances(SpriteInstance batch, float elapsed, Size wndSize)
+		private void UpdateInstances(InstancedSprite batch, float elapsed, Size wndSize)
 		{
 			var size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
 			var anchor = new Vector2(0.5f, 0.5f);

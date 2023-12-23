@@ -9,16 +9,21 @@ using REngine.RPI.Utils;
 
 namespace REngine.RPI;
 
-public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
+public sealed class SpriteSystem(
+    RenderSettings renderSettings,
+    BatchSystem batchSystem,
+    IServiceProvider provider,
+    IBufferManager bufferManager)
+    : BaseSystem<SpriteBatchItem>((int)renderSettings.SpriteBatchInitialSize)
 {
     public const string BatchGroupName = nameof(Sprite);
-    internal class SpriteBatch(SpriteSystem system, int id, IBuffer constantBuffer) : QuadBatch
+    private struct GpuData()
     {
-        private struct GpuData()
-        {
-            public Matrix4x4 Transform = Matrix4x4.Identity;
-            public Vector4 Color = Vector4.One;
-        }
+        public Matrix4x4 Transform = Matrix4x4.Identity;
+        public Vector4 Color = Vector4.One;
+    }
+    private class InternalBatch(SpriteSystem system, int id, IBuffer constantBuffer) : QuadBatch
+    {
         public override void Render(ICommandBuffer command)
         {
             Sprite? sprite;
@@ -29,9 +34,18 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
                 return;
 
             sprite.Lock();
+
+            // Skip rendering if sprite is disabled
+            if (!sprite.Enabled)
+            {
+                sprite.Unlock();
+                return;
+            }
+            
             PipelineState = sprite.Effect.OnBuildPipeline();
             ShaderResourceBinding = sprite.Effect.OnGetShaderResourceBinding();
-            
+
+            var effect = sprite.Effect;
             var gpuData = new GpuData
             {
                 Transform = MatrixUtils.GetSpriteTransform(
@@ -43,9 +57,9 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
                 Color = sprite.Color.ToVector4()
             };
 
-            sprite.Effect.UpdateBuffers();
-            
             sprite.Unlock();
+            effect.UpdateBuffers();
+            
             var mapped = command.Map<GpuData>(constantBuffer, MapType.Write, MapFlags.Discard);
             mapped[0] = gpuData;
             command.Unmap(constantBuffer, MapType.Write);
@@ -54,32 +68,16 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
     }
     
     private readonly object pSync = new();
-    private readonly RenderSettings pRenderSettings;
-    private readonly IBufferManager pBufferManager;
-    private readonly BatchGroup pBatchGroup;
-    private readonly SpriteEffect pDefaultEffect;
-    
-    public SpriteSystem(
-        RendererEvents rendererEvents,
-        RenderSettings renderSettings,
-        BatchSystem batchSystem,
-        IServiceProvider provider,
-        IBufferManager bufferManager
-    ) : base((int)renderSettings.SpriteBatchInitialSize)
-    {
-        pRenderSettings = renderSettings;
-        pBatchGroup = batchSystem.GetGroup(BatchGroupName);
-        pDefaultEffect = SpriteEffect.Build(provider);
-        pBufferManager = bufferManager;
-    }
-    
+    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(BatchGroupName);
+    private readonly SpriteEffect pDefaultEffect = SpriteEffect.Build(provider);
+
     public Sprite Create(SpriteEffect? effect)
     {
         Sprite sprite;
         lock (pSync)
         {
             var id = Acquire();
-            var batch = new SpriteBatch(this, id, pBufferManager.GetBuffer(BufferGroupType.Object));
+            var batch = new InternalBatch(this, id, bufferManager.GetBuffer(BufferGroupType.Object));
             effect ??= pDefaultEffect;
             
             sprite = new Sprite(id, this);
@@ -227,18 +225,7 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
             return pData[id].Effect;
         }
     }
-
-    public bool IsDirty(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].Dirty;
-        }
-    }
-
+    
     public void SetEnabled(int id, bool enabled)
     {
         lock (pSync)
@@ -324,18 +311,6 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
             ValidateId(id);
 #endif
             pData[id].Effect = effect;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void RemoveDirtyState(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].Dirty = false;
         }
     }
 
@@ -358,8 +333,8 @@ public sealed class SpriteSystem : BaseSystem<SpriteBatchItem>
     protected override int GetExpansionSize() =>
         (int)Math.Round(
             Math.Max(
-                (float)pRenderSettings.SpriteBatchInitialSize * pRenderSettings.SpriteBatchExpansionRatio,
-                pRenderSettings.SpriteBatchInitialSize
+                (float)renderSettings.SpriteBatchInitialSize * renderSettings.SpriteBatchExpansionRatio,
+                renderSettings.SpriteBatchInitialSize
             )
         );
 

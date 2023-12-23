@@ -11,10 +11,16 @@ using REngine.RPI.Features;
 
 namespace REngine.RPI
 {
+	public struct SpriteInstancedCreateInfo()
+	{
+		public uint NumInstances = 1;
+		public bool Dynamic = false;
+		public InstancedSpriteEffect? Effect = null;
+	}
 	public interface ISpriteBatch
 	{
 		public SpriteFeature CreateRenderFeature();
 		public Sprite CreateSprite(SpriteEffect? effect = null);
-		public SpriteInstance CreateInstancedBatch(uint numInstances, bool dynamic = false);
+		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo);
 	}
 }

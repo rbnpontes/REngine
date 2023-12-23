@@ -8,7 +8,7 @@ namespace REngine.RPI.Structs;
 
 public struct SpriteBatchItem(SpriteEffect effect)
 {
-    public object Sync = new();
+    public readonly object Sync = new();
     public Vector3 Position = Vector3.Zero;
     public Vector2 Anchor = Vector2.Zero;
     public Vector2 Offset = Vector2.Zero;
@@ -16,7 +16,6 @@ public struct SpriteBatchItem(SpriteEffect effect)
     public Color Color = Color.Black;
     public float Angle = 0f;
     public bool Enabled = true;
-    public bool Dirty = false;
     public int BatchIndex = -1;
     
     public SpriteEffect Effect = effect;
@@ -32,18 +31,16 @@ public struct SpriteInstanceBatchElement()
     public float Depth;
 }
 
-public struct SpriteInstanceBatchItem(IBuffer instancingBuffer)
+public struct SpriteInstanceBatchItem(IBuffer instancingBuffer, InstancedSpriteEffect effect)
 {
     public readonly object Sync = new();
     public bool Enabled = true;
     public SpriteInstanceBatchElement[] Items = [];
     public Matrix3x3[] Transforms = [];
     public Color Color = Color.Black;
-    public bool Dirty = true;
     public bool DirtyInstances = true;
-    public ITexture? Texture = null;
-    public IShaderResourceBinding? ShaderResourceBinding = null;
-    public IPipelineState? PipelineState = null;
+    public int BatchIndex = -1;
+    public InstancedSpriteEffect Effect = effect;
     public IBuffer InstanceBuffer = instancingBuffer;
-    public SpriteInstance? RefBatch = null;
+    public InstancedSprite? RefSprite = null;
 }

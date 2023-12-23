@@ -1,38 +1,111 @@
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using REngine.Core;
 using REngine.Core.Mathematics;
 using REngine.Core.Utils;
 using REngine.Core.WorldManagement;
 using REngine.RHI;
+using REngine.RPI.Events;
 using REngine.RPI.Structs;
 
 namespace REngine.RPI;
 
 public sealed class SpriteInstancedBatchSystem(
+    RendererEvents rendererEvents,
     RenderSettings renderSettings,
-    IBufferManager bufferManager) : BaseSystem<SpriteInstanceBatchItem>
+    BatchSystem batchSystem,
+    IBufferManager bufferManager,
+    IServiceProvider provider)
+    : BaseSystem<SpriteInstanceBatchItem>((int)renderSettings.SpriteBatchInitialInstanceSize)
 {
-    private readonly object pSync = new();
-
-    public SpriteInstance CreateBatch(uint numInstances = 0, bool dynamic = false)
+    private class InternalBatch(SpriteInstancedBatchSystem system, int id, IBuffer constantBuffer) : QuadBatch
     {
-        SpriteInstance batch;
+        public override unsafe void Render(ICommandBuffer command)
+        {
+            InstancedSprite? sprite;
+            lock (system.pSync)
+                sprite = system.pData[id].RefSprite;
+            if (sprite is null)
+                return;
+            
+            sprite.Lock();
+            // Skip rendering if sprite is enabled
+            if (!sprite.Enabled)
+            {
+                sprite.Unlock();
+                return;
+            }
+
+            var color = sprite.Color;
+            var instancingBuffer = system.GetInstancingBuffer(id);
+            var isDirtyInstances = system.IsDirtyInstances(id);
+            system.GetTransforms(id, out var transforms);
+            var effect = sprite.Effect;
+            sprite.Unlock();
+
+            PipelineState = effect.OnBuildPipeline();
+            ShaderResourceBinding = effect.OnGetShaderResourceBinding();
+
+            // If has zero transforms, then we must skip render
+            if (transforms.Length == 0)
+                return;
+
+            NumInstances = (uint)transforms.Length;
+            effect.UpdateBuffers();
+            
+            if (instancingBuffer.Desc.Usage == Usage.Dynamic)
+            {
+                var ptr = command.Map(instancingBuffer, MapType.Write, MapFlags.Discard);
+                var size = (ulong)(Unsafe.SizeOf<Matrix3x3>() * transforms.Length);
+                fixed(Matrix3x3* transformsPtr = transforms)
+                    Buffer.MemoryCopy(transformsPtr, ptr.ToPointer(), size, size);
+                command.Unmap(instancingBuffer, MapType.Write);
+            }
+            else if (isDirtyInstances)
+            {
+                command.UpdateBuffer(instancingBuffer, 0, new ReadOnlySpan<Matrix3x3>(transforms));
+                system.ClearTransforms(id);
+                system.RemoveDirtyInstancesState(id);
+            }
+
+            var mappedData = command.Map<Vector4>(constantBuffer, MapType.Write, MapFlags.Discard);
+            mappedData[0] = color.ToVector4();
+            command
+                .Unmap(constantBuffer, MapType.Write)
+                .SetVertexBuffer(instancingBuffer);
+            base.Render(command);
+        }
+    }
+    
+    private readonly object pSync = new();
+    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+    private readonly InstancedSpriteEffect pDefaultEffect = InstancedSpriteEffect.Build(provider);
+
+    public InstancedSprite CreateBatch(uint numInstances = 0, InstancedSpriteEffect? spriteEffect = null, bool dynamic = false)
+    {
+        InstancedSprite sprite;
         lock (pSync)
         {
             var id = Acquire();
-            batch = new SpriteInstance(id, this);
+            var batch = new InternalBatch(this, id, bufferManager.GetBuffer(BufferGroupType.Object));
+            
+            sprite = new InstancedSprite(id, this);
+            spriteEffect ??= pDefaultEffect;
+            
             pData[id] = new SpriteInstanceBatchItem(
-                bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<Matrix4x4>()), dynamic))
+                bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<Matrix4x4>()), dynamic), 
+                spriteEffect
+            )
             {
-                RefBatch = batch,
+                RefSprite = sprite,
+                BatchIndex = pBatchGroup.AddBatch(batch),
                 Items = new SpriteInstanceBatchElement[numInstances],
             };
         }
 
-        return batch;
+        return sprite;
     }
-
     public void DestroyBatch(int id)
     {
         lock (pSync)
@@ -40,14 +113,16 @@ public sealed class SpriteInstancedBatchSystem(
 #if DEBUG
             ValidateId(id);
 #endif
-            pData[id].RefBatch?.Dispose();
-            pData[id].RefBatch = null;
-            pData[id].ShaderResourceBinding?.Dispose();
-            pData[id].InstanceBuffer.Dispose();
+            var data = pData[id];
+            if (data.RefSprite is null)
+                return;
+            data.RefSprite?.Dispose();
+            data.RefSprite = null;
+            data.InstanceBuffer.Dispose();
+            pBatchGroup.RemoveBatch(pData[id].BatchIndex);
             pAvailableIdx.Enqueue(id);
         }
     }
-
     public void DestroyBatches()
     {
         lock (pSync)
@@ -55,13 +130,12 @@ public sealed class SpriteInstancedBatchSystem(
             if (pAvailableIdx.Count == pData.Length)
                 return;
             foreach (var data in pData)
-                data.RefBatch?.Dispose();
+                data.RefSprite?.Dispose();
             
             pAvailableIdx.Clear();
             pData = [];
         }
     }
-
     public object GetSyncObject(int id)
     {
         lock (pSync)
@@ -73,7 +147,7 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public SpriteInstancedBatchSystem ResizeInstances(int id, uint numInstances, bool dynamic = false)
+    public void ResizeInstances(int id, uint numInstances, bool dynamic = false)
     {
         lock (pSync)
         {
@@ -82,7 +156,7 @@ public sealed class SpriteInstancedBatchSystem(
 #endif
             if (pData[id].Items.Length == numInstances &&
                 pData[id].InstanceBuffer.Desc.Usage == (dynamic ? Usage.Dynamic : Usage.Default))
-                return this;
+                return;
 
             pData[id].InstanceBuffer.Dispose();
             pData[id].InstanceBuffer =
@@ -91,8 +165,6 @@ public sealed class SpriteInstancedBatchSystem(
             pData[id].Transforms = [];
             pData[id].DirtyInstances = true;
         }
-
-        return this;
     }
 
     public bool IsEnabled(int id)
@@ -117,14 +189,14 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public ITexture? GetTexture(int id)
+    public InstancedSpriteEffect GetEffect(int id)
     {
         lock (pSync)
         {
 #if DEBUG
             ValidateId(id);
 #endif
-            return pData[id].Texture;
+            return pData[id].Effect;
         }
     }
 
@@ -139,28 +211,6 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public IShaderResourceBinding? GetShaderResourceBinding(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].ShaderResourceBinding;
-        }
-    }
-
-    public IPipelineState? GetPipelineState(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].PipelineState;
-        }
-    }
-
     public IBuffer GetInstancingBuffer(int id)
     {
         lock (pSync)
@@ -171,18 +221,7 @@ public sealed class SpriteInstancedBatchSystem(
             return pData[id].InstanceBuffer;
         }
     }
-
-    public bool IsDirty(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].Dirty;
-        }
-    }
-
+    
     public bool IsDirtyInstances(int id)
     {
         lock (pSync)
@@ -242,51 +281,14 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public void SetTexture(int id, ITexture texture)
+    public void SetEffect(int id, InstancedSpriteEffect effect)
     {
         lock (pSync)
         {
 #if DEBUG
             ValidateId(id);
 #endif
-            pData[id].Texture = texture;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void SetShaderResourceBinding(int id, IShaderResourceBinding srb)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].ShaderResourceBinding?.Dispose();
-            pData[id].ShaderResourceBinding = srb;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void SetPipelineState(int id, IPipelineState? pipeline)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].PipelineState = pipeline;
-            pData[id].Dirty = true;
-        }
-    }
-
-    public void RemoveDirtyState(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].Dirty = false;
+            pData[id].Effect = effect;
         }
     }
 
@@ -338,7 +340,7 @@ public sealed class SpriteInstancedBatchSystem(
             for (var i = 0; i < pData.Length; ++i)
             {
                 var data = pData[i];
-                if (data.RefBatch is null)
+                if (data.RefSprite is null)
                     continue;
                 if (!data.DirtyInstances)
                     continue;
@@ -378,7 +380,7 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public void ForEach(Action<SpriteInstance> callback)
+    public void ForEach(Action<InstancedSprite> callback)
     {
         lock (pSync)
         {
@@ -386,9 +388,9 @@ public sealed class SpriteInstancedBatchSystem(
                 return;
             foreach (var data in pData)
             {
-                if (data.RefBatch is null)
+                if (data.RefSprite is null)
                     continue;
-                callback(data.RefBatch);
+                callback(data.RefSprite);
             }
         }
     }

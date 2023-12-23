@@ -44,7 +44,7 @@ public sealed class ResourceMapping : IHashable
         return this;
     }
 
-    public ResourceMappingEntry[] GetEntries()
+    public IEnumerable<ResourceMappingEntry> GetEntries()
     {
         return pEntries.Values.ToArray();
     }

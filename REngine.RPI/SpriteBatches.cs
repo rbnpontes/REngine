@@ -206,7 +206,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             system.SetColor(id, value);
         }
     }
-    
+
     public SpriteEffect Effect
     {
         get
@@ -226,18 +226,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             system.SetEffect(id, value);
         }
     }
-
-    public bool IsDirty
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-#endif
-            return system.IsDirty(id);
-        }
-    }
-
+    
     protected override object GetObjectSync() => system.GetObjectSync(id);
 
     protected override void OnDispose()
@@ -246,7 +235,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
     }
 }
 
-public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSystem) : BaseSprite(id)
+public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSystem) : BaseSprite(id)
 {
     public bool Enabled
     {
@@ -288,7 +277,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         }
     }
 
-    public ITexture? Texture
+    public InstancedSpriteEffect Effect
     {
         get
         {
@@ -296,7 +285,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.GetTexture(id);
+            return batchSystem.GetEffect(id);
         }
         set
         {
@@ -304,7 +293,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
             ValidateDispose();
             ValidateLock();
 #endif
-            batchSystem.SetTexture(id, value);
+            batchSystem.SetEffect(id, value);
         }
     }
 
@@ -317,41 +306,6 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
             ValidateLock();
 #endif
             return batchSystem.GetInstanceCount(id);
-        }
-    }
-
-    public IShaderResourceBinding? ShaderResourceBinding
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return batchSystem.GetShaderResourceBinding(id);
-        }
-    }
-
-    public IPipelineState? PipelineState
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return batchSystem.GetPipelineState(id);
-        }
-    }
-
-    public bool IsDirty
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-#endif
-            return batchSystem.IsDirty(id);
         }
     }
 
@@ -414,7 +368,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         return element.Depth;
     }
 
-    public SpriteInstance SetInstancePosition(uint instanceIdx, Vector2 position)
+    public InstancedSprite SetInstancePosition(uint instanceIdx, Vector2 position)
     {
 #if DEBUG
         ValidateDispose();
@@ -426,7 +380,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         return this;
     }
 
-    public SpriteInstance SetInstanceScale(uint instanceIdx, Vector2 scale)
+    public InstancedSprite SetInstanceScale(uint instanceIdx, Vector2 scale)
     {
 #if DEBUG
         ValidateDispose();
@@ -438,7 +392,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         return this;
     }
 
-    public SpriteInstance SetInstanceAngle(uint instanceIdx, float angle)
+    public InstancedSprite SetInstanceAngle(uint instanceIdx, float angle)
     {
 #if DEBUG
         ValidateDispose();
@@ -450,7 +404,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         return this;
     }
 
-    public SpriteInstance SetInstanceAnchor(uint instanceIdx, Vector2 anchor)
+    public InstancedSprite SetInstanceAnchor(uint instanceIdx, Vector2 anchor)
     {
 #if DEBUG
         ValidateDispose();
@@ -462,7 +416,7 @@ public sealed class SpriteInstance(int id, SpriteInstancedBatchSystem batchSyste
         return this;
     }
 
-    public SpriteInstance SetInstanceDepth(uint instanceIdx, float depth)
+    public InstancedSprite SetInstanceDepth(uint instanceIdx, float depth)
     {
 #if DEBUG
         ValidateDispose();
