@@ -106,5 +106,18 @@ namespace REngine.RHI
 		public ICommandBuffer EndDebugGroup();
 		public ICommandBuffer InsertDebugLabel(string label, Color color);
 #endif
+		public ICommandBuffer Begin(uint immediateContextId);
+		public ICommandBuffer FinishFrame();
+		public ICommandBuffer FinishCommandList(out ICommandList commandList);
+		public ICommandBuffer TransitionShaderResource(IPipelineState pipelineState, IShaderResourceBinding binding);
+		public ICommandBuffer SetStencilRef(uint stencilRef);
+		public ICommandBuffer InvalidateState();
+		public ICommandBuffer NextSubpass();
+		public ICommandBuffer GenerateMips(ITextureView textureView);
+		public ICommandBuffer TransitionResourceStates(StateTransitionDesc[] resourceBarriers);
+		public ICommandBuffer ResolveTextureSubresource(
+			ITexture srcTexture,
+			ITexture dstTexture,
+			ResolveTextureSubresourceDesc resolveDesc);
 	}
 }

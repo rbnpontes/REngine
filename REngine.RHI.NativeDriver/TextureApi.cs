@@ -11,7 +11,7 @@ namespace REngine.RHI.NativeDriver
 	internal partial class TextureImpl
 	{
 		[DllImport(Constants.Lib)]
-		internal static extern void rengine_texture_getdesc(
+		static extern void rengine_texture_getdesc(
 			IntPtr texture,
 			ref TextureDescDTO output
 		);
@@ -21,5 +21,14 @@ namespace REngine.RHI.NativeDriver
 			byte viewType,
 			ref ResultNative result
 		);
+
+		[DllImport(Constants.Lib)]
+		internal static extern uint rengine_texture_get_state(IntPtr texture);
+
+		[DllImport(Constants.Lib)]
+		internal static extern void rengine_texture_set_state(IntPtr texture, uint state);
+
+		[DllImport(Constants.Lib)]
+		internal static extern ulong rengine_texture_get_gpuhandle(IntPtr texture);
 	}
 }

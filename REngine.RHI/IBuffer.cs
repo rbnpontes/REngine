@@ -41,7 +41,7 @@ namespace REngine.RHI
 		public ulong ByteOffset;
 		public ulong ByteWidth;
 	}
-	public interface IBuffer : IGPUObject
+	public interface IBuffer : IGPUObject, IGPUState, IGPUHandler
 	{
 		public BufferDesc Desc { get; }
 		public ulong Size { get; }

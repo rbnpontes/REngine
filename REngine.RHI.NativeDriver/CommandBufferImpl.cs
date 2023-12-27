@@ -433,6 +433,106 @@ namespace REngine.RHI.NativeDriver
 			return this;
 		}
 #endif
+		public ICommandBuffer Begin(uint immediateContextId)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_begin(Handle, immediateContextId);
+			return this;
+		}
+
+		public ICommandBuffer FinishFrame()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_finish_frame(Handle);
+			return this;
+		}
+
+		public ICommandBuffer FinishCommandList(out ICommandList commandList)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			var list = rengine_cmdbuffer_finish_command_list(Handle);
+			if (list == IntPtr.Zero)
+				throw new NullReferenceException("Could not possible to finish command list.");
+			commandList= new CommandListImpl(list);
+			return this;
+		}
+
+		public ICommandBuffer TransitionShaderResource(IPipelineState pipelineState, IShaderResourceBinding binding)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_transition_shader_resources(
+				Handle,
+				pipelineState.Handle,
+				binding.Handle);
+			return this;
+		}
+
+		public ICommandBuffer SetStencilRef(uint stencilRef)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_set_stencil_ref(Handle, stencilRef);
+			return this;
+		}
+
+		public ICommandBuffer InvalidateState()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_invalidate_state(Handle);
+			return this;
+		}
+
+		public ICommandBuffer NextSubpass()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_next_subpass(Handle);
+			return this;
+		}
+
+		public ICommandBuffer GenerateMips(ITextureView textureView)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			rengine_cmdbuffer_generate_mips(Handle, textureView.Handle);
+			return this;
+		}
+
+		public unsafe ICommandBuffer TransitionResourceStates(StateTransitionDesc[] resourceBarriers)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			var data = pBarriersPool.Rent(resourceBarriers.Length);
+			for (var i = 0; i < resourceBarriers.Length; ++i)
+			{
+				StateTransitionDTO.Fill(resourceBarriers[i], out var desc);
+				data[i] = desc;
+			}
+
+			ReadOnlySpan<StateTransitionDTO> dataSpan = new(data);
+			fixed (StateTransitionDTO* dataPtr = dataSpan)
+			{
+				rengine_cmdbuffer_transition_resource_states(
+					Handle, 
+					(uint)resourceBarriers.Length, 
+					new IntPtr(dataPtr));
+			}
+			
+			pBarriersPool.Return(data);
+			return this;
+		}
+
+		public ICommandBuffer ResolveTextureSubresource(
+			ITexture srcTexture,
+			ITexture dstTexture,
+			ResolveTextureSubresourceDesc resolveDesc)
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			ResolveTextureSubresourceDTO.Fill(resolveDesc, out var desc);
+			
+			rengine_cmdbuffer_resolve_texture_subresource(
+				Handle,
+				srcTexture.Handle,
+				dstTexture.Handle,
+				ref desc);
+			return this;
+		}
 	}
 
 }

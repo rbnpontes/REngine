@@ -19,6 +19,14 @@ namespace REngine.RHI.NativeDriver
 
 		public GPUObjectType ObjectType { get; }
 
+		public ResourceState State
+		{
+			get => (ResourceState)rengine_texture_get_state(Handle);
+			set => rengine_texture_set_state(Handle, (uint)value);
+		}
+
+		public ulong GPUHandle => rengine_texture_get_gpuhandle(Handle);
+
 		public TextureImpl(IntPtr handle) : base(handle)
 		{
 			ObjectType = GetObjectTypeFromDesc(Desc);

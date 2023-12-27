@@ -147,5 +147,39 @@ namespace REngine.RHI.NativeDriver
 			IntPtr color
 		);
 #endif
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_begin(IntPtr context, uint immediateCtxId);
+
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_finish_frame(IntPtr context);
+
+		[DllImport(Constants.Lib)]
+		static extern IntPtr rengine_cmdbuffer_finish_command_list(IntPtr context);
+
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_transition_shader_resources(
+			IntPtr context,
+			IntPtr pipelineState,
+			IntPtr shaderResourceBinding);
+
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_set_stencil_ref(IntPtr context, uint stencilRef);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_invalidate_state(IntPtr context);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_next_subpass(IntPtr context);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_generate_mips(IntPtr context, IntPtr texture);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_transition_resource_states(
+			IntPtr context,
+			uint barrierCount,
+			IntPtr resourceBarriers);
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_resolve_texture_subresource(
+			IntPtr context,
+			IntPtr srcTexture,
+			IntPtr dstTexture,
+			ref ResolveTextureSubresourceDTO desc);
 	}
 }

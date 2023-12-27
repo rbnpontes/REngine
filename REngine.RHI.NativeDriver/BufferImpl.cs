@@ -21,6 +21,14 @@ namespace REngine.RHI.NativeDriver
 
 		public GPUObjectType ObjectType { get; }
 
+		public ResourceState State
+		{
+			get => (ResourceState)rengine_buffer_get_state(Handle);
+			set => rengine_buffer_set_state(Handle, (uint)value);
+		}
+
+		public ulong GPUHandle => rengine_buffer_get_gpuhandle(Handle);
+		
 		public BufferImpl(IntPtr handle) : base(handle)
 		{
 			var bindFlags = Desc.BindFlags;

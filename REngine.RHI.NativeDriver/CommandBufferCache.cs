@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,5 +25,7 @@ namespace REngine.RHI.NativeDriver
 
 		private readonly IntRect[] pCopyScissors = new IntRect[1];
 		private readonly Viewport[] pCopyViewport = new Viewport[1];
+
+		private readonly ArrayPool<StateTransitionDTO> pBarriersPool = ArrayPool<StateTransitionDTO>.Create();
 	}
 }
