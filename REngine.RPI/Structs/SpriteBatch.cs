@@ -3,9 +3,15 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using REngine.Core.Mathematics;
 using REngine.RHI;
-
+using SpriteInstanceData = System.Numerics.Matrix4x4;
 namespace REngine.RPI.Structs;
 
+public enum SpriteBufferType
+{
+    Default,
+    Dynamic,
+    External
+}
 public struct SpriteBatchItem(SpriteEffect effect)
 {
     public readonly object Sync = new();
@@ -36,9 +42,10 @@ public struct SpriteInstanceBatchItem(IBuffer instancingBuffer, InstancedSpriteE
     public readonly object Sync = new();
     public bool Enabled = true;
     public SpriteInstanceBatchElement[] Items = [];
-    public Matrix3x3[] Transforms = [];
+    public SpriteInstanceData[] Transforms = [];
     public Color Color = Color.Black;
     public bool DirtyInstances = true;
+    public SpriteBufferType BufferType;
     public int BatchIndex = -1;
     public InstancedSpriteEffect Effect = effect;
     public IBuffer InstanceBuffer = instancingBuffer;

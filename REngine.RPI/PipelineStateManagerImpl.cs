@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.RPI.Events;
+using REngine.RPI.Resources;
 using REngine.RPI.Serialization;
 
 namespace REngine.RPI
@@ -142,6 +143,26 @@ namespace REngine.RPI
 			pLogger.Debug($"Created Compute Pipeline #{hash:X16}");
 			return pipeline;
         }
+
+		public IComputePipelineState CreateComputeFromShader(ShaderAsset asset)
+		{
+			return GetOrCreate(new ComputePipelineDesc
+			{
+				Name = "Compute Pipeline: "+asset.Name,
+				ComputeShader = asset.BuildShader(ShaderType.Compute)
+			});
+		}
+		
+		public IComputePipelineState CreateComputeFromShader(IShader shader)
+		{
+			if (shader.Type != ShaderType.Compute)
+				throw new ArgumentException($"Shader Type must be of {nameof(ShaderType.Compute)}");
+			return GetOrCreate(new ComputePipelineDesc
+			{
+				Name = "Compute Pipeline: "+shader.Name,
+				ComputeShader = shader
+			});
+		}
 
 		public IPipelineState? FindGraphicsPipelineByHash(ulong hash)
 		{

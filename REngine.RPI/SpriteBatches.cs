@@ -309,6 +309,18 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         }
     }
 
+    public IBuffer InstancingBuffer
+    {
+        get
+        {
+#if DEBUG
+            ValidateDispose();
+            ValidateLock();
+#endif
+            return batchSystem.GetInstancingBuffer(id);
+        }
+    }
+
     public void ResizeInstances(uint numInstances, bool dynamic = false)
     {
 #if DEBUG

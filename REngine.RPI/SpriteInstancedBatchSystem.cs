@@ -8,18 +8,28 @@ using REngine.Core.WorldManagement;
 using REngine.RHI;
 using REngine.RPI.Events;
 using REngine.RPI.Structs;
-
+using REngine.RPI.Utils;
+using SpriteInstanceData = System.Numerics.Matrix4x4;
 namespace REngine.RPI;
 
+public struct SpriteInstancedCreateInfo()
+{
+    public uint NumInstances = 1;
+    public bool Dynamic = false;
+    public IBuffer? InstancingBuffer = null;
+    public InstancedSpriteEffect? Effect = null;
+}
 public sealed class SpriteInstancedBatchSystem(
     RendererEvents rendererEvents,
     RenderSettings renderSettings,
     BatchSystem batchSystem,
     IBufferManager bufferManager,
-    IServiceProvider provider)
+    IServiceProvider provider,
+    RenderState renderState)
     : BaseSystem<SpriteInstanceBatchItem>((int)renderSettings.SpriteBatchInitialInstanceSize)
 {
-    private class InternalBatch(SpriteInstancedBatchSystem system, int id, IBuffer constantBuffer) : QuadBatch
+    public static readonly ulong InstanceDataSize = (ulong)Unsafe.SizeOf<SpriteInstanceData>();
+    private class InternalBatch(SpriteInstancedBatchSystem system, int id, IBuffer constantBuffer) : Batch
     {
         public override unsafe void Render(ICommandBuffer command)
         {
@@ -37,6 +47,7 @@ public sealed class SpriteInstancedBatchSystem(
                 return;
             }
 
+            var bufferType = system.pData[id].BufferType;
             var color = sprite.Color;
             var instancingBuffer = system.GetInstancingBuffer(id);
             var isDirtyInstances = system.IsDirtyInstances(id);
@@ -48,33 +59,49 @@ public sealed class SpriteInstancedBatchSystem(
             ShaderResourceBinding = effect.OnGetShaderResourceBinding();
 
             // If has zero transforms, then we must skip render
-            if (transforms.Length == 0)
+            if (transforms.Length == 0 || PipelineState is null || ShaderResourceBinding is null)
                 return;
 
-            NumInstances = (uint)transforms.Length;
+            var numInstances = (uint)transforms.Length;
             effect.UpdateBuffers();
             
-            if (instancingBuffer.Desc.Usage == Usage.Dynamic)
+            switch (bufferType)
             {
-                var ptr = command.Map(instancingBuffer, MapType.Write, MapFlags.Discard);
-                var size = (ulong)(Unsafe.SizeOf<Matrix3x3>() * transforms.Length);
-                fixed(Matrix3x3* transformsPtr = transforms)
-                    Buffer.MemoryCopy(transformsPtr, ptr.ToPointer(), size, size);
-                command.Unmap(instancingBuffer, MapType.Write);
-            }
-            else if (isDirtyInstances)
-            {
-                command.UpdateBuffer(instancingBuffer, 0, new ReadOnlySpan<Matrix3x3>(transforms));
-                system.ClearTransforms(id);
-                system.RemoveDirtyInstancesState(id);
+                case SpriteBufferType.Dynamic:
+                {
+                    var ptr = command.Map(instancingBuffer, MapType.Write, MapFlags.Discard);
+                    var size = InstanceDataSize * (ulong)transforms.Length;
+                    fixed(SpriteInstanceData* transformsPtr = transforms)
+                        Buffer.MemoryCopy(transformsPtr, ptr.ToPointer(), size, size);
+                    command.Unmap(instancingBuffer, MapType.Write);
+                    break;
+                }
+                case SpriteBufferType.Default:
+                    if (isDirtyInstances)
+                    {
+                        command.UpdateBuffer(instancingBuffer, 0, new ReadOnlySpan<SpriteInstanceData>(transforms));
+                        system.ClearTransforms(id);
+                        system.RemoveDirtyInstancesState(id);
+                    }
+                    break;
+                // External buffer is handled externally
+                case SpriteBufferType.External:
+                default:
+                    break;
             }
 
             var mappedData = command.Map<Vector4>(constantBuffer, MapType.Write, MapFlags.Discard);
             mappedData[0] = color.ToVector4();
             command
                 .Unmap(constantBuffer, MapType.Write)
-                .SetVertexBuffer(instancingBuffer);
-            base.Render(command);
+                .SetVertexBuffer(instancingBuffer, false)
+                .SetPipeline(PipelineState)
+                .CommitBindings(ShaderResourceBinding)
+                .Draw(new DrawArgs()
+                {
+                    NumInstances = numInstances,
+                    NumVertices = 4
+                });
         }
     }
     
@@ -82,25 +109,44 @@ public sealed class SpriteInstancedBatchSystem(
     private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
     private readonly InstancedSpriteEffect pDefaultEffect = InstancedSpriteEffect.Build(provider);
 
-    public InstancedSprite CreateBatch(uint numInstances = 0, InstancedSpriteEffect? spriteEffect = null, bool dynamic = false)
+    public InstancedSprite CreateBatch(SpriteInstancedCreateInfo createInfo)
     {
         InstancedSprite sprite;
         lock (pSync)
         {
+            SpriteBufferType bufferType;
+            
+            var instancingBuffer = createInfo.InstancingBuffer;
+            if (instancingBuffer != null)
+            {
+                var requiredSize = (ulong)(createInfo.NumInstances * Unsafe.SizeOf<Matrix3x3>());
+                if (instancingBuffer.Size < requiredSize)
+                    throw new ArgumentOutOfRangeException(
+                        $"InstancingBuffer does not match required size. Buffer Length={instancingBuffer.Size}, Required Size={requiredSize}");
+                bufferType = SpriteBufferType.External;
+            }
+            else
+            {
+                instancingBuffer =
+                    bufferManager.GetInstancingBuffer((ulong)(createInfo.NumInstances * Unsafe.SizeOf<Matrix4x4>()), createInfo.Dynamic);
+                bufferType = createInfo.Dynamic ? SpriteBufferType.Dynamic : SpriteBufferType.Default;
+            }
+            
             var id = Acquire();
             var batch = new InternalBatch(this, id, bufferManager.GetBuffer(BufferGroupType.Object));
+            var effect = createInfo.Effect ?? pDefaultEffect;
             
             sprite = new InstancedSprite(id, this);
-            spriteEffect ??= pDefaultEffect;
             
             pData[id] = new SpriteInstanceBatchItem(
-                bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<Matrix4x4>()), dynamic), 
-                spriteEffect
+                instancingBuffer, 
+                effect
             )
             {
+                BufferType = bufferType,
                 RefSprite = sprite,
                 BatchIndex = pBatchGroup.AddBatch(batch),
-                Items = new SpriteInstanceBatchElement[numInstances],
+                Items = new SpriteInstanceBatchElement[createInfo.NumInstances],
             };
         }
 
@@ -154,14 +200,18 @@ public sealed class SpriteInstancedBatchSystem(
 #if DEBUG
             ValidateId(id);
 #endif
-            if (pData[id].Items.Length == numInstances &&
-                pData[id].InstanceBuffer.Desc.Usage == (dynamic ? Usage.Dynamic : Usage.Default))
-                return;
+            if (pData[id].BufferType == SpriteBufferType.External)
+                throw new Exception("Is not possible to resize instances because this sprite uses an External Buffer");
 
+            var bufferType = dynamic ? SpriteBufferType.Dynamic : SpriteBufferType.Default;
+            if (pData[id].Items.Length == numInstances && pData[id].BufferType == bufferType)
+                return;
+            
             pData[id].InstanceBuffer.Dispose();
             pData[id].InstanceBuffer =
-                bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<Matrix4x4>()), dynamic);
+                bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<SpriteInstanceData>()), dynamic);
             pData[id].Items = new SpriteInstanceBatchElement[numInstances];
+            pData[id].BufferType = bufferType;
             pData[id].Transforms = [];
             pData[id].DirtyInstances = true;
         }
@@ -248,7 +298,7 @@ public sealed class SpriteInstancedBatchSystem(
         }
     }
 
-    public void GetTransforms(int id, out Matrix3x3[] transforms)
+    public void GetTransforms(int id, out SpriteInstanceData[] transforms)
     {
         lock (pSync)
         {
@@ -345,10 +395,10 @@ public sealed class SpriteInstancedBatchSystem(
                 if (!data.DirtyInstances)
                     continue;
 
-                var transforms = data.Transforms.Length != data.Items.Length ? new Matrix3x3[data.Items.Length] : data.Transforms;
+                var transforms = data.Transforms.Length != data.Items.Length ? new SpriteInstanceData[data.Items.Length] : data.Transforms;
 
                 for (var j = 0; j < transforms.Length; ++j)
-                    transforms[j] = GetCompactedMatrix(ref data.Items[j]);
+                    transforms[j] = GetTransformMatrix(ref data.Items[j], renderState.FrameData.ScreenProjection);
                     
                 pData[i].Transforms = transforms;
             }
@@ -359,13 +409,23 @@ public sealed class SpriteInstancedBatchSystem(
         // This matrix does not represent an Transformation Matrix
         // This matrix only compacts essential values to be transformed on
         // Transform Matrix4x4 on shader
-        Matrix3x3 GetCompactedMatrix(ref SpriteInstanceBatchElement element)
+        // Matrix3x3 GetCompactedMatrix(ref SpriteInstanceBatchElement element)
+        // {
+        //     return new Matrix3x3(
+        //         element.Position.X, element.Position.Y, 0/*element.Position.Z*/,
+        //         (float)Math.Cos(element.Angle), (float)Math.Sin(element.Angle), element.Anchor.X,
+        //         element.Scale.X, element.Scale.Y, element.Anchor.Y
+        //     );
+        // }
+        SpriteInstanceData GetTransformMatrix(ref SpriteInstanceBatchElement element, Matrix4x4 projection)
         {
-            return new Matrix3x3(
-                element.Position.X, element.Position.Y, 0/*element.Position.Z*/,
-                (float)Math.Cos(element.Angle), (float)Math.Sin(element.Angle), element.Anchor.X,
-                element.Scale.X, element.Scale.Y, element.Anchor.Y
-            );
+            var transform = MatrixUtils.GetSpriteTransform(
+                element.Position.ToVector3(),
+                element.Anchor,
+                element.Angle,
+                element.Scale);
+            //transform = SpriteInstanceData.Transpose(transform);
+            return transform * projection;
         }
     }
 

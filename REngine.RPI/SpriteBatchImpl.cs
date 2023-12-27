@@ -65,7 +65,7 @@ namespace REngine.RPI
 		}
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo)
 		{
-			return pInstancedBatchSystem.CreateBatch(createInfo.NumInstances, createInfo.Effect, createInfo.Dynamic);
+			return pInstancedBatchSystem.CreateBatch(createInfo);
 		}
 	}
 #endif

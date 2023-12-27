@@ -27,10 +27,30 @@ namespace REngine.RHI
 			ElementByteStride = 0;
 		}
 	}
-
+	public struct BufferViewFormat
+	{
+		public ValueType ValueType;
+		public byte NumComponents;
+		public bool IsNormalized;
+	}
+	public struct BufferViewDesc
+	{
+		public string Name;
+		public BufferViewType ViewType;
+		public BufferViewFormat Format;
+		public ulong ByteOffset;
+		public ulong ByteWidth;
+	}
 	public interface IBuffer : IGPUObject
 	{
 		public BufferDesc Desc { get; }
 		public ulong Size { get; }
+		public IBufferView GetDefaultView(BufferViewType viewType);
+		public IBufferView CreateView(BufferViewDesc desc);
+	}
+
+	public interface IBufferView : IGPUObject
+	{
+		public IBuffer Buffer { get; }
 	}
 }

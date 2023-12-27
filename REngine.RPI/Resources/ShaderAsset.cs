@@ -17,6 +17,23 @@ public sealed class ShaderAsset(IShaderManager shaderManager, ILoggerFactory log
         pLogger.Debug($"Loaded Shader({Name}): ", ShaderCode);
     }
 
+
+    public IShader BuildShader(ShaderType type)
+    {
+        return BuildShader(type, new Dictionary<string, string>());
+    }
+
+    public IShader BuildShader(ShaderType type, IDictionary<string, string> macros)
+    {
+        return shaderManager.GetOrCreate(new ShaderCreateInfo
+        {
+            Type = type,
+            Name = Name,
+            Macros = macros,
+            SourceCode = ShaderCode
+        });
+    }
+    
     protected override void OnDispose()
     {
     }

@@ -7,12 +7,20 @@ cbuffer FrameConstants
     float4x4 g_projection;
 };
 
-struct vs_data {
+// struct vs_data {
+// 	uint vertex_id : SV_VertexID;
+// 	// Instance values
+// 	float3 row0 : ATTRIB0;
+// 	float3 row1 : ATTRIB1;
+// 	float3 row2 : ATTRIB2;
+// };
+struct vs_data
+{
 	uint vertex_id : SV_VertexID;
-	// Instance values
-	float3 row0 : ATTRIB0;
-	float3 row1 : ATTRIB1;
-	float3 row2 : ATTRIB2;
+	float4 row0 : ATTRIB0;
+	float4 row1 : ATTRIB1;
+	float4 row2 : ATTRIB2;
+	float4 row3 : ATTRIB3;
 };
 
 struct descompacted_data
@@ -96,18 +104,25 @@ void main(in vs_data vs_input, out PSOutput ps_input)
 	// 	float4(0, 0, 0, 1)
 	// );
 
-	descompacted_data data;
-	descompact_vs_data(vs_input, data);
+	// descompacted_data data;
+	// descompact_vs_data(vs_input, data);
 
 	// add offset by anchor. Anchor is a normalized value
-	float4x4 offset_m = create_translate((data.scale * data.anchor) * float2(-1, -1));
-	float4x4 scale_m = create_scale(data.scale);
-	float4x4 transform = mul(scale_m, offset_m);
-	transform = mul(transform, create_rotation(data.cos_and_sin));
-	transform = mul(transform, create_translate(data.position));
+	// float4x4 offset_m = create_translate((data.scale * data.anchor) * float2(-1, -1));
+	// float4x4 scale_m = create_scale(data.scale);
+	// float4x4 transform = mul(scale_m, offset_m);
+	// transform = mul(transform, create_rotation(data.cos_and_sin));
+	// transform = mul(transform, create_translate(data.position));
+
+	float4x4 transform = MatrixFromRows(
+		vs_input.row0,
+		vs_input.row1,
+		vs_input.row2,
+		vs_input.row3);
 	
 	float4 vertex = float4(vertices[vs_input.vertex_id], 0.0, 1.0);
-	float4 pos = mul(mul(g_projection, transpose(transform)), vertex);
+	// float4 pos = mul(mul(g_projection, transpose(transform)), vertex);
+	float4 pos = mul(vertex, transform);
 	
 	ps_input.pos = pos;
 	ps_input.uv = uvs[vs_input.vertex_id];

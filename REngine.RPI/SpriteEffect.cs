@@ -82,7 +82,7 @@ namespace REngine.RPI
             desc.BlendState.BlendMode = BlendMode.Alpha;
             desc.PrimitiveType = PrimitiveType.TriangleStrip;
             desc.RasterizerState.CullMode = CullMode.Both;
-            desc.DepthStencilState.EnableDepth = true;
+            desc.DepthStencilState.EnableDepth = false;
 
             desc.Shaders.VertexShader = OnGetShader(ShaderType.Vertex);
             desc.Shaders.PixelShader = OnGetShader(ShaderType.Pixel);
@@ -272,7 +272,7 @@ namespace REngine.RPI
         {
             base.OnCreatePipelineDesc(out desc);
 
-            for (var i = 0u; i < 3; ++i)
+            for (var i = 0u; i < 4; ++i)
             {
                 desc.InputLayouts.Add(new PipelineInputLayoutElementDesc()
                 {
@@ -280,7 +280,7 @@ namespace REngine.RPI
                     Input = new InputLayoutElementDesc()
                     {
                         BufferIndex = 0,
-                        ElementType = ElementType.Vector3,
+                        ElementType = ElementType.Vector4,
                         InstanceStepRate = 1
                     }
                 });

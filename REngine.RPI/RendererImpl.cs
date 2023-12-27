@@ -210,7 +210,6 @@ namespace REngine.RPI
 						.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 						.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags,
 							pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
-
 #if RENGINE_RENDERGRAPH
 					if (pMainBackBufferResource is null)
 						throw new EngineFatalException(

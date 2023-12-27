@@ -351,4 +351,11 @@ namespace REngine.RHI
 		Write = 0x02,
 		ReadAndWrite = Read | Write
 	}
+
+	public enum BufferViewType
+	{
+		Undefined=0,
+		ShaderResource,
+		UnorderedAccess
+	}
 }

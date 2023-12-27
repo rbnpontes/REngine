@@ -97,7 +97,7 @@ namespace REngine.RPI
 
 		public IBuffer GetBuffer(BufferGroupType groupType)
 		{
-			if (pDisposed) throw new ObjectDisposedException(nameof(IBufferManager));
+			ObjectDisposedException.ThrowIf(pDisposed, this);
 
 			var buffer = pCBuffers[GetBufferGroupIndex(groupType)];
 			return buffer ?? throw new NullReferenceException(
@@ -106,12 +106,7 @@ namespace REngine.RPI
 
 		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic)
 		{
-			if (pDisposed)
-				throw new ObjectDisposedException(nameof(IBufferManager));
-			if (pDriver is null)
-				throw new NullReferenceException("Driver is required.");
-			
-			return pDriver.Device.CreateBuffer(new BufferDesc
+			return GetDriver().Device.CreateBuffer(new BufferDesc
 			{
 				Name = "Instancing Buffer",
 				Size = bufferSize,
@@ -121,11 +116,23 @@ namespace REngine.RPI
 			});
 		}
 
+		public IBuffer Allocate(BufferDesc desc)
+		{
+			return GetDriver().Device.CreateBuffer(desc);
+		}
+		
 		private static int GetBufferGroupIndex(BufferGroupType grpType)
 		{
 			return (int)(grpType - 1);
 		}
 
+		private IGraphicsDriver GetDriver()
+		{
+			ObjectDisposedException.ThrowIf(pDisposed, this);
+			if (pDriver is null)
+				throw new NullReferenceException("Driver is required.");
+			return pDriver;
+		}
 		private void BuildBuffers()
 		{
 			if (pDriver is null)
