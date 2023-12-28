@@ -37,7 +37,12 @@ namespace REngine.Core.Resources
 			if (settings.FileSettings is null)
 				throw new NullReferenceException(
 					$"{nameof(FileAssetManagerSettings)} is required on {nameof(FileAssetManager)}");
-			foreach (var searchPath in settings.FileSettings.SearchPaths)
+			var searchPaths = settings.FileSettings.SearchPaths.ToList();
+			var expectedAssetPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+			if(!searchPaths.Contains(expectedAssetPath))
+				searchPaths.Add(expectedAssetPath);
+				
+			foreach (var searchPath in searchPaths)
 				WalkAndCollectFiles(searchPath, searchPath);
 
 			pStarted = true;
@@ -45,6 +50,8 @@ namespace REngine.Core.Resources
 
 		private void WalkAndCollectFiles(string rootPath, string path)
 		{
+			if (!Path.Exists(path))
+				return;
 			var directories = Directory.GetDirectories(path);
 			var files = Directory.GetFiles(path);
 			foreach (var file in files)
