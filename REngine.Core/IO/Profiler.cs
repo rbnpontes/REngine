@@ -42,13 +42,13 @@ namespace REngine.Core.IO
 	{
 		private static Profiler? sInstance;
 
+		private readonly DummyProfilerScope pDummyProfilerScope = new();
 #if PROFILER
 		private readonly Dictionary<string, (CString, CString)> pTraceAllocMap = new();
 		private readonly object pSync = new();
 
 		private CString? pFrameName;
 #endif
-		private bool pDisabled;
 		public bool IsDisposed { get; private set; }
 
 		public static Profiler Instance
@@ -60,17 +60,16 @@ namespace REngine.Core.IO
 			}
 		}
 
-		internal Profiler()
+		private Profiler()
 		{
 #if PROFILER
-			if(!pDisabled)
-				TracyStartupProfiler();
+			TracyStartupProfiler();
 #endif
 		}
 
 		public void BeginFrame(string frame)
 		{
-			if (IsDisposed || pDisabled)
+			if (IsDisposed)
 				return;
 #if PROFILER
 			pFrameName ??= (CString)frame;
@@ -79,10 +78,10 @@ namespace REngine.Core.IO
 		}
 		public void EndFrame()
 		{
-			if (IsDisposed || pDisabled)
+			if (IsDisposed)
 				return;
 #if PROFILER
-			if (pFrameName is null)
+			if (pFrameName is null || TracyConnected() == 0)
 				return;
 			TracyEmitFrameMarkEnd(pFrameName.Value);
 #endif
@@ -93,9 +92,12 @@ namespace REngine.Core.IO
 			[CallerFilePath] string scriptPath = "",
 			[CallerLineNumber] int lineNumber = 0)
 		{
-			if (IsDisposed || pDisabled)
-				return new DummyProfilerScope();
+			if (IsDisposed)
+				return pDummyProfilerScope;
 #if PROFILER
+			if (TracyConnected() == 0)
+				return pDummyProfilerScope;
+			
 			lock (pSync)
 			{
 				var srcLoc = TracyProfiler.AllocSourceLocation(
@@ -111,15 +113,18 @@ namespace REngine.Core.IO
 				return new ProfilerScope(ctx, this);
 			}
 #else
-			return new DummyProfilerScope();
+			return pDummyProfilerScope;
 #endif
 		}
 
 		public void BeginTask(string fiberName)
 		{
-			if (IsDisposed || pDisabled)
+			if (IsDisposed)
 				return;
 #if PROFILER
+			if (TracyConnected() == 0)
+				return;
+			
 			lock (pSync)
 			{
 				if (!pTraceAllocMap.TryGetValue(fiberName, out var tuple))
@@ -137,9 +142,12 @@ namespace REngine.Core.IO
 
 		public void EndTask(string fiberName)
 		{
-			if (IsDisposed || pDisabled)
+			if (IsDisposed)
 				return;
 #if PROFILER
+			if (TracyConnected() == 0)
+				return;
+			
 			lock (pSync)
 			{
 				if (!pTraceAllocMap.TryGetValue(fiberName, out var tuple))
@@ -152,7 +160,7 @@ namespace REngine.Core.IO
 
 		public void Dispose()
 		{
-			if (IsDisposed || pDisabled)
+			if (IsDisposed)
 				return;
 #if PROFILER
 			lock (pSync)
@@ -165,7 +173,6 @@ namespace REngine.Core.IO
 
 			sInstance = null;
 			IsDisposed = true;
-			GC.SuppressFinalize(this);
 		}
 	}
 }
