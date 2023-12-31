@@ -27,5 +27,7 @@ namespace REngine.RPI
 		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic);
 
 		public IBuffer Allocate(BufferDesc desc);
+		public IBuffer Allocate<T>(BufferDesc desc, T[] data) where T : unmanaged;
+		public IBuffer Allocate<T>(BufferDesc desc, T data) where T : unmanaged;
 	}
 }

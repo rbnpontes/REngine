@@ -120,6 +120,16 @@ namespace REngine.RPI
 		{
 			return GetDriver().Device.CreateBuffer(desc);
 		}
+
+		public IBuffer Allocate<T>(BufferDesc desc, T[] data) where T : unmanaged
+		{
+			return GetDriver().Device.CreateBuffer(desc, data);
+		}
+
+		public IBuffer Allocate<T>(BufferDesc desc, T data) where T : unmanaged
+		{
+			return GetDriver().Device.CreateBuffer(desc, data);
+		}
 		
 		private static int GetBufferGroupIndex(BufferGroupType grpType)
 		{
