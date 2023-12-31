@@ -181,5 +181,11 @@ namespace REngine.RHI.NativeDriver
 			IntPtr srcTexture,
 			IntPtr dstTexture,
 			ref ResolveTextureSubresourceDTO desc);
+
+		[DllImport(Constants.Lib)]
+		static extern void rengine_cmdbuffer_exec_command_list(
+			IntPtr context,
+			uint numCommandLists,
+			IntPtr list);
 	}
 }
