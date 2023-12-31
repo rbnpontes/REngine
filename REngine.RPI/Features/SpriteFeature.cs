@@ -37,7 +37,13 @@ public sealed class SpriteFeature(
 
         command.SetRT(backbuffer, depthbuffer);
 
+        var batchRenderInfo = new BatchRenderInfo
+        {
+            DefaultRenderTarget = backbuffer,
+            DefaultDepthStencil = depthbuffer,
+            CommandBuffer = command
+        };
         foreach (var batch in pBatchGroup)
-            batch.Render(command);
+            batch.Render(batchRenderInfo);
     }
 }

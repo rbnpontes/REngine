@@ -6,10 +6,10 @@
 			<step id="@wndmgr/update"/>
 			<step id="@scenemgt/update_cameras"/>
 			
-			<task id="@spritebatch/task" end="@render/begin">
-				<step id="@spritebatch/draw"/>
-				<step id="@spritebatch/build_tex"/>
-			</task>
+<!--			<task id="@spritebatch/task" end="@render/begin">-->
+<!--				<step id="@spritebatch/draw"/>-->
+<!--				<step id="@spritebatch/build_tex"/>-->
+<!--			</task>-->
 			<deferred target="@vars/@imgui/update_rate">
 				<step id="@imgui/draw"/>
 			</deferred>
@@ -27,7 +27,7 @@
 			<if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal">
 				<task id="@render/prepare" end="@render"></task>
 			</if>
-			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>
+<!--			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>-->
 			<step id="@wndmgr/invalidate"/>
 			<!-- 
 				SwapChain Present must be called at Main Thread

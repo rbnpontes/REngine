@@ -3,25 +3,31 @@ using ValueType = REngine.RHI.ValueType;
 
 namespace REngine.RPI;
 
+public struct BatchRenderInfo
+{
+    public ITextureView DefaultRenderTarget;
+    public ITextureView DefaultDepthStencil;
+    public ICommandBuffer CommandBuffer;
+}
 public abstract class Batch
 {
     public IPipelineState? PipelineState { get; set; }
     public IShaderResourceBinding? ShaderResourceBinding { get; set; }
-    public abstract void Render(ICommandBuffer command);
+    public abstract void Render(BatchRenderInfo batchRenderInfo);
 }
 
 public class QuadBatch : Batch
 {
     public uint NumInstances { get; set; } = 1;
     
-    public override void Render(ICommandBuffer command)
+    public override void Render(BatchRenderInfo batchRenderInfo)
     {
         if (PipelineState is null)
             return;
-        command.SetPipeline(PipelineState);
+        batchRenderInfo.CommandBuffer.SetPipeline(PipelineState);
         if (ShaderResourceBinding is not null)
-            command.CommitBindings(ShaderResourceBinding);
-        command.Draw(new DrawArgs
+            batchRenderInfo.CommandBuffer.CommitBindings(ShaderResourceBinding);
+        batchRenderInfo.CommandBuffer.Draw(new DrawArgs
         {
             NumVertices = 4,
             NumInstances = NumInstances,
@@ -40,19 +46,19 @@ public class IndexedBatch : Batch
     public ulong[] Offsets { get; set; } = [];
     public IBuffer? IndexBuffer { get; set; }
 
-    public override void Render(ICommandBuffer command)
+    public override void Render(BatchRenderInfo batchRenderInfo)
     {
         if (PipelineState is null || VertexBuffers.Length == 0 || IndexBuffer is null)
             return;
         if (Offsets.Length != VertexBuffers.Length)
             throw new Exception($"{nameof(Offsets.Length)} must be the same size of {nameof(VertexBuffers.Length)}");
-        command
+        batchRenderInfo.CommandBuffer
             .SetPipeline(PipelineState)
             .SetVertexBuffers(StartSlot, VertexBuffers, Offsets, false);
 
         if (ShaderResourceBinding is not null)
-            command.CommitBindings(ShaderResourceBinding);
-        command.Draw(new DrawIndexedArgs()
+            batchRenderInfo.CommandBuffer.CommitBindings(ShaderResourceBinding);
+        batchRenderInfo.CommandBuffer.Draw(new DrawIndexedArgs()
         {
             NumInstances = 1,
             BaseVertex = BaseVertex,

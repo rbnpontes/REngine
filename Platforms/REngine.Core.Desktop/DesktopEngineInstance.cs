@@ -84,6 +84,7 @@ public sealed class DesktopEngineInstance : EngineInstance
                     }, out var swapChain);
 
                 Logger.Info("GraphicsBackend: " + pDriverSettings.Backend);
+                Logger.Info(driver.AdapterInfo);
                 // When format is not supported by the driver
                 // Driver will search for a compatible format
                 // In this case we must update graphics settings

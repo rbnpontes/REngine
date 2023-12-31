@@ -22,7 +22,6 @@ namespace REngine.RHI
 		Unknow=0,
 		Software,
 		Integrated,
-		Dedicated,
 		Discrete
 	}
 
@@ -33,6 +32,12 @@ namespace REngine.RHI
 		public uint VendorId { get; }
 		public string Name { get; }
 		public AdapterType AdapterType { get; }
+		public ulong LocalMemory { get; }
+		public ulong HostVisibleMemory { get; }
+		public ulong UnifiedMemory { get; }
+		public ulong MaxMemoryAlloc { get; }
+		public CpuAccessFlags UnifiedMemoryCpuAccess { get; }
+		public BindFlags MemorylessTextureBindFlags { get; }
 	}
 
 	public interface IGraphicsDriver : IDisposable

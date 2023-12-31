@@ -24,8 +24,9 @@ public sealed class SpriteSystem(
     }
     private class InternalBatch(SpriteSystem system, int id, IBuffer constantBuffer) : QuadBatch
     {
-        public override void Render(ICommandBuffer command)
+        public override void Render(BatchRenderInfo batchRenderInfo)
         {
+            var command = batchRenderInfo.CommandBuffer;
             Sprite? sprite;
             lock (system.pSync)
                 sprite = system.pData[id].RefSprite;
@@ -63,7 +64,7 @@ public sealed class SpriteSystem(
             var mapped = command.Map<GpuData>(constantBuffer, MapType.Write, MapFlags.Discard);
             mapped[0] = gpuData;
             command.Unmap(constantBuffer, MapType.Write);
-            base.Render(command);
+            base.Render(batchRenderInfo);
         }
     }
     

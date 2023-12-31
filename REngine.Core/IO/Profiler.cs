@@ -158,6 +158,45 @@ namespace REngine.Core.IO
 #endif
 		}
 
+		public void Plot(string key, long value)
+		{
+#if PROFILER
+			if (TracyConnected() == 0)
+				return;
+			
+			if (!pTraceAllocMap.TryGetValue(key, out var tuple))
+			{
+				var source = (CString)key;
+				tuple = (source, source);
+				pTraceAllocMap.Add(key, tuple);
+			}
+			
+			TracyEmitPlotInt(tuple.Item1, value);
+#endif
+		}
+
+		public void Plot(string key, int value)
+		{
+			Plot(key, (long)value);
+		}
+
+		public void Plot(string key, float value)
+		{
+#if PROFILER
+			if (TracyConnected() == 0)
+				return;
+			
+			if (!pTraceAllocMap.TryGetValue(key, out var tuple))
+			{
+				var source = (CString)key;
+				tuple = (source, source);
+				pTraceAllocMap.Add(key, tuple);
+			}
+			
+			TracyEmitPlotFloat(tuple.Item1, value);
+#endif			
+		}
+		
 		public void Dispose()
 		{
 			if (IsDisposed)

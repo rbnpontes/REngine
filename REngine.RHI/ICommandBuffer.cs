@@ -119,5 +119,6 @@ namespace REngine.RHI
 			ITexture srcTexture,
 			ITexture dstTexture,
 			ResolveTextureSubresourceDesc resolveDesc);
+		public ICommandBuffer ExecuteCommandList(ICommandList[] list);
 	}
 }

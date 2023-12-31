@@ -21,7 +21,6 @@ namespace REngine.Core.Threading.Nodes
 		private IExecutionPipelineVar? pVar;
 
 		private bool pSkipExecution;
-		private object? pLastValue;
 
 #if PROFILER
 		private string? pProfilerName;
@@ -41,11 +40,7 @@ namespace REngine.Core.Threading.Nodes
 				return;
 
 			pVar ??= ExecutionPipeline.GetOrCreateVar(VarKey);
-			if (pLastValue != pVar.Value)
-			{
-				pSkipExecution = !CanExecute();
-				pLastValue = pVar.Value;
-			}
+			pSkipExecution = !CanExecute();
 
 			if (pSkipExecution)
 				return;

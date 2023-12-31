@@ -2,7 +2,9 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using REngine.Core;
+using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
+using REngine.Core.Threading;
 using REngine.Core.Utils;
 using REngine.Core.WorldManagement;
 using REngine.RHI;
@@ -25,14 +27,28 @@ public sealed class SpriteInstancedBatchSystem(
     BatchSystem batchSystem,
     IBufferManager bufferManager,
     IServiceProvider provider,
-    RenderState renderState)
+    RenderState renderState,
+    IExecutionPipeline executionPipeline)
     : BaseSystem<SpriteInstanceBatchItem>((int)renderSettings.SpriteBatchInitialInstanceSize)
 {
     public static readonly ulong InstanceDataSize = (ulong)Unsafe.SizeOf<SpriteInstanceData>();
-    private class InternalBatch(SpriteInstancedBatchSystem system, int id, IBuffer constantBuffer) : Batch
+    private class InternalBatch(
+        SpriteInstancedBatchSystem system, 
+        int id, 
+        IBuffer constantBuffer,
+        IExecutionPipeline execPipeline,
+        IGraphicsDriver driver,
+        RenderSettings renderSettings) : Batch
     {
-        public override unsafe void Render(ICommandBuffer command)
+        private readonly ManualResetEventSlim pManualResetEventSlim = new(false);
+        private ICommandList[] pCommandLists = [];
+        private int pFinishedJobs = 0;
+        private IBuffer? pInstancingBuffer;
+        
+        
+        public override unsafe void Render(BatchRenderInfo batchRenderInfo)
         {
+            var command = batchRenderInfo.CommandBuffer;
             InstancedSprite? sprite;
             lock (system.pSync)
                 sprite = system.pData[id].RefSprite;
@@ -90,18 +106,99 @@ public sealed class SpriteInstancedBatchSystem(
                     break;
             }
 
+            var jobsCount = GetJobsCount();
             var mappedData = command.Map<Vector4>(constantBuffer, MapType.Write, MapFlags.Discard);
             mappedData[0] = color.ToVector4();
+            command.Unmap(constantBuffer, MapType.Write);
+
+            if (driver.Backend == GraphicsBackend.OpenGL 
+                || jobsCount == 0 
+                || numInstances == jobsCount
+                || !renderSettings.EnableSpriteBatchMultiThread)
+            {
+                command
+                    .SetVertexBuffer(instancingBuffer, false)
+                    .SetPipeline(PipelineState)
+                    .CommitBindings(ShaderResourceBinding)
+                    .Draw(new DrawArgs()
+                    {
+                        NumInstances = numInstances,
+                        NumVertices = 4
+                    });
+                return;
+            }
+
+            command.TransitionShaderResource(PipelineState, ShaderResourceBinding);
+            pFinishedJobs = 0;
+            pManualResetEventSlim.Reset();
+
+            if (jobsCount != pCommandLists.Length)
+                pCommandLists = new ICommandList[jobsCount];
+            
+            var commands = driver.Commands;
+
+            pInstancingBuffer = instancingBuffer;
+            for (var i = 0; i < jobsCount; ++i)
+            {
+                var jobCommand = commands[i];
+                var jobIdx = i;
+                execPipeline.Schedule(() => RenderSubset(jobCommand, jobIdx, numInstances, batchRenderInfo));
+            }
+
+            // Wait all jobs to finish
+            while (pFinishedJobs < jobsCount) {}
+
+            command.ExecuteCommandList(pCommandLists);
+            foreach(var cmd in pCommandLists)
+                cmd.Dispose();
+            
+            pManualResetEventSlim.Set();
+        }
+
+        private byte GetJobsCount()
+        {
+            return (byte)Math.Clamp(renderSettings.SpriteBatchInstanceJobs, 1, execPipeline.JobsCount);
+        }
+        private void RenderSubset(ICommandBuffer command, int jobIdx, uint numInstances, BatchRenderInfo batchRenderInfo)
+        {
+            if (pInstancingBuffer is null)
+                return;
+
+            var jobsCount = GetJobsCount();
+            var instancesPerJob = numInstances / jobsCount;
+            var instanceOffset = (int)((jobIdx / (float)jobsCount) * numInstances);
+            var numSubsets = renderSettings.SpriteBatchInstanceSubset;
+            
             command
-                .Unmap(constantBuffer, MapType.Write)
-                .SetVertexBuffer(instancingBuffer, false)
-                .SetPipeline(PipelineState)
-                .CommitBindings(ShaderResourceBinding)
-                .Draw(new DrawArgs()
-                {
-                    NumInstances = numInstances,
-                    NumVertices = 4
-                });
+                .Begin(0)
+                .SetRT(batchRenderInfo.DefaultRenderTarget, batchRenderInfo.DefaultDepthStencil);
+            
+            var offsets = new[] { (ulong)(instanceOffset * Unsafe.SizeOf<SpriteInstanceData>()) };
+            var offsetInstance = 0u;
+            while (offsetInstance < instancesPerJob)
+            {
+                command
+                    .SetVertexBuffers(0, new IBuffer[] { pInstancingBuffer }, offsets, false)
+                    .SetPipeline(PipelineState)
+                    .CommitBindings(ShaderResourceBinding)
+                    .Draw(new DrawArgs()
+                    {
+                        NumInstances = (uint)Math.Min(numSubsets, offsetInstance - instancesPerJob),
+                        NumVertices = 4
+                    });
+                offsets[0] += (ulong)(numSubsets * Unsafe.SizeOf<SpriteInstanceData>());
+                offsetInstance += numSubsets;
+            }
+            
+            command.FinishCommandList(out var commandList);
+            pCommandLists[jobIdx] = commandList;
+
+            Interlocked.Increment(ref pFinishedJobs);
+            
+            // Wait for main thread to execute command list
+            pManualResetEventSlim.Wait();
+            
+            command.FinishFrame();
         }
     }
     
@@ -131,9 +228,16 @@ public sealed class SpriteInstancedBatchSystem(
                     bufferManager.GetInstancingBuffer((ulong)(createInfo.NumInstances * Unsafe.SizeOf<Matrix4x4>()), createInfo.Dynamic);
                 bufferType = createInfo.Dynamic ? SpriteBufferType.Dynamic : SpriteBufferType.Default;
             }
-            
+
+            var driver = provider.Get<IGraphicsDriver>();
             var id = Acquire();
-            var batch = new InternalBatch(this, id, bufferManager.GetBuffer(BufferGroupType.Object));
+            var batch = new InternalBatch(
+                this, 
+                id, 
+                bufferManager.GetBuffer(BufferGroupType.Object),
+                executionPipeline,
+                driver,
+                provider.Get<RenderSettings>());
             var effect = createInfo.Effect ?? pDefaultEffect;
             
             sprite = new InstancedSprite(id, this);

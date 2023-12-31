@@ -79,7 +79,7 @@ namespace REngine.RPI
             };
             desc.Output.RenderTargetFormats[0] = settings.DefaultColorFormat;
             desc.Output.DepthStencilFormat = settings.DefaultDepthFormat;
-            desc.BlendState.BlendMode = BlendMode.Alpha;
+            desc.BlendState.BlendMode = BlendMode.Replace;
             desc.PrimitiveType = PrimitiveType.TriangleStrip;
             desc.RasterizerState.CullMode = CullMode.Both;
             desc.DepthStencilState.EnableDepth = false;

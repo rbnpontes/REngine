@@ -30,7 +30,7 @@ namespace REngine.RHI.NativeDriver
 
 	public sealed partial class DriverFactory
 	{
-		static readonly MessageEventCallback s_messageEventDelegate = MessageEvent;
+		private static readonly MessageEventCallback sMessageEventDelegate = MessageEvent;
 
 		public static event EventHandler<MessageEventArgs>? OnDriverMessage;
 
@@ -40,7 +40,7 @@ namespace REngine.RHI.NativeDriver
 			uint adaptersCount = 0;
 			rengine_get_available_adapter(
 				backend, 
-				Marshal.GetFunctionPointerForDelegate(s_messageEventDelegate),
+				Marshal.GetFunctionPointerForDelegate(sMessageEventDelegate),
 				ref result,
 				ref adaptersCount
 			);
@@ -51,25 +51,22 @@ namespace REngine.RHI.NativeDriver
 				throw new Exception(error);
 			}
 
-			GraphicsAdapter[] finalOutput = new GraphicsAdapter[adaptersCount];
+			var finalOutput = new GraphicsAdapter[adaptersCount];
 
 			{
 				Span<GraphicsAdapterNative> adapters = new (result.value.ToPointer(), (int)adaptersCount);
-				for(int i =0; i < adapters.Length; ++i)
+				for(var i =0; i < adapters.Length; ++i)
 				{
-					GraphicsAdapterNative adapter = adapters[i];
-					finalOutput[i] = new GraphicsAdapter { 
-						Id = adapter.id,
-						DeviceId = adapter.deviceId,
-						AdapterType = (AdapterType)adapter.adapterType,
-						Name = Marshal.PtrToStringAnsi(adapter.name) ?? "Unknown Device",
-						VendorId = adapter.vendorId
-					};
+					var adapter = adapters[i];
+					finalOutput[i] = new GraphicsAdapter();
+					GraphicsAdapterNative.Fill(adapter, finalOutput[i]);
 				}
 			}
 
 			NativeUtils.rengine_free_block(result.value);
+			NativeUtils.rengine_stringdb_free();
 			ObjectRegistry.ClearRegistry();
+			// ReSharper disable once CoVariantArrayConversion
 			return finalOutput;
 		}
 		
@@ -80,13 +77,13 @@ namespace REngine.RHI.NativeDriver
 			DriverSettingsNative settings = new();
 			DriverSettingsNative.From(driverSettings, ref settings);
 
-			settings.messageCallback = Marshal.GetFunctionPointerForDelegate(s_messageEventDelegate);
+			settings.messageCallback = Marshal.GetFunctionPointerForDelegate(sMessageEventDelegate);
 			settings.numDeferredCtx = Math.Max((uint)Environment.ProcessorCount, 2);
 
 			if (driverSettings.Backend == GraphicsBackend.OpenGL)
 				settings.numDeferredCtx = 0;
 
-			IGraphicsAdapter adapter = FindBestAdapter(GetAdapters(driverSettings.Backend), settings.adapterId);
+			var adapter = FindBestAdapter(GetAdapters(driverSettings.Backend), settings.adapterId);
 			settings.adapterId = adapter.Id;
 
 #if WINDOWS
@@ -156,7 +153,7 @@ namespace REngine.RHI.NativeDriver
 			if(swapChainDesc != null)
 				SwapChainDescNative.From(swapChainDesc.Value, ref swapChainDescNative);
 
-			IntPtr swapChainDescHandle = swapChainDesc is null ? IntPtr.Zero : new IntPtr(Unsafe.AsPointer(ref swapChainDescNative));
+			var swapChainDescHandle = swapChainDesc is null ? IntPtr.Zero : new IntPtr(Unsafe.AsPointer(ref swapChainDescNative));
 			rengine_create_driver(ref settings, swapChainDescHandle, window, ref result);
 
 			disposables.ForEach(x => x.Dispose());
@@ -178,12 +175,12 @@ namespace REngine.RHI.NativeDriver
 
 			DeviceImpl device = new (settings.backend, driverNative.device);
 
-			ICommandBuffer[] commands = new ICommandBuffer[settings.numDeferredCtx + 1];
+			var commands = new ICommandBuffer[settings.numDeferredCtx + 1];
 			{
 				ReadOnlySpan<IntPtr> commandPointers = new(driverNative.contexts.ToPointer(), commands.Length);
-				for(int i =0; i < commands.Length; ++i)
+				for(var i =0; i < commands.Length; ++i)
 				{
-					IntPtr ptr = commandPointers[i];
+					var ptr = commandPointers[i];
 					if (ptr == IntPtr.Zero)
 					{
 						NativeUtils.rengine_free(result.driver);
@@ -194,15 +191,15 @@ namespace REngine.RHI.NativeDriver
 				}
 			}
 
-			ICommandBuffer immediateCmd = commands[0];
-			ICommandBuffer[] deferredCmd = new ICommandBuffer[commands.Length - 1];
+			var immediateCmd = commands[0];
+			var deferredCmd = new ICommandBuffer[commands.Length - 1];
 
 			Array.Copy(commands, 1, deferredCmd, 0, commands.Length - 1);
 
 			if (swapChainDesc != null)
 			{
 				if (result.swapChain == IntPtr.Zero)
-					throw new NullReferenceException("Error has ocurred at SwapChain creation. SwapChain is null");
+					throw new NullReferenceException("Error has occurred at SwapChain creation. SwapChain is null");
 				swapChain = new SwapChainImpl(result.swapChain);
 			}
 			else
@@ -210,11 +207,11 @@ namespace REngine.RHI.NativeDriver
 
 			NativeUtils.rengine_free(result.driver);
 			NativeUtils.rengine_free_block(driverNative.contexts);
-
+			NativeUtils.rengine_stringdb_free();
 
 			return new DriverImpl(
 				immediateCmd,
-				commands,
+				deferredCmd,
 				device,
 				driverNative.factory,
 				adapter
@@ -233,20 +230,30 @@ namespace REngine.RHI.NativeDriver
 			});
 		}
 
-		private static IGraphicsAdapter FindBestAdapter(IGraphicsAdapter[] adapters, uint adapterId)
+		private static IGraphicsAdapter FindBestAdapter(IReadOnlyList<IGraphicsAdapter> adapters, uint adapterId)
 		{
 			if (adapterId == uint.MaxValue)
 			{
-				var adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Dedicated);
-				if (adapter != null)
-					return adapter;
-				adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Integrated);
-				return adapter ?? adapters.First();
+				var discreteAdapters = adapters.Where(x => x.AdapterType == AdapterType.Discrete);
+				
+				var graphicsAdapters = discreteAdapters as IGraphicsAdapter[] ?? discreteAdapters.ToArray();
+				if (graphicsAdapters.Length == 0)
+				{
+					// Prefer Integrated over Software
+					var adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Integrated);
+					return adapter ?? adapters.First(x => x.AdapterType == AdapterType.Software);
+				}
+
+				// Sort Adapters by their Total Memory, then pick adapter with the highest memory
+				discreteAdapters = graphicsAdapters.OrderByDescending(
+					x => x.LocalMemory + x.HostVisibleMemory + x.UnifiedMemory
+				);
+				return discreteAdapters.First();
 			}
 
-			if (adapterId >= adapters.Length)
+			if (adapterId >= adapters.Count)
 				throw new IndexOutOfRangeException("Adapter Id value is greater than available adapters on your system");
-			return adapters[adapterId];
+			return adapters[(int)adapterId];
 		}
 	}
 }

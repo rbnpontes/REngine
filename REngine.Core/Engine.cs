@@ -75,9 +75,18 @@ namespace REngine.Core
 
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
-
+			
 			if (pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
-				GC.Collect();
+			{
+#if PROFILER
+				using (Profiler.Instance.Begin(nameof(GC)))
+				{
+#endif
+#if PROFILER
+					GC.Collect();
+				}
+#endif
+			}
 
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
@@ -91,6 +100,7 @@ namespace REngine.Core
 			}
 
 #if PROFILER
+			Profiler.Instance.Plot("FPS", (1000.0f / pTimer.Milliseconds));
 			Profiler.Instance.EndFrame();
 #endif
 			return this;

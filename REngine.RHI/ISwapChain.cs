@@ -93,7 +93,7 @@ namespace REngine.RHI
 		{
 			Size = new SwapChainSize();
 			Formats = SwapChainFormats.RGBA;
-			Usage = SwapChainUsage.RenderTarget | SwapChainUsage.ShaderResource | SwapChainUsage.InputAttachment;
+			Usage = SwapChainUsage.RenderTarget;
 			Transform = SwapChainTransform.Optimal;
 #if OSX
 			// We need at least 3 buffers in Metal to avoid massive

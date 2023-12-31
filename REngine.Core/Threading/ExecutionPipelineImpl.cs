@@ -32,6 +32,8 @@ namespace REngine.Core.Threading
         private IDictionary<ulong, EPNode> pNodesTable = new Dictionary<ulong, EPNode>();
         private EPNode? pLastNode;
 
+        public byte JobsCount => (byte)pCoordinator.JobsCount;
+        
         public ExecutionPipelineImpl(
             EngineEvents engineEvents,
             ILoggerFactory factory,
