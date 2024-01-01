@@ -10,13 +10,13 @@ using REngine.Core.IO;
 namespace REngine.Core.Threading.Nodes
 {
 	[Node("task")]
-	internal class TaskNode : EPNode
+	internal class TaskNode : EpNode
 	{
 		private const int MaxWaitTime = 1000 / 60;
 		private readonly Action pTaskAction;
 		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
-		private EPNode? pTarget;
+		private EpNode? pTarget;
 		private Exception? pCaughtException;
 #if PROFILER
 		private string? pProfilerName;
@@ -49,7 +49,7 @@ namespace REngine.Core.Threading.Nodes
 				try
 				{
 					ExecuteEvents();
-					ExecuteChildrens();
+					ExecuteChildren();
 				}
 				catch (Exception e)
 				{
@@ -61,7 +61,7 @@ namespace REngine.Core.Threading.Nodes
 #endif
 		}
 
-		public override void ExecuteLinkedNode(EPNode owner)
+		public override void ExecuteLinkedNode(EpNode owner)
 		{
 			if (!IsRunning)
 				return;
@@ -72,7 +72,7 @@ namespace REngine.Core.Threading.Nodes
 				throw pCaughtException;
 		}
 
-		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList)
 		{
 			var targetNodeId = Hash.Digest(element.GetAttribute("end"));
 			if (targetNodeId == 0)

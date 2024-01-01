@@ -3,7 +3,6 @@ Texture2D g_texture;
 SamplerState g_texture_sampler;
 #endif
 
-
 #define MIN_CUTOUT 0.48
 #define MAX_CUTOUT 0.5
 struct PSInput
@@ -21,8 +20,9 @@ float4 main(in PSInput ps_input) : SV_TARGET
 #endif
     result = result * ps_input.color;
     
-    float d = distance(float2(0.5), ps_input.uv);
-    result *= float4(1.0 - smoothstep(MIN_CUTOUT, MAX_CUTOUT, d));
+    float d = distance(float2(0.5f, 0.5f), ps_input.uv);
+    d = 1.0 - smoothstep(MIN_CUTOUT, MAX_CUTOUT, d);
+    result *= float4(d, d, d, d);
     
     return result;
 }

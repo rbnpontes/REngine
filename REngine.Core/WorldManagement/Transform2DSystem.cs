@@ -20,6 +20,34 @@ namespace REngine.Core.WorldManagement
 		public Matrix4x4 TransformMatrix;
 		public Matrix4x4 WorldTransformMatrix;
 		public RectangleF Bounds;
+		
+		public override bool Equals(object? obj)
+		{
+			if (obj is not Transform2DSnapshot target)
+				return false;
+
+			return target.GetHashCode() == GetHashCode();
+		}
+
+		public bool Equals(Transform2DSnapshot other)
+		{
+			return other.GetHashCode() == GetHashCode();
+		}
+
+		public override int GetHashCode()
+		{
+			var hashCode = new HashCode();
+			hashCode.Add(Position);
+			hashCode.Add(ZIndex);
+			hashCode.Add(Rotation);
+			hashCode.Add(Scale);
+			hashCode.Add(WorldPosition);
+			hashCode.Add(WorldRotation);
+			hashCode.Add(TransformMatrix);
+			hashCode.Add(WorldTransformMatrix);
+			hashCode.Add(Bounds);
+			return hashCode.ToHashCode();
+		}
 	}
 	public struct Transform2DData
 	{

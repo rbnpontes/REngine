@@ -11,7 +11,7 @@ using REngine.Core.IO;
 namespace REngine.Core.Threading.Nodes
 {
 	[Node("deferred")]
-	internal class DeferredNode : EPNode
+	internal class DeferredNode : EpNode
 	{
 		private readonly TimerInterval pInterval;
 
@@ -48,13 +48,13 @@ namespace REngine.Core.Threading.Nodes
 			{
 #endif
 				ExecuteEvents();
-				ExecuteChildrens();
+				ExecuteChildren();
 #if PROFILER
 			}
 #endif
 		}
 
-		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList)
 		{
 			string targetValue = element.GetAttribute("target");
 			if (string.IsNullOrEmpty(targetValue))

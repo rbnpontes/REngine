@@ -182,9 +182,9 @@ namespace REngine.RPI
     ) : SpriteEffect(assetManager, pipelineStateManager, settings, shaderResourceBindingCache, bufferManager,
         shaderManager)
     {
-        private TextureAsset pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg");
+        private ITexture pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg").Texture;
 
-        public TextureAsset Texture
+        public ITexture Texture
         {
             get => pTexture;
             set
@@ -205,7 +205,7 @@ namespace REngine.RPI
         protected override ResourceMapping OnGetResourceMapping()
         {
             var resMapping = base.OnGetResourceMapping();
-            resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture.Texture);
+            resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture);
             return resMapping;
         }
 

@@ -18,14 +18,11 @@ namespace REngine.RPI.Components
 	public abstract class BaseSpriteComponent<T> : Component
 	{
 		private readonly IExecutionPipeline pExecutionPipeline;
-		private readonly Action<IExecutionPipeline> pBeginRenderAction;
+		private readonly Action<IExecutionPipeline> pBeginUpdate;
+		private readonly Transform2DSystem pTransformSystem;
 
-		protected readonly ISpriteBatch mSpriteBatch;
-		protected readonly Transform2DSystem mTransformSystem;
-
-		private bool pSkipDraw;
-
-		protected Transform2D? mTransform;
+		private Transform2DSnapshot pLastSnapshot = new();
+		private Transform2D? pTransform;
 		[SerializationIgnore]
 		public Transform2D Transform
 		{
@@ -33,57 +30,70 @@ namespace REngine.RPI.Components
 			{
 				if (Owner is null)
 					throw new NullReferenceException($"{nameof(T)} must be attached to an Entity");
-				mTransform ??= Owner.GetComponent<Transform2D>();
-				if (mTransform is not null) return mTransform;
-				
-				mTransform = mTransformSystem.CreateTransform();
-				Owner.AddComponent(mTransform);
+				if (pTransform is not null && !pTransform.IsDisposed) 
+					return pTransform;
 
-				return mTransform;
+				pTransform = Owner.GetComponent<Transform2D>();
+				if (pTransform is not null) 
+					return pTransform;
+				
+				pTransform = pTransformSystem.CreateTransform();
+				Owner.AddComponent(pTransform);
+				return pTransform;
 			}
 		}
-
+		
 		internal BaseSpriteComponent(IServiceProvider provider)
 		{
 			pExecutionPipeline = provider.Get<IExecutionPipeline>();
-			mSpriteBatch = provider.Get<ISpriteBatch>();
-			mTransformSystem = provider.Get<Transform2DSystem>();
-
-			//mSpriteBatch.OnDraw += HandleDraw;
-			pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, pBeginRenderAction = BeginRender);
+			pTransformSystem = provider.Get<Transform2DSystem>();
+			pBeginUpdate = BeginUpdate;
 		}
 
-		private void HandleDraw(object? sender, EventArgs e)
+		private void BeginUpdate(IExecutionPipeline pipeline)
 		{
-			if (pSkipDraw || Owner is null)
+			if (pTransform is null || IsDisposed)
 				return;
-			OnDraw(mSpriteBatch);
+			
+			pTransform.GetSnapshot(out var currSnapshot);
+			if (!pLastSnapshot.Equals(currSnapshot))
+			{
+				pLastSnapshot = currSnapshot;
+				OnChangeTransform();
+			}
+			
+			OnUpdate();
 		}
 
-		private void BeginRender(IExecutionPipeline _)
+		public override void OnSetup()
 		{
-			if (Owner is null)
-				return;
-			pSkipDraw = !Enabled;
-			OnBeginRender();
+			BindEvents();
 		}
-		
-		protected abstract void OnDraw(ISpriteBatch spriteBatch);
 
-		protected virtual void OnBeginRender(){}
+		protected abstract void OnUpdate();
+		protected abstract void OnChangeTransform();
 		protected override void OnDispose()
 		{
-			//mSpriteBatch.OnDraw -= HandleDraw;
-			pExecutionPipeline.RemoveEvent(DefaultEvents.RenderBeginId, pBeginRenderAction);
+			pExecutionPipeline.RemoveEvent(DefaultEvents.UpdateBeginId, pBeginUpdate);
+		}
+		protected override void OnChangeVisibility(bool value)
+		{
+			BindEvents();
+		}
+
+		private void BindEvents()
+		{
+			if (Enabled)
+				pExecutionPipeline.AddEvent(DefaultEvents.UpdateBeginId, pBeginUpdate);
+			else
+				pExecutionPipeline.RemoveEvent(DefaultEvents.UpdateBeginId, pBeginUpdate);
 		}
 	}
-
-	// TODO: refactor this shit
-	public sealed class SpriteComponent : BaseSpriteComponent<SpriteComponent>
+	
+	public sealed class SpriteComponent(IServiceProvider provider) : BaseSpriteComponent<SpriteComponent>(provider)
 	{
-		private static readonly object sSync = new();
 		[Flags]
-		enum MotionEventFlags
+		private enum MotionEventFlags
 		{
 			None = 0,
 			Over = 1 << 0,
@@ -91,67 +101,108 @@ namespace REngine.RPI.Components
 			Click = 1 << 2,
 		}
 
-		private readonly IInput pInput;
+		private readonly IInput pInput = provider.Get<IInput>();
+		private readonly ISpriteBatch pSpriteBatch = provider.Get<ISpriteBatch>();
 
-		private Transform2DSnapshot pLastSnapshot;
-
+		private Sprite? pSprite;
+        
 		private MotionEventFlags pEventFlags;
+		private bool pDirtyProps;
+		
 
-		public byte TextureSlot { get; set; } = byte.MaxValue;
+		private Vector2 pAnchor;
+		private Color pColor = Color.White;
+		private SpriteEffect? pEffect;
+		
 		[SerializationIgnore]
-		// public BasicSpriteEffect? Effect { get; set; }
-		public Vector2 Anchor { get; set; }
-		public Vector2 Offset { get; set; }
-		public Color Color { get; set; } = Color.White;
+		public SpriteEffect? Effect
+		{
+			get => pEffect;
+			set
+			{
+				pDirtyProps |= pEffect != value;
+				pEffect = value;
+			}
+		}
+
+		public Vector2 Anchor
+		{
+			get => pAnchor;
+			set
+			{
+				pDirtyProps |= pAnchor != value;
+				pAnchor = value;
+			}
+		}
+		public Color Color
+		{
+			get => pColor;
+			set
+			{
+				pDirtyProps |= pColor != value;
+				pColor = value;
+			}
+		}
 
 		public event EventHandler<EventArgs>? OnMouseOver;
 		public event EventHandler<EventArgs>? OnMouseOut;
 		public event EventHandler<EventArgs>? OnClick;
 
-		public SpriteComponent(
-			IServiceProvider provider,
-			IInput input
-		) : base(provider)
+		public override void OnSetup()
 		{
-			pInput = input;
+			base.OnSetup();
+			pSprite ??= pSpriteBatch.CreateSprite();
+			UpdateSpriteProps(pSprite);
+			
+			pInput.OnMousePressed += HandleMouseClick;
 		}
 
-		//private SpriteBatchInfo pBatchInfo = new();
-		protected override void OnDraw(ISpriteBatch spriteBatch)
+		private void UpdateSpriteProps(Sprite sprite)
 		{
-			lock (sSync)
-			{
-				// pBatchInfo.Position = pLastSnapshot.WorldPosition;
-				// pBatchInfo.Angle = pLastSnapshot.WorldRotation;
-				// pBatchInfo.Size = pLastSnapshot.Scale;
-				// pBatchInfo.Anchor = Anchor;
-				// pBatchInfo.Color = Color;
-				// pBatchInfo.Offset = Offset;
-				// pBatchInfo.TextureSlot = TextureSlot;
-				// pBatchInfo.Effect = Effect;
-				//
-				// spriteBatch.Draw(pBatchInfo);
+			sprite.Lock();
+			sprite.Anchor = pAnchor;
+			sprite.Position = new Vector3(Transform.WorldPosition, Transform.ZIndex);
+			sprite.Angle = Transform.WorldRotation;
+			sprite.Size = Transform.Scale;
+			if (pEffect is not null)
+				sprite.Effect = pEffect;
+			sprite.Color = pColor;
+			sprite.Enabled = Enabled;
+			sprite.Unlock();
 
-				ComputeMouseInput();
-			}
+			pDirtyProps = false;
+		}
+		
+		protected override void OnUpdate()
+		{
+			if (pSprite is null)
+				return;
+			
+			if(pDirtyProps)
+				UpdateSpriteProps(pSprite);
+			ComputeMouseInput();
+
+			if (pEventFlags == MotionEventFlags.None)
+				return;
+			if((pEventFlags & MotionEventFlags.Over) != 0)
+				OnMouseOver?.Invoke(this, EventArgs.Empty);
+			if((pEventFlags & MotionEventFlags.Out) != 0)
+				OnMouseOut?.Invoke(this, EventArgs.Empty);
+			if((pEventFlags & MotionEventFlags.Click) != 0)
+				OnClick?.Invoke(this, EventArgs.Empty);
+			pEventFlags = 0;
 		}
 
-		protected override void OnBeginRender()
+		protected override void OnChangeVisibility(bool value)
 		{
-			lock (sSync)
-			{
-				Transform.GetSnapshot(out pLastSnapshot);
+			base.OnChangeVisibility(value);
+			if(pSprite is not null)
+				UpdateSpriteProps(pSprite);
+		}
 
-				if (pEventFlags == MotionEventFlags.None)
-					return;
-				if((pEventFlags & MotionEventFlags.Over) != 0)
-					OnMouseOver?.Invoke(this, EventArgs.Empty);
-				if((pEventFlags & MotionEventFlags.Out) != 0)
-					OnMouseOut?.Invoke(this, EventArgs.Empty);
-				if((pEventFlags & MotionEventFlags.Click) != 0)
-					OnClick?.Invoke(this, EventArgs.Empty);
-				pEventFlags = 0;
-			}
+		protected override void OnChangeTransform()
+		{
+			pDirtyProps = true;
 		}
 
 		private bool pIsOver;
@@ -181,20 +232,33 @@ namespace REngine.RPI.Components
 
 		private void ComputeMouseOverActions()
 		{
-			if (!pIsOver)
-			{
-				pEventFlags |= MotionEventFlags.Over;
-				pIsOver = true;
-			}
-
-			if (pInput.GetMousePress(MouseKey.Left))
+			if (pIsOver) return;
+			pEventFlags |= MotionEventFlags.Over;
+			pIsOver = true;
+		}
+		
+		private void HandleMouseClick(object? sender, InputMouseEventArgs e)
+		{
+			if (e.Key != MouseKey.Left)
+				return;
+			
+			var msPos = pInput.MousePosition;
+			var pos = Transform.WorldPosition;
+			var scale = Transform.Scale;
+			var bounds = new RectangleF(pos.X, pos.Y, scale.X, scale.Y);
+			// Test if mouse is inside sprite and emit click
+			if (bounds.Contains(msPos.X, msPos.Y))
 				pEventFlags |= MotionEventFlags.Click;
 		}
+		
 		protected override void OnDispose()
 		{
 			base.OnDispose();
-			// Effect?.Dispose();
-			// Effect = null;
+			pSprite?.Dispose();
+			pSprite = null;
+			Effect = null;
+
+			pInput.OnMousePressed -= HandleMouseClick;
 		}
 	}
 }

@@ -10,6 +10,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
+using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.Sandbox.PongGame.States;
 
@@ -66,9 +67,9 @@ namespace REngine.Sandbox.PongGame.Components
 			var buttonCount = OnGetButtonCount();
 			for (var i = 0; i < buttonCount; ++i)
 			{
-				OnBuildButton(i, out var action, out var texSlot);
+				OnBuildButton(i, out var action, out var effect);
 				components.Add(
-					CreateComponent(texSlot, $"menu:button:{i}", out var id)
+					CreateComponent(effect, $"menu:button:{i}", out var id)
 				);
 
 				pMenuActions[id] = action;
@@ -92,7 +93,7 @@ namespace REngine.Sandbox.PongGame.Components
 		}
 
 		protected abstract int OnGetButtonCount();
-		protected abstract void OnBuildButton(int buttonIdx, out Action action, out byte textureSlot);
+		protected abstract void OnBuildButton(int buttonIdx, out Action action, out SpriteEffect effect);
 
 		protected override void OnUpdate(float deltaTime)
 		{
@@ -110,14 +111,14 @@ namespace REngine.Sandbox.PongGame.Components
 			action?.Invoke();
 		}
 
-		private SpriteComponent CreateComponent(byte textureSlot, string name, out int id)
+		private SpriteComponent CreateComponent(SpriteEffect effect, string name, out int id)
 		{
 			var spriteEntity = mEntityManager.CreateEntity(name);
 			var transform = spriteEntity.CreateComponent<Transform2D>();
 			var sprite = spriteEntity.CreateComponent<SpriteComponent>();
 
 			sprite.Color = Color.White;
-			sprite.TextureSlot = textureSlot;
+			sprite.Effect = effect;
 			transform.Scale = PongVariables.MenuTextureSize;
 
 			sprite.OnMouseOver += HandleMsOver;

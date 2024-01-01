@@ -28,7 +28,7 @@ void main(in vs_input vs_input, out PSOutput ps_input)
 	uvs[2] = float2(1, 0);
 	uvs[3] = float2(1, 1);
 
-	float4 pos = mul(mul(g_projection, g_transform), float4(vertices[vs_input.vertex_id], 0.0, 1.0));
+	float4 pos = mul(g_transform, float4(vertices[vs_input.vertex_id], 0.0, 1.0));
 	ps_input.pos = pos;
 	ps_input.uv = uvs[vs_input.vertex_id];
 	ps_input.color = g_color;

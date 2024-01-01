@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Logic;
@@ -15,6 +16,7 @@ using REngine.Core.Storage;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.RPI.SpriteEffects;
 // using REngine.RPkI.SpriteEffects;
 using REngine.Sandbox.PongGame.Components;
 
@@ -26,7 +28,8 @@ namespace REngine.Sandbox.PongGame.States
 			GameStateManager gameStateManager,
 			IEngine engine,
 			IImGuiSystem imGuiSystem,
-			IAssetManager assetManager)
+			IAssetManager assetManager,
+			IServiceProvider provider)
 		: IGameState
 	{
 #if PROFILER
@@ -53,6 +56,7 @@ namespace REngine.Sandbox.PongGame.States
 		{
 			SetInitialState();
 
+			var font = assetManager.GetAsset<FontAsset>(PongVariables.DefaultFont);
 			var wndSize = mainWindow.Size;
 			var rootEntity = entityManager.CreateEntity("root");
 			pRoot = rootEntity.CreateComponent<Transform2D>();
@@ -72,7 +76,7 @@ namespace REngine.Sandbox.PongGame.States
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
-			// sprite.Effect = new RoundedEffect(assetManager);
+			sprite.Effect = new RoundedTextureEffect(provider);
 
 			pRoot.AddChild(pBall);
 			pRoot.AddChild(pBar);
@@ -80,8 +84,8 @@ namespace REngine.Sandbox.PongGame.States
 			var textEntity = entityManager.CreateEntity("score");
 			var textTransform = textEntity.CreateComponent<Transform2D>();
 			var text = textEntity.CreateComponent<TextComponent>();
-			text.FontName = PongVariables.DefaultFont;
-			text.TextSize = 16;
+			text.Font = font.Font;
+			text.FontSize = 16;
 			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
 			pTextTransform = textTransform;
 

@@ -7,33 +7,27 @@ using System.Xml;
 
 namespace REngine.Core.Threading.Nodes
 {
-	internal abstract class EPNode
+	internal abstract class EpNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider)
 	{
 		private readonly object pSync = new();
-		protected readonly LinkedList<Action<IExecutionPipeline>> pEvents = new();
-		protected readonly ExecutionPipelineImpl ExecutionPipeline;
-		protected readonly IServiceProvider ServiceProvider;
+		private readonly HashSet<Action<IExecutionPipeline>> pEvents = new();
+		protected readonly ExecutionPipelineImpl ExecutionPipeline = execPipeline;
+		protected readonly IServiceProvider ServiceProvider = provider;
 
 		public ulong Id { get; set; } = 0;
 #if DEBUG || PROFILER
 		public string DebugName { get; set; } = string.Empty;
 		public string Xml { get; set; } = string.Empty;
 #endif
-		public List<EPNode> Children { get; set; } = new();
-		public EPNode? Parent { get; set; } = null;
+		public List<EpNode> Children { get; set; } = new();
+		public EpNode? Parent { get; set; } = null;
 
-		public List<EPNode> LinkedNodes { get; set; } = new();
-
-		protected EPNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider) 
-		{
-			ExecutionPipeline = execPipeline;
-			ServiceProvider = provider;
-		}
+		public List<EpNode> LinkedNodes { get; set; } = new();
 
 		public virtual void AddEvent(Action<IExecutionPipeline> listener)
 		{
 			lock(pSync)
-				pEvents.AddLast(listener);
+				pEvents.Add(listener);
 		}
 
 		public virtual void RemoveEvent(Action<IExecutionPipeline> listener)
@@ -51,7 +45,7 @@ namespace REngine.Core.Threading.Nodes
 			}
 		}
 
-		public virtual void ExecuteLinkedNode(EPNode owner)
+		public virtual void ExecuteLinkedNode(EpNode owner)
 		{
 		}
 
@@ -65,34 +59,35 @@ namespace REngine.Core.Threading.Nodes
 		/// Defines Execution Pipeline Node From XmlElement
 		/// </summary>
 		/// <param name="element"></param>
+		/// <param name="nodesList"></param>
 		/// <returns></returns>
-		public abstract void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList);
+		public abstract void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList);
 
 		protected void ExecuteEvents()
 		{
-			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
-
-			LinkedListNode<Action<IExecutionPipeline>>? nextEvent;
 			lock (pSync)
-				nextEvent = pEvents.First;
-
-			while (nextEvent != null)
-			{
-				ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
-
-				Action<IExecutionPipeline> action = nextEvent.Value;
-				action(ExecutionPipeline);
-				nextEvent = nextEvent.Next;
-			}
+				ExecuteEventCalls();
 
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 		}
 
-		protected void ExecuteChildrens()
+		private void ExecuteEventCalls()
 		{
-			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+			var collection = pEvents.ToArray();
+			foreach (var evtCall in collection)
+			{
+				ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
+				evtCall(ExecutionPipeline);
+			}
+		}
+
+		protected void ExecuteChildren()
+		{
 			foreach (var child in Children)
+			{
+				ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 				child.Execute();
+			}
 		}
 	}
 }

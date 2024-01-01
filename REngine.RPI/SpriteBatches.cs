@@ -127,26 +127,6 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
         }
     }
 
-    public Vector2 Offset
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return system.GetAnchor(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            system.SetOffset(id, value);
-        }
-    }
-
     public Vector2 Size
     {
         get

@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
+using REngine.RHI;
+using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.Sandbox.PongGame.States;
 
@@ -14,15 +16,13 @@ namespace REngine.Sandbox.PongGame.Components
 {
 	internal class PongMenuButton(IServiceProvider provider) : Behavior(provider)
 	{
-		public byte TextureSlot
+		private readonly TextureSpriteEffect pEffect = TextureSpriteEffect.Build(provider);
+		public ITexture Texture
 		{
-			get => pSpriteComponent?.TextureSlot ?? 0;
-			set
-			{
-				if(pSpriteComponent != null)
-					pSpriteComponent.TextureSlot = value;
-			}
+			get => pEffect.Texture;
+			set => pEffect.Texture = value;
 		}
+		
 		public IAudio? HoverAudio { get; set; }
 
 		public Action? ClickAction { get; set; }
@@ -41,6 +41,7 @@ namespace REngine.Sandbox.PongGame.Components
 			pSpriteComponent.Color = Color.White;
 			pTransform.Scale = PongVariables.MenuTextureSize;
 
+			pSpriteComponent.Effect = pEffect;
 			pSpriteComponent.OnMouseOver += HandleMouseOver;
 			pSpriteComponent.OnMouseOut += HandleMouseOut;
 			pSpriteComponent.OnClick += HandleClick;
@@ -70,7 +71,7 @@ namespace REngine.Sandbox.PongGame.Components
 		private void HandleMouseOut(object? sender, EventArgs e)
 		{
 			if(pTransform != null)
-			pTransform.Scale = PongVariables.MenuTextureSize;
+				pTransform.Scale = PongVariables.MenuTextureSize;
 		}
 	}
 }

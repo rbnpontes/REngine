@@ -13,7 +13,8 @@ public sealed class SpriteSystem(
     RenderSettings renderSettings,
     BatchSystem batchSystem,
     IServiceProvider provider,
-    IBufferManager bufferManager)
+    IBufferManager bufferManager,
+    RenderState renderState)
     : BaseSystem<SpriteBatchItem>((int)renderSettings.SpriteBatchInitialSize)
 {
     public const string BatchGroupName = nameof(Sprite);
@@ -22,7 +23,11 @@ public sealed class SpriteSystem(
         public Matrix4x4 Transform = Matrix4x4.Identity;
         public Vector4 Color = Vector4.One;
     }
-    private class InternalBatch(SpriteSystem system, int id, IBuffer constantBuffer) : QuadBatch
+    private class InternalBatch(
+        SpriteSystem system, 
+        int id, 
+        IBuffer constantBuffer,
+        RenderState renderState) : QuadBatch
     {
         public override void Render(BatchRenderInfo batchRenderInfo)
         {
@@ -54,7 +59,7 @@ public sealed class SpriteSystem(
                     sprite.Anchor,
                     sprite.Angle,
                     sprite.Size
-                ),
+                ) * renderState.FrameData.ScreenProjection,
                 Color = sprite.Color.ToVector4()
             };
 
@@ -78,7 +83,11 @@ public sealed class SpriteSystem(
         lock (pSync)
         {
             var id = Acquire();
-            var batch = new InternalBatch(this, id, bufferManager.GetBuffer(BufferGroupType.Object));
+            var batch = new InternalBatch(
+                this, 
+                id, 
+                bufferManager.GetBuffer(BufferGroupType.Object),
+                renderState);
             effect ??= pDefaultEffect;
             
             sprite = new Sprite(id, this);
@@ -172,17 +181,6 @@ public sealed class SpriteSystem(
         }
     }
 
-    public Vector2 GetOffset(int id)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            return pData[id].Offset;
-        }
-    }
-
     public Vector2 GetSize(int id)
     {
         lock (pSync)
@@ -257,17 +255,6 @@ public sealed class SpriteSystem(
             ValidateId(id);
 #endif
             pData[id].Anchor = anchor;
-        }
-    }
-
-    public void SetOffset(int id, Vector2 offset)
-    {
-        lock (pSync)
-        {
-#if DEBUG
-            ValidateId(id);
-#endif
-            pData[id].Offset = offset;
         }
     }
 

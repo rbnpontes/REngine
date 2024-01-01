@@ -51,7 +51,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			renderer.AddFeature(pSpriteFeature);
 			
 			pSpriteEffect = TextureSpriteEffect.Build(provider);
-			pSpriteEffect.Texture = spriteTex;
+			pSpriteEffect.Texture = spriteTex.Texture;
 			
 			pFlickeredDoge = spriteBatch.CreateSprite(pSpriteEffect);
 			pColoredDoge = spriteBatch.CreateSprite(pSpriteEffect);

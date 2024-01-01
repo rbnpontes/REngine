@@ -10,7 +10,6 @@ namespace REngine.Core.WorldManagement
 	public abstract class Component : IDisposable
 	{
 		private bool pEnabled = true;
-		private bool pDisposed;
 		private Entity? pOwner;
 
 		[SerializationIgnore]
@@ -18,16 +17,16 @@ namespace REngine.Core.WorldManagement
 		{
 			get 
 			{
-				bool enabled = pEnabled;
-				if(Owner != null && !Owner.Enabled)
+				var enabled = pEnabled;
+				if(Owner is { Enabled: false })
 					enabled = false;
 				return enabled;
 			}
 			set
 			{
-				bool currState = Enabled;
+				var currState = Enabled;
 				pEnabled = value;
-				bool newState = Enabled;
+				var newState = Enabled;
 				if (currState != newState)
 					OnChangeVisibility(newState);
 			}
@@ -41,11 +40,9 @@ namespace REngine.Core.WorldManagement
 		}
 
 		[SerializationIgnore]
-		public bool IsDisposed { get => pDisposed; }
+		public bool IsDisposed { get; private set; }
 
-		public Component()
-		{
-		}
+		public event EventHandler? OnDestroy;
 
 		private void AttachEntity(Entity target)
 		{
@@ -73,11 +70,14 @@ namespace REngine.Core.WorldManagement
 
 		public void Dispose()
 		{
-			if (pDisposed)
+			if (IsDisposed)
 				return;
 			Detach();
+			
+			OnDestroy?.Invoke(this, EventArgs.Empty);
 			OnDispose();
-			pDisposed = true;
+			
+			IsDisposed = true;
 			GC.SuppressFinalize(this);
 		}
 
@@ -87,12 +87,16 @@ namespace REngine.Core.WorldManagement
 		protected virtual void OnAttach(Entity? target) { }
 		protected virtual void OnChangeVisibility(bool value) { }
 
+		public virtual void OnOwnerChangeVisibility(bool value)
+		{
+			OnChangeVisibility(Enabled);
+		}
+
 		public virtual void OnSetup() { }
 
 		protected void ValidateDispose()
 		{
-			if (pDisposed)
-				throw new ObjectDisposedException(nameof(Component));
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
 		}
 	}
 }

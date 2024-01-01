@@ -17,7 +17,6 @@ public struct SpriteBatchItem(SpriteEffect effect)
     public readonly object Sync = new();
     public Vector3 Position = Vector3.Zero;
     public Vector2 Anchor = Vector2.Zero;
-    public Vector2 Offset = Vector2.Zero;
     public Vector2 Size = Vector2.One;
     public Color Color = Color.Black;
     public float Angle = 0f;

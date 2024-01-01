@@ -216,18 +216,6 @@ namespace REngine.RPI
             }
         }
 
-        public RectangleF TextBounds
-        {
-            get
-            {
-#if RENGINE_VALIDATIONS
-                ObjectDisposedException.ThrowIf(IsDisposed, this);
-                ValidateLock();
-#endif
-                return pBounds;
-            }
-        }
-
         public bool IsDisposed { get; private set; }
 
         public override void Render(BatchRenderInfo batchRenderInfo)

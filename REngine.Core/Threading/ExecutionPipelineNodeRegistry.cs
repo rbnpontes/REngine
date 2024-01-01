@@ -30,7 +30,7 @@ namespace REngine.Core.Threading
 
 		public ExecutionPipelineNodeRegistry Add(Type type)
 		{
-			if (!type.IsSubclassOf(typeof(EPNode)))
+			if (!type.IsSubclassOf(typeof(EpNode)))
 				return this;
 			NodeAttribute? attr = type.GetCustomAttribute<NodeAttribute>();
 			if (attr is null)
@@ -39,11 +39,11 @@ namespace REngine.Core.Threading
 			return this;
 		}
 
-		public EPNode Create(string tag, ExecutionPipelineImpl pipeline)
+		public EpNode Create(string tag, ExecutionPipelineImpl pipeline)
 		{
 			if (!pTypes.TryGetValue(tag, out var type))
 				throw new Exception($"Invalid tag '{tag}'. There's no node registered with this tag");
-			EPNode? node = Activator.CreateInstance(type, pipeline, pServiceProvider) as EPNode;
+			EpNode? node = Activator.CreateInstance(type, pipeline, pServiceProvider) as EpNode;
 			if (node is null)
 				throw new NullReferenceException($"Could not possible to create '{tag}' node.");
 			return node;

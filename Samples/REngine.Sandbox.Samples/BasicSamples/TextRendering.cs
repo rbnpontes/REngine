@@ -82,7 +82,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 				return;
 			
 			pBatch.Lock();
-			var bounds = pBatch.TextBounds;
+			var bounds = pBatch.Bounds;
 			pBatch.Enabled = pEnabled;
 			pBatch.Size = (uint)pTextSize;
 			pBatch.HorizontalSpacing = pHorizontalSpacing;
@@ -91,7 +91,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			pBatch.Color = pColor.ToColor();
 			pBatch.Position = new Vector2(
 				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
-				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
+				Window.Size.Height * 0.5f
 			);
 			pLastBounds = pBatch.Bounds;
 			pBatch.Unlock();
