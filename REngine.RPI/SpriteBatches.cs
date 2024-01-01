@@ -32,7 +32,7 @@ public abstract class BaseSprite(int id) : IDisposable
 
     public void Lock()
     {
-#if DEBUG
+#if RENGINE_VALIDATIONS
         ValidateDispose();
 #endif
         Monitor.Enter(GetObjectSync());
@@ -41,7 +41,7 @@ public abstract class BaseSprite(int id) : IDisposable
 
     public void Unlock()
     {
-#if DEBUG
+#if RENGINE_VALIDATIONS
         ValidateDispose();
         ValidateLock();
 #endif

@@ -56,9 +56,9 @@ namespace REngine.RPI
 				IDevice device, 
 				IPipelineState fontPipeline,
 				IShaderResourceBinding srb,
-				IBuffer cbuffer, 
+				IBuffer constantBuffer, 
 				Font font
-			) : base(device, fontPipeline, srb, cbuffer, font)
+			) : base(device, fontPipeline, srb, constantBuffer, font)
 			{
 				pRenderer = renderer;
 			}
@@ -67,6 +67,7 @@ namespace REngine.RPI
 			{
 				lock (pRenderer.pSync)
 				{
+					pRenderer.pBatchGroup.RemoveBatch(this);
 					if(BatchNode != null)
 						pRenderer.pBatches.Remove(BatchNode);
 					BatchNode = null;
@@ -80,6 +81,7 @@ namespace REngine.RPI
 		private readonly EngineEvents pEngineEvents;
 		private readonly IRenderer pRenderer;
 		private readonly IAssetManager pAssetManager;
+		private readonly BatchGroup pBatchGroup;
 
 		private readonly LinkedList<InternalBatch> pBatches = new();
 		private readonly Dictionary<ulong, FontEntry> pFonts = new();
@@ -98,7 +100,8 @@ namespace REngine.RPI
 			GraphicsSettings graphicsSettings,
 			EngineEvents engineEvents,
 			IRenderer renderer,
-			IAssetManager assetManager
+			IAssetManager assetManager,
+			BatchSystem batchSystem
 		) 
 		{
 			pBufferProvider = bufferProvider;
@@ -107,7 +110,8 @@ namespace REngine.RPI
 			pEngineEvents = engineEvents;
 			pRenderer = renderer;
 			pAssetManager = assetManager;
-
+			pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+			
 			engineEvents.OnStop += HandleEngineStop;
 		}
 
@@ -290,16 +294,15 @@ namespace REngine.RPI
 				if (fontEntry != null)
 					fontEntry.Dispose();
 
-				SdfBuilder builder = new SdfBuilder(font.Atlas);
+				var builder = new SdfBuilder(font.Atlas);
 				builder.Radius = 4;
 				builder.Cutoff = 0.45f;
-				ITexture texture = AllocateTexture(font, builder.Build());
+				var texture = AllocateTexture(font, builder.Build());
 
 				IShaderResourceBinding srb;
 				lock (pSync)
 				{
-					if (pPipeline is null)
-						pPipeline = BuildPipeline();
+					pPipeline ??= BuildPipeline();
 
 					srb = pPipeline.CreateResourceBinding();
 				}
@@ -320,8 +323,7 @@ namespace REngine.RPI
 			if (string.IsNullOrEmpty(fontName))
 				throw new ArgumentNullException(nameof(fontName));
 
-			if (pPipeline is null)
-				pPipeline = BuildPipeline();
+			pPipeline ??= BuildPipeline();
 
 			pFonts.TryGetValue(Hash.Digest(fontName), out var fontEntry);
 
@@ -336,6 +338,8 @@ namespace REngine.RPI
 				pBufferProvider.GetBuffer(BufferGroupType.Object),
 				fontEntry.Font
 			);
+			batch.BatchNode = pBatches.AddLast(batch);
+			pBatchGroup.AddBatch(batch);
 			return batch;
 		}
 

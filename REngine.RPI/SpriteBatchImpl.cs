@@ -20,6 +20,7 @@ namespace REngine.RPI
 	{
 		private readonly SpriteSystem pSystem;
 		private readonly SpriteInstancedBatchSystem pInstancedBatchSystem;
+		private readonly ITextRenderer pTextRenderer;
 		private readonly IServiceProvider pServiceProvider;
 		private readonly EngineEvents pEngineEvents;
 		
@@ -29,11 +30,13 @@ namespace REngine.RPI
 			SpriteSystem system,
 			SpriteInstancedBatchSystem instanceBatchSystem,
 			IServiceProvider provider,
-			EngineEvents engineEvents)
+			EngineEvents engineEvents,
+			ITextRenderer textRenderer)
 		{
 			pSystem = system;
 			pInstancedBatchSystem = instanceBatchSystem;
 			pServiceProvider = provider;
+			pTextRenderer = textRenderer;
 
 			pEngineEvents = engineEvents;
 			engineEvents.OnBeforeStop += OnEngineStop;
@@ -66,6 +69,17 @@ namespace REngine.RPI
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo)
 		{
 			return pInstancedBatchSystem.CreateBatch(createInfo);
+		}
+
+		public TextRendererBatch CreateText(in TextCreateInfo createInfo)
+		{
+			pTextRenderer.SetFont(createInfo.Font);
+			var batch = pTextRenderer.CreateBatch(createInfo.Font.Name);
+			batch.Lock();
+			batch.Text = createInfo.Text;
+			batch.Color = createInfo.Color;
+			batch.Unlock();
+			return batch;
 		}
 	}
 #endif

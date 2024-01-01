@@ -21,7 +21,6 @@ namespace REngine.Sandbox.Samples.BasicSamples
 	internal class TextRendering(
 		ISpriteBatch spriteBatch,
 		IRenderer renderer,
-		ITextRenderer textRenderer,
 		IImGuiSystem imGuiSystem,
 		IAssetManager assetManager) : ISample
 	{
@@ -33,6 +32,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		private TextRendererBatch? pBatch;
 
 		private int pTextSize = 0;
+		private bool pEnabled = true;
 		private float pHorizontalSpacing = 0;
 		private float pVerticalSpacing = 0;
 		private string pText = string.Empty;
@@ -54,19 +54,21 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 			if (Window is null)
 				return;
-			
-			//renderer.AddFeature(pSpriteFeature = spriteBatch.Feature);
+
+			pSpriteFeature = spriteBatch.CreateRenderFeature();
+			renderer.AddFeature(pSpriteFeature);
 
 			// Load Font
 			var fontAsset = assetManager.GetAsset<FontAsset>("Fonts/Anonymous-Pro.ttf");
-			pBatch = textRenderer.SetFont(fontAsset.Font).CreateBatch(fontAsset.Font.Name);
-			pBatch.Text = pText = "Hello World";
-			pTextSize = (int)pBatch.Size;
+			pBatch = spriteBatch.CreateText(new TextCreateInfo(fontAsset.Font)
+			{
+				Text = pText = "Hello World",
+				FontSize = 16
+			});
+			pTextSize = 16;
 			
 			pHorizontalSpacing = pBatch.HorizontalSpacing;
 			pVerticalSpacing = pBatch.VerticalSpacing;
-
-			//spriteBatch.OnDraw += OnDraw;
 
 			pColor = pBatch.Color.ToVector4();
 
@@ -76,6 +78,23 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 		public void Update(IServiceProvider provider)
 		{
+			if (pBatch is null || Window is null)
+				return;
+			
+			pBatch.Lock();
+			var bounds = pBatch.TextBounds;
+			pBatch.Enabled = pEnabled;
+			pBatch.Size = (uint)pTextSize;
+			pBatch.HorizontalSpacing = pHorizontalSpacing;
+			pBatch.VerticalSpacing = pVerticalSpacing;
+			pBatch.Text = pText;
+			pBatch.Color = pColor.ToColor();
+			pBatch.Position = new Vector2(
+				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
+				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
+			);
+			pLastBounds = pBatch.Bounds;
+			pBatch.Unlock();
 		}
 
 		private bool pDrawTextBounds = false;
@@ -120,36 +139,6 @@ namespace REngine.Sandbox.Samples.BasicSamples
 				new Vector2(max.X, max.Y),
 				color
 			);
-		}
-
-		private void OnDraw(object? sender, EventArgs e)
-		{
-			if(pBatch is null || Window is null) return;
-
-			// ImGui can run in our thread, we must lock this values before read
-			lock (pSync)
-			{
-				// Any slight changes to this properties will force
-				// bound box changes, in this case we must 
-				// be carefully while is reading bounding box
-				// because this property will trigger text calculation
-				pBatch.Size = (uint)pTextSize;
-				pBatch.HorizontalSpacing = pHorizontalSpacing;
-				pBatch.VerticalSpacing = pVerticalSpacing;
-				pBatch.Text = pText;
-				pBatch.Color = pColor.ToColor();
-			}
-
-			var bounds = pBatch.Bounds;
-			pBatch.Position = new Vector2(
-				(Window.Size.Width * 0.5f) - (bounds.Width * 0.5f),
-				(Window.Size.Height * 0.5f) - (bounds.Height * 0.5f)
-			);
-
-			lock (pSync)
-				pLastBounds = pBatch.Bounds;
-
-			//spriteBatch.Draw(pBatch);
 		}
 	}
 #endif
