@@ -53,7 +53,7 @@ namespace REngine.Core.Threading.Nodes
 				}
 				catch (Exception e)
 				{
-					pCaughtException = e;
+					pCaughtException = new Exception(e.Message, e);
 				}
 				pManualResetEvent.Set();
 #if PROFILER

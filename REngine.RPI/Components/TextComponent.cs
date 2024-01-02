@@ -20,7 +20,7 @@ namespace REngine.RPI.Components
 		private uint pFontSize;
 		private float pHorizontalSpacing;
 		private float pVerticalSpacing;
-		private Color pColor;
+		private Color pColor = Color.White;
 		private Font? pFont;
 
 		public string Text

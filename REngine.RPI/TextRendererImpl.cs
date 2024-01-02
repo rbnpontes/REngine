@@ -65,6 +65,7 @@ namespace REngine.RPI
 
 			protected override void OnDispose()
 			{
+				pRenderer.pBatchGroup.Lock();
 				lock (pRenderer.pSync)
 				{
 					pRenderer.pBatchGroup.RemoveBatch(this);
@@ -72,6 +73,7 @@ namespace REngine.RPI
 						pRenderer.pBatches.Remove(BatchNode);
 					BatchNode = null;
 				}
+				pRenderer.pBatchGroup.Unlock();
 			}
 		}
 
@@ -330,6 +332,7 @@ namespace REngine.RPI
 			if (fontEntry is null)
 				throw new NullReferenceException($"Font '{fontName}' not found. Did you call SetFont method first ?");
 
+			pBatchGroup.Lock();
 			var batch = new InternalBatch(
 				this,
 				pDevice,
@@ -340,6 +343,7 @@ namespace REngine.RPI
 			);
 			batch.BatchNode = pBatches.AddLast(batch);
 			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
 			return batch;
 		}
 

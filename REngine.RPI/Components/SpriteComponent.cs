@@ -52,10 +52,9 @@ namespace REngine.RPI.Components
 
 		private void BeginUpdate(IExecutionPipeline pipeline)
 		{
-			if (pTransform is null || IsDisposed)
+			if (IsDisposed)
 				return;
-			
-			pTransform.GetSnapshot(out var currSnapshot);
+			Transform.GetSnapshot(out var currSnapshot);
 			if (!pLastSnapshot.Equals(currSnapshot))
 			{
 				pLastSnapshot = currSnapshot;

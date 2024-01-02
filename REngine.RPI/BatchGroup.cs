@@ -141,7 +141,8 @@ public sealed class BatchGroup : IEnumerable<Batch>
 #endif
         if (pAvailableIndexes.Count == pBatches.Count)
             yield break;
-        foreach (var batch in pBatches.OfType<Batch>())
+        var batches = pBatches.ToArray();
+        foreach (var batch in batches.OfType<Batch>())
             yield return batch;
     }
 

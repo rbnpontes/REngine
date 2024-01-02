@@ -36,7 +36,7 @@ public sealed class SpriteSystem(
             lock (system.pSync)
                 sprite = system.pData[id].RefSprite;
 
-            if (sprite is null)
+            if (sprite is null || sprite.IsDisposed)
                 return;
 
             sprite.Lock();
