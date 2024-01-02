@@ -80,6 +80,7 @@ public sealed class SpriteSystem(
     public Sprite Create(SpriteEffect? effect)
     {
         Sprite sprite;
+        pBatchGroup.Lock();
         lock (pSync)
         {
             var id = Acquire();
@@ -97,12 +98,14 @@ public sealed class SpriteSystem(
                 BatchIndex = pBatchGroup.AddBatch(batch)
             };
         }
+        pBatchGroup.Unlock();
 
         return sprite;
     }
 
     public void Destroy(int id)
     {
+        pBatchGroup.Lock();
         lock (pSync)
         {
 #if DEBUG
@@ -116,6 +119,7 @@ public sealed class SpriteSystem(
             pBatchGroup.RemoveBatch(data.BatchIndex);
             pAvailableIdx.Enqueue(id);
         }
+        pBatchGroup.Unlock();
     }
 
     public void DestroyBatches()

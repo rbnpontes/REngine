@@ -76,7 +76,7 @@ namespace REngine.Sandbox.PongGame.States
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
-			sprite.Effect = new RoundedTextureEffect(provider);
+			sprite.Effect = new RoundedEffect(provider);
 
 			pRoot.AddChild(pBall);
 			pRoot.AddChild(pBar);

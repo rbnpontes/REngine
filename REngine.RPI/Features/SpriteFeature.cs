@@ -43,7 +43,10 @@ public sealed class SpriteFeature(
             DefaultDepthStencil = depthbuffer,
             CommandBuffer = command
         };
+        
+        pBatchGroup.Lock();
         foreach (var batch in pBatchGroup)
             batch.Render(batchRenderInfo);
+        pBatchGroup.Unlock();
     }
 }

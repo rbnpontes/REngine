@@ -1,40 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <pipeline>
-	<step id="@engine/frame">
-		<step id="@engine/update_begin">
-			<!-- Message Loop must be executed at Main Thread-->
-			<step id="@wndmgr/update"/>
-			<step id="@scenemgt/update_cameras"/>
-			
-<!--			<task id="@spritebatch/task" end="@render/begin">-->
-<!--				<step id="@spritebatch/draw"/>-->
-<!--				<step id="@spritebatch/build_tex"/>-->
-<!--			</task>-->
-			<deferred target="@vars/@imgui/update_rate">
-				<step id="@imgui/draw"/>
-			</deferred>
-		</step>
-		<step id="@engine/update"/>
-		<step id="@engine/update_end"/>
-		<step id="@render/begin"/>
-		<step id="@render"/>
-		<step id="@render/end">
-			<!--
-				This task will be used to Remove, Insert and Sort
-				Render Features, this can be an expensive task
-				and must execute when it needs
-			-->
-			<if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal">
-				<task id="@render/prepare" end="@render"></task>
-			</if>
-<!--			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>-->
-			<step id="@wndmgr/invalidate"/>
-			<!-- 
-				SwapChain Present must be called at Main Thread
-				If you need this parallelized, you can do but
-				you will deal with unexpected issues on Windows
-			-->
-			<step id="@render/swapchain_present"/>
-		</step>
-	</step>
+    <step id="@engine/frame">
+        <!-- Message Loop must be executed at Main Thread-->
+        <step id="@wndmgr/update"/>
+        <task id="@engine/gameloop" end="@engine/frame">
+            <step id="@engine/update_begin">
+                <step id="@scenemgt/update_cameras"/>
+                <deferred target="@vars/@imgui/update_rate">
+                    <step id="@imgui/draw"/>
+                </deferred>
+            </step>
+            <step id="@engine/update"/>
+            <step id="@engine/update_end"/>
+        </task>
+        <step id="@render/begin"/>
+        <step id="@render"/>
+        <step id="@render/end">
+            <!--
+                This task will be used to Remove, Insert and Sort
+                Render Features, this can be an expensive task
+                and must execute when it needs
+            -->
+            <if id="render_needs_prepare_condition" test="@vars/@render/needs_prepare" compare="Equal">
+                <task id="@render/prepare" end="@render"></task>
+            </if>
+            <!--			<task id="@spritebatch/organize_instance" end="@spritebatch/draw"/>-->
+            <step id="@wndmgr/invalidate"/>
+            <!-- 
+                SwapChain Present must be called at Main Thread
+                If you need this parallelized, you can do but
+                you will deal with unexpected issues on Windows
+            -->
+            <step id="@render/swapchain_present"/>
+        </step>
+    </step>
 </pipeline>

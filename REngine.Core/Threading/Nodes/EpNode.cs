@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace REngine.Core.Threading.Nodes
 	internal abstract class EpNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider)
 	{
 		private readonly object pSync = new();
-		private readonly HashSet<Action<IExecutionPipeline>> pEvents = new();
+		private readonly ConcurrentDictionary<int, Action<IExecutionPipeline>> pEvents = new();
 		protected readonly ExecutionPipelineImpl ExecutionPipeline = execPipeline;
 		protected readonly IServiceProvider ServiceProvider = provider;
 
@@ -26,14 +27,12 @@ namespace REngine.Core.Threading.Nodes
 
 		public virtual void AddEvent(Action<IExecutionPipeline> listener)
 		{
-			lock(pSync)
-				pEvents.Add(listener);
+			pEvents.TryAdd(listener.GetHashCode(), listener);
 		}
 
 		public virtual void RemoveEvent(Action<IExecutionPipeline> listener)
 		{
-			lock (pSync)
-				pEvents.Remove(listener);
+			pEvents.Remove(listener.GetHashCode(), out var _);
 		}
 
 		public virtual void Execute()
@@ -51,8 +50,7 @@ namespace REngine.Core.Threading.Nodes
 
 		public virtual void ClearEvents()
 		{
-			lock (pSync)
-				pEvents.Clear();
+			pEvents.Clear();
 		}
 
 		/// <summary>
@@ -73,7 +71,7 @@ namespace REngine.Core.Threading.Nodes
 
 		private void ExecuteEventCalls()
 		{
-			var collection = pEvents.ToArray();
+			var collection = pEvents.Values.ToArray();
 			foreach (var evtCall in collection)
 			{
 				ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();

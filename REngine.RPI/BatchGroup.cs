@@ -5,11 +5,28 @@ namespace REngine.RPI;
 
 public sealed class BatchGroup : IEnumerable<Batch>
 {
+    private readonly object pSync = new();
     private readonly Queue<int> pAvailableIndexes = new Queue<int>();
     private readonly List<Batch?> pBatches = [];
 
+    private bool pIsLocked;
+
     public int NumBatches => pBatches.Count - pAvailableIndexes.Count;
 
+    public void Lock()
+    {
+        Monitor.Enter(pSync);
+        pIsLocked = true;
+    }
+
+    public void Unlock()
+    {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
+        pIsLocked = false;
+        Monitor.Exit(pSync);
+    }
     /// <summary>
     /// Insert a Batch into Group and return their index
     /// </summary>
@@ -17,6 +34,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// <returns></returns>
     public int AddBatch(Batch batch)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         int idx;
         if (pAvailableIndexes.Count == 0)
         {
@@ -38,6 +58,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// <param name="batchIndex"></param>
     public void RemoveBatch(int batchIndex)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         ExceptionUtils.ThrowIfOutOfBounds(batchIndex, pBatches.Count);
         pBatches[batchIndex] = null;
         pAvailableIndexes.Enqueue(batchIndex);
@@ -50,6 +73,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// <param name="batch"></param>
     public void RemoveBatch(Batch batch)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         RemoveBatch(pBatches.IndexOf(batch));
     }
 
@@ -58,6 +84,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// </summary>
     public void Reset()
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         pAvailableIndexes.Clear();
         for (var i = 0; i < pBatches.Count; ++i)
         {
@@ -70,12 +99,18 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// </summary>
     public void Clear()
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         pBatches.Clear();
         pAvailableIndexes.Clear();
     }
 
     public Batch GetBatch(int batchIdx)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         ExceptionUtils.ThrowIfOutOfBounds(batchIdx, pBatches.Count);
         if (pAvailableIndexes.Count == pBatches.Count) 
             ThrowException();
@@ -91,6 +126,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     
     public void ForEach(Action<Batch> callback)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         if (pAvailableIndexes.Count == pBatches.Count)
             return;
         foreach (var batch in pBatches.OfType<Batch>())
@@ -98,6 +136,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
     }
     public IEnumerator<Batch> GetEnumerator()
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         if (pAvailableIndexes.Count == pBatches.Count)
             yield break;
         foreach (var batch in pBatches.OfType<Batch>())
@@ -108,4 +149,11 @@ public sealed class BatchGroup : IEnumerable<Batch>
     {
         return GetEnumerator();
     }
+
+    private void ValidateLock()
+    {
+        if (!pIsLocked)
+            throw new Exception($"{nameof(BatchGroup)} must lock first");
+    }
+    
 }

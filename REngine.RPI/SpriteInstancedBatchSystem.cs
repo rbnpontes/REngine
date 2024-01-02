@@ -209,6 +209,7 @@ public sealed class SpriteInstancedBatchSystem(
     public InstancedSprite CreateBatch(SpriteInstancedCreateInfo createInfo)
     {
         InstancedSprite sprite;
+        pBatchGroup.Lock();
         lock (pSync)
         {
             SpriteBufferType bufferType;
@@ -253,11 +254,13 @@ public sealed class SpriteInstancedBatchSystem(
                 Items = new SpriteInstanceBatchElement[createInfo.NumInstances],
             };
         }
+        pBatchGroup.Unlock();
 
         return sprite;
     }
     public void DestroyBatch(int id)
     {
+        pBatchGroup.Lock();
         lock (pSync)
         {
 #if DEBUG
@@ -272,6 +275,7 @@ public sealed class SpriteInstancedBatchSystem(
             pBatchGroup.RemoveBatch(pData[id].BatchIndex);
             pAvailableIdx.Enqueue(id);
         }
+        pBatchGroup.Unlock();
     }
     public void DestroyBatches()
     {
