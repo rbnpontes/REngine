@@ -57,6 +57,7 @@ namespace REngine.Core.WorldManagement
 		public Vector2 Scale;
 		public Matrix4x4 CachedTransformMatrix;
 		public Matrix4x4 CachedWorldTransformMatrix;
+		public int CachedZIndex;
 		public RectangleF Bounds;
 		public float WorldRotation;
 		public int ParentId;
@@ -71,6 +72,7 @@ namespace REngine.Core.WorldManagement
 			ZIndex = 0;
 			Scale = Vector2.One;
 			
+			CachedZIndex = 0;
 			CachedTransformMatrix = Matrix4x4.Identity;
 			CachedWorldTransformMatrix = Matrix4x4.Identity;
 			Bounds = RectangleF.Empty;
@@ -171,13 +173,28 @@ namespace REngine.Core.WorldManagement
 		{
 			lock (pSync)
 			{
-#if DEBUG
+#if RENGINE_VALIDATIONS
 				ValidateComponent(transform);
 #endif
 				var data = pData[transform.Id];
 				zIndex = data.ZIndex;
 			}
 		}
+
+		public void GetWorldZIndex(int id, out int zindex)
+		{
+			lock (pSync)
+			{
+#if RENGINE_VALIDATIONS
+				ValidateId(id);
+#endif
+				var data = pData[id];
+				if (pData[id].Dirty)
+					UpdateTransforms(id);
+				zindex = data.CachedZIndex;
+			}
+		}
+		
 		public void SetZIndex(Transform2D transform, int zIndex)
 		{
 			lock (pSync)
@@ -401,7 +418,7 @@ namespace REngine.Core.WorldManagement
 				output = new Transform2DSnapshot()
 				{
 					Position = data.Position,
-					ZIndex = data.ZIndex,
+					ZIndex = data.CachedZIndex,
 					Rotation = data.Rotation,
 					Scale = data.Scale,
 					WorldPosition = new Vector2(worldPos.X, worldPos.Y),
@@ -431,12 +448,14 @@ namespace REngine.Core.WorldManagement
 			                             * Matrix4x4.CreateTranslation(new Vector3(data.Position, data.ZIndex));
 
 			data.CachedWorldTransformMatrix = data.CachedTransformMatrix;
+			data.CachedZIndex = data.ZIndex;
 			data.WorldRotation = data.Rotation;
 			if (data.ParentId >= 0)
 			{
 				UpdateTransforms(data.ParentId);
 				var parent = pData[data.ParentId];
 				data.CachedWorldTransformMatrix = data.CachedTransformMatrix * parent.CachedWorldTransformMatrix;
+				data.CachedZIndex = parent.CachedZIndex + data.ZIndex;
 				data.WorldRotation = parent.WorldRotation + data.Rotation;
 			}
 

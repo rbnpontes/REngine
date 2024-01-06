@@ -29,6 +29,12 @@ public sealed class SpriteSystem(
         IBuffer constantBuffer,
         RenderState renderState) : QuadBatch
     {
+        public override int GetSortIndex()
+        {
+            lock(system.pSync)
+                return (int)Mathf.FloatToInt(system.pData[id].Position.Z);
+        }
+
         public override void Render(BatchRenderInfo batchRenderInfo)
         {
             var command = batchRenderInfo.CommandBuffer;
@@ -52,10 +58,12 @@ public sealed class SpriteSystem(
             ShaderResourceBinding = sprite.Effect.OnGetShaderResourceBinding();
 
             var effect = sprite.Effect;
+            var pos = sprite.Position;
+            pos.Z = pos.Z / ushort.MaxValue;
             var gpuData = new GpuData
             {
                 Transform = MatrixUtils.GetSpriteTransform(
-                    sprite.Position,
+                    pos,
                     sprite.Anchor,
                     sprite.Angle,
                     sprite.Size
@@ -95,7 +103,7 @@ public sealed class SpriteSystem(
             pData[id] = new SpriteBatchItem(effect)
             {
                 RefSprite = sprite,
-                BatchIndex = pBatchGroup.AddBatch(batch)
+                Batch = pBatchGroup.AddBatch(batch)
             };
         }
         pBatchGroup.Unlock();
@@ -116,7 +124,7 @@ public sealed class SpriteSystem(
                 return;
             data.RefSprite.Dispose();
             data.RefSprite = null;
-            pBatchGroup.RemoveBatch(data.BatchIndex);
+            pBatchGroup.RemoveBatch(data.Batch);
             pAvailableIdx.Enqueue(id);
         }
         pBatchGroup.Unlock();

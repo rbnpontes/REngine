@@ -21,7 +21,7 @@ public struct SpriteBatchItem(SpriteEffect effect)
     public Color Color = Color.Black;
     public float Angle = 0f;
     public bool Enabled = true;
-    public int BatchIndex = -1;
+    public Batch? Batch;
     
     public SpriteEffect Effect = effect;
     public Sprite? RefSprite = null;
@@ -45,7 +45,7 @@ public struct SpriteInstanceBatchItem(IBuffer instancingBuffer, InstancedSpriteE
     public Color Color = Color.Black;
     public bool DirtyInstances = true;
     public SpriteBufferType BufferType;
-    public int BatchIndex = -1;
+    public Batch? Batch;
     public InstancedSpriteEffect Effect = effect;
     public IBuffer InstanceBuffer = instancingBuffer;
     public InstancedSprite? RefSprite = null;

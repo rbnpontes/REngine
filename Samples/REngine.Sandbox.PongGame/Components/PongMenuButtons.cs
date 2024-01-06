@@ -63,6 +63,7 @@ namespace REngine.Sandbox.PongGame.Components
 			if (Owner is null)
 				return;
 
+			Transform.ZIndex = 1;
 			List<SpriteComponent> components = new();
 			var buttonCount = OnGetButtonCount();
 			for (var i = 0; i < buttonCount; ++i)
@@ -84,6 +85,7 @@ namespace REngine.Sandbox.PongGame.Components
 
 				var transform = pButtons[i].Transform;
 				transform.Position = pos;
+				transform.ZIndex = 1 + i;
 
 				pBounds = pBounds.Merge(transform.Bounds);
 			}
@@ -102,7 +104,7 @@ namespace REngine.Sandbox.PongGame.Components
 
 			var size = mMainWindow.Size.ToVector2() * 0.5f;
 			Transform.Position = size - PongVariables.MenuTextureHalfSize with { Y = pBounds.Height * 0.5f };
-
+			
 			if (pSelectedSprite == -1)
 				return;
 
@@ -120,6 +122,7 @@ namespace REngine.Sandbox.PongGame.Components
 			sprite.Color = Color.White;
 			sprite.Effect = effect;
 			transform.Scale = PongVariables.MenuTextureSize;
+			transform.ZIndex = spriteEntity.Id;
 
 			sprite.OnMouseOver += HandleMsOver;
 			sprite.OnMouseOut += HandleMsOut;

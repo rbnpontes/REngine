@@ -84,5 +84,12 @@ namespace REngine.Core.Mathematics
 		{
 			return (float)Fract((double)value);
 		}
+
+		// Convert byte data into integer. This does not work as boxing
+		// This literally gets bits and converts to int
+		public static unsafe int FloatToInt(float value)
+		{
+			return *(int*)(&value);
+		}
 	}
 }

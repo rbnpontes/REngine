@@ -160,7 +160,7 @@ namespace REngine.RPI.Components
 		{
 			sprite.Lock();
 			sprite.Anchor = pAnchor;
-			sprite.Position = new Vector3(Transform.WorldPosition, Transform.ZIndex);
+			sprite.Position = new Vector3(Transform.WorldPosition, Transform.WorldZIndex);
 			sprite.Angle = Transform.WorldRotation;
 			sprite.Size = Transform.Scale;
 			if (pEffect is not null)

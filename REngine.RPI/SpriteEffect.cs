@@ -83,6 +83,7 @@ namespace REngine.RPI
             desc.PrimitiveType = PrimitiveType.TriangleStrip;
             desc.RasterizerState.CullMode = CullMode.Both;
             desc.DepthStencilState.EnableDepth = false;
+            desc.DepthStencilState.DepthWriteEnabled = false;
 
             desc.Shaders.VertexShader = OnGetShader(ShaderType.Vertex);
             desc.Shaders.PixelShader = OnGetShader(ShaderType.Pixel);

@@ -241,7 +241,7 @@ namespace REngine.RHI.NativeDriver
 				{
 					// Prefer Integrated over Software
 					var adapter = adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Integrated);
-					return adapter ?? adapters.First(x => x.AdapterType == AdapterType.Software);
+					return adapter ?? adapters.FirstOrDefault(x => x.AdapterType == AdapterType.Software) ?? adapters[0];
 				}
 
 				// Sort Adapters by their Total Memory, then pick adapter with the highest memory

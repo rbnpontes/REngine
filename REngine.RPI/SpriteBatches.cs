@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using REngine.Core.Mathematics;
 using REngine.RHI;
 using REngine.RPI.Structs;
 
@@ -7,7 +8,11 @@ namespace REngine.RPI;
 
 public abstract class BaseSprite(int id) : IDisposable
 {
-    private bool pIsLocked = false;
+    private bool pIsLocked;
+#if DEBUG
+    private string pThreadLockName = string.Empty;
+    private ulong pThreadId;
+#endif
 
     public int Id
     {
@@ -26,26 +31,39 @@ public abstract class BaseSprite(int id) : IDisposable
     {
         if (IsDisposed)
             return;
-        IsDisposed = true;
-        OnDispose();
+        lock (GetObjectSync())
+        {
+#if DEBUG
+            pThreadLockName = Thread.CurrentThread.Name ?? "Unknown Thread";
+            pThreadId = Hash.Digest(pThreadLockName);
+#endif
+            IsDisposed = true;
+            OnDispose();
+        }
+        
+        GC.SuppressFinalize(this);
     }
 
     public void Lock()
     {
-#if RENGINE_VALIDATIONS
-        ValidateDispose();
+        Core.Threading.Monitor.Enter(GetObjectSync());
+#if DEBUG
+        pThreadLockName = Thread.CurrentThread.Name ?? "Unknown Thread";
+        pThreadId = Hash.Digest(pThreadLockName);
 #endif
-        Monitor.Enter(GetObjectSync());
         pIsLocked = true;
     }
 
     public void Unlock()
     {
 #if RENGINE_VALIDATIONS
-        ValidateDispose();
         ValidateLock();
 #endif
-        Monitor.Exit(GetObjectSync());
+#if DEBUG
+        pThreadLockName = string.Empty;
+        pThreadId = 0;
+#endif
+        Core.Threading.Monitor.Exit(GetObjectSync());
         pIsLocked = false;
     }
 
@@ -57,8 +75,7 @@ public abstract class BaseSprite(int id) : IDisposable
 
     protected void ValidateDispose()
     {
-        if (IsDisposed)
-            throw new ObjectDisposedException("Batch is already disposed");
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
     }
 
     protected abstract object GetObjectSync();

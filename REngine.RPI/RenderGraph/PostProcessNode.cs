@@ -13,7 +13,7 @@ namespace REngine.RPI.RenderGraph
 	{
 		private static readonly ulong sInputSlotHash = Hash.Digest("input");
 
-		private static readonly ulong[] sExpectedWriteResources = { BackBufferSlotHash, DepthBufferSlotHash };
+		private static readonly ulong[] sExpectedWriteResources = { BackBufferSlotHash };
 		private static readonly ulong[] sExpectedReadResources = { sInputSlotHash };
 
 		private IResource? pReadTexture;
@@ -53,21 +53,6 @@ namespace REngine.RPI.RenderGraph
 					writeRt = writeRt?.Parent.GetDefaultView(TextureViewType.RenderTarget);
 
 				pFeature.WriteRT = writeRt;
-			}
-
-			if (DepthBufferResource?.Value != null)
-			{
-				var depthStencil = DepthBufferResource.Value switch
-				{
-					ITexture value => value.GetDefaultView(TextureViewType.DepthStencil),
-					ITextureView valueView => valueView,
-					_ => null
-				};
-
-				if (depthStencil?.ViewType != TextureViewType.DepthStencil)
-					depthStencil = depthStencil?.Parent.GetDefaultView(TextureViewType.DepthStencil);
-
-				pFeature.DepthStencil = depthStencil;
 			}
 
 			base.OnRun(provider);

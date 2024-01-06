@@ -1,4 +1,5 @@
 using System.Collections;
+using REngine.Core.Mathematics;
 using REngine.Core.Utils;
 
 namespace REngine.RPI;
@@ -9,13 +10,22 @@ public sealed class BatchGroup : IEnumerable<Batch>
     private readonly Queue<int> pAvailableIndexes = new Queue<int>();
     private readonly List<Batch?> pBatches = [];
 
+#if DEBUG
+    private string pThreadLockName = string.Empty;
+    private ulong pThreadId;
+#endif
     private bool pIsLocked;
-
+    private ulong pSortKey;
+    
     public int NumBatches => pBatches.Count - pAvailableIndexes.Count;
 
     public void Lock()
     {
-        Monitor.Enter(pSync);
+        Core.Threading.Monitor.Enter(pSync);
+#if DEBUG
+        pThreadLockName = Thread.CurrentThread.Name ?? "Unknown Thread";
+        pThreadId = Hash.Digest(pThreadLockName);
+#endif
         pIsLocked = true;
     }
 
@@ -24,15 +34,19 @@ public sealed class BatchGroup : IEnumerable<Batch>
 #if RENGINE_VALIDATIONS
         ValidateLock();
 #endif
+#if DEBUG
+        pThreadLockName = string.Empty;
+        pThreadId = 0;
+#endif
         pIsLocked = false;
-        Monitor.Exit(pSync);
+        Core.Threading.Monitor.Exit(pSync);
     }
     /// <summary>
     /// Insert a Batch into Group and return their index
     /// </summary>
     /// <param name="batch"></param>
     /// <returns></returns>
-    public int AddBatch(Batch batch)
+    public Batch AddBatch(Batch batch)
     {
 #if RENGINE_VALIDATIONS
         ValidateLock();
@@ -49,7 +63,9 @@ public sealed class BatchGroup : IEnumerable<Batch>
             pBatches[idx] = batch;
         }
 
-        return idx;
+        pSortKey = 0;
+        batch.Id = idx;
+        return batch;
     }
 
     /// <summary>
@@ -58,11 +74,14 @@ public sealed class BatchGroup : IEnumerable<Batch>
     /// <param name="batchIndex"></param>
     public void RemoveBatch(int batchIndex)
     {
+        if (batchIndex == -1)
+            return;
 #if RENGINE_VALIDATIONS
         ValidateLock();
 #endif
         ExceptionUtils.ThrowIfOutOfBounds(batchIndex, pBatches.Count);
         pBatches[batchIndex] = null;
+        pSortKey = 0;
         pAvailableIndexes.Enqueue(batchIndex);
     }
 
@@ -76,7 +95,7 @@ public sealed class BatchGroup : IEnumerable<Batch>
 #if RENGINE_VALIDATIONS
         ValidateLock();
 #endif
-        RemoveBatch(pBatches.IndexOf(batch));
+        RemoveBatch(batch.Id);
     }
 
     /// <summary>
@@ -93,6 +112,8 @@ public sealed class BatchGroup : IEnumerable<Batch>
             pAvailableIndexes.Enqueue(i);
             pBatches[i] = null;
         }
+
+        pSortKey = 0;
     }
     /// <summary>
     /// Discards internal buffer, and clear stored batches
@@ -102,10 +123,59 @@ public sealed class BatchGroup : IEnumerable<Batch>
 #if RENGINE_VALIDATIONS
         ValidateLock();
 #endif
+        pSortKey = 0;
         pBatches.Clear();
         pAvailableIndexes.Clear();
     }
 
+    public void Sort()
+    {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
+        var sortKey = CalculateSortKey();
+        if (sortKey == pSortKey)
+            return;
+        var batches = GetBatches();
+        pAvailableIndexes.Clear();
+        Array.Sort(batches);
+
+        for (var i = 0; i < pBatches.Count; ++i)
+        {
+            if (i < batches.Length)
+            {
+                batches[i].Id = i;
+                pBatches[i] = batches[i];
+            }
+            else
+                pAvailableIndexes.Enqueue(i);
+        }
+        
+        pSortKey = sortKey;
+    }
+
+
+    private ulong CalculateSortKey()
+    {
+        if (pAvailableIndexes.Count == pBatches.Count)
+            return 0;
+        var hash = 0ul;
+        var numIterations = pBatches.Count - pAvailableIndexes.Count;
+        var i = -1;
+        while (numIterations != 0)
+        {
+            ++i;
+            var batch = pBatches[i];
+            if (batch is null || batch.IsDisposed)
+                continue;
+
+            --numIterations;
+            hash = Hash.Combine(hash, (uint)batch.GetSortIndex());
+        }
+
+        return hash;
+    }
+    
     public Batch GetBatch(int batchIdx)
     {
 #if RENGINE_VALIDATIONS
@@ -124,16 +194,6 @@ public sealed class BatchGroup : IEnumerable<Batch>
         }
     }
     
-    public void ForEach(Action<Batch> callback)
-    {
-#if RENGINE_VALIDATIONS
-        ValidateLock();
-#endif
-        if (pAvailableIndexes.Count == pBatches.Count)
-            return;
-        foreach (var batch in pBatches.OfType<Batch>())
-            callback(batch);
-    }
     public IEnumerator<Batch> GetEnumerator()
     {
 #if RENGINE_VALIDATIONS
@@ -141,11 +201,44 @@ public sealed class BatchGroup : IEnumerable<Batch>
 #endif
         if (pAvailableIndexes.Count == pBatches.Count)
             yield break;
-        var batches = pBatches.ToArray();
-        foreach (var batch in batches.OfType<Batch>())
+
+        var numIterations = pBatches.Count - pAvailableIndexes.Count;
+        var i = -1;
+        while (numIterations != 0)
+        {
+            ++i;
+            var batch = pBatches[i];
+            if (batch is null || batch.IsDisposed)
+                continue;
+
+            --numIterations;
             yield return batch;
+        }
     }
 
+    public Batch[] GetBatches()
+    {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
+        var batches = new Batch[pBatches.Count - pAvailableIndexes.Count];
+        if (batches.Length == 0)
+            return batches;
+        
+        var nextId = 0;
+        foreach (var batch in pBatches.OfType<Batch>())
+        {
+            if(batch.IsDisposed)
+                continue;
+            batches[nextId] = batch;
+            ++nextId;
+            if (nextId == batches.Length)
+                break;
+        }
+
+        return batches;
+    }
+    
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -156,5 +249,4 @@ public sealed class BatchGroup : IEnumerable<Batch>
         if (!pIsLocked)
             throw new Exception($"{nameof(BatchGroup)} must lock first");
     }
-    
 }

@@ -157,7 +157,7 @@ public sealed class SpriteInstancedBatchSystem(
 
         private byte GetJobsCount()
         {
-            return (byte)Math.Clamp(renderSettings.SpriteBatchInstanceJobs, 1, execPipeline.JobsCount);
+            return (byte)Math.Clamp(renderSettings.SpriteBatchInstanceJobs, 1, Math.Max(execPipeline.JobsCount, (byte)1));
         }
         private void RenderSubset(ICommandBuffer command, int jobIdx, uint numInstances, BatchRenderInfo batchRenderInfo)
         {
@@ -250,7 +250,7 @@ public sealed class SpriteInstancedBatchSystem(
             {
                 BufferType = bufferType,
                 RefSprite = sprite,
-                BatchIndex = pBatchGroup.AddBatch(batch),
+                Batch = pBatchGroup.AddBatch(batch),
                 Items = new SpriteInstanceBatchElement[createInfo.NumInstances],
             };
         }
@@ -271,8 +271,8 @@ public sealed class SpriteInstancedBatchSystem(
                 return;
             data.RefSprite?.Dispose();
             data.RefSprite = null;
-            data.InstanceBuffer.Dispose();
-            pBatchGroup.RemoveBatch(pData[id].BatchIndex);
+            GpuObjects.AddToDispose(data.InstanceBuffer);
+            pBatchGroup.RemoveBatch(pData[id].Batch);
             pAvailableIdx.Enqueue(id);
         }
         pBatchGroup.Unlock();
@@ -315,7 +315,7 @@ public sealed class SpriteInstancedBatchSystem(
             if (pData[id].Items.Length == numInstances && pData[id].BufferType == bufferType)
                 return;
             
-            pData[id].InstanceBuffer.Dispose();
+            GpuObjects.AddToDispose(pData[id].InstanceBuffer);
             pData[id].InstanceBuffer =
                 bufferManager.GetInstancingBuffer((ulong)(numInstances * Unsafe.SizeOf<SpriteInstanceData>()), dynamic);
             pData[id].Items = new SpriteInstanceBatchElement[numInstances];

@@ -125,6 +125,8 @@ namespace REngine.RPI
 
 			IsDisposed = true;
 
+			GpuObjects.DisposeObjects();
+			
 			pRenderEvents.ExecuteDispose(this);
 
 			pFeatureCollection.Dispose();
@@ -134,6 +136,8 @@ namespace REngine.RPI
 			pEngineEvents.OnBeforeStop -= HandleEngineStop;
 
 			pRenderEvents.ExecuteDisposed(this);
+			
+			GpuObjects.DisposeObjects();
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
@@ -186,6 +190,7 @@ namespace REngine.RPI
 
 		public IRenderer Render()
 		{
+			GpuObjects.DisposeObjects();
 #if PROFILER
 			using var _ = Profiler.Instance.Begin($"{nameof(IRenderer)}.{nameof(Render)}");
 #endif

@@ -188,15 +188,16 @@ namespace REngine.RHI.NativeDriver
             return this;
         }
 
-        public ICommandBuffer SetRT(ITextureView rt, ITextureView depthStencil)
+        public ICommandBuffer SetRT(ITextureView rt, ITextureView? depthStencil)
         {
 #if RENGINE_VALIDATIONS
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             ValidateGpuObject(rt);
-            ValidateGpuObject(depthStencil);
+            if(depthStencil is not null)
+                ValidateGpuObject(depthStencil);
 #endif
             pCopyRenderTargetsPointers[0] = rt.Handle;
-            InternalSetRTs(1, depthStencil.Handle);
+            InternalSetRTs(1, depthStencil?.Handle ?? IntPtr.Zero);
             return this;
         }
 

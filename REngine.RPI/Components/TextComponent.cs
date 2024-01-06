@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
+using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 
@@ -17,6 +18,9 @@ namespace REngine.RPI.Components
 
 		private bool pDirtyProps;
 		private string pText = string.Empty;
+		// Text has is used to compare changes
+		private ulong pTextHash = 0;
+		
 		private uint pFontSize;
 		private float pHorizontalSpacing;
 		private float pVerticalSpacing;
@@ -28,7 +32,10 @@ namespace REngine.RPI.Components
 			get => pText;
 			set
 			{
-				pDirtyProps |= pText != value;
+				var hash = Hash.Digest(value);
+				pDirtyProps |= hash != pTextHash;
+
+				pTextHash = hash;
 				pText = value;
 			}
 		}
@@ -78,8 +85,7 @@ namespace REngine.RPI.Components
 				pTextRenderer.SetFont(value);
 			}
 		}
-		
-		public RectangleF Bounds => pBatch?.Bounds ?? new RectangleF();
+		public RectangleF Bounds { get; private set; } = new();
 
 		private void BuildBatch(Font font)
 		{
@@ -100,6 +106,8 @@ namespace REngine.RPI.Components
 			batch.HorizontalSpacing = pHorizontalSpacing;
 			batch.VerticalSpacing = pVerticalSpacing;
 			batch.Size = pFontSize;
+			batch.ZIndex = Transform.WorldZIndex;
+			Bounds = batch.Bounds;
 			batch.Unlock();
 
 			pDirtyProps = false;
@@ -116,7 +124,12 @@ namespace REngine.RPI.Components
 			}
 
 			if (!pDirtyProps)
+			{
+				pBatch.Lock();
+				Bounds = pBatch.Bounds;
+				pBatch.Unlock();
 				return;
+			}
 			
 			UpdateBatchProps(pBatch);
 		}

@@ -103,10 +103,21 @@ namespace REngine.Core.WorldManagement
 		{
 			get
 			{
+				ValidateDispose();
 				pSystem.GetZIndex(this, out var value);
 				return value;
 			}
 			set => pSystem.SetZIndex(this, value);
+		}
+
+		public int WorldZIndex
+		{
+			get
+			{
+				ValidateDispose();
+				pSystem.GetWorldZIndex(Id, out var value);
+				return value;
+			}
 		}
 
 		public float Rotation

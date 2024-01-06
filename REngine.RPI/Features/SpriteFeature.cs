@@ -45,6 +45,7 @@ public sealed class SpriteFeature(
         };
         
         pBatchGroup.Lock();
+        pBatchGroup.Sort();
         foreach (var batch in pBatchGroup)
             batch.Render(batchRenderInfo);
         pBatchGroup.Unlock();

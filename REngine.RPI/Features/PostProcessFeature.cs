@@ -15,7 +15,6 @@ namespace REngine.RPI.Features
 	{
 		private ITextureView? pReadTexture;
 		private ITextureView? pWriteRenderTarget;
-		private ITextureView? pDepthStencil;
 
 		private IPipelineState? pPipeline;
 		private IShaderResourceBinding? pBinding;
@@ -43,15 +42,6 @@ namespace REngine.RPI.Features
 				pWriteRenderTarget = value;
 			}
 		}
-		public ITextureView? DepthStencil
-		{
-			get => pDepthStencil;
-			set
-			{
-				IsDirty |= pDepthStencil != value;
-				pDepthStencil = value;
-			}
-		}
 		public override bool IsDirty { get; protected set; } = true;
 
 		public override IRenderFeature MarkAsDirty()
@@ -75,7 +65,7 @@ namespace REngine.RPI.Features
 
 			pReadTexture ??= setupInfo.RenderTargetManager.GetDummyTexture().GetDefaultView(TextureViewType.ShaderResource);
 			pWriteRenderTarget ??= setupInfo.Renderer.SwapChain?.ColorBuffer;
-			pDepthStencil ??= setupInfo.Renderer.SwapChain?.DepthBuffer;
+			//pDepthStencil ??= setupInfo.Renderer.SwapChain?.DepthBuffer;
 
 			OnSetBindings(pBinding, setupInfo.BufferManager);
 
@@ -91,7 +81,7 @@ namespace REngine.RPI.Features
 				return;
 
 			command
-				.SetRT(pWriteRenderTarget, pDepthStencil)
+				.SetRT(pWriteRenderTarget, null)
 				.SetPipeline(pPipeline)
 				.CommitBindings(pBinding)
 				.Draw(new DrawArgs()
@@ -113,8 +103,7 @@ namespace REngine.RPI.Features
 			else
 				desc.Output.RenderTargetFormats[0] = setupInfo.GraphicsSettings.DefaultColorFormat;
 
-			desc.Output.DepthStencilFormat = pDepthStencil is not null ? pDepthStencil.Desc.Format 
-				: setupInfo.GraphicsSettings.DefaultDepthFormat;
+			desc.Output.DepthStencilFormat = TextureFormat.Unknown;
 
 			desc.BlendState.BlendMode = BlendMode.Replace;
 			desc.PrimitiveType = PrimitiveType.TriangleList;

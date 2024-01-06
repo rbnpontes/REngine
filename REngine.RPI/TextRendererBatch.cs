@@ -118,6 +118,8 @@ namespace REngine.RPI
             }
         }
 
+        public int ZIndex { get; set; }
+
         public uint Size
         {
             get
@@ -218,8 +220,13 @@ namespace REngine.RPI
 
         public bool IsDisposed { get; private set; }
 
+
+        public override int GetSortIndex() => ZIndex;
+
         public override void Render(BatchRenderInfo batchRenderInfo)
         {
+            if (IsDisposed)
+                return;
             Lock();
             if (pEnabled)
                 Draw(batchRenderInfo.CommandBuffer);
@@ -354,7 +361,7 @@ namespace REngine.RPI
 
             if (requiredSize > (int)pVBuffer.Size)
             {
-                pVBuffer.Dispose();
+                GpuObjects.AddToDispose(pVBuffer);
                 pVBuffer = AllocateVBuffer();
                 return;
             }
@@ -382,11 +389,15 @@ namespace REngine.RPI
         {
             if (IsDisposed)
                 return;
-            IsDisposed = true;
-            OnDispose();
+            lock (pSync)
+            {
+                IsDisposed = true;
+                OnDispose();
 
-            pVBuffer?.Dispose();
-            pVBuffer = null;
+                pVBuffer = null;
+                GpuObjects.AddToDispose(pVBuffer);
+            }
+            
             GC.SuppressFinalize(this);
         }
 
@@ -394,22 +405,30 @@ namespace REngine.RPI
         {
         }
 
+#if DEBUG
+        private string pThreadLockName = string.Empty;
+        private ulong pThreadId;
+#endif
         public void Lock()
         {
-#if RENGINE_VALIDATIONS
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            Core.Threading.Monitor.Enter(pSync);
+#if DEBUG
+            pThreadLockName = Thread.CurrentThread.Name ?? "Unknown Thread";
+            pThreadId = Hash.Digest(pThreadLockName);
 #endif
-            Monitor.Enter(pSync);
             pIsLocked = true;
         }
 
         public void Unlock()
         {
 #if RENGINE_VALIDATIONS
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
             ValidateLock();
 #endif
-            Monitor.Exit(pSync);
+#if DEBUG
+            pThreadLockName = string.Empty;
+            pThreadId = 0;   
+#endif
+            Core.Threading.Monitor.Exit(pSync);
         }
 
         private void ValidateLock()

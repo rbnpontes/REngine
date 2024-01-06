@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.IO;
+using REngine.Core.Mathematics;
 
 namespace REngine.Core.Threading
 {
@@ -99,19 +100,23 @@ namespace REngine.Core.Threading
 				{
 					if (token.IsCancellationRequested)
 						break;
-					try
-					{
-						action();
-					}
-					catch (Exception ex)
-					{
-						pLogger.Error(ex);
-					}
+					action();
 				}
 
+#if RENGINE_DEBUGLOCKS
+				if (Monitor.GetLockCount() != 0)
+				{
+					var threadId = Hash.Digest(Thread.CurrentThread.Name ?? "Unknown Thread");
+					var output = new StringBuilder();
+					Monitor.Dump(output);
+					pLogger.Critical(
+						$"There's mutex that has not been released: \nCurrent Thread: {threadId}\nOutput: {output}");
+				}
+#endif
 				var threadSleepMs = pThreadSleepMs;
 				if(threadSleepMs > 0)
 					Thread.Sleep(threadSleepMs);
+				
 #if PROFILER
 				Profiler.Instance.EndTask(threadName);
 #endif

@@ -185,7 +185,7 @@ namespace REngine.Sandbox.PongGame.States
 
 				UpdateBall(deltaTime);
 				UpdateBar();
-				UpdateScoreTextPosition();
+				UpdateScoreUi();
 
 				ComputeBarCollision();
 				ComputeScreenCollisions();
@@ -333,9 +333,6 @@ namespace REngine.Sandbox.PongGame.States
 				
 				if (PongVariables.BackgroundAudio != null)
 					PongVariables.BackgroundAudio.Pitch = progress * PongVariables.MaxPitch;
-
-				if(pText != null)
-					pText.Text = $"Score: {PongVariables.Score}";
 #if PROFILER
 			}
 #endif
@@ -356,11 +353,18 @@ namespace REngine.Sandbox.PongGame.States
 				mainWindow.Size.Height - PongVariables.BarSize.Y);
 			pBar.Position = pos;
 		}
-		private void UpdateScoreTextPosition()
+
+
+		private int pLastScore;
+		private void UpdateScoreUi()
 		{
 			if (pTextTransform is null || pText is null)
 				return;
 
+			if(pLastScore != PongVariables.Score)
+				pText.Text = $"Score: {PongVariables.Score}";
+			pLastScore = PongVariables.Score;
+			
 			var bounds = pText.Bounds;
 			var size = mainWindow.Size;
 			pTextTransform.Position = new Vector2(

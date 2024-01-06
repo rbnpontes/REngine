@@ -1,3 +1,4 @@
+using System.Numerics;
 using REngine.RHI;
 using ValueType = REngine.RHI.ValueType;
 
@@ -9,11 +10,30 @@ public struct BatchRenderInfo
     public ITextureView DefaultDepthStencil;
     public ICommandBuffer CommandBuffer;
 }
-public abstract class Batch
+public abstract class Batch : IComparable<Batch>, IDisposable
 {
+    public int Id { get; internal set; }
+    public bool IsDisposed { get; private set; }
     public IPipelineState? PipelineState { get; set; }
     public IShaderResourceBinding? ShaderResourceBinding { get; set; }
     public abstract void Render(BatchRenderInfo batchRenderInfo);
+    public virtual int CompareTo(Batch? other)
+    {
+        return GetSortIndex() - (other?.GetSortIndex() ?? 0);
+    }
+
+    public virtual int GetSortIndex() => 0;
+
+    public void Dispose()
+    {
+        if (IsDisposed)
+            return;
+        IsDisposed = true;
+        OnDispose();
+        Id = -1;
+    }
+
+    protected virtual void OnDispose(){}
 }
 
 public class QuadBatch : Batch
