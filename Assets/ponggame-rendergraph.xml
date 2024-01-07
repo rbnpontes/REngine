@@ -5,7 +5,12 @@
 	<input id="@engine/backbuffer" type="RenderTarget"/>
 
 	<colorbuffer id="@sample/backbuffer"/>
-	<colorbuffer id="@sample/blur" scale="0.3"/>
+	<platform name="Desktop">
+		<colorbuffer id="@sample/blur" scale="0.5"/>
+	</platform>
+	<platform name="Mobile">
+		<colorbuffer id="@sample/blur-mobile" scale="0.3"/>
+	</platform>
 	<depthbuffer id="@sample/depthbuffer"/>
 
 	<clear colorbuffer="@sample/backbuffer" depthbuffer="@sample/depthbuffer"/>
@@ -34,10 +39,18 @@
 	</imgui-pass>
 
 	<if test="@vars/pong/blur" compare="NotEqual">
-		<postprocess.blur>
-			<read name="input" value="@sample/backbuffer"/>
-			<write name="backbuffer" value="@sample/blur"/>
-		</postprocess.blur>
+		<platform name="Desktop">
+			<postprocess.blur>
+				<read name="input" value="@sample/backbuffer"/>
+				<write name="backbuffer" value="@sample/blur"/>
+			</postprocess.blur>
+		</platform>
+		<platform name="Mobile">
+			<postprocess.blur directions="5">
+				<read name="input" value="@sample/backbuffer"/>
+				<write name="backbuffer" value="@sample/blur-mobile"/>
+			</postprocess.blur>
+		</platform>
 	</if>
 
 </render-graph>

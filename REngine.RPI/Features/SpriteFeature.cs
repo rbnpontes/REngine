@@ -9,25 +9,33 @@ using REngine.RPI.Structs;
 
 namespace REngine.RPI.Features;
 
-public sealed class SpriteFeature(
-    BatchSystem batchSystem,
-    SpriteInstancedBatchSystem instancedBatchSys,
-    IShaderResourceBindingCache srbCache,
-    IBufferManager bufferMgr) : GraphicsRenderFeature
+public sealed class SpriteFeature  : GraphicsRenderFeature
 {
-    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
-    
+    private readonly BatchGroup pBatchGroup;
+    private readonly SpriteInstancedBatchSystem pInstancedBatchSystem;
+    private readonly Action<Batch> pExecuteBatchAction;
     public override bool IsDirty { get; protected set; } = true;
 
     public override IRenderFeature MarkAsDirty() => this;
+
+    public SpriteFeature(
+        BatchSystem batchSystem,
+        SpriteInstancedBatchSystem instancedBatchSys) : base()
+    {
+        pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+        pInstancedBatchSystem = instancedBatchSys;
+        pExecuteBatchAction = ExecuteBatch;
+    }
+    
     protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
     {
         IsDirty = false;
     }
 
+    private BatchRenderInfo pBatchRenderInfo;
     protected override void OnExecute(ICommandBuffer command)
     {
-		instancedBatchSys.UpdateTransforms();
+		pInstancedBatchSystem.UpdateTransforms();
 
 		var backbuffer = GetBackBuffer();
         var depthbuffer = GetDepthBuffer();
@@ -37,7 +45,7 @@ public sealed class SpriteFeature(
 
         command.SetRT(backbuffer, depthbuffer);
 
-        var batchRenderInfo = new BatchRenderInfo
+        pBatchRenderInfo = new BatchRenderInfo
         {
             DefaultRenderTarget = backbuffer,
             DefaultDepthStencil = depthbuffer,
@@ -46,8 +54,12 @@ public sealed class SpriteFeature(
         
         pBatchGroup.Lock();
         pBatchGroup.Sort();
-        while(pBatchGroup.GetNextBatch(out var batch))
-            batch?.Render(batchRenderInfo);
+        pBatchGroup.ForEach(pExecuteBatchAction);
         pBatchGroup.Unlock();
+    }
+
+    private void ExecuteBatch(Batch batch)
+    {
+        batch.Render(pBatchRenderInfo);
     }
 }

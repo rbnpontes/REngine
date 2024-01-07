@@ -239,35 +239,29 @@ public sealed class BatchGroup : IEnumerable<Batch>
         return batches;
     }
 
-    private int pNextBatchIdx = 0;
-    public bool GetNextBatch(out Batch? batch)
+    public void ForEach(Action<Batch> callback)
     {
+#if RENGINE_VALIDATIONS
+        ValidateLock();
+#endif
         if (pAvailableIndexes.Count == pBatches.Count)
-        {
-            batch = null;
-            return false;
-        }
+            return;
 
-        if (pNextBatchIdx == pBatches.Count)
-        {
-            pNextBatchIdx = 0;
-            batch = null;
-            return false;
-        }
+        var availableBatches = pBatches.Count - pAvailableIndexes.Count;
+        var executedBatches = 0;
+        var nextId = 0;
         
-        Batch? finalBatch = null;
-        while (finalBatch is null && pNextBatchIdx < pBatches.Count)
+        while (executedBatches < availableBatches && nextId < pBatches.Count)
         {
-            finalBatch = pBatches[pNextBatchIdx];
-            ++pNextBatchIdx;
-            
-            if(finalBatch is not null)
-                break;
-        }
+            var batch = pBatches[nextId];
+            ++nextId;
+            if(batch is null)
+              continue;
 
-        batch = finalBatch;
-        return finalBatch is not null;
-    }
+            callback(batch);
+            ++executedBatches;
+        }
+    } 
     
     IEnumerator IEnumerable.GetEnumerator()
     {
