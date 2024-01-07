@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using REngine.Core;
 using REngine.Core.Mathematics;
 using REngine.Core.WorldManagement;
 using REngine.RHI;
@@ -122,6 +123,7 @@ public sealed class SpriteSystem(
             var data = pData[id];
             if (data.RefSprite is null)
                 return;
+            
             data.RefSprite.Dispose();
             data.RefSprite = null;
             pBatchGroup.RemoveBatch(data.Batch);

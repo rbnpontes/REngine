@@ -295,9 +295,12 @@ namespace REngine.RPI
 		public ITextRenderer RemoveFont(string fontName)
 		{
 			var fontHash = Hash.Digest(fontName);
-			if(pFonts.TryGetValue(fontHash, out var fontEntry))
-				fontEntry.Dispose();
-			pFonts.Remove(fontHash);
+			lock (pSync)
+			{
+				if(pFonts.TryGetValue(fontHash, out var fontEntry))
+					fontEntry.Dispose();
+				pFonts.Remove(fontHash);
+			}
 			return this;
 		}
 

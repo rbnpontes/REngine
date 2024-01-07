@@ -106,6 +106,7 @@ namespace REngine.RPI
             var srb = shaderResourceBindingCache.Build(OnBuildPipeline(), resMapping);
             pShaderResourceBinding?.Dispose();
             pShaderResourceBinding = srb;
+            mDirtySrb = false;
             return srb;
         }
 

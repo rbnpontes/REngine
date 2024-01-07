@@ -15,6 +15,8 @@ namespace REngine.Core.Threading.Nodes
 		protected readonly ExecutionPipelineImpl ExecutionPipeline = execPipeline;
 		protected readonly IServiceProvider ServiceProvider = provider;
 
+		private bool pDirtyEvents;
+		private Action<IExecutionPipeline>[] pEventCalls = [];
 		public ulong Id { get; set; } = 0;
 #if DEBUG || PROFILER
 		public string DebugName { get; set; } = string.Empty;
@@ -27,12 +29,20 @@ namespace REngine.Core.Threading.Nodes
 
 		public virtual void AddEvent(Action<IExecutionPipeline> listener)
 		{
-			pEvents.TryAdd(listener.GetHashCode(), listener);
+			lock (pSync)
+			{
+				pEvents.TryAdd(listener.GetHashCode(), listener);
+				pDirtyEvents = true;
+			}
 		}
 
 		public virtual void RemoveEvent(Action<IExecutionPipeline> listener)
 		{
-			pEvents.Remove(listener.GetHashCode(), out var _);
+			lock (pSync)
+			{
+				pEvents.Remove(listener.GetHashCode(), out var _);
+				pDirtyEvents = true;
+			}
 		}
 
 		public virtual void Execute()
@@ -68,14 +78,19 @@ namespace REngine.Core.Threading.Nodes
 
 			ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
 		}
-
+		
 		private void ExecuteEventCalls()
 		{
-			var collection = pEvents.Values.ToArray();
-			foreach (var evtCall in collection)
+			if (pDirtyEvents)
+			{
+				pEventCalls = pEvents.Values.ToArray();
+				pDirtyEvents = false;
+			}
+
+			foreach (var evtCall in pEventCalls)
 			{
 				ExecutionPipeline.StopTokenSource.Token.ThrowIfCancellationRequested();
-				evtCall(ExecutionPipeline);
+				evtCall(execPipeline);
 			}
 		}
 

@@ -99,6 +99,7 @@ namespace REngine.Core
 				pExecPipeline.SetThreadSleep(0);
 			}
 
+			DisposableQueue.Dispose();
 #if PROFILER
 			Profiler.Instance.Plot("FPS", (1000.0f / pTimer.Milliseconds));
 			Profiler.Instance.EndFrame();
@@ -113,6 +114,7 @@ namespace REngine.Core
 
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
+			DisposableQueue.Dispose();
 			return this;
 		}
 

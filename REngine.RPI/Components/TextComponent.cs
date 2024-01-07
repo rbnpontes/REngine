@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
@@ -150,7 +151,8 @@ namespace REngine.RPI.Components
 		protected override void OnDispose()
 		{
 			base.OnDispose();
-			pBatch?.Dispose();
+			DisposableQueue.Enqueue(pBatch);
+			pBatch = null;
 		}
 	}
 }

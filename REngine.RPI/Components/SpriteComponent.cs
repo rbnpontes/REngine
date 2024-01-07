@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Resources;
@@ -253,7 +254,7 @@ namespace REngine.RPI.Components
 		protected override void OnDispose()
 		{
 			base.OnDispose();
-			pSprite?.Dispose();
+			DisposableQueue.Enqueue(pSprite);
 			pSprite = null;
 			Effect = null;
 
