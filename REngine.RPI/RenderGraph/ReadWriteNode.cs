@@ -57,7 +57,7 @@ namespace REngine.RPI.RenderGraph
 				
 				RenderFeatureNode parent = (RenderFeatureNode)Parent;
 				OnValue(parent, pName, pValue);
-				pSetup = false;
+				pSetup = true;
 			}
 		}
 

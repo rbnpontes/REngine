@@ -53,7 +53,7 @@ namespace REngine.RPI.RenderGraph.Nodes
 			pType = type;
 		}
 
-		protected override IEnumerable<RenderGraphNode> OnGetChildren() => Array.Empty<RenderGraphNode>();
+		protected override IReadOnlyList<RenderGraphNode> OnGetChildren() => [];
 
 		protected override void OnRun(IServiceProvider provider)
 		{

@@ -79,9 +79,9 @@ namespace REngine.RPI.RenderGraph.Nodes
 				throw new RenderGraphException($"{nameof(T)} parent must be {nameof(SwitchNode)}");
 #endif
 		}
-		protected override IEnumerable<RenderGraphNode> OnGetChildren()
+		protected override IReadOnlyList<RenderGraphNode> OnGetChildren()
 		{
-			return mCanRun ? base.OnGetChildren() : Array.Empty<RenderGraphNode>();
+			return mCanRun ? base.OnGetChildren() : [];
 		}
 	}
 

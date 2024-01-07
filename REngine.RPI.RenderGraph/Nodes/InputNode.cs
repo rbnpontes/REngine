@@ -68,9 +68,9 @@ namespace REngine.RPI.RenderGraph.Nodes
 				throw new ExpectedResourceTypeException(resource.Value.ObjectType, pExpectedResourceType);
 		}
 
-		protected override IEnumerable<RenderGraphNode> OnGetChildren()
+		protected override IReadOnlyList<RenderGraphNode> OnGetChildren()
 		{
-			return Array.Empty<RenderGraphNode>();
+			return [];
 		}
 
 		protected override void OnDispose()

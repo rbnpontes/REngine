@@ -92,7 +92,7 @@ namespace REngine.Core.WorldManagement
 			return 1;
 		}
 
-		public Transform2DSystem Destroy(Transform2D transform)
+		public void Destroy(Transform2D transform)
 		{
 			lock (pSync)
 			{
@@ -101,7 +101,7 @@ namespace REngine.Core.WorldManagement
 #endif
 				var data = pData[transform.Id];
 				if (data.Component is null)
-					return this;
+					return;
 
 				data.Component.Detach();
 				if (data.ParentId != -1)
@@ -124,8 +124,6 @@ namespace REngine.Core.WorldManagement
 				pData[transform.Id] = new Transform2DData();
 				pAvailableIdx.Enqueue(transform.Id);
 			}
-
-			return this;
 		}
 		public Transform2D CreateTransform()
 		{
@@ -438,7 +436,10 @@ namespace REngine.Core.WorldManagement
 
 			data.Dirty = true;
 			pData[id]= data;
-			data.Children.ForEach(MakeDirty);
+
+			// ReSharper disable once ForCanBeConvertedToForeach
+			for (var i = 0; i < data.Children.Count; ++i)
+				MakeDirty(data.Children[i]);
 		}
 		private void UpdateTransforms(int id)
 		{
