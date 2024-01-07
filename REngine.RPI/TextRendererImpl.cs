@@ -290,15 +290,17 @@ namespace REngine.RPI
 			var fontHashCode = Hash.Digest(fontName);
 			lock (pSync)
 			{
-				FontEntry? fontEntry;
-				pFonts.TryGetValue(fontHashCode, out fontEntry);
-				
-				if (fontEntry != null)
-					fontEntry.Dispose();
+				pFonts.TryGetValue(fontHashCode, out var fontEntry);
 
-				var builder = new SdfBuilder(font.Atlas);
-				builder.Radius = 4;
-				builder.Cutoff = 0.45f;
+				if (fontEntry?.Font == font)
+					return this;
+				fontEntry?.Dispose();
+
+				var builder = new SdfBuilder(font.Atlas)
+				{
+					Radius = 4,
+					Cutoff = 0.45f
+				};
 				var texture = AllocateTexture(font, builder.Build());
 
 				IShaderResourceBinding srb;

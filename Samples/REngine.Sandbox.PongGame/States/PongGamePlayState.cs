@@ -214,7 +214,7 @@ namespace REngine.Sandbox.PongGame.States
 #endif
 				var size = mainWindow.Size;
 				var velocity = PongVariables.BallVelocity;
-
+				var collided = false;
 #if DEBUG
 				if (PongVariables.EnableDebug)
 					pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius,
@@ -224,17 +224,20 @@ namespace REngine.Sandbox.PongGame.States
 				{
 					pBallPosition.X = size.Width - PongVariables.BallRadius;
 					velocity.X *= -1;
+					collided = true;
 				}
 				else if (pBallPosition.X <= 0)
 				{
 					pBallPosition.X = 0;
 					velocity.X *= -1;
+					collided = true;
 				}
 
 				if (pBallPosition.Y < 0)
 				{
 					pBallPosition.Y = 0;
 					velocity.Y *= -1;
+					collided = true;
 				}
 
 				if (pBallPosition.Y + PongVariables.BallRadius > size.Height)
@@ -243,6 +246,9 @@ namespace REngine.Sandbox.PongGame.States
 					return;
 				}
 
+				if(collided)
+					PongVariables.BlockClickAudio?.Play(true);
+				
 				PongVariables.BallVelocity = velocity;
 #if PROFILER
 			}
