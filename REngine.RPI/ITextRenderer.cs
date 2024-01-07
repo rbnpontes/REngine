@@ -18,7 +18,8 @@ namespace REngine.RPI
 	public interface ITextRenderer
 	{
 		public ITextRenderer SetFont(Font font);
-		public ITextRenderer SetFont(Font font, string fontName);
+		public ITextRenderer ClearFonts();
+		public ITextRenderer RemoveFont(string fontName);
 		public TextRendererBatch CreateBatch(string fontName);
 	}
 }

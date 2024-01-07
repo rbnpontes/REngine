@@ -125,9 +125,6 @@ namespace REngine.RPI
 			if (pBatches.Count > 0)
 				pLogger.Info($"Clearing ({pBatches.Count}) batches");
 			DisposeBatches();
-
-			if (pFonts.Count > 0)
-				pLogger.Info($"Clearing ({pFonts.Count}) font textures");
 			DisposeFonts();
 
 			pPipeline?.Dispose();
@@ -149,6 +146,9 @@ namespace REngine.RPI
 		{
 			lock (pSync)
 			{
+				if (pFonts.Count > 0)
+					pLogger.Info($"Clearing ({pFonts.Count}) font textures");
+				
 				foreach(var pair in pFonts)
 					pair.Value.Dispose();
 				pFonts.Clear();
@@ -279,23 +279,36 @@ namespace REngine.RPI
 
 		public ITextRenderer SetFont(Font font)
 		{
-			return SetFont(font, font.Name);
+			var hash = Hash.Digest(font.Name);
+			if (pFonts.ContainsKey(hash))
+				return this;
+			SetFontAndBuildSdf(hash, font);
+			return this;
 		}
-		
-		public ITextRenderer SetFont(Font font, string fontName)
-		{
-			if(string.IsNullOrEmpty(fontName))
-				throw new ArgumentNullException(nameof(fontName));
 
-			var fontHashCode = Hash.Digest(fontName);
+		public ITextRenderer ClearFonts()
+		{
+			DisposeFonts();
+			return this;
+		}
+
+		public ITextRenderer RemoveFont(string fontName)
+		{
+			var fontHash = Hash.Digest(fontName);
+			if(pFonts.TryGetValue(fontHash, out var fontEntry))
+				fontEntry.Dispose();
+			pFonts.Remove(fontHash);
+			return this;
+		}
+
+		private void SetFontAndBuildSdf(ulong fontHash, Font font)
+		{
+			if(string.IsNullOrEmpty(font.Name))
+				throw new ArgumentNullException(nameof(font));
+
 			lock (pSync)
 			{
-				pFonts.TryGetValue(fontHashCode, out var fontEntry);
-
-				if (fontEntry?.Font == font)
-					return this;
-				fontEntry?.Dispose();
-
+				pLogger.Debug($"Building Font Atlas '{font.Name}'");
 				var builder = new SdfBuilder(font.Atlas)
 				{
 					Radius = 4,
@@ -315,11 +328,10 @@ namespace REngine.RPI
 				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
 				srb.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, texture.GetDefaultView(TextureViewType.ShaderResource));
 
-				pFonts[fontHashCode] = new FontEntry(font.Optimize(), texture, srb);
+				pFonts[fontHash] = new FontEntry(font.Optimize(), texture, srb);
 
 				GC.Collect();
 			}
-			return this;
 		}
 
 		public TextRendererBatch CreateBatch(string fontName)
