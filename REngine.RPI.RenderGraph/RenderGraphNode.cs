@@ -22,7 +22,7 @@ namespace REngine.RPI.RenderGraph
 #endif
 		public ulong Id { get; internal set; }
 		public bool IsDisposed { get; private set; }
-		public IReadOnlyList<RenderGraphNode> Children => pChildren.AsReadOnly();
+		public IReadOnlyList<RenderGraphNode> Children => pChildren;
 		public RenderGraphNode? Parent { get; private set; }
 
 		public virtual bool HasSetup => pHasSetup;
@@ -70,17 +70,21 @@ namespace REngine.RPI.RenderGraph
 			OnRun(provider);
 
 			var children = OnGetChildren();
-			foreach (var child in children)
+			var nextId = 0;
+			while (nextId < children.Count)
 			{
+				var child = children[nextId];
+				++nextId;
+				
 				if (child.IsDisposed)
 				{
 					pNodes2Remove.Enqueue(child);
 					continue;
 				}
-					
+				
 				child.Run(provider);
 			}
-
+			
 			while (pNodes2Remove.TryDequeue(out var node))
 				RemoveNode(node);
 		}
@@ -126,7 +130,7 @@ namespace REngine.RPI.RenderGraph
 		protected virtual void OnSetup(IDictionary<ulong, string> properties) { }
 		protected virtual bool OnAddChild(RenderGraphNode node) { return true; }
 		protected virtual bool OnRemoveChild(RenderGraphNode node) { return true; }
-		protected virtual IEnumerable<RenderGraphNode> OnGetChildren() { return Children; }
+		protected virtual IReadOnlyList<RenderGraphNode> OnGetChildren() { return Children; }
 		protected virtual void OnDispose() { }
 	}
 

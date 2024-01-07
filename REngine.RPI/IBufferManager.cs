@@ -17,11 +17,17 @@ namespace REngine.RPI
 		/// <param name="groupType"></param>
 		/// <returns></returns>
 		public IBuffer GetBuffer(BufferGroupType groupType);
+
 		/// <summary>
 		/// Return a Instancing Buffer by specific size
 		/// </summary>
 		/// <param name="bufferSize"></param>
+		/// <param name="dynamic"></param>
 		/// <returns></returns>
 		public IBuffer GetInstancingBuffer(ulong bufferSize, bool dynamic);
+
+		public IBuffer Allocate(BufferDesc desc);
+		public IBuffer Allocate<T>(BufferDesc desc, T[] data) where T : unmanaged;
+		public IBuffer Allocate<T>(BufferDesc desc, T data) where T : unmanaged;
 	}
 }

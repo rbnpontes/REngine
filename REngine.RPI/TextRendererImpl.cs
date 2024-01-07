@@ -56,21 +56,24 @@ namespace REngine.RPI
 				IDevice device, 
 				IPipelineState fontPipeline,
 				IShaderResourceBinding srb,
-				IBuffer cbuffer, 
+				IBuffer constantBuffer, 
 				Font font
-			) : base(device, fontPipeline, srb, cbuffer, font)
+			) : base(device, fontPipeline, srb, constantBuffer, font)
 			{
 				pRenderer = renderer;
 			}
 
 			protected override void OnDispose()
 			{
+				pRenderer.pBatchGroup.Lock();
 				lock (pRenderer.pSync)
 				{
+					pRenderer.pBatchGroup.RemoveBatch(this);
 					if(BatchNode != null)
 						pRenderer.pBatches.Remove(BatchNode);
 					BatchNode = null;
 				}
+				pRenderer.pBatchGroup.Unlock();
 			}
 		}
 
@@ -80,6 +83,7 @@ namespace REngine.RPI
 		private readonly EngineEvents pEngineEvents;
 		private readonly IRenderer pRenderer;
 		private readonly IAssetManager pAssetManager;
+		private readonly BatchGroup pBatchGroup;
 
 		private readonly LinkedList<InternalBatch> pBatches = new();
 		private readonly Dictionary<ulong, FontEntry> pFonts = new();
@@ -98,7 +102,8 @@ namespace REngine.RPI
 			GraphicsSettings graphicsSettings,
 			EngineEvents engineEvents,
 			IRenderer renderer,
-			IAssetManager assetManager
+			IAssetManager assetManager,
+			BatchSystem batchSystem
 		) 
 		{
 			pBufferProvider = bufferProvider;
@@ -107,7 +112,8 @@ namespace REngine.RPI
 			pEngineEvents = engineEvents;
 			pRenderer = renderer;
 			pAssetManager = assetManager;
-
+			pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+			
 			engineEvents.OnStop += HandleEngineStop;
 		}
 
@@ -119,9 +125,6 @@ namespace REngine.RPI
 			if (pBatches.Count > 0)
 				pLogger.Info($"Clearing ({pBatches.Count}) batches");
 			DisposeBatches();
-
-			if (pFonts.Count > 0)
-				pLogger.Info($"Clearing ({pFonts.Count}) font textures");
 			DisposeFonts();
 
 			pPipeline?.Dispose();
@@ -143,6 +146,9 @@ namespace REngine.RPI
 		{
 			lock (pSync)
 			{
+				if (pFonts.Count > 0)
+					pLogger.Info($"Clearing ({pFonts.Count}) font textures");
+				
 				foreach(var pair in pFonts)
 					pair.Value.Dispose();
 				pFonts.Clear();
@@ -273,33 +279,50 @@ namespace REngine.RPI
 
 		public ITextRenderer SetFont(Font font)
 		{
-			return SetFont(font, font.Name);
+			var hash = Hash.Digest(font.Name);
+			if (pFonts.ContainsKey(hash))
+				return this;
+			SetFontAndBuildSdf(hash, font);
+			return this;
 		}
-		
-		public ITextRenderer SetFont(Font font, string fontName)
-		{
-			if(string.IsNullOrEmpty(fontName))
-				throw new ArgumentNullException(nameof(fontName));
 
-			var fontHashCode = Hash.Digest(fontName);
+		public ITextRenderer ClearFonts()
+		{
+			DisposeFonts();
+			return this;
+		}
+
+		public ITextRenderer RemoveFont(string fontName)
+		{
+			var fontHash = Hash.Digest(fontName);
 			lock (pSync)
 			{
-				FontEntry? fontEntry;
-				pFonts.TryGetValue(fontHashCode, out fontEntry);
-				
-				if (fontEntry != null)
+				if(pFonts.TryGetValue(fontHash, out var fontEntry))
 					fontEntry.Dispose();
+				pFonts.Remove(fontHash);
+			}
+			return this;
+		}
 
-				SdfBuilder builder = new SdfBuilder(font.Atlas);
-				builder.Radius = 4;
-				builder.Cutoff = 0.45f;
-				ITexture texture = AllocateTexture(font, builder.Build());
+		private void SetFontAndBuildSdf(ulong fontHash, Font font)
+		{
+			if(string.IsNullOrEmpty(font.Name))
+				throw new ArgumentNullException(nameof(font));
+
+			lock (pSync)
+			{
+				pLogger.Debug($"Building Font Atlas '{font.Name}'");
+				var builder = new SdfBuilder(font.Atlas)
+				{
+					Radius = 4,
+					Cutoff = 0.45f
+				};
+				var texture = AllocateTexture(font, builder.Build());
 
 				IShaderResourceBinding srb;
 				lock (pSync)
 				{
-					if (pPipeline is null)
-						pPipeline = BuildPipeline();
+					pPipeline ??= BuildPipeline();
 
 					srb = pPipeline.CreateResourceBinding();
 				}
@@ -308,11 +331,10 @@ namespace REngine.RPI
 				srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, pBufferProvider.GetBuffer(BufferGroupType.Object));
 				srb.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, texture.GetDefaultView(TextureViewType.ShaderResource));
 
-				pFonts[fontHashCode] = new FontEntry(font.Optimize(), texture, srb);
+				pFonts[fontHash] = new FontEntry(font.Optimize(), texture, srb);
 
 				GC.Collect();
 			}
-			return this;
 		}
 
 		public TextRendererBatch CreateBatch(string fontName)
@@ -320,14 +342,14 @@ namespace REngine.RPI
 			if (string.IsNullOrEmpty(fontName))
 				throw new ArgumentNullException(nameof(fontName));
 
-			if (pPipeline is null)
-				pPipeline = BuildPipeline();
+			pPipeline ??= BuildPipeline();
 
 			pFonts.TryGetValue(Hash.Digest(fontName), out var fontEntry);
 
 			if (fontEntry is null)
 				throw new NullReferenceException($"Font '{fontName}' not found. Did you call SetFont method first ?");
 
+			pBatchGroup.Lock();
 			var batch = new InternalBatch(
 				this,
 				pDevice,
@@ -336,6 +358,9 @@ namespace REngine.RPI
 				pBufferProvider.GetBuffer(BufferGroupType.Object),
 				fontEntry.Font
 			);
+			batch.BatchNode = pBatches.AddLast(batch);
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
 			return batch;
 		}
 

@@ -15,6 +15,7 @@ using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.Features;
 using REngine.RPI.RenderGraph;
+using REngine.RPI.Resources;
 using REngine.Sandbox.BaseSample;
 
 namespace REngine.Sandbox.Samples.BasicSamples
@@ -34,6 +35,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		private readonly IVar pVar = varMgr.GetVar("@vars/sample/postprocess-effect");
 
 		private IRenderFeature? pFeature;
+		private SpriteEffect? pEffect;
 		public IWindow? Window { get; set; }
 
 
@@ -46,6 +48,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			imGuiSys.OnGui -= OnGui;
 			renderer.AddFeature(imGuiSys.Feature, 100);
+			
+			pEffect?.Dispose();
 		}
 
 		public void Load(IServiceProvider provider)
@@ -54,8 +58,10 @@ namespace REngine.Sandbox.Samples.BasicSamples
 				return;
 
 			// Load Sprite
-			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
-			spriteBatch.SetTexture(0, sprite.Image);
+			var sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
+			var effect = TextureSpriteEffect.Build(provider);
+			effect.Texture = sprite.Texture;
+			pEffect = effect;
 			
 			var rootEntry = renderGraph.Load("postprocess-rendergraph.xml");
 
@@ -88,7 +94,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 				transform.Position = new Vector2(x, y);
 				transform.Rotation = rot;
 
-				sprite.TextureSlot = 0;
+				sprite.Effect = pEffect;
 			}
 		}
 

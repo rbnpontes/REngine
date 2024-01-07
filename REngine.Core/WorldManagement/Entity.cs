@@ -18,15 +18,12 @@ namespace REngine.Core.WorldManagement
 			get
 			{
 				AssertDispose();
-				pEntityManager.GetEntityData(Id, out var data);
-				return data.Enabled;
+				return pEntityManager.IsEnabled(this);
 			}
 			set
 			{
 				AssertDispose();
-				pEntityManager.GetEntityData(Id, out var data);
-				data.Enabled = value;
-				pEntityManager.SetEntityData(Id, data);
+				pEntityManager.SetEnabled(this, value);
 			}
 		}
 		public string Name 

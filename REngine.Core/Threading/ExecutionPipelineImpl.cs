@@ -20,7 +20,7 @@ namespace REngine.Core.Threading
 
         private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
-        private readonly Action<EPNode> pExecNodeAction;
+        private readonly Action<EpNode> pExecNodeAction;
         private readonly Queue<Action> pExecuteMainThreadCalls = new();
         private readonly EngineSettings pEngineSettings;
         
@@ -28,10 +28,12 @@ namespace REngine.Core.Threading
 
         private bool pDisposed;
 
-        private List<EPNode> pNodes = new ();
-        private IDictionary<ulong, EPNode> pNodesTable = new Dictionary<ulong, EPNode>();
-        private EPNode? pLastNode;
+        private List<EpNode> pNodes = new ();
+        private IDictionary<ulong, EpNode> pNodesTable = new Dictionary<ulong, EpNode>();
+        private EpNode? pLastNode;
 
+        public byte JobsCount => (byte)pCoordinator.JobsCount;
+        
         public ExecutionPipelineImpl(
             EngineEvents engineEvents,
             ILoggerFactory factory,
@@ -124,7 +126,7 @@ namespace REngine.Core.Threading
             return this;
         }
 
-        private void ExecuteNode(EPNode node)
+        private void ExecuteNode(EpNode node)
         {
             node.Execute();
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,12 +18,14 @@ namespace REngine.RHI.NativeDriver
 		private DrawAttribsNative pCopyDrawArgs;
 		private DrawIndexedAttribsNative pCopyIndexedDrawArgs;
 		
-
 		private readonly IntPtr[] pCopyRenderTargetsPointers = new IntPtr[MaxRenderTargets];
 		private readonly IntPtr[] pCopyVertexBuffersPointers = new IntPtr[MaxVertexBuffers];
 		private readonly ulong[] pCopyOffsets = new ulong[MaxRenderTargets];
 
 		private readonly IntRect[] pCopyScissors = new IntRect[1];
 		private readonly Viewport[] pCopyViewport = new Viewport[1];
+
+		private readonly ArrayPool<StateTransitionDTO> pBarriersPool = ArrayPool<StateTransitionDTO>.Create();
+		private readonly ArrayPool<IntPtr> pPtrsPool = ArrayPool<IntPtr>.Create();
 	}
 }

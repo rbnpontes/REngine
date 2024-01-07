@@ -10,7 +10,7 @@ namespace REngine.Core
 	public class EngineSettings : IMergeable<EngineSettings>
 	{
 #if ANDROID
-		public static readonly int MaxAllowedJobs = 3;
+		public static readonly int MaxAllowedJobs = 4;
 #else
 		public static readonly int MaxAllowedJobs = 10;
 #endif

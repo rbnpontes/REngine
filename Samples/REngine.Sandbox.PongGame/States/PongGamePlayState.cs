@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.IO;
 using REngine.Core.Logic;
@@ -16,6 +17,7 @@ using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.SpriteEffects;
+// using REngine.RPkI.SpriteEffects;
 using REngine.Sandbox.PongGame.Components;
 
 namespace REngine.Sandbox.PongGame.States
@@ -26,7 +28,8 @@ namespace REngine.Sandbox.PongGame.States
 			GameStateManager gameStateManager,
 			IEngine engine,
 			IImGuiSystem imGuiSystem,
-			IAssetManager assetManager)
+			IAssetManager assetManager,
+			IServiceProvider provider)
 		: IGameState
 	{
 #if PROFILER
@@ -53,6 +56,7 @@ namespace REngine.Sandbox.PongGame.States
 		{
 			SetInitialState();
 
+			var font = assetManager.GetAsset<FontAsset>(PongVariables.DefaultFont);
 			var wndSize = mainWindow.Size;
 			var rootEntity = entityManager.CreateEntity("root");
 			pRoot = rootEntity.CreateComponent<Transform2D>();
@@ -72,7 +76,7 @@ namespace REngine.Sandbox.PongGame.States
 
 			sprite = ball.CreateComponent<SpriteComponent>();
 			sprite.Color = Color.White;
-			sprite.Effect = new RoundedEffect(assetManager);
+			sprite.Effect = new RoundedEffect(provider);
 
 			pRoot.AddChild(pBall);
 			pRoot.AddChild(pBar);
@@ -80,8 +84,8 @@ namespace REngine.Sandbox.PongGame.States
 			var textEntity = entityManager.CreateEntity("score");
 			var textTransform = textEntity.CreateComponent<Transform2D>();
 			var text = textEntity.CreateComponent<TextComponent>();
-			text.FontName = PongVariables.DefaultFont;
-			text.TextSize = 16;
+			text.Font = font.Font;
+			text.FontSize = 16;
 			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
 			pTextTransform = textTransform;
 
@@ -181,7 +185,7 @@ namespace REngine.Sandbox.PongGame.States
 
 				UpdateBall(deltaTime);
 				UpdateBar();
-				UpdateScoreTextPosition();
+				UpdateScoreUi();
 
 				ComputeBarCollision();
 				ComputeScreenCollisions();
@@ -210,7 +214,7 @@ namespace REngine.Sandbox.PongGame.States
 #endif
 				var size = mainWindow.Size;
 				var velocity = PongVariables.BallVelocity;
-
+				var collided = false;
 #if DEBUG
 				if (PongVariables.EnableDebug)
 					pBallTrajectoryDbg.Add(new RectangleF(pBallPosition.X, pBallPosition.Y, PongVariables.BallRadius,
@@ -220,17 +224,20 @@ namespace REngine.Sandbox.PongGame.States
 				{
 					pBallPosition.X = size.Width - PongVariables.BallRadius;
 					velocity.X *= -1;
+					collided = true;
 				}
 				else if (pBallPosition.X <= 0)
 				{
 					pBallPosition.X = 0;
 					velocity.X *= -1;
+					collided = true;
 				}
 
 				if (pBallPosition.Y < 0)
 				{
 					pBallPosition.Y = 0;
 					velocity.Y *= -1;
+					collided = true;
 				}
 
 				if (pBallPosition.Y + PongVariables.BallRadius > size.Height)
@@ -239,6 +246,9 @@ namespace REngine.Sandbox.PongGame.States
 					return;
 				}
 
+				if(collided)
+					PongVariables.BlockClickAudio?.Play(true);
+				
 				PongVariables.BallVelocity = velocity;
 #if PROFILER
 			}
@@ -329,9 +339,6 @@ namespace REngine.Sandbox.PongGame.States
 				
 				if (PongVariables.BackgroundAudio != null)
 					PongVariables.BackgroundAudio.Pitch = progress * PongVariables.MaxPitch;
-
-				if(pText != null)
-					pText.Text = $"Score: {PongVariables.Score}";
 #if PROFILER
 			}
 #endif
@@ -352,11 +359,18 @@ namespace REngine.Sandbox.PongGame.States
 				mainWindow.Size.Height - PongVariables.BarSize.Y);
 			pBar.Position = pos;
 		}
-		private void UpdateScoreTextPosition()
+
+
+		private int pLastScore;
+		private void UpdateScoreUi()
 		{
 			if (pTextTransform is null || pText is null)
 				return;
 
+			if(pLastScore != PongVariables.Score)
+				pText.Text = $"Score: {PongVariables.Score}";
+			pLastScore = PongVariables.Score;
+			
 			var bounds = pText.Bounds;
 			var size = mainWindow.Size;
 			pTextTransform.Position = new Vector2(

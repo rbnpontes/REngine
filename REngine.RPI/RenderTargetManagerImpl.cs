@@ -29,6 +29,14 @@ namespace REngine.RPI
 
 			public TextureDesc Desc => pTarget.Desc;
 
+			public ResourceState State
+			{
+				get => pTarget.State;
+				set => pTarget.State = value;
+			}
+
+			public ulong GPUHandle => pTarget.GPUHandle;
+
 			public TextureWrapper(ITexture texture, RenderTargetManagerImpl rtMgr)
 			{
 				pTarget = texture;

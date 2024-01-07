@@ -4,8 +4,10 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.Logic;
+using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI.Components;
 using REngine.Sandbox.PongGame.Components;
@@ -13,6 +15,7 @@ using REngine.Sandbox.PongGame.Components;
 namespace REngine.Sandbox.PongGame.States
 {
 	internal class PongGameOverState(
+		IAssetManager assetManager,
 		EntityManager entityManager,
 		GameStateManager gameStateManager,
 		IEngine engine)
@@ -31,7 +34,7 @@ namespace REngine.Sandbox.PongGame.States
 			}
 
 			pTime = 0;
-
+			var fontAsset = assetManager.GetAsset<FontAsset>(PongVariables.DefaultFont);
 			var menuEntity = entityManager.CreateEntity("menu:gameover");
 			pGameOverMenu = menuEntity.CreateComponent<PongGameOverMenu>();
 			pGameOverMenu.Visible = true;
@@ -42,8 +45,8 @@ namespace REngine.Sandbox.PongGame.States
 			var transform = textEntity.CreateComponent<Transform2D>();
 			var textComponent = textEntity.CreateComponent<TextComponent>();
 			textComponent.Text = "Game Over";
-			textComponent.TextSize = 16;
-			textComponent.FontName = PongVariables.DefaultFont;
+			textComponent.FontSize = 16;
+			textComponent.Font = fontAsset.Font;
 
 			transform.Position = new Vector2(10, -80);
 			pGameOverMenu.Transform.AddChild(transform);
@@ -52,8 +55,8 @@ namespace REngine.Sandbox.PongGame.States
 			transform = textEntity.CreateComponent<Transform2D>();
 			textComponent = textEntity.CreateComponent<TextComponent>();
 			textComponent.Text = $"Score: {PongVariables.Score}";
-			textComponent.TextSize = 16;
-			textComponent.FontName = PongVariables.DefaultFont;
+			textComponent.FontSize = 16;
+			textComponent.Font = fontAsset.Font;
 
 			transform.Position = new Vector2(10, -40);
 			pGameOverMenu.Transform.AddChild(transform);

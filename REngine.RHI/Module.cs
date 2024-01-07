@@ -12,7 +12,8 @@ namespace REngine.RHI
 	{
 		public void Setup(IServiceRegistry registry)
 		{
-			registry.Add<GraphicsSettings>();
+			registry
+				.Add<GraphicsSettings>();
 		}
 	}
 }

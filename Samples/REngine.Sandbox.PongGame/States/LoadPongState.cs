@@ -10,6 +10,7 @@ using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.RenderGraph;
+using REngine.RPI.Resources;
 
 namespace REngine.Sandbox.PongGame.States
 {
@@ -18,10 +19,10 @@ namespace REngine.Sandbox.PongGame.States
 		EntityManager entityManager,
 		RenderState renderState,
 		IWindow mainWindow,
-		ISpriteBatch spriteBatch,
 		ITextRenderer textRenderer,
 		IResourceManager resourceManager,
-		IAssetManager assetManager)
+		IAssetManager assetManager,
+		IServiceProvider provider)
 		: IGameState
 	{
 		private const float LoadingWidth = 200;
@@ -46,17 +47,20 @@ namespace REngine.Sandbox.PongGame.States
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
 			pLoadQueue.Enqueue(()=> PongVariables.MenuItemAudio = LoadAudio("menu_selection.ogg", false));
 			pLoadQueue.Enqueue(()=> PongVariables.BlockClickAudio = LoadAudio("block_click.ogg", false));
-			pLoadQueue.Enqueue(()=> LoadImage("menu-play-button.png", PongVariables.MenuPlayButtonSlot));
-			pLoadQueue.Enqueue(()=> LoadImage("menu-exit-button.png", PongVariables.MenuExitButtonSlot));
-			pLoadQueue.Enqueue(()=> LoadImage("menu-restart-button.png", PongVariables.MenuRestartButtonSlot));
-			pLoadQueue.Enqueue(()=> LoadImage("menu-resume-button.png", PongVariables.MenuResumeButtonSlot));
+			pLoadQueue.Enqueue(()=> PongVariables.PlayButtonEffect = LoadEffect("menu-play-button.png"));
+			pLoadQueue.Enqueue(()=> PongVariables.ExitButtonEffect = LoadEffect("menu-exit-button.png"));
+			pLoadQueue.Enqueue(()=> PongVariables.RestartButtonEffect = LoadEffect("menu-restart-button.png"));
+			pLoadQueue.Enqueue(()=> PongVariables.ResumeButtonEffect = LoadEffect("menu-resume-button.png"));
 			pLoadQueue.Enqueue(()=> LoadFont(PongVariables.DefaultFont));
 			pLoadQueue.Enqueue(() =>
 			{
 				// Load blur screen into sprite batch
 				var resource = resourceManager.GetResource("@sample/blur");
-				if (resource.Value is ITexture texture)
-					spriteBatch.SetTexture(PongVariables.MenuBackgroundSlot, texture);
+				if (resource.Value is not ITexture texture) 
+					return;
+				var effect = TextureSpriteEffect.Build(provider);
+				effect.Texture = texture;
+				PongVariables.BackgroundEffect = effect;
 			});
 
 			pLoadCount = pLoadQueue.Count;
@@ -133,11 +137,12 @@ namespace REngine.Sandbox.PongGame.States
 			return audioAsset.Audio;
 		}
 
-		private void LoadImage(string assetName, byte slotId)
+		private TextureSpriteEffect LoadEffect(string assetName)
 		{
-			var imageAsset = assetManager.GetAsset<ImageAsset>("Textures/"+assetName);
-			var img = imageAsset.Image;
-			spriteBatch.SetTexture(slotId, img);
+			var imageAsset = assetManager.GetAsset<TextureAsset>("Textures/"+assetName);
+			var effect = TextureSpriteEffect.Build(provider);
+			effect.Texture = imageAsset.Texture;
+			return effect;
 		}
 
 		private void LoadFont(string assetName)

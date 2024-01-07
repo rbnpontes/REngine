@@ -1,14 +1,15 @@
 {
-  "Windows" : {
-    "cimgui.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcimgui.dll?alt=media",
-    "freetype.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Ffreetype.dll?alt=media",
-    "glfw3.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fglfw3.dll?alt=media",
-    "REngine-DiligentNativeDriver.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FREngine-DiligentNativeDriver.dll?alt=media",
-    "TracyClient.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FTracyClient.dll?alt=media",
-    "csfml-audio.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-audio.dll?alt=media",
-    "csfml-system.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-system.dll?alt=media",
-    "sfml-audio.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-audio.dll?alt=media",
-    "sfml-system.dll" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-system.dll?alt=media"
+  "Windows": {
+    "cimgui.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcimgui.dll?alt=media",
+    "freetype.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Ffreetype.dll?alt=media",
+    "glfw3.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fglfw3.dll?alt=media",
+    "REngine-DiligentNativeDriver.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FREngine-DiligentNativeDriver.dll?alt=media",
+    "TracyClient.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2FTracyClient.dll?alt=media",
+    "csfml-audio-2.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-audio-2.dll?alt=media",
+    "csfml-system-2.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fcsfml-system-2.dll?alt=media",
+    "sfml-audio-2.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-audio-2.dll?alt=media",
+    "sfml-system-2.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fsfml-system-2.dll?alt=media",
+    "openal32.dll": "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/win-x64%2Fopenal32.dll?alt=media"
   },
   "Linux" : {
     "libcimgui.so" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/linux-x64%2Flibcimgui.so?alt=media",

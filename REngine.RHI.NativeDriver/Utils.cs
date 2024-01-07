@@ -13,5 +13,8 @@ namespace REngine.RHI.NativeDriver
 		public static extern void rengine_free(IntPtr ptr);
 		[DllImport(Constants.Lib)]
 		public static extern void rengine_free_block(IntPtr ptr);
+
+		[DllImport(Constants.Lib)]
+		public static extern void rengine_stringdb_free();
 	}
 }

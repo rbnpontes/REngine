@@ -66,7 +66,7 @@ namespace REngine.RHI
 
 	public interface ICommandBuffer : IDisposable, INativeObject
 	{
-		public ICommandBuffer SetRT(ITextureView rt, ITextureView depthStencil);
+		public ICommandBuffer SetRT(ITextureView rt, ITextureView? depthStencil);
 		public ICommandBuffer SetRTs(ITextureView[] rts, ITextureView? depthStencil);
 		public ICommandBuffer ClearRT(ITextureView renderTarget, in Color clearColor);
 		public ICommandBuffer ClearDepth(ITextureView depthStencil, ClearDepthStencil clearFlags, float depth, byte stencil);
@@ -106,5 +106,19 @@ namespace REngine.RHI
 		public ICommandBuffer EndDebugGroup();
 		public ICommandBuffer InsertDebugLabel(string label, Color color);
 #endif
+		public ICommandBuffer Begin(uint immediateContextId);
+		public ICommandBuffer FinishFrame();
+		public ICommandBuffer FinishCommandList(out ICommandList commandList);
+		public ICommandBuffer TransitionShaderResource(IPipelineState pipelineState, IShaderResourceBinding binding);
+		public ICommandBuffer SetStencilRef(uint stencilRef);
+		public ICommandBuffer InvalidateState();
+		public ICommandBuffer NextSubpass();
+		public ICommandBuffer GenerateMips(ITextureView textureView);
+		public ICommandBuffer TransitionResourceStates(StateTransitionDesc[] resourceBarriers);
+		public ICommandBuffer ResolveTextureSubresource(
+			ITexture srcTexture,
+			ITexture dstTexture,
+			ResolveTextureSubresourceDesc resolveDesc);
+		public ICommandBuffer ExecuteCommandList(ICommandList[] list);
 	}
 }

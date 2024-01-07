@@ -17,9 +17,12 @@ namespace REngine.RPI.Features.PostProcess
 	public sealed class BlurPostProcess(IAssetManager assetManager) : PostProcessFeature
 	{
 		private IBuffer? pCBuffer;
-		public float Directions { get; set; } = 16;
-		public float Quality { get; set; } = 3;
-		public float Size { get; set; } = 8;
+		public const float DefaultDirections = 16;
+		public const float DefaultQuality = 3;
+		public const float DefaultSize = 8;
+		public float Directions { get; set; } = DefaultDirections;
+		public float Quality { get; set; } = DefaultQuality;
+		public float Size { get; set; } = DefaultSize;
 		protected override ShaderStream OnGetShaderCode()
 		{
 			return new StreamedShaderStream(assetManager.GetStream("Shaders/PostProcess/blur.hlsl"));
@@ -37,6 +40,15 @@ namespace REngine.RPI.Features.PostProcess
 			map[0] = new Vector3(Directions, Quality, Size);
 			command.Unmap(pCBuffer, MapType.Write);
 			base.OnExecute(command);
+		}
+
+		protected override void OnSetImmutableSamplers(IList<ImmutableSamplerDesc> samplers)
+		{
+			samplers.Add((new ImmutableSamplerDesc()
+			{
+				Name = TextureNames.MainTexture,
+				Sampler = new SamplerStateDesc(TextureFilterMode.Nearest)
+			}));
 		}
 
 		protected override void OnSetBindings(IShaderResourceBinding binding, IBufferManager bufferManager)

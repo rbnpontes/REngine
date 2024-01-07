@@ -73,9 +73,9 @@ namespace REngine.RPI.RenderGraph.Nodes
 			};
 		}
 
-		protected override IEnumerable<RenderGraphNode> OnGetChildren()
+		protected override IReadOnlyList<RenderGraphNode> OnGetChildren()
 		{
-			return pCanExecute ? base.OnGetChildren() : Array.Empty<RenderGraphNode>();
+			return pCanExecute ? base.OnGetChildren() : [];
 		}
 		protected override void OnDispose()
 		{

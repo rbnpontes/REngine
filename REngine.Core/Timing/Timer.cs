@@ -15,26 +15,21 @@ namespace REngine.Core.Timing
 		private readonly Stopwatch pStopwatch = Stopwatch.StartNew();
 		private readonly object pSync = new();
 
-		private double pDeltaTime;
-		private double pLastElapsed;
+		private TimeSpan pLastElapsed;
+
+		public double Elapsed => pStopwatch.Elapsed.TotalMilliseconds;
 		
-		public double DeltaTime { 
-			get
-			{
-				double deltaTime;
-				lock (pSync)
-					deltaTime = pDeltaTime;
-				return deltaTime;
-			}
-		}
-		public double Elapsed { get => pStopwatch.Elapsed.TotalMilliseconds; }
+		public double DeltaTime { get; private set; }
+		public long Milliseconds { get; private set; }
 
 		public void Measure()
 		{
 			lock (pSync)
 			{
-				double curr = pStopwatch.ElapsedMilliseconds * 0.001;
-				pDeltaTime = curr - pLastElapsed;
+				var curr = pStopwatch.Elapsed;
+				var diff = curr - pLastElapsed;
+				DeltaTime = diff.TotalMilliseconds;
+				Milliseconds = diff.Milliseconds;
 				pLastElapsed = curr;
 			}
 		}

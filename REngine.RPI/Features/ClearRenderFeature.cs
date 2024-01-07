@@ -46,19 +46,15 @@ namespace REngine.RPI.Features
 			if (pRenderState is null || pRenderer is null || swapChain is null)
 				return this;
 
-			var rts = Array.Empty<ITextureView>();
 			Viewport viewport = new();
 
 			var colorBufferSize = ColorBuffer?.Parent.Desc.Size ?? new TextureSize();
 
 			if (ColorBuffer is not null)
-			{
-				rts = new [] { ColorBuffer };
 				viewport.Size = new Vector2(colorBufferSize.Width, colorBufferSize.Height);
-			}
 
 			command
-				.SetRTs(rts, DepthBuffer)
+				.SetRT(ColorBuffer, DepthBuffer)
 				.SetViewport(viewport, colorBufferSize.Width, colorBufferSize.Height)
 				.ClearRT(ColorBuffer, ClearColor ?? pRenderState.DefaultClearColor);
 			if (DepthBuffer != null)

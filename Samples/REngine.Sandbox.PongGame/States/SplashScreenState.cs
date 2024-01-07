@@ -18,6 +18,8 @@ using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.RenderGraph;
+using REngine.RPI.Resources;
+using REngine.Sandbox.PongGame.Effects;
 
 namespace REngine.Sandbox.PongGame.States
 {
@@ -28,7 +30,8 @@ namespace REngine.Sandbox.PongGame.States
 		RenderState renderState,
 		GameStateManager gameStateManager,
 		IVariableManager variableManager,
-		IAssetManager assetManager)
+		IAssetManager assetManager,
+		IServiceProvider serviceProvider)
 		: IGameState
 	{
 		private readonly Color pDefaultClearColor = renderState.DefaultClearColor;
@@ -42,23 +45,22 @@ namespace REngine.Sandbox.PongGame.States
 		public void OnStart()
 		{
 			//mainWindow.Fullscreen();
-			var sprite = assetManager.GetAsset<ImageAsset>("Textures/EngineLogo-Sdf.png");
-			spriteBatch.SetTexture(0, sprite.Image);
-
+			var sprite = assetManager.GetAsset<TextureAsset>("Textures/EngineLogo-Sdf.png");
 			var audioAsset = assetManager.GetAsset<StreamedAudioAsset>("Sounds/doge_bonk.ogg");
 			pAudio = audioAsset.Audio;
 			pAudioAsset = audioAsset;
 
-			var effect = new BasicSpriteEffect("Engine Effect", assetManager);
-			effect.PixelShader = new StreamedShaderStream(assetManager.GetStream("Shaders/engine_logo_effect.hlsl"));
-
+			PongVariables.LogoEffect?.Dispose();
+			var effect = new LogoEffect(serviceProvider);
+			effect.Texture = sprite.Texture;
+			PongVariables.LogoEffect = effect;
+			
 			var entity = entityManager.CreateEntity("Engine Logo");
 			entity.Enabled = false;
 			pComponent = entity.CreateComponent<Transform2D>();
 
 			var spriteComponent = entity.CreateComponent<SpriteComponent>();
 			spriteComponent.Anchor = new Vector2(0.5f, 0.5f);
-			spriteComponent.TextureSlot = 0;
 			spriteComponent.Effect = effect;
 
 			var winScale = mainWindow.Size.ToVector2();

@@ -66,7 +66,7 @@ namespace REngine.RPI.RenderGraph
 
 		protected override void OnAddWriteResource(ulong resourceSlotId, IResource resource)
 		{
-			if(resourceSlotId == BackBufferSlotHash)
+			if(resourceSlotId == BackBufferSlotHash && resource != BackBufferResource)
 			{
 				if (BackBufferResource != null)
 					BackBufferResource.ValueChanged -= HandleResourceChanges;
@@ -75,7 +75,7 @@ namespace REngine.RPI.RenderGraph
 				pDirtyBindings = true;
 			}
 
-			if(resourceSlotId == DepthBufferSlotHash)
+			if(resourceSlotId == DepthBufferSlotHash && resource != DepthBufferResource)
 			{
 				if(DepthBufferResource != null)
 					DepthBufferResource.ValueChanged -= HandleResourceChanges;

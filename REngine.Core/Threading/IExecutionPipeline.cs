@@ -12,6 +12,7 @@ namespace REngine.Core.Threading
     }
     public interface IExecutionPipeline
     {
+        public byte JobsCount { get; }
         public IExecutionPipeline Load(Stream stream);
         public IExecutionPipeline Execute();
         /// <summary>

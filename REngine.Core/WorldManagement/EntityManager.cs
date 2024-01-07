@@ -143,6 +143,16 @@ namespace REngine.Core.WorldManagement
 			return component;
 		}
 
+		public bool IsEnabled(Entity entity)
+		{
+			return pData[entity.Id].Enabled;
+		}
+		public void SetEnabled(Entity entity, bool enabled)
+		{
+			pData[entity.Id].Enabled = enabled;
+			foreach (var pair in pData[entity.Id].Components)
+				pair.Value.OnOwnerChangeVisibility(enabled);
+		}
 
 		/// <summary>
 		/// Optimize will rearrange the whole poll

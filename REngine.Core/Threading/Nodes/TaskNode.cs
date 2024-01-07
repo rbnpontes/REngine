@@ -10,14 +10,13 @@ using REngine.Core.IO;
 namespace REngine.Core.Threading.Nodes
 {
 	[Node("task")]
-	internal class TaskNode : EPNode
+	internal class TaskNode : EpNode
 	{
 		private const int MaxWaitTime = 1000 / 60;
 		private readonly Action pTaskAction;
 		private readonly ManualResetEventSlim pManualResetEvent = new (false);
 
-		private EPNode? pTarget;
-		private Exception? pCaughtException;
+		private EpNode? pTarget;
 #if PROFILER
 		private string? pProfilerName;
 #endif
@@ -30,7 +29,6 @@ namespace REngine.Core.Threading.Nodes
 
 		public override void Execute()
 		{
-			pCaughtException = null;
 #if PROFILER
 			pProfilerName ??= $"{nameof(TaskNode)}#{GetHashCode()}:{DebugName}";
 #endif
@@ -46,33 +44,23 @@ namespace REngine.Core.Threading.Nodes
 			{
 #endif
 				IsRunning = true;
-				try
-				{
-					ExecuteEvents();
-					ExecuteChildrens();
-				}
-				catch (Exception e)
-				{
-					pCaughtException = e;
-				}
+				ExecuteEvents();
+				ExecuteChildren();
 				pManualResetEvent.Set();
 #if PROFILER
 			}
 #endif
 		}
 
-		public override void ExecuteLinkedNode(EPNode owner)
+		public override void ExecuteLinkedNode(EpNode owner)
 		{
 			if (!IsRunning)
 				return;
-			pManualResetEvent.Wait(MaxWaitTime);
+			pManualResetEvent.Wait(1000);
 			IsRunning = false;
-
-			if (pCaughtException != null)
-				throw pCaughtException;
 		}
 
-		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList)
 		{
 			var targetNodeId = Hash.Digest(element.GetAttribute("end"));
 			if (targetNodeId == 0)

@@ -13,7 +13,7 @@ namespace REngine.RPI.RenderGraph
 		public static void Setup(RenderGraphRegistry registry)
 		{
 			registry
-				.Register<SpritebatchNode>()
+				.Register<SpriteBatchNode>()
 #if RENGINE_IMGUI
 				.Register<ImGuiNode>()
 #endif

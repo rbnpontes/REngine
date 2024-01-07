@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using REngine.Core.Resources;
+using REngine.RPI;
 
 namespace REngine.Sandbox.PongGame.States
 {
@@ -24,13 +25,20 @@ namespace REngine.Sandbox.PongGame.States
 		public const float BlocksMargin = 5;
 
 		public const int ScorePerBlock = 10;
-		public const float InitialSpeed = 500.0f;
-		public const float MaxSpeed = 1000;
+		public const float InitialSpeed = 0.1f;
+		public const float MaxSpeed = 1.0f;
 		public const float MaxPitch = 1.3f;
 
 		public static readonly Vector2 BarSize = new(300, 10);
 		public static readonly Vector2 MenuTextureSize = new(275, 66);
 		public static readonly Vector2 MenuTextureHalfSize = MenuTextureSize * 0.5f;
+
+		public static SpriteEffect? LogoEffect;
+		public static SpriteEffect? PlayButtonEffect;
+		public static SpriteEffect? ExitButtonEffect;
+		public static SpriteEffect? RestartButtonEffect;
+		public static SpriteEffect? ResumeButtonEffect;
+		public static SpriteEffect? BackgroundEffect;
 		
 		public static float AudioVolume { get; set; } = 50f;
 		public static IAudio? BackgroundAudio { get; set; }
@@ -56,6 +64,20 @@ namespace REngine.Sandbox.PongGame.States
 			BackgroundAudio?.Stop();
 			MenuItemAudio?.Stop();
 			BlockClickAudio?.Stop();
+			
+			LogoEffect?.Dispose();
+			PlayButtonEffect?.Dispose();
+			ExitButtonEffect?.Dispose();
+			RestartButtonEffect?.Dispose();
+			ResumeButtonEffect?.Dispose();
+			BackgroundEffect?.Dispose();
+			
+			LogoEffect =
+			PlayButtonEffect = 
+			ExitButtonEffect = 
+			RestartButtonEffect = 
+			ResumeButtonEffect = 
+			BackgroundEffect = null;
 
 			BackgroundAudio = MenuItemAudio = BlockClickAudio = null;
 		}

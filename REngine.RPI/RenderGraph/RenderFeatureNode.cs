@@ -22,6 +22,7 @@ namespace REngine.RPI.RenderGraph
 		private GraphicsSettings? pGraphicsSettings;
 		private RenderState? pRenderState;
 		private IAssetManager? pAssetManager;
+		private IShaderResourceBindingCache? pShaderResourceBindingCache;
 
 		public override bool IsDirty => pFeature?.IsDirty ?? true;
 
@@ -40,6 +41,7 @@ namespace REngine.RPI.RenderGraph
 			pGraphicsSettings ??= provider.Get<GraphicsSettings>();
 			pRenderState ??= provider.Get<RenderState>();
 			pAssetManager ??= provider.Get<IAssetManager>();
+			pShaderResourceBindingCache ??= provider.Get<IShaderResourceBindingCache>();
 
 			base.OnRun(provider);
 		}
@@ -60,7 +62,8 @@ namespace REngine.RPI.RenderGraph
 				pRenderTargetMgr,
 				pGraphicsSettings,
 				pRenderState,
-				pAssetManager
+				pAssetManager,
+				pShaderResourceBindingCache
 			);
 
 			var feature = pFeature;

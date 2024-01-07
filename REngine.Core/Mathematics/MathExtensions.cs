@@ -29,6 +29,11 @@ namespace REngine.Core.Mathematics
 		{
 			return new Vector2(size.Width, size.Height);
 		}
+
+		public static Vector3 ToVector3(this Vector2 vec, float z = 0)
+		{
+			return new Vector3(vec.X, vec.Y, z);
+		}
 		public static Vector3 ToVector3(this Color color)
 		{
 			return new Vector3(

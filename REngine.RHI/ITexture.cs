@@ -82,7 +82,7 @@
 		public bool AllowMipMapGeneration;
 	}
 
-	public interface ITexture : IGPUObject 
+	public interface ITexture : IGPUObject, IGPUState, IGPUHandler
 	{
 		public TextureDesc Desc { get; }
 		public ITextureView GetDefaultView(TextureViewType view);

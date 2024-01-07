@@ -22,4 +22,7 @@
         <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj"/>
         <ProjectReference Include="..\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="BasicSamples\ComputeSample.cs" />
+    </ItemGroup>
 </Project>

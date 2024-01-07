@@ -10,13 +10,13 @@ namespace REngine.Core.Threading.Nodes
 {
 	[Node("step")]
 	internal class StepNode(ExecutionPipelineImpl execPipeline, IServiceProvider provider)
-		: EPNode(execPipeline, provider)
+		: EpNode(execPipeline, provider)
 	{
 
 #if PROFILER
 		private string? pProfilerName;
 #endif
-		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList)
 		{
 		}
 
@@ -29,7 +29,7 @@ namespace REngine.Core.Threading.Nodes
 			{
 #endif
 				ExecuteEvents();
-				ExecuteChildrens();
+				ExecuteChildren();
 #if PROFILER
 			}
 #endif

@@ -351,4 +351,68 @@ namespace REngine.RHI
 		Write = 0x02,
 		ReadAndWrite = Read | Write
 	}
+
+	public enum BufferViewType
+	{
+		Undefined=0,
+		ShaderResource,
+		UnorderedAccess
+	}
+
+	public enum ResourceStateTransitionMode
+	{
+		None = 0,
+		Transition,
+		Verify
+	}
+	
+	[Flags]
+	public enum ResourceState
+	{
+		Unknow = 0,
+		Undefined = 1 << 0,
+		VertexBuffer = 1 << 1,
+		ConstantBuffer = 1 << 2,
+		IndexBuffer = 1 << 3,
+		RenderTarget = 1 << 4,
+		UnorderedAccess = 1 << 5,
+		DepthWrite = 1 << 6,
+		DepthRead = 1 << 7,
+		ShaderResource = 1 << 8,
+		StreamOut = 1 << 9,
+		IndirectArgument = 1 << 10,
+		CopyDest = 1 << 11,
+		CopySource = 1 << 12,
+		ResolveDest = 1 << 13,
+		ResolveSource = 1 << 14,
+		InputAttachment = 1 << 15,
+		Present = 1 << 16,
+		BuildAsRead = 1 << 17,
+		BuildAsWrite = 1 << 18,
+		RayTracing = 1 << 19,
+		Common = 1 << 20,
+		ShadingRate = 1 << 21,
+		GenericRead = VertexBuffer | 
+		              ConstantBuffer | 
+		              IndexBuffer |
+		              ShaderResource |
+		              IndirectArgument |
+		              CopySource
+	}
+
+	public enum StateTransitionType
+	{
+		Immediate = 0,
+		Begin,
+		End
+	}
+
+	[Flags]
+	public enum StateTransitionFlags
+	{
+		None = 0,
+		UpdateState = 1 << 0,
+		DiscardContent = 1 << 1,
+		Aliasing = 1 << 2
+	}
 }

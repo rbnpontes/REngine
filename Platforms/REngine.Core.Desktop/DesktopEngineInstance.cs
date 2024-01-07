@@ -84,6 +84,7 @@ public sealed class DesktopEngineInstance : EngineInstance
                     }, out var swapChain);
 
                 Logger.Info("GraphicsBackend: " + pDriverSettings.Backend);
+                Logger.Info(driver.AdapterInfo);
                 // When format is not supported by the driver
                 // Driver will search for a compatible format
                 // In this case we must update graphics settings
@@ -109,13 +110,13 @@ public sealed class DesktopEngineInstance : EngineInstance
     {
         switch (e.Severity)
         {
-            case DbgMsgSeverity.Warning:
             case DbgMsgSeverity.Error:
             case DbgMsgSeverity.FatalError:
+            case DbgMsgSeverity.Warning:
                 Logger.Critical($"Diligent Engine: {e.Severity} in {e.Function}() ({e.File}, {e.Line}): {e.Message}");
                 break;
             case DbgMsgSeverity.Info:
-                Logger.Info($"Diligent Engine: {e.Severity} {e.Message}");
+                Logger.Debug($"Diligent Engine: {e.Severity} {e.Message}");
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

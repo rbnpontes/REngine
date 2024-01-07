@@ -13,6 +13,7 @@ using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.RPI.Resources;
 using REngine.Sandbox.BaseSample;
 
 namespace REngine.Sandbox.Samples.BasicSamples
@@ -37,6 +38,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		private bool pHasSceneFile = File.Exists(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Scenes/sprite_scene.rscene"));
 		
 		private IRenderFeature? pRenderFeature;
+		private SpriteEffect? pEffect;
 		public IWindow? Window { get; set; }
 
 		public void Dispose()
@@ -45,6 +47,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 			renderer.RemoveFeature(pRenderFeature);
 			imGuiSystem.OnGui -= OnGui;
+			
+			pEffect?.Dispose();
 		}
 
 		public void Load(IServiceProvider provider)
@@ -53,12 +57,14 @@ namespace REngine.Sandbox.Samples.BasicSamples
 				return;
 
 			// Load Sprite
-			var sprite = assetManager.GetAsset<ImageAsset>("Textures/doge.jpg");
-			spriteBatch.SetTexture(0, sprite.Image);
+			var sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
+			var effect = TextureSpriteEffect.Build(provider);
+			effect.Texture = sprite.Texture;
+			pEffect = effect;
 			
 			renderer = provider.Get<IRenderer>();
 			// To sprite component work, we must add sprite batch render feature
-			renderer.AddFeature(pRenderFeature = spriteBatch.Feature);
+			renderer.AddFeature(pRenderFeature = spriteBatch.CreateRenderFeature());
 
 			imGuiSystem = provider.Get<IImGuiSystem>();
 			imGuiSystem.OnGui += OnGui;
@@ -85,7 +91,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 				spriteComponent.Transform.Scale = new Vector2(100, 100);
 
-				spriteComponent.TextureSlot = 0;
+				spriteComponent.Effect = pEffect;
 				pComponents.Add(spriteComponent);
 			}
 		}
@@ -128,18 +134,21 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			var position = spriteComponent.Transform.Position;
 			var rotation = spriteComponent.Transform.Rotation;
 			var scale = spriteComponent.Transform.Scale;
+			var anchor = spriteComponent.Anchor;
 			var color = spriteComponent.Color.ToVector4();
 
 			ImGui.Checkbox("Enabled", ref enabled);
 			ImGui.DragFloat2("Position", ref position);
 			ImGui.DragFloat("Rotation", ref rotation, 0.01f);
 			ImGui.DragFloat2("Scale", ref scale);
+			ImGui.DragFloat2("Anchor", ref anchor);
 			ImGui.ColorPicker4("Color", ref color);
 
 			if (spriteComponent.Owner != null) spriteComponent.Owner.Enabled = enabled;
 			spriteComponent.Transform.Position = position;
 			spriteComponent.Transform.Rotation = rotation;
 			spriteComponent.Transform.Scale = scale;
+			spriteComponent.Anchor = anchor;
 			spriteComponent.Color = color.ToColor();
 
 			if(ImGui.Button("Remove Component"))

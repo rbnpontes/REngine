@@ -299,11 +299,11 @@ namespace REngine.Core.IO
 
 	public class DebugLoggerFactory : DefaultLoggerFactory, ILoggerFactory
 	{
+		private readonly ConsoleColor pDefaultColor = Console.ForegroundColor;
 		protected override void OnAsyncExecuteLog(LogSeverity severity, string log)
 		{
 			Debug.WriteLine(log);
-
-			ConsoleColor currColor = Console.ForegroundColor;
+			
 			switch (severity)
 			{
 				case LogSeverity.Error:
@@ -317,14 +317,14 @@ namespace REngine.Core.IO
 					Console.ForegroundColor = ConsoleColor.DarkGray;
 					break;
 				case LogSeverity.Info:
-					Console.ForegroundColor = currColor;
+					Console.ForegroundColor = pDefaultColor;
 					break;
 				case LogSeverity.Success:
 					Console.ForegroundColor = ConsoleColor.DarkGreen;
 					break;
 			}
 			Console.WriteLine(log);
-			Console.ForegroundColor = currColor;
+			Console.ForegroundColor = pDefaultColor;
 		}
 	}
 

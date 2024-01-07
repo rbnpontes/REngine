@@ -16,12 +16,11 @@ namespace REngine.Core.Threading.Nodes
 	}
 
 	[Node("if")]
-	internal class IfNode : EPNode
+	internal class IfNode : EpNode
 	{
 		private IExecutionPipelineVar? pVar;
 
 		private bool pSkipExecution;
-		private object? pLastValue;
 
 #if PROFILER
 		private string? pProfilerName;
@@ -41,11 +40,7 @@ namespace REngine.Core.Threading.Nodes
 				return;
 
 			pVar ??= ExecutionPipeline.GetOrCreateVar(VarKey);
-			if (pLastValue != pVar.Value)
-			{
-				pSkipExecution = !CanExecute();
-				pLastValue = pVar.Value;
-			}
+			pSkipExecution = !CanExecute();
 
 			if (pSkipExecution)
 				return;
@@ -56,7 +51,7 @@ namespace REngine.Core.Threading.Nodes
 			{
 #endif
 				ExecuteEvents();
-				ExecuteChildrens();
+				ExecuteChildren();
 #if PROFILER
 			}
 #endif
@@ -83,7 +78,7 @@ namespace REngine.Core.Threading.Nodes
 			}
 		}
 
-		public override void Define(XmlElement element, Dictionary<ulong, EPNode> nodesList)
+		public override void Define(XmlElement element, Dictionary<ulong, EpNode> nodesList)
 		{
 			VarKey = Hash.Digest(element.GetAttribute("test"));
 			string cmpValue = element.GetAttribute("compare");

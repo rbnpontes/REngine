@@ -20,6 +20,34 @@ namespace REngine.Core.WorldManagement
 		public Matrix4x4 TransformMatrix;
 		public Matrix4x4 WorldTransformMatrix;
 		public RectangleF Bounds;
+		
+		public override bool Equals(object? obj)
+		{
+			if (obj is not Transform2DSnapshot target)
+				return false;
+
+			return target.GetHashCode() == GetHashCode();
+		}
+
+		public bool Equals(Transform2DSnapshot other)
+		{
+			return other.GetHashCode() == GetHashCode();
+		}
+
+		public override int GetHashCode()
+		{
+			var hashCode = new HashCode();
+			hashCode.Add(Position);
+			hashCode.Add(ZIndex);
+			hashCode.Add(Rotation);
+			hashCode.Add(Scale);
+			hashCode.Add(WorldPosition);
+			hashCode.Add(WorldRotation);
+			hashCode.Add(TransformMatrix);
+			hashCode.Add(WorldTransformMatrix);
+			hashCode.Add(Bounds);
+			return hashCode.ToHashCode();
+		}
 	}
 	public struct Transform2DData
 	{
@@ -29,6 +57,7 @@ namespace REngine.Core.WorldManagement
 		public Vector2 Scale;
 		public Matrix4x4 CachedTransformMatrix;
 		public Matrix4x4 CachedWorldTransformMatrix;
+		public int CachedZIndex;
 		public RectangleF Bounds;
 		public float WorldRotation;
 		public int ParentId;
@@ -43,6 +72,7 @@ namespace REngine.Core.WorldManagement
 			ZIndex = 0;
 			Scale = Vector2.One;
 			
+			CachedZIndex = 0;
 			CachedTransformMatrix = Matrix4x4.Identity;
 			CachedWorldTransformMatrix = Matrix4x4.Identity;
 			Bounds = RectangleF.Empty;
@@ -62,7 +92,7 @@ namespace REngine.Core.WorldManagement
 			return 1;
 		}
 
-		public Transform2DSystem Destroy(Transform2D transform)
+		public void Destroy(Transform2D transform)
 		{
 			lock (pSync)
 			{
@@ -71,7 +101,7 @@ namespace REngine.Core.WorldManagement
 #endif
 				var data = pData[transform.Id];
 				if (data.Component is null)
-					return this;
+					return;
 
 				data.Component.Detach();
 				if (data.ParentId != -1)
@@ -94,8 +124,6 @@ namespace REngine.Core.WorldManagement
 				pData[transform.Id] = new Transform2DData();
 				pAvailableIdx.Enqueue(transform.Id);
 			}
-
-			return this;
 		}
 		public Transform2D CreateTransform()
 		{
@@ -143,13 +171,28 @@ namespace REngine.Core.WorldManagement
 		{
 			lock (pSync)
 			{
-#if DEBUG
+#if RENGINE_VALIDATIONS
 				ValidateComponent(transform);
 #endif
 				var data = pData[transform.Id];
 				zIndex = data.ZIndex;
 			}
 		}
+
+		public void GetWorldZIndex(int id, out int zindex)
+		{
+			lock (pSync)
+			{
+#if RENGINE_VALIDATIONS
+				ValidateId(id);
+#endif
+				var data = pData[id];
+				if (pData[id].Dirty)
+					UpdateTransforms(id);
+				zindex = data.CachedZIndex;
+			}
+		}
+		
 		public void SetZIndex(Transform2D transform, int zIndex)
 		{
 			lock (pSync)
@@ -373,7 +416,7 @@ namespace REngine.Core.WorldManagement
 				output = new Transform2DSnapshot()
 				{
 					Position = data.Position,
-					ZIndex = data.ZIndex,
+					ZIndex = data.CachedZIndex,
 					Rotation = data.Rotation,
 					Scale = data.Scale,
 					WorldPosition = new Vector2(worldPos.X, worldPos.Y),
@@ -393,7 +436,10 @@ namespace REngine.Core.WorldManagement
 
 			data.Dirty = true;
 			pData[id]= data;
-			data.Children.ForEach(MakeDirty);
+
+			// ReSharper disable once ForCanBeConvertedToForeach
+			for (var i = 0; i < data.Children.Count; ++i)
+				MakeDirty(data.Children[i]);
 		}
 		private void UpdateTransforms(int id)
 		{
@@ -403,12 +449,14 @@ namespace REngine.Core.WorldManagement
 			                             * Matrix4x4.CreateTranslation(new Vector3(data.Position, data.ZIndex));
 
 			data.CachedWorldTransformMatrix = data.CachedTransformMatrix;
+			data.CachedZIndex = data.ZIndex;
 			data.WorldRotation = data.Rotation;
 			if (data.ParentId >= 0)
 			{
 				UpdateTransforms(data.ParentId);
 				var parent = pData[data.ParentId];
 				data.CachedWorldTransformMatrix = data.CachedTransformMatrix * parent.CachedWorldTransformMatrix;
+				data.CachedZIndex = parent.CachedZIndex + data.ZIndex;
 				data.WorldRotation = parent.WorldRotation + data.Rotation;
 			}
 

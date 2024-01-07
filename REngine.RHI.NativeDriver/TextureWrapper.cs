@@ -20,6 +20,13 @@ namespace REngine.RHI.NativeDriver
 
 		public GPUObjectType ObjectType => GPUObjectType.Texture;
 
+		public ResourceState State
+		{
+			get => (ResourceState)TextureImpl.rengine_texture_get_state(Handle);
+			set => TextureImpl.rengine_texture_set_state(Handle, (uint)value);
+		}
+
+		public ulong GPUHandle => TextureImpl.rengine_texture_get_gpuhandle(Handle);
 		public event EventHandler? OnDispose;
 
 		public TextureWrapper(IntPtr handle)

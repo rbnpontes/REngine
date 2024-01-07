@@ -31,10 +31,10 @@ namespace REngine.Core.Threading
 		private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
 		private readonly ExecutionPipelineImpl pPipeline;
 
-		private List<(XmlElement, EPNode)> pCreatedNodes = new();
+		private List<(XmlElement, EpNode)> pCreatedNodes = new();
 
-		public List<EPNode> RootNodes { get; private set; } = new();
-		public Dictionary<ulong, EPNode> NodesTable { get; private set; } = new ();
+		public List<EpNode> RootNodes { get; private set; } = new();
+		public Dictionary<ulong, EpNode> NodesTable { get; private set; } = new ();
 
 		public EPResolver(ExecutionPipelineNodeRegistry registry, ExecutionPipelineImpl pipeline)
 		{
@@ -64,14 +64,14 @@ namespace REngine.Core.Threading
 			// Resolve and Define Nodes
 			foreach(var pair in pCreatedNodes)
 			{
-				(XmlElement element, EPNode node) = pair;
+				(XmlElement element, EpNode node) = pair;
 				node.Define(element, NodesTable);
 			}
 		}
 
-		private void ParseNodesRecursive(EPNode? parentNode, XmlElement element)
+		private void ParseNodesRecursive(EpNode? parentNode, XmlElement element)
 		{
-			EPNode node = GetEPNode(element);
+			EpNode node = GetEPNode(element);
 			node.Parent ??= parentNode;
 
 			if (parentNode is null)
@@ -90,7 +90,7 @@ namespace REngine.Core.Threading
 			}
 		}
 
-		private EPNode GetEPNode(XmlElement element)
+		private EpNode GetEPNode(XmlElement element)
 		{
 			IsValidTag(element.Name);
 
@@ -100,7 +100,7 @@ namespace REngine.Core.Threading
 			if (NodesTable.ContainsKey(id))
 				throw new Exception($"Node with '{id}' is already registered.");
 
-			EPNode node = pNodeRegistry.Create(element.Name, pPipeline);
+			EpNode node = pNodeRegistry.Create(element.Name, pPipeline);
 			node.Id = id;
 #if DEBUG
 			node.DebugName = idValue;

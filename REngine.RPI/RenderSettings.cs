@@ -19,9 +19,32 @@ namespace REngine.RPI
 		public uint ObjectBufferSize { get; set; } = 1024 * 2;
 		public uint MaterialBufferSize { get; set; } = 16000; // 16kb, same of opengl
 #if RENGINE_SPRITEBATCH
+		/// <summary>
+		/// Enable Sprite Batch instance Multi Thread Support
+		/// If this option is enabled, all batches will be executed on Deferred Context
+		/// </summary>
+		public bool EnableSpriteBatchMultiThread { get; set; } = false;
+		/// <summary>
+		/// Requires <see cref="EnableSpriteBatchMultiThread"/> enabled
+		/// All instance batches will be split by Jobs
+		/// But to reduce GPU pressure, engine will divide instance jobs into low
+		/// subset of batches.
+		/// Example: If you send 1000 instance, jobs is 4 and subset is 10
+		/// then engine will divide 1000 by 4 = 250 batches per job
+		/// then a job will execute 25 times because at each subset, engine
+		/// will execute 10 instances until reach total of instances per job
+		/// </summary>
+		public uint SpriteBatchInstanceSubset { get; set; } = 10;
+		/// <summary>
+		/// Requires <see cref="EnableSpriteBatchMultiThread"/> enabled
+		/// If multi thread option is enabled, then each sprite will be execute by
+		/// specified amount of jobs.
+		/// If job count will be clamped to <see cref="EngineSettings.JobsThreadCount"/> and 1
+		/// </summary>
+		public uint SpriteBatchInstanceJobs { get; set; } = 4;
 		public uint SpriteBatchInitialSize { get; set; } = 8;
 		public uint SpriteBatchTextsInitialSize { get; set; } = 1;
-		public uint SpriteBatchInitialInstanceSize { get; set; } = 512;
+		public uint SpriteBatchInitialInstanceSize { get; set; } = 2;
 		/// <summary>
 		/// When batches goes to resize, the above calc will be applied on new Array length
 		/// NewLength = OldLength + (SpriteBatchInitialSize * SpriteBatchExpansionRatio)
@@ -55,6 +78,11 @@ namespace REngine.RPI
 			PipelineCacheFilename = settings.PipelineCacheFilename;
 			ObjectBufferSize = settings.ObjectBufferSize;
 #if RENGINE_SPRITEBATCH
+			EnableSpriteBatchMultiThread = settings.EnableSpriteBatchMultiThread;
+			SpriteBatchInstanceSubset = settings.SpriteBatchInstanceSubset;
+			SpriteBatchInstanceJobs = settings.SpriteBatchInstanceJobs;
+			
+			SpriteBatchTextsInitialSize = settings.SpriteBatchTextsInitialSize;
 			SpriteBatchInitialSize = settings.SpriteBatchInitialSize;
 			SpriteBatchInitialInstanceSize = settings.SpriteBatchInitialInstanceSize;
 			SpriteBatchExpansionRatio = settings.SpriteBatchExpansionRatio;

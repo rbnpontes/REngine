@@ -4,83 +4,155 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
+using REngine.Core.DependencyInjection;
+using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
 
 namespace REngine.RPI.Components
 {
-	public sealed class TextComponent : BaseSpriteComponent<TextComponent>
+	public sealed class TextComponent(IServiceProvider provider) : BaseSpriteComponent<TextComponent>(provider)
 	{
-		private readonly ITextRenderer pTextRenderer;
-		private readonly object pSync = new();
+		private readonly ITextRenderer pTextRenderer = provider.Get<ITextRenderer>();
+		private TextRendererBatch? pBatch;
 
-		private TextRendererBatch? pTextBatch;
-		private Transform2DSnapshot pLastSnapshot;
+		private bool pDirtyProps;
+		private string pText = string.Empty;
+		// Text has is used to compare changes
+		private ulong pTextHash = 0;
+		
+		private uint pFontSize;
+		private float pHorizontalSpacing;
+		private float pVerticalSpacing;
+		private Color pColor = Color.White;
+		private Font? pFont;
 
-		private string pText2Render = string.Empty;
-		private string pFontName = string.Empty;
-
-		public string Text { get; set; } = string.Empty;
-		public uint TextSize { get; set; } = 16;
-		public float HorizontalSpacing { get; set; } = 0;
-		public float VerticalSpacing { get; set; } = 0;
-		public Color Color { get; set; } = Color.White;
-
-		public RectangleF Bounds => pTextBatch?.Bounds ?? new RectangleF();
-
-		public string FontName
+		public string Text
 		{
-			get => pFontName;
+			get => pText;
 			set
 			{
-				lock (pFontName)
-				{
-					if (Equals(pFontName, value))
-						return;
-					pFontName = value;
-					pTextBatch?.Dispose();
-					pTextBatch = null;
-				}
+				var hash = Hash.Digest(value);
+				pDirtyProps |= hash != pTextHash;
+
+				pTextHash = hash;
+				pText = value;
 			}
 		}
-
-		public TextComponent(
-			IServiceProvider provider,
-			ITextRenderer textRenderer) : base(provider)
+		public float HorizontalSpacing
 		{
-			pTextRenderer = textRenderer;
-		}
-
-		protected override void OnDraw(ISpriteBatch spriteBatch)
-		{
-			lock (pSync)
+			get => pHorizontalSpacing;
+			set
 			{
-				if (string.IsNullOrEmpty(FontName))
-					return;
-
-				pTextBatch ??= pTextRenderer.CreateBatch(FontName);
-				pTextBatch.Text = pText2Render;
-				pTextBatch.Color = Color;
-				pTextBatch.Position = pLastSnapshot.WorldPosition;
-				pTextBatch.Size = TextSize;
-				pTextBatch.HorizontalSpacing = HorizontalSpacing;
-				pTextBatch.VerticalSpacing = VerticalSpacing;
-
-				mSpriteBatch.Draw(pTextBatch);
+				pDirtyProps |= Math.Abs(pHorizontalSpacing - value) > float.Epsilon;
+				pHorizontalSpacing = value;
 			}
 		}
-
-		protected override void OnBeginRender()
+		public float VerticalSpacing
 		{
-			Transform.GetSnapshot(out pLastSnapshot);
-			pText2Render = Text;
+			get => pVerticalSpacing;
+			set
+			{
+				pDirtyProps |= Math.Abs(pVerticalSpacing - value) > float.Epsilon;
+				pVerticalSpacing = value;
+			}
+		}
+		public Color Color
+		{
+			get => pColor;
+			set
+			{
+				pDirtyProps |= pColor != value;
+				pColor = value;
+			}
+		}
+		public uint FontSize
+		{
+			get => pFontSize;
+			set
+			{
+				pDirtyProps |= pFontSize != value;
+				pFontSize = value;
+			}
+		}
+		public Font? Font
+		{
+			get => pFont;
+			set
+			{
+				pDirtyProps |= pFont != value;
+				pFont = value;
+				pTextRenderer.SetFont(value);
+			}
+		}
+		public RectangleF Bounds { get; private set; } = new();
+
+		private void BuildBatch(Font font)
+		{
+			if (pFont is null)
+				return;
+			
+			pBatch = pTextRenderer.CreateBatch(font.Name);
+			UpdateBatchProps(pBatch);
+		}
+
+		private void UpdateBatchProps(TextRendererBatch batch)
+		{
+			batch.Lock();
+			batch.Enabled = Enabled;
+			batch.Position = Transform.WorldPosition;
+			batch.Text = pText;
+			batch.Color = pColor;
+			batch.HorizontalSpacing = pHorizontalSpacing;
+			batch.VerticalSpacing = pVerticalSpacing;
+			batch.Size = pFontSize;
+			batch.ZIndex = Transform.WorldZIndex;
+			Bounds = batch.Bounds;
+			batch.Unlock();
+
+			pDirtyProps = false;
+		}
+		
+		protected override void OnUpdate()
+		{
+			if (pFont is null)
+				return;
+			if (pBatch is null)
+			{
+				BuildBatch(pFont);
+				return;
+			}
+
+			if (!pDirtyProps)
+			{
+				pBatch.Lock();
+				Bounds = pBatch.Bounds;
+				pBatch.Unlock();
+				return;
+			}
+			
+			UpdateBatchProps(pBatch);
+		}
+
+		protected override void OnChangeVisibility(bool value)
+		{
+			base.OnChangeVisibility(value);
+			pDirtyProps = true;
+			if(pBatch is not null)
+				UpdateBatchProps(pBatch);
+		}
+
+		protected override void OnChangeTransform()
+		{
+			pDirtyProps = true;
 		}
 
 		protected override void OnDispose()
 		{
 			base.OnDispose();
-
-			pTextBatch?.Dispose();
+			DisposableQueue.Enqueue(pBatch);
+			pBatch = null;
 		}
 	}
 }

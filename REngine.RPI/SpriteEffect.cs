@@ -5,248 +5,353 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.Core.Reflection;
 using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI.Constants;
+using REngine.RPI.Resources;
 
 namespace REngine.RPI
 {
-	public abstract class SpriteEffect : IDisposable
-	{
-		public abstract bool IsDisposed { get; }
-		public abstract string EffectName { get; }
-		public abstract void Dispose();
-		public abstract void OnSetMainTexture(ITexture? texture);
-		public abstract IPipelineState OnBuildPipeline(IServiceProvider serviceProvider);
-		public abstract IShaderResourceBinding OnGetSRB();
-	}
+    public abstract class BaseSpriteEffect : IDisposable
+    {
+        public bool IsDisposed { get; private set; }
 
-	public class BasicSpriteEffect(string effectName, IAssetManager assetManager) : SpriteEffect
-	{
-		private bool pDisposed;
-		private ITexture? pMainTexture;
-		private IPipelineState? pPipelineState;
-		private IShaderResourceBinding? pShaderResourceBinding;
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+            OnDispose();
+        }
 
-		private ShaderStream? pVertexShaderStream;
-		private ShaderStream? pPixelShaderStream;
+        protected abstract void OnDispose();
+        public abstract IPipelineState OnBuildPipeline();
+        public abstract IShaderResourceBinding OnGetShaderResourceBinding();
 
-		public override bool IsDisposed => pDisposed;
+        /// <summary>
+        /// Called by the batch, use when you need to update internal buffers
+        /// </summary>
+        public virtual void UpdateBuffers()
+        {
+        }
+    }
 
-		public ShaderStream? VertexShader
-		{
-			get => pVertexShaderStream;
-			set
-			{
-				AssertDispose();
-				if (value == pVertexShaderStream) return;
-				pPipelineState = null;
-				pVertexShaderStream?.Dispose();
-				pVertexShaderStream = value;
-			}
-		}
+    public abstract class DefaultSpriteEffect(
+        IPipelineStateManager pipelineStateManager,
+        GraphicsSettings settings,
+        IShaderResourceBindingCache shaderResourceBindingCache,
+        IBufferManager bufferManager,
+        IShaderManager shaderManager
+    ) : BaseSpriteEffect
+    {
+        private IPipelineState? pPipelineState;
+        private IShaderResourceBinding? pShaderResourceBinding;
 
-		public ShaderStream? PixelShader
-		{
-			get => pPixelShaderStream;
-			set
-			{
-				AssertDispose();
-				if (value == pPixelShaderStream) return;
-				pPipelineState = null;
-				pPixelShaderStream?.Dispose();
-				pPixelShaderStream = value;
-			}
-		}
+        protected bool mDirtySrb = true;
 
-		public override string EffectName => effectName;
+        protected override void OnDispose()
+        {
+            pShaderResourceBinding?.Dispose();
+            pShaderResourceBinding = null;
+        }
 
-		private ShaderStream GetShaderStream(ShaderType type)
-		{
-			ShaderStream stream;
-			switch (type)
-			{
-				case ShaderType.Vertex:
-				{
-					pVertexShaderStream ??=
-						new StreamedShaderStream(assetManager.GetStream("Shaders/spritebatch_vs.hlsl"));
-					stream = pVertexShaderStream;
-				}
-					break;
-				case ShaderType.Pixel:
-				{
-					pPixelShaderStream ??=
-						new StreamedShaderStream(assetManager.GetStream("Shaders/spritebatch_ps.hlsl"));
-					stream = pPixelShaderStream;
-				}
-					break;
-				case ShaderType.Compute:
-				case ShaderType.Geometry:
-				case ShaderType.Hull:
-				case ShaderType.Domain:
-				default:
-					throw new NotSupportedException($"Not supported shader type {type}");
-			}
+        public override IPipelineState OnBuildPipeline()
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            if (pPipelineState is not null)
+                return pPipelineState;
+            pPipelineState = BuildPipeline();
+            return pPipelineState;
+        }
 
-			return stream;
-		}
+        protected virtual IPipelineState BuildPipeline()
+        {
+            OnCreatePipelineDesc(out var desc);
+            return pipelineStateManager.GetOrCreate(desc);
+        }
 
-		public override void Dispose()
-		{
-			if(pDisposed) 
-				return;
+        protected virtual void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+        {
+            desc = new GraphicsPipelineDesc
+            {
+                Name = "Default Sprite Effect"
+            };
+            desc.Output.RenderTargetFormats[0] = settings.DefaultColorFormat;
+            desc.Output.DepthStencilFormat = settings.DefaultDepthFormat;
+            desc.BlendState.BlendMode = BlendMode.Replace;
+            desc.PrimitiveType = PrimitiveType.TriangleStrip;
+            desc.RasterizerState.CullMode = CullMode.Both;
+            desc.DepthStencilState.EnableDepth = false;
+            desc.DepthStencilState.DepthWriteEnabled = false;
 
-			pVertexShaderStream?.Dispose(); pPixelShaderStream?.Dispose();
-			pVertexShaderStream = pPixelShaderStream = null;
+            desc.Shaders.VertexShader = OnGetShader(ShaderType.Vertex);
+            desc.Shaders.PixelShader = OnGetShader(ShaderType.Pixel);
+        }
 
-			pShaderResourceBinding?.Dispose();
+        protected virtual IShader OnGetShader(ShaderType shaderType)
+        {
+            OnGetShaderCreateInfo(shaderType, out var shaderCi);
+            return shaderManager.GetOrCreate(shaderCi);
+        }
 
-			pMainTexture = null;
-			pPipelineState = null;
-			pDisposed = true;
-			
-			GC.SuppressFinalize(this);
-		}
+        protected abstract void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi);
 
-		public override void OnSetMainTexture(ITexture? texture)
-		{
-			AssertDispose();
-			if (pMainTexture == texture)
-				return;
+        public override IShaderResourceBinding OnGetShaderResourceBinding()
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            if (!mDirtySrb && pShaderResourceBinding is not null) return pShaderResourceBinding;
 
-			if (texture != null)
-			{
-				if (pMainTexture is null)
-				{
-					pPipelineState = null;
-					pShaderResourceBinding?.Dispose();
-					pShaderResourceBinding = null;
-				}
-				else
-					pShaderResourceBinding?.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, texture.GetDefaultView(TextureViewType.ShaderResource));
-			}
-			else if(pMainTexture != null)
-			{
-				pPipelineState = null;
-				pShaderResourceBinding?.Dispose();
-				pShaderResourceBinding = null;
-			}
+            var resMapping = OnGetResourceMapping();
+            var srb = shaderResourceBindingCache.Build(OnBuildPipeline(), resMapping);
+            pShaderResourceBinding?.Dispose();
+            pShaderResourceBinding = srb;
+            mDirtySrb = false;
+            return srb;
+        }
 
-			pMainTexture = texture;
-		}
+        protected virtual ResourceMapping OnGetResourceMapping()
+        {
+            var resourceMapping = new ResourceMapping();
+            resourceMapping
+                .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, bufferManager.GetBuffer(BufferGroupType.Frame))
+                .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Object,
+                    bufferManager.GetBuffer(BufferGroupType.Object));
+            return resourceMapping;
+        }
+    }
 
-		public override IPipelineState OnBuildPipeline(IServiceProvider serviceProvider)
-		{
-			AssertDispose();
-			if (pPipelineState != null)
-				return pPipelineState;
+    public class SpriteEffect(
+        IAssetManager assetManager,
+        IPipelineStateManager pipelineStateManager,
+        GraphicsSettings settings,
+        IShaderResourceBindingCache shaderResourceBindingCache,
+        IBufferManager bufferManager,
+        IShaderManager shaderManager
+    ) : DefaultSpriteEffect(
+        pipelineStateManager,
+        settings,
+        shaderResourceBindingCache,
+        bufferManager,
+        shaderManager
+    )
+    {
+        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+        {
+            shaderCi = new ShaderCreateInfo
+            {
+                Type = shaderType
+            };
+            string assetPath;
+            switch (shaderType)
+            {
+                case ShaderType.Vertex:
+                {
+                    shaderCi.Name = $"[Vertex]{nameof(SpriteEffect)}";
+                    assetPath = "Shaders/spritebatch_vs.hlsl";
+                }
+                    break;
+                case ShaderType.Pixel:
+                {
+                    shaderCi.Name = $"[Pixel]{nameof(SpriteEffect)}";
+                    assetPath = "Shaders/spritebatch_ps.hlsl";
+                }
+                    break;
+                case ShaderType.Compute:
+                case ShaderType.Geometry:
+                case ShaderType.Hull:
+                case ShaderType.Domain:
+                default:
+                    throw new NotImplementedException();
+            }
 
-			var psMgr = serviceProvider.Get<IPipelineStateManager>();
-			GetPipelineStateDesc(serviceProvider, out var pipelineDesc);
+            shaderCi.SourceCode = assetManager.GetAsset<ShaderAsset>(assetPath).ShaderCode;
+        }
 
-			var result = psMgr.GetOrCreate(pipelineDesc);
-			var srb = result.CreateResourceBinding();
+        public static SpriteEffect Build(IServiceProvider provider)
+        {
+            return ActivatorExtended.CreateInstance<SpriteEffect>(provider) ?? throw new NullReferenceException();
+        }
+    }
 
-			SetConstantBuffers(serviceProvider, srb);
-			if(pMainTexture != null)
-				srb.Set(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pMainTexture.GetDefaultView(TextureViewType.ShaderResource));
+    public class TextureSpriteEffect(
+        IAssetManager assetManager,
+        IPipelineStateManager pipelineStateManager,
+        GraphicsSettings settings,
+        IShaderResourceBindingCache shaderResourceBindingCache,
+        IBufferManager bufferManager,
+        IShaderManager shaderManager
+    ) : SpriteEffect(assetManager, pipelineStateManager, settings, shaderResourceBindingCache, bufferManager,
+        shaderManager)
+    {
+        private ITexture pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg").Texture;
 
-			pPipelineState = result;
-			pShaderResourceBinding = srb;
+        public ITexture Texture
+        {
+            get => pTexture;
+            set
+            {
+                if (pTexture == value)
+                    return;
+                pTexture = value;
+                mDirtySrb = true;
+            }
+        }
 
-			return result;
-		}
+        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+        {
+            base.OnGetShaderCreateInfo(shaderType, out shaderCi);
+            shaderCi.Macros.Add("RENGINE_ENABLED_TEXTURE", "1");
+        }
 
-		public override IShaderResourceBinding OnGetSRB()
-		{
-			AssertDispose();
-			if (pShaderResourceBinding is null)
-				throw new NullReferenceException(
-					"Shader Resource Binding is null. Did you initialized PipelineState ?");
-			return pShaderResourceBinding;
-		}
+        protected override ResourceMapping OnGetResourceMapping()
+        {
+            var resMapping = base.OnGetResourceMapping();
+            resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture);
+            return resMapping;
+        }
 
-		protected virtual void GetPipelineStateDesc(IServiceProvider provider, out GraphicsPipelineDesc desc)
-		{
-			var shaderManager = provider.Get<IShaderManager>();
-			var settings = provider.Get<GraphicsSettings>();
+        protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+        {
+            base.OnCreatePipelineDesc(out desc);
+            desc.Samplers.Add(new ImmutableSamplerDesc
+            {
+                Name = TextureNames.MainTexture,
+                Sampler = new SamplerStateDesc(TextureFilterMode.Default, TextureAddressMode.Clamp)
+            });
+        }
 
-			var output = new GraphicsPipelineDesc
-			{
-				Name = $"Sprite Effect - {EffectName}"
-			};
-			output.Output.RenderTargetFormats[0] = settings.DefaultColorFormat;
-			output.Output.DepthStencilFormat = settings.DefaultDepthFormat;
-			output.BlendState.BlendMode = BlendMode.Alpha;
-			output.PrimitiveType = PrimitiveType.TriangleList;
-			output.RasterizerState.CullMode = CullMode.Both;
-			output.DepthStencilState.EnableDepth = true;
+        public static TextureSpriteEffect Build(IServiceProvider provider)
+        {
+            return ActivatorExtended.CreateInstance<TextureSpriteEffect>(provider) ??
+                   throw new NullReferenceException();
+        }
+    }
 
-			output.Shaders.VertexShader = GetShader(shaderManager, ShaderType.Vertex);
-			output.Shaders.PixelShader = GetShader(shaderManager, ShaderType.Pixel);
+    public class InstancedSpriteEffect(
+        IPipelineStateManager pipelineStateManager,
+        GraphicsSettings settings,
+        IAssetManager assetManager,
+        IShaderResourceBindingCache shaderResourceBindingCache,
+        IBufferManager bufferManager,
+        IShaderManager shaderManager
+    ) : DefaultSpriteEffect(pipelineStateManager, settings, shaderResourceBindingCache, bufferManager, shaderManager)
+    {
+        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+        {
+            shaderCi = new ShaderCreateInfo
+            {
+                Type = shaderType
+            };
+            string assetPath;
+            switch (shaderType)
+            {
+                case ShaderType.Vertex:
+                {
+                    shaderCi.Name = $"[Instanced][Vertex]{nameof(SpriteEffect)}";
+                    assetPath = "Shaders/spritebatch_instanced_vs.hlsl";
+                }
+                    break;
+                case ShaderType.Pixel:
+                {
+                    shaderCi.Name = $"[Pixel]{nameof(SpriteEffect)}";
+                    assetPath = "Shaders/spritebatch_ps.hlsl";
+                }
+                    break;
+                case ShaderType.Compute:
+                case ShaderType.Geometry:
+                case ShaderType.Hull:
+                case ShaderType.Domain:
+                default:
+                    throw new NotImplementedException();
+            }
 
-			output.InputLayouts.Add(
-				new PipelineInputLayoutElementDesc
-				{
-					InputIndex = 0,
-					Input = new InputLayoutElementDesc
-					{
-						ElementType = ElementType.Vector2
-					}
-				}
-			);
-			output.InputLayouts.Add(
-				new PipelineInputLayoutElementDesc
-				{
-					InputIndex = 1,
-					Input = new InputLayoutElementDesc
-					{
-						ElementType = ElementType.Vector2
-					}
-				}
-			);
+            shaderCi.SourceCode = assetManager.GetAsset<ShaderAsset>(assetPath).ShaderCode;
+            shaderCi.Macros.Add("RENGINE_INSTANCED", "1");
+        }
 
-			output.Samplers.Add(new ImmutableSamplerDesc
-			{
-				Name = TextureNames.MainTexture,
-				Sampler = new SamplerStateDesc(TextureFilterMode.Trilinear, TextureAddressMode.Clamp)
-			});
+        protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+        {
+            base.OnCreatePipelineDesc(out desc);
 
-			desc = output;
-		}
+            for (var i = 0u; i < 4; ++i)
+            {
+                desc.InputLayouts.Add(new PipelineInputLayoutElementDesc()
+                {
+                    InputIndex = i,
+                    Input = new InputLayoutElementDesc()
+                    {
+                        BufferIndex = 0,
+                        ElementType = ElementType.Vector4,
+                        InstanceStepRate = 1
+                    }
+                });
+            }
+        }
 
-		protected virtual IShader GetShader(IShaderManager shaderManager, ShaderType type)
-		{
-			var shaderCI = new ShaderCreateInfo
-			{
-				Type = type,
-				SourceCode = GetShaderStream(type).GetShaderCode()
-			};
+        public static InstancedSpriteEffect Build(IServiceProvider provider)
+        {
+            return ActivatorExtended.CreateInstance<InstancedSpriteEffect>(provider) ??
+                   throw new NullReferenceException();
+        }
+    }
 
-			if (pMainTexture is null) 
-				return shaderManager.GetOrCreate(shaderCI);
+    public class TextureInstancedSpriteEffect(
+        IPipelineStateManager pipelineStateManager,
+        GraphicsSettings settings,
+        IAssetManager assetManager,
+        IShaderResourceBindingCache shaderResourceBindingCache,
+        IBufferManager bufferManager,
+        IShaderManager shaderManager
+    ) : InstancedSpriteEffect(
+        pipelineStateManager,
+        settings,
+        assetManager,
+        shaderResourceBindingCache,
+        bufferManager,
+        shaderManager)
+    {
+        private TextureAsset pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg");
 
-			shaderCI.Name = shaderCI.Name + "(TEXTURED)";
-			shaderCI.Macros.Add("RENGINE_ENABLED_TEXTURE", "1");
+        public TextureAsset Texture
+        {
+            get => pTexture;
+            set
+            {
+                if (pTexture == value)
+                    return;
+                pTexture = value;
+                mDirtySrb = true;
+            }
+        }
 
-			return shaderManager.GetOrCreate(shaderCI);
-		}
+        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+        {
+            base.OnGetShaderCreateInfo(shaderType, out shaderCi);
+            shaderCi.Macros.Add("RENGINE_ENABLED_TEXTURE", "1");
+        }
 
-		protected virtual void SetConstantBuffers(IServiceProvider provider, IShaderResourceBinding srb)
-		{
-			var bufferManager = provider.Get<IBufferManager>();
-			srb.Set(ShaderTypeFlags.Vertex | ShaderTypeFlags.Pixel, ConstantBufferNames.Frame, bufferManager.GetBuffer(BufferGroupType.Frame));
-			srb.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Object, bufferManager.GetBuffer(BufferGroupType.Object));
-		}
+        protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+        {
+            base.OnCreatePipelineDesc(out desc);
+            desc.Samplers.Add(new ImmutableSamplerDesc
+            {
+                Name = TextureNames.MainTexture,
+                Sampler = new SamplerStateDesc(TextureFilterMode.Default, TextureAddressMode.Clamp)
+            });
+        }
 
-		private void AssertDispose()
-		{
-			if (pDisposed)
-				throw new ObjectDisposedException(nameof(SpriteEffect));
-		}
+        protected override ResourceMapping OnGetResourceMapping()
+        {
+            var resMapping = base.OnGetResourceMapping();
+            resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture.Texture);
+            return resMapping;
+        }
 
-	}
-
-	public sealed class DefaultSpriteEffect(IAssetManager assetManager)
-		: BasicSpriteEffect(nameof(DefaultSpriteEffect), assetManager);
+        public static TextureInstancedSpriteEffect Build(IServiceProvider provider)
+        {
+            return ActivatorExtended.CreateInstance<TextureInstancedSpriteEffect>(provider) ??
+                   throw new NullReferenceException();
+        }
+    }
 }

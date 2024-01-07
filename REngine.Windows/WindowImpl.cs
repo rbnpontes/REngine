@@ -305,7 +305,7 @@ namespace REngine.Windows
 
 			(state == InputState.Press ? OnMouseDown : OnMouseUp)?.Invoke(this, evt);
 		}
-
+		
 		private void HandleMouseMove(GLFW.Window window, double x, double y)
 		{
 			OnMouseMove?.Invoke(this, new WindowMouseEventArgs(MouseKey.None, pWindow, IntPtr.Zero)

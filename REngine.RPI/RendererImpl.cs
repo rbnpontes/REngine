@@ -125,6 +125,8 @@ namespace REngine.RPI
 
 			IsDisposed = true;
 
+			GpuObjects.DisposeObjects();
+			
 			pRenderEvents.ExecuteDispose(this);
 
 			pFeatureCollection.Dispose();
@@ -134,6 +136,8 @@ namespace REngine.RPI
 			pEngineEvents.OnBeforeStop -= HandleEngineStop;
 
 			pRenderEvents.ExecuteDisposed(this);
+			
+			GpuObjects.DisposeObjects();
 		}
 
 		public IRenderer AddFeature(IRenderFeature feature, int zindex = -1)
@@ -186,6 +190,7 @@ namespace REngine.RPI
 
 		public IRenderer Render()
 		{
+			GpuObjects.DisposeObjects();
 #if PROFILER
 			using var _ = Profiler.Instance.Begin($"{nameof(IRenderer)}.{nameof(Render)}");
 #endif
@@ -210,7 +215,6 @@ namespace REngine.RPI
 						.ClearRT(pSwapChain.ColorBuffer, pRenderState.DefaultClearColor)
 						.ClearDepth(pSwapChain.DepthBuffer, pRenderState.ClearDepthFlags,
 							pRenderState.DefaultClearDepthValue, pRenderState.DefaultClearStencilValue);
-
 #if RENGINE_RENDERGRAPH
 					if (pMainBackBufferResource is null)
 						throw new EngineFatalException(
@@ -359,7 +363,8 @@ namespace REngine.RPI
 				pRenderTargetMgr,
 				pGraphicsSettings,
 				pRenderState,
-				pAssetManager
+				pAssetManager,
+				pProvider.Get<IShaderResourceBindingCache>()
 			);
 
 			pExecutionPipeline

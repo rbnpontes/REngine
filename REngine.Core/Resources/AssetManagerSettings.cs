@@ -6,8 +6,7 @@ public class FileAssetManagerSettings
 {
      public string[] SearchPaths { get; set; } =
      [
-          Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine"),
-          Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets")
+          Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine")
      ];
 }
 

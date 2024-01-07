@@ -56,7 +56,7 @@ namespace REngine.RPI.RenderGraph
 			properties.TryGetValue(ScalePropHash, out var scale);
 
 			if(!string.IsNullOrEmpty(scale))
-				mScale = uint.Parse(scale);
+				mScale = float.Parse(scale);
 		}
 		protected override void OnRun(IServiceProvider provider)
 		{
