@@ -112,7 +112,7 @@ namespace REngine.RPI
 			pEngineEvents = engineEvents;
 			pRenderer = renderer;
 			pAssetManager = assetManager;
-			pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+			pBatchGroup = batchSystem.GetGroup(SpriteRenderSystem.BatchGroupName);
 			
 			engineEvents.OnStop += HandleEngineStop;
 		}

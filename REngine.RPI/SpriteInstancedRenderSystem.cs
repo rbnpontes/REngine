@@ -21,7 +21,7 @@ public struct SpriteInstancedCreateInfo()
     public IBuffer? InstancingBuffer = null;
     public InstancedSpriteEffect? Effect = null;
 }
-public sealed class SpriteInstancedBatchSystem(
+public sealed class SpriteInstancedRenderSystem(
     RendererEvents rendererEvents,
     RenderSettings renderSettings,
     BatchSystem batchSystem,
@@ -33,7 +33,7 @@ public sealed class SpriteInstancedBatchSystem(
 {
     public static readonly ulong InstanceDataSize = (ulong)Unsafe.SizeOf<SpriteInstanceData>();
     private class InternalBatch(
-        SpriteInstancedBatchSystem system, 
+        SpriteInstancedRenderSystem system, 
         int id, 
         IBuffer constantBuffer,
         IExecutionPipeline execPipeline,
@@ -203,7 +203,7 @@ public sealed class SpriteInstancedBatchSystem(
     }
     
     private readonly object pSync = new();
-    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
+    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteRenderSystem.BatchGroupName);
     private readonly InstancedSpriteEffect pDefaultEffect = InstancedSpriteEffect.Build(provider);
 
     public InstancedSprite CreateBatch(SpriteInstancedCreateInfo createInfo)

@@ -82,7 +82,7 @@ public abstract class BaseSprite(int id) : IDisposable
     protected abstract void OnDispose();
 }
 
-public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
+public sealed class Sprite(int id, SpriteRenderSystem renderSystem) : BaseSprite(id)
 {
     public bool Enabled
     {
@@ -92,7 +92,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.IsEnabled(id);
+            return renderSystem.IsEnabled(id);
         }
         set
         {
@@ -100,7 +100,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetEnabled(id, value);
+            renderSystem.SetEnabled(id, value);
         }
     }
 
@@ -112,7 +112,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetPosition(id);
+            return renderSystem.GetPosition(id);
         }
         set
         {
@@ -120,7 +120,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetPosition(id, value);
+            renderSystem.SetPosition(id, value);
         }
     }
 
@@ -132,7 +132,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetAnchor(id);
+            return renderSystem.GetAnchor(id);
         }
         set
         {
@@ -140,7 +140,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetAnchor(id, value);
+            renderSystem.SetAnchor(id, value);
         }
     }
 
@@ -152,7 +152,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetSize(id);
+            return renderSystem.GetSize(id);
         }
         set
         {
@@ -160,7 +160,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetSize(id, value);
+            renderSystem.SetSize(id, value);
         }
     }
 
@@ -172,7 +172,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetAngle(id);
+            return renderSystem.GetAngle(id);
         }
         set
         {
@@ -180,7 +180,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetAngle(id, value);
+            renderSystem.SetAngle(id, value);
         }
     }
 
@@ -192,7 +192,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetColor(id);
+            return renderSystem.GetColor(id);
         }
         set
         {
@@ -200,7 +200,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetColor(id, value);
+            renderSystem.SetColor(id, value);
         }
     }
 
@@ -212,7 +212,7 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            return system.GetEffect(id);
+            return renderSystem.GetEffect(id);
         }
         set
         {
@@ -220,19 +220,19 @@ public sealed class Sprite(int id, SpriteSystem system) : BaseSprite(id)
             ValidateDispose();
             ValidateLock();
 #endif
-            system.SetEffect(id, value);
+            renderSystem.SetEffect(id, value);
         }
     }
     
-    protected override object GetObjectSync() => system.GetObjectSync(id);
+    protected override object GetObjectSync() => renderSystem.GetObjectSync(id);
 
     protected override void OnDispose()
     {
-        system.Destroy(id);
+        renderSystem.Destroy(id);
     }
 }
 
-public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSystem) : BaseSprite(id)
+public sealed class InstancedSprite(int id, SpriteInstancedRenderSystem renderSystem) : BaseSprite(id)
 {
     public bool Enabled
     {
@@ -242,7 +242,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.IsEnabled(id);
+            return renderSystem.IsEnabled(id);
         }
         set
         {
@@ -250,7 +250,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            batchSystem.SetEnabled(id, value);
+            renderSystem.SetEnabled(id, value);
         }
     }
 
@@ -262,7 +262,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.GetColor(id);
+            return renderSystem.GetColor(id);
         }
         set
         {
@@ -270,7 +270,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            batchSystem.SetColor(id, value);
+            renderSystem.SetColor(id, value);
         }
     }
 
@@ -282,7 +282,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.GetEffect(id);
+            return renderSystem.GetEffect(id);
         }
         set
         {
@@ -290,7 +290,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            batchSystem.SetEffect(id, value);
+            renderSystem.SetEffect(id, value);
         }
     }
 
@@ -302,7 +302,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.GetInstanceCount(id);
+            return renderSystem.GetInstanceCount(id);
         }
     }
 
@@ -314,7 +314,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
             ValidateDispose();
             ValidateLock();
 #endif
-            return batchSystem.GetInstancingBuffer(id);
+            return renderSystem.GetInstancingBuffer(id);
         }
     }
 
@@ -324,7 +324,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.ResizeInstances(id, numInstances, dynamic);
+        renderSystem.ResizeInstances(id, numInstances, dynamic);
     }
 
     public Vector2 GetInstancePosition(uint instanceIdx)
@@ -333,7 +333,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         return element.Position;
     }
 
@@ -343,7 +343,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         return element.Scale;
     }
 
@@ -353,7 +353,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         return element.Angle;
     }
 
@@ -363,7 +363,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         return element.Anchor;
     }
 
@@ -373,7 +373,7 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         return element.Depth;
     }
 
@@ -383,9 +383,9 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         element.Position = position;
-        batchSystem.SetElement(id, instanceIdx, ref element);
+        renderSystem.SetElement(id, instanceIdx, ref element);
         return this;
     }
 
@@ -395,9 +395,9 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         element.Scale = scale;
-        batchSystem.SetElement(id, instanceIdx, ref element);
+        renderSystem.SetElement(id, instanceIdx, ref element);
         return this;
     }
 
@@ -407,9 +407,9 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         element.Angle = angle;
-        batchSystem.SetElement(id, instanceIdx, ref element);
+        renderSystem.SetElement(id, instanceIdx, ref element);
         return this;
     }
 
@@ -419,9 +419,9 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         element.Anchor = anchor;
-        batchSystem.SetElement(id, instanceIdx, ref element);
+        renderSystem.SetElement(id, instanceIdx, ref element);
         return this;
     }
 
@@ -431,16 +431,16 @@ public sealed class InstancedSprite(int id, SpriteInstancedBatchSystem batchSyst
         ValidateDispose();
         ValidateLock();
 #endif
-        batchSystem.GetElement(id, instanceIdx, out var element);
+        renderSystem.GetElement(id, instanceIdx, out var element);
         element.Depth = depth;
-        batchSystem.SetElement(id, instanceIdx, ref element);
+        renderSystem.SetElement(id, instanceIdx, ref element);
         return this;
     }
 
-    protected override object GetObjectSync() => batchSystem.GetSyncObject(id);
+    protected override object GetObjectSync() => renderSystem.GetSyncObject(id);
 
     protected override void OnDispose()
     {
-        batchSystem.DestroyBatch(id);
+        renderSystem.DestroyBatch(id);
     }
 }

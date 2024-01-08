@@ -12,7 +12,7 @@ namespace REngine.RPI.Features;
 public sealed class SpriteFeature  : GraphicsRenderFeature
 {
     private readonly BatchGroup pBatchGroup;
-    private readonly SpriteInstancedBatchSystem pInstancedBatchSystem;
+    private readonly SpriteInstancedRenderSystem pInstancedRenderSystem;
     private readonly Action<Batch> pExecuteBatchAction;
     public override bool IsDirty { get; protected set; } = true;
 
@@ -20,10 +20,10 @@ public sealed class SpriteFeature  : GraphicsRenderFeature
 
     public SpriteFeature(
         BatchSystem batchSystem,
-        SpriteInstancedBatchSystem instancedBatchSys) : base()
+        SpriteInstancedRenderSystem instancedRenderSys) : base()
     {
-        pBatchGroup = batchSystem.GetGroup(SpriteSystem.BatchGroupName);
-        pInstancedBatchSystem = instancedBatchSys;
+        pBatchGroup = batchSystem.GetGroup(SpriteRenderSystem.BatchGroupName);
+        pInstancedRenderSystem = instancedRenderSys;
         pExecuteBatchAction = ExecuteBatch;
     }
     
@@ -35,7 +35,7 @@ public sealed class SpriteFeature  : GraphicsRenderFeature
     private BatchRenderInfo pBatchRenderInfo;
     protected override void OnExecute(ICommandBuffer command)
     {
-		pInstancedBatchSystem.UpdateTransforms();
+		pInstancedRenderSystem.UpdateTransforms();
 
 		var backbuffer = GetBackBuffer();
         var depthbuffer = GetDepthBuffer();

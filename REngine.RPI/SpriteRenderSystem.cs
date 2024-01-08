@@ -10,7 +10,7 @@ using REngine.RPI.Utils;
 
 namespace REngine.RPI;
 
-public sealed class SpriteSystem(
+public sealed class SpriteRenderSystem(
     RenderSettings renderSettings,
     BatchSystem batchSystem,
     IServiceProvider provider,
@@ -25,23 +25,23 @@ public sealed class SpriteSystem(
         public Vector4 Color = Vector4.One;
     }
     private class InternalBatch(
-        SpriteSystem system, 
+        SpriteRenderSystem renderSystem, 
         int id, 
         IBuffer constantBuffer,
         RenderState renderState) : QuadBatch
     {
         public override int GetSortIndex()
         {
-            lock(system.pSync)
-                return (int)Mathf.FloatToInt(system.pData[id].Position.Z);
+            lock(renderSystem.pSync)
+                return (int)Mathf.FloatToInt(renderSystem.pData[id].Position.Z);
         }
 
         public override void Render(BatchRenderInfo batchRenderInfo)
         {
             var command = batchRenderInfo.CommandBuffer;
             Sprite? sprite;
-            lock (system.pSync)
-                sprite = system.pData[id].RefSprite;
+            lock (renderSystem.pSync)
+                sprite = renderSystem.pData[id].RefSprite;
 
             if (sprite is null || sprite.IsDisposed)
                 return;

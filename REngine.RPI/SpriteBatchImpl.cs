@@ -18,8 +18,8 @@ namespace REngine.RPI
 #if RENGINE_SPRITEBATCH
 	internal class SpriteBatchImpl : ISpriteBatch, IDisposable
 	{
-		private readonly SpriteSystem pSystem;
-		private readonly SpriteInstancedBatchSystem pInstancedBatchSystem;
+		private readonly SpriteRenderSystem pRenderSystem;
+		private readonly SpriteInstancedRenderSystem pInstancedRenderSystem;
 		private readonly ITextRenderer pTextRenderer;
 		private readonly IServiceProvider pServiceProvider;
 		private readonly EngineEvents pEngineEvents;
@@ -27,14 +27,14 @@ namespace REngine.RPI
 		private bool pDisposed;
 
 		public SpriteBatchImpl(
-			SpriteSystem system,
-			SpriteInstancedBatchSystem instanceBatchSystem,
+			SpriteRenderSystem renderSystem,
+			SpriteInstancedRenderSystem instanceRenderSystem,
 			IServiceProvider provider,
 			EngineEvents engineEvents,
 			ITextRenderer textRenderer)
 		{
-			pSystem = system;
-			pInstancedBatchSystem = instanceBatchSystem;
+			pRenderSystem = renderSystem;
+			pInstancedRenderSystem = instanceRenderSystem;
 			pServiceProvider = provider;
 			pTextRenderer = textRenderer;
 
@@ -53,8 +53,8 @@ namespace REngine.RPI
 			if (pDisposed)
 				return;
 			
-			pSystem.DestroyBatches();
-			pInstancedBatchSystem.DestroyBatches();
+			pRenderSystem.DestroyBatches();
+			pInstancedRenderSystem.DestroyBatches();
 			pDisposed = true;
 		}
 
@@ -64,11 +64,11 @@ namespace REngine.RPI
 		}
 		public Sprite CreateSprite(SpriteEffect? effect)
 		{
-			return pSystem.Create(effect);
+			return pRenderSystem.Create(effect);
 		}
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo)
 		{
-			return pInstancedBatchSystem.CreateBatch(createInfo);
+			return pInstancedRenderSystem.CreateBatch(createInfo);
 		}
 
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo)
