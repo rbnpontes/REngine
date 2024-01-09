@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Assets\REngine.Assets.csproj" />
+      <ProjectReference Include="..\..\REngine.Game\REngine.Game.csproj" />
       <ProjectReference Include="..\..\REngine.RPI\REngine.RPI.csproj" />
       <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj" />
     </ItemGroup>

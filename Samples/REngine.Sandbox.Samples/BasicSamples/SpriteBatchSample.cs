@@ -28,8 +28,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private Sprite? pFlickeredDoge;
-		private Sprite? pColoredDoge;
+		private SpriteRenderItem? pFlickeredDoge;
+		private SpriteRenderItem? pColoredDoge;
 		private TextureSpriteEffect? pSpriteEffect;
 		public IWindow? Window { get; set; }
 		public void Dispose()

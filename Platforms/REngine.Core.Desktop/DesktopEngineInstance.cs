@@ -3,6 +3,7 @@ using REngine.Assets;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
 using REngine.Core.Reflection;
+using REngine.Game;
 using REngine.RHI;
 using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
@@ -42,7 +43,8 @@ public sealed class DesktopEngineInstance : EngineInstance
             new WindowsModule(),
             new AssetsModule(),
             new RHIModule(),
-            new RPIModule()
+            new RPIModule(),
+            new GameModule()
         ]);
         base.OnSetupModules(modules);
     }

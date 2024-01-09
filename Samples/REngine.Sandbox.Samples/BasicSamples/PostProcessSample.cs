@@ -11,6 +11,7 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
+using REngine.Game.Components;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.RPI.Features;

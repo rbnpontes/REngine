@@ -10,6 +10,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
+using REngine.Game.Components;
 using REngine.RPI;
 using REngine.RPI.Components;
 using REngine.Sandbox.PongGame.States;
@@ -124,9 +125,9 @@ namespace REngine.Sandbox.PongGame.Components
 			transform.Scale = PongVariables.MenuTextureSize;
 			transform.ZIndex = spriteEntity.Id;
 
-			sprite.OnMouseOver += HandleMsOver;
-			sprite.OnMouseOut += HandleMsOut;
-			sprite.OnClick += HandleClick;
+			sprite.MouseEnterEvent.Add(HandleMsEnter);
+			sprite.MouseExitEvent.Add(HandleMsExit);
+			sprite.ClickEvent.Add(HandleClick);
 
 			id = spriteEntity.Id;
 
@@ -134,13 +135,13 @@ namespace REngine.Sandbox.PongGame.Components
 			return sprite;
 		}
 
-		private void HandleClick(object? sender, EventArgs e)
+		private void HandleClick(object? sender)
 		{
 			if (sender is SpriteComponent sprite)
 				pSelectedSprite = sprite.Owner?.Id ?? -1;
 		}
 
-		private void HandleMsOver(object? sender, EventArgs e)
+		private void HandleMsEnter(object? sender)
 		{
 			if (sender is not SpriteComponent sprite)
 				return;
@@ -148,7 +149,7 @@ namespace REngine.Sandbox.PongGame.Components
 			PongVariables.MenuItemAudio?.Play(true);
 		}
 
-		private void HandleMsOut(object? sender, EventArgs e)
+		private void HandleMsExit(object? sender)
 		{
 			if (sender is not SpriteComponent sprite)
 				return;

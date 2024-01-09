@@ -18,7 +18,7 @@ public sealed class SpriteRenderSystem(
     RenderState renderState)
     : BaseSystem<SpriteBatchItem>((int)renderSettings.SpriteBatchInitialSize)
 {
-    public const string BatchGroupName = nameof(Sprite);
+    public const string BatchGroupName = nameof(SpriteRenderItem);
     private struct GpuData()
     {
         public Matrix4x4 Transform = Matrix4x4.Identity;
@@ -39,7 +39,7 @@ public sealed class SpriteRenderSystem(
         public override void Render(BatchRenderInfo batchRenderInfo)
         {
             var command = batchRenderInfo.CommandBuffer;
-            Sprite? sprite;
+            SpriteRenderItem? sprite;
             lock (renderSystem.pSync)
                 sprite = renderSystem.pData[id].RefSprite;
 
@@ -84,11 +84,11 @@ public sealed class SpriteRenderSystem(
     
     private readonly object pSync = new();
     private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(BatchGroupName);
-    private readonly SpriteEffect pDefaultEffect = SpriteEffect.Build(provider);
+    public SpriteEffect DefaultEffect { get; } = SpriteEffect.Build(provider);
 
-    public Sprite Create(SpriteEffect? effect)
+    public SpriteRenderItem Create(SpriteEffect? effect = null)
     {
-        Sprite sprite;
+        SpriteRenderItem spriteRenderItem;
         pBatchGroup.Lock();
         lock (pSync)
         {
@@ -98,18 +98,18 @@ public sealed class SpriteRenderSystem(
                 id, 
                 bufferManager.GetBuffer(BufferGroupType.Object),
                 renderState);
-            effect ??= pDefaultEffect;
+            effect ??= DefaultEffect;
             
-            sprite = new Sprite(id, this);
+            spriteRenderItem = new SpriteRenderItem(id, this);
             pData[id] = new SpriteBatchItem(effect)
             {
-                RefSprite = sprite,
+                RefSprite = spriteRenderItem,
                 Batch = pBatchGroup.AddBatch(batch)
             };
         }
         pBatchGroup.Unlock();
 
-        return sprite;
+        return spriteRenderItem;
     }
 
     public void Destroy(int id)
@@ -316,7 +316,7 @@ public sealed class SpriteRenderSystem(
         }
     }
 
-    public void ForEach(Action<Sprite> callback)
+    public void ForEach(Action<SpriteRenderItem> callback)
     {
         lock (pSync)
         {

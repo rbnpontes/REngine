@@ -62,7 +62,7 @@ namespace REngine.RPI
 		{
 			return ActivatorExtended.CreateInstance<SpriteFeature>(pServiceProvider) ?? throw new NullReferenceException();
 		}
-		public Sprite CreateSprite(SpriteEffect? effect)
+		public SpriteRenderItem CreateSprite(SpriteEffect? effect)
 		{
 			return pRenderSystem.Create(effect);
 		}

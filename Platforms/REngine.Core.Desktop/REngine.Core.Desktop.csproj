@@ -12,6 +12,7 @@
         <ProjectReference Include="..\..\REngine.Assets\REngine.Assets.csproj" />
         <ProjectReference Include="..\..\REngine.Contents\REngine.Contents.csproj" />
         <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
+        <ProjectReference Include="..\..\REngine.Game\REngine.Game.csproj" />
         <ProjectReference Include="..\..\REngine.RHI.NativeDriver\REngine.RHI.NativeDriver.csproj" />
         <ProjectReference Include="..\..\REngine.RHI\REngine.RHI.csproj" />
         <ProjectReference Include="..\..\REngine.RPI\REngine.RPI.csproj" />

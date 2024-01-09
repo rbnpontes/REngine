@@ -9,6 +9,7 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Mathematics;
 using REngine.Core.WorldManagement;
+using REngine.Game.Components;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;

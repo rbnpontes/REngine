@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
+using REngine.Game.Components;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;
@@ -42,25 +43,26 @@ namespace REngine.Sandbox.PongGame.Components
 			pTransform.Scale = PongVariables.MenuTextureSize;
 
 			pSpriteComponent.Effect = pEffect;
-			pSpriteComponent.OnMouseOver += HandleMouseOver;
-			pSpriteComponent.OnMouseOut += HandleMouseOut;
-			pSpriteComponent.OnClick += HandleClick;
+			pSpriteComponent.MouseEnterEvent.Add(HandleMouseEnter);
+			pSpriteComponent.MouseExitEvent.Add(HandleMouseExit);
+			pSpriteComponent.ClickEvent.Add(HandleClick);
 		}
 
 		protected override void OnDispose()
 		{
 			if (pSpriteComponent is null)
 				return;
-			pSpriteComponent.OnMouseOver -= HandleMouseOver;
-			pSpriteComponent.OnClick -= HandleClick;
+			pSpriteComponent.MouseEnterEvent.Remove(HandleMouseEnter);
+			pSpriteComponent.MouseExitEvent.Remove(HandleMouseExit);
+			pSpriteComponent.ClickEvent.Remove(HandleClick);
 		}
 
-		private void HandleClick(object? sender, EventArgs e)
+		private void HandleClick(object? sender)
 		{
 			ClickAction?.Invoke();
 		}
 
-		private void HandleMouseOver(object? sender, EventArgs e)
+		private void HandleMouseEnter(object? sender)
 		{
 			if(pTransform is null || HoverAudio is null) return;
 
@@ -68,7 +70,7 @@ namespace REngine.Sandbox.PongGame.Components
 			pTransform.Scale = PongVariables.MenuTextureSize * new Vector2(1.1f);
 		}
 
-		private void HandleMouseOut(object? sender, EventArgs e)
+		private void HandleMouseExit(object? sender)
 		{
 			if(pTransform != null)
 				pTransform.Scale = PongVariables.MenuTextureSize;

@@ -11,9 +11,13 @@
                 </deferred>
             </step>
             <step id="@engine/update"/>
-            <step id="@engine/update_end"/>
+            <step id="@engine/update_end">
+                <step id="@engine/spritesys/end_update"/>
+            </step>
         </task>
-        <step id="@render/begin"/>
+        <step id="@render/begin">
+            <step id="@engine/spritesys/render"/>
+        </step>
         <step id="@render"/>
         <step id="@render/end">
             <!--

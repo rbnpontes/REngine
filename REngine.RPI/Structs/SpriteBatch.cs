@@ -24,7 +24,7 @@ public struct SpriteBatchItem(SpriteEffect effect)
     public Batch? Batch;
     
     public SpriteEffect Effect = effect;
-    public Sprite? RefSprite = null;
+    public SpriteRenderItem? RefSprite = null;
 }
 
 public struct SpriteInstanceBatchElement()

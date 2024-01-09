@@ -21,7 +21,7 @@ namespace REngine.RPI
 	public interface ISpriteBatch
 	{
 		public SpriteFeature CreateRenderFeature();
-		public Sprite CreateSprite(SpriteEffect? effect = null);
+		public SpriteRenderItem CreateSprite(SpriteEffect? effect = null);
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo);
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo);
 	}

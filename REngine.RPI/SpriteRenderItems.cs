@@ -82,7 +82,7 @@ public abstract class BaseSprite(int id) : IDisposable
     protected abstract void OnDispose();
 }
 
-public sealed class Sprite(int id, SpriteRenderSystem renderSystem) : BaseSprite(id)
+public sealed class SpriteRenderItem(int id, SpriteRenderSystem renderSystem) : BaseSprite(id)
 {
     public bool Enabled
     {

@@ -79,6 +79,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REngine.Sandbox.BaseSample"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFML.Audio", "ThirdParty\SFML.Audio\SFML.Audio.csproj", "{C009E25C-67A9-4744-9AD8-42D4FDC71810}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Game", "REngine.Game\REngine.Game.csproj", "{73AD55BD-192B-4809-B59C-604DB1EE0BA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -443,6 +445,20 @@ Global
 		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release|x64.Build.0 = Release|x64
 		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release-Profiler|x64.ActiveCfg = Release-Profiler|x64
 		{C009E25C-67A9-4744-9AD8-42D4FDC71810}.Release-Profiler|x64.Build.0 = Release-Profiler|x64
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug|x64.Build.0 = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Release|x64.ActiveCfg = Release|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Release|x64.Build.0 = Release|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{73AD55BD-192B-4809-B59C-604DB1EE0BA4}.Release-Profiler|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
