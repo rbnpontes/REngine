@@ -6,6 +6,7 @@ using REngine.Core.Logic;
 using REngine.Core.Mathematics;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
+using REngine.Game.Components;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;
