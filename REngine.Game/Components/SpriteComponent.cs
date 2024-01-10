@@ -65,5 +65,5 @@ public sealed class SpriteComponent(int id, SpriteSystem system) : Component
     public EventQueue ClickEvent => system.GetClickEvent(id);
     public EventQueue MouseEnterEvent => system.GetMouseEnterEvent(id);
     public EventQueue MouseExitEvent => system.GetMouseExitEvent(id);
-    protected override void OnDispose() => system.Destroy(id);
+    protected override void OnDispose() => system.Destroy(this);
 }

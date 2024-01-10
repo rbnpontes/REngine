@@ -42,7 +42,7 @@ public struct SpriteData()
     public SpriteRenderItem? RenderItem;
     public SpriteComponent? Ref;
 
-    public WeakReference<Transform2D> Transform = new WeakReference<Transform2D>(null);
+    public WeakReference<Transform2D> Transform = new(null);
 
     // Event vars
     public readonly EventQueue ClickEvent = new();
@@ -96,9 +96,8 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
     {
         lock (pSync)
         {
-#if RENGINE_VALIDATIONS
-            ValidateId(id);
-#endif
+            if (pData[id].Ref is null || pAvailableIdx.Count == pData.Length)
+                return;
             pData[id].Ref = null;
             pData[id].MouseEnterEvent.ClearAllListeners();
             pData[id].MouseExitEvent.ClearAllListeners();
@@ -107,6 +106,19 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             DisposableQueue.Enqueue(pData[id].RenderItem);
             pAvailableIdx.Enqueue(id);
         }
+    }
+    public void Destroy(SpriteComponent component)
+    {
+        lock (pSync)
+        {
+            if (component.Id >= pData.Length || pAvailableIdx.Count == pData.Length)
+                return;
+            var targetComponent = pData[component.Id].Ref;
+            if (targetComponent is null || targetComponent != component)
+                return;
+        }
+        
+        Destroy(component.Id);
     }
 
     public Transform2D GetTransform(int id)
