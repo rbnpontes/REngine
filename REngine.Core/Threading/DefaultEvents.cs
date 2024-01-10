@@ -9,6 +9,8 @@ namespace REngine.Core.Threading
 	public static class DefaultEvents
 	{
 		public const string FrameId = "@engine/frame";
+
+		public const string ProcessInput = "@engine/input/process";
 		// Update Events
 		public const string UpdateBeginId = "@engine/update_begin";
 		public const string UpdateId = "@engine/update";

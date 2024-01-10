@@ -30,7 +30,7 @@ public struct SpriteData()
     public Transform2DSnapshot LastTransformSnapshot;
     public Vector2 Anchor;
 
-    public Color Color;
+    public Color Color = Color.White;
 
     // Mouse vars
     public SpriteMouseState MouseState;
@@ -42,7 +42,7 @@ public struct SpriteData()
     public SpriteRenderItem? RenderItem;
     public SpriteComponent? Ref;
 
-    public WeakReference<Transform2D> Transform;
+    public WeakReference<Transform2D> Transform = new WeakReference<Transform2D>(null);
 
     // Event vars
     public readonly EventQueue ClickEvent = new();
@@ -66,7 +66,11 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
     {
         pRenderSystem = renderSystem;
         pInput = input;
-        executionPipeline
+    }
+
+    protected override void OnEngineStart()
+    {
+        mExecutionPipeline
             .AddEvent(SpriteSystemEvents.EndUpdate, OnEndUpdate)
             .AddEvent(SpriteSystemEvents.Render, OnRender);
     }
@@ -78,8 +82,11 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         {
             var id = Acquire();
             component = new SpriteComponent(id, this);
-            pData[id].Ref = component;
-            pData[id].Dirty = true;
+            pData[id] = new SpriteData()
+            {
+                Ref = component,
+                Dirty = true
+            };
         }
 
         return component;
@@ -185,6 +192,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             return pData[id].ClickEvent;
         }
     }
+
     public EventQueue GetMouseEnterEvent(int id)
     {
         lock (pSync)
@@ -195,6 +203,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             return pData[id].MouseEnterEvent;
         }
     }
+
     public EventQueue GetMouseExitEvent(int id)
     {
         lock (pSync)
@@ -265,6 +274,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             }
         }
     }
+
     private void ComputeMouseInput(int id)
     {
         var transform = GetTransform(id);
@@ -274,40 +284,37 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         var msClick = pInput.GetMouseDown(MouseKey.Left);
         var clicked = pData[id].Clicked;
         var bounds = new RectangleF(pos.X, pos.Y, scale.X, scale.Y);
-        
+
         var msState = pData[id].MouseState;
         var clickEvt = pData[id].ClickEvent;
         var enterEvt = pData[id].MouseEnterEvent;
         var exitEvt = pData[id].MouseExitEvent;
-        
+
         var isInside = bounds.Contains(msPos.X, msPos.Y);
         switch (msState)
         {
             case SpriteMouseState.None when isInside:
                 msState = SpriteMouseState.Enter;
                 enterEvt.Invoke(pData[id].Ref);
-                if (msClick)
-                {
-                    clickEvt.Invoke(pData[id].Ref);
-                    clicked = true;
-                }
-                    
                 break;
             case SpriteMouseState.Enter when !isInside:
                 msState = SpriteMouseState.Exit;
                 exitEvt.Invoke(pData[id].Ref);
                 break;
             case SpriteMouseState.Exit:
-            default:
+                msState = SpriteMouseState.None;
                 break;
         }
 
-        if (!msClick)
-            clicked = false;
-            
-        pData[id].Clicked = clicked;
+        if (msClick && !clicked && isInside)
+        {
+            pData[id].Clicked = true;
+            clickEvt.Invoke(pData[id].Ref);
+        }
+
         pData[id].MouseState = msState;
     }
+
     private void VerifyItem(int id)
     {
         var data = pData[id];
@@ -362,10 +369,10 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         spriteRenderItem.Enabled = enabled;
         spriteRenderItem.Anchor = data.Anchor;
         spriteRenderItem.Color = data.Color;
-        spriteRenderItem.Position = new Vector3(transformSnapshot.Position, transformSnapshot.ZIndex);
+        spriteRenderItem.Position = new Vector3(transformSnapshot.WorldPosition, transformSnapshot.WorldRotation);
         spriteRenderItem.Angle = transformSnapshot.Rotation;
         spriteRenderItem.Size = transformSnapshot.Scale;
-        spriteRenderItem.Effect = pRenderSystem.DefaultEffect;
+        spriteRenderItem.Effect = effect;
 
         spriteRenderItem.Unlock();
 

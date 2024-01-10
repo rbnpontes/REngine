@@ -219,8 +219,8 @@ namespace REngine.Core.IO
 				if (pPressKeys[keyIdx] == 0)
 					pPressKeys[keyIdx] = pPressKeys[combinedKey] = 1;
 
-				// sometimes combined key returns zero, and this value is writed with value
-				// of the key. we must garantee that this value never changes
+				// sometimes combined key returns zero, and this value is wrote with value
+				// of the key. we must guarantee that this value never changes
 				// otherwise we will have strange behaviours
 				pPressKeys[0] = 0;
 			}

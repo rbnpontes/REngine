@@ -14,7 +14,8 @@ public enum BehaviorSystemEventFlags
 public abstract class BehaviorSystem<T> : BaseSystem<T>, IDisposable where T : struct
 {
     protected readonly IExecutionPipeline mExecutionPipeline;
-    protected readonly EngineEvents pEngineEvents;
+    protected readonly EngineEvents mEngineEvents;
+    private readonly BehaviorSystemEventFlags pEventFlags;
 
     private bool pDisposed;
 
@@ -25,19 +26,29 @@ public abstract class BehaviorSystem<T> : BaseSystem<T>, IDisposable where T : s
     )
     {
         mExecutionPipeline = executionPipeline;
-        pEngineEvents = engineEvents;
+        mEngineEvents = engineEvents;
+        pEventFlags = eventFlags;
         
-        if((eventFlags & BehaviorSystemEventFlags.BeginUpdate) != 0)
-            executionPipeline.AddEvent(DefaultEvents.UpdateBeginId, HandleUpdateBegin);
-        if ((eventFlags & BehaviorSystemEventFlags.Update) != 0)
-            executionPipeline.AddEvent(DefaultEvents.UpdateId, HandleUpdate);
-        if((eventFlags & BehaviorSystemEventFlags.EndUpdate) != 0)
-            executionPipeline.AddEvent(DefaultEvents.UpdateEndId, HandleUpdateEnd);
+        engineEvents.OnStart += HandleEngineStart;
         engineEvents.OnBeforeStop += OnEngineStop;
+    }
+
+    private void HandleEngineStart(object? sender, EventArgs e)
+    {
+        mEngineEvents.OnStart -= HandleEngineStart;
+        
+        if((pEventFlags & BehaviorSystemEventFlags.BeginUpdate) != 0)
+            mExecutionPipeline.AddEvent(DefaultEvents.UpdateBeginId, HandleUpdateBegin);
+        if ((pEventFlags & BehaviorSystemEventFlags.Update) != 0)
+            mExecutionPipeline.AddEvent(DefaultEvents.UpdateId, HandleUpdate);
+        if((pEventFlags & BehaviorSystemEventFlags.EndUpdate) != 0)
+            mExecutionPipeline.AddEvent(DefaultEvents.UpdateEndId, HandleUpdateEnd);
+        OnEngineStart();
     }
 
     private void OnEngineStop(object? sender, EventArgs e)
     {
+        mEngineEvents.OnBeforeStop -= OnEngineStop;
         Dispose();
     }
 
@@ -62,6 +73,7 @@ public abstract class BehaviorSystem<T> : BaseSystem<T>, IDisposable where T : s
     
     protected virtual void OnDispose(){}
     
+    protected virtual void OnEngineStart() {}
     protected virtual void OnBeginUpdate()
     {
     }
