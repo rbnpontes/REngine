@@ -52,24 +52,13 @@ public sealed class SpriteBatchItem(
             var scale = desc.Scale;
             var anchor = desc.Anchor;
             var offset = anchor * scale;
-            if (backend == GraphicsBackend.OpenGL)
-            {
-                position.Y += scale.Y;
-                scale.Y = -scale.Y;
-                anchor.Y -= 1.0f;
-                anchor.X -= 1.0f;
-
-                position.X -= offset.X;
-                position.Y -= offset.Y;
-            }
-            else
-            {
-                anchor.X = -anchor.X;
-                anchor.Y -= 1.0f;
-                scale.Y = -scale.Y;
-                position.X += offset.X;
-                position.Y += offset.Y;
-            }
+            
+            scale.Y = -scale.Y;
+            anchor.Y -= 1.0f;
+            anchor.X = -anchor.X;
+            
+            position.X += offset.X;
+            position.Y += offset.Y;
             
             var rotation = desc.Rotation;
             position.Z = Math.Clamp(position.Z / ushort.MaxValue, 0, 1);
