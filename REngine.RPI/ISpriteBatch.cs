@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.RPI.Batches;
 using REngine.RPI.Features;
 
 namespace REngine.RPI
@@ -20,9 +21,11 @@ namespace REngine.RPI
 	}
 	public interface ISpriteBatch
 	{
+		public SpriteEffect DefaultEffect { get; }
 		public SpriteFeature CreateRenderFeature();
-		public SpriteRenderItem CreateSprite(SpriteEffect? effect = null);
+		public SpriteBatchItem CreateSprite();
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo);
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo);
+		public void RemoveBatch(SpriteBatchItem batchItem);
 	}
 }

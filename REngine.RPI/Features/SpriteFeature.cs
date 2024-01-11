@@ -22,7 +22,7 @@ public sealed class SpriteFeature  : GraphicsRenderFeature
         BatchSystem batchSystem,
         SpriteInstancedRenderSystem instancedRenderSys) : base()
     {
-        pBatchGroup = batchSystem.GetGroup(SpriteRenderSystem.BatchGroupName);
+        pBatchGroup = batchSystem.GetGroup(BatchGroupNames.Sprites);
         pInstancedRenderSystem = instancedRenderSys;
         pExecuteBatchAction = ExecuteBatch;
     }

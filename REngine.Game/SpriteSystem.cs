@@ -10,6 +10,7 @@ using REngine.Core.Threading;
 using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RPI;
+using REngine.RPI.Batches;
 using REngine.RPI.Structs;
 
 namespace REngine.Game;
@@ -39,7 +40,7 @@ public struct SpriteData()
 
     // Dependencies vars
     public SpriteEffect? Effect;
-    public SpriteRenderItem? RenderItem;
+    public SpriteBatchItem? RenderItem;
     public SpriteComponent? Ref;
 
     public WeakReference<Transform2D> Transform = new(null);
@@ -54,17 +55,17 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
 {
     private readonly object pSync = new();
     private readonly ConcurrentQueue<int> pComponents2Update = new();
-    private readonly SpriteRenderSystem pRenderSystem;
+    private readonly ISpriteBatch pSpriteBatch;
     private readonly IInput pInput;
 
     public SpriteSystem(
         IExecutionPipeline executionPipeline,
         EngineEvents engineEvents,
-        SpriteRenderSystem renderSystem,
+        ISpriteBatch spriteBatch,
         IInput input
     ) : base(executionPipeline, engineEvents, BehaviorSystemEventFlags.None)
     {
-        pRenderSystem = renderSystem;
+        pSpriteBatch = spriteBatch;
         pInput = input;
     }
 
@@ -359,7 +360,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         SpriteData data;
         Transform2DSnapshot transformSnapshot;
         SpriteEffect? effect;
-        SpriteRenderItem? spriteRenderItem;
+        SpriteBatchItem? spriteBatch;
         bool enabled;
 
         lock (pSync)
@@ -368,36 +369,35 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
                 return;
             enabled = pData[componentId].Ref?.Enabled ?? false;
             data = pData[componentId];
-            spriteRenderItem = pData[componentId].RenderItem;
+            spriteBatch = pData[componentId].RenderItem;
             effect = pData[componentId].Effect;
             transformSnapshot = pData[componentId].LastTransformSnapshot;
         }
 
-        effect ??= pRenderSystem.DefaultEffect;
+        effect ??= pSpriteBatch.DefaultEffect;
 
-        spriteRenderItem ??= pRenderSystem.Create(effect);
-        spriteRenderItem.Lock();
-
-        spriteRenderItem.Enabled = enabled;
-        spriteRenderItem.Anchor = data.Anchor;
-        spriteRenderItem.Color = data.Color;
-        spriteRenderItem.Position = new Vector3(transformSnapshot.WorldPosition, transformSnapshot.WorldRotation);
-        spriteRenderItem.Angle = transformSnapshot.Rotation;
-        spriteRenderItem.Size = transformSnapshot.Scale;
-        spriteRenderItem.Effect = effect;
-
-        spriteRenderItem.Unlock();
+        spriteBatch ??= pSpriteBatch.CreateSprite();
+        spriteBatch.Update(new SpriteBatchItemDesc()
+        {
+            Enabled = enabled,
+            Anchor = data.Anchor,
+            Color = data.Color,
+            Position = new Vector3(transformSnapshot.WorldPosition, transformSnapshot.WorldRotation),
+            Rotation = transformSnapshot.Rotation,
+            Scale = transformSnapshot.Scale,
+            Effect = effect
+        });
 
         lock (pSync)
         {
             // if component goes to destroy, then add sprite to disposable queue
             if (pData[componentId].Ref is null)
             {
-                DisposableQueue.Enqueue(spriteRenderItem);
+                DisposableQueue.Enqueue(spriteBatch);
                 return;
             }
 
-            pData[componentId].RenderItem = spriteRenderItem;
+            pData[componentId].RenderItem = spriteBatch;
         }
     }
 

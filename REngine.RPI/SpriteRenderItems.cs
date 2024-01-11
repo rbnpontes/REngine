@@ -82,155 +82,155 @@ public abstract class BaseSprite(int id) : IDisposable
     protected abstract void OnDispose();
 }
 
-public sealed class SpriteRenderItem(int id, SpriteRenderSystem renderSystem) : BaseSprite(id)
-{
-    public bool Enabled
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.IsEnabled(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetEnabled(id, value);
-        }
-    }
-
-    public Vector3 Position
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetPosition(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetPosition(id, value);
-        }
-    }
-
-    public Vector2 Anchor
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetAnchor(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetAnchor(id, value);
-        }
-    }
-
-    public Vector2 Size
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetSize(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetSize(id, value);
-        }
-    }
-
-    public float Angle
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetAngle(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetAngle(id, value);
-        }
-    }
-
-    public Color Color
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetColor(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetColor(id, value);
-        }
-    }
-
-    public SpriteEffect Effect
-    {
-        get
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            return renderSystem.GetEffect(id);
-        }
-        set
-        {
-#if DEBUG
-            ValidateDispose();
-            ValidateLock();
-#endif
-            renderSystem.SetEffect(id, value);
-        }
-    }
-    
-    protected override object GetObjectSync() => renderSystem.GetObjectSync(id);
-
-    protected override void OnDispose()
-    {
-        renderSystem.Destroy(id);
-    }
-}
+// public sealed class SpriteRenderItem(int id, SpriteRenderSystem renderSystem) : BaseSprite(id)
+// {
+//     public bool Enabled
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.IsEnabled(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetEnabled(id, value);
+//         }
+//     }
+//
+//     public Vector3 Position
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetPosition(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetPosition(id, value);
+//         }
+//     }
+//
+//     public Vector2 Anchor
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetAnchor(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetAnchor(id, value);
+//         }
+//     }
+//
+//     public Vector2 Size
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetSize(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetSize(id, value);
+//         }
+//     }
+//
+//     public float Angle
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetAngle(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetAngle(id, value);
+//         }
+//     }
+//
+//     public Color Color
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetColor(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetColor(id, value);
+//         }
+//     }
+//
+//     public SpriteEffect Effect
+//     {
+//         get
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             return renderSystem.GetEffect(id);
+//         }
+//         set
+//         {
+// #if DEBUG
+//             ValidateDispose();
+//             ValidateLock();
+// #endif
+//             renderSystem.SetEffect(id, value);
+//         }
+//     }
+//     
+//     protected override object GetObjectSync() => renderSystem.GetObjectSync(id);
+//
+//     protected override void OnDispose()
+//     {
+//         renderSystem.Destroy(id);
+//     }
+// }
 
 public sealed class InstancedSprite(int id, SpriteInstancedRenderSystem renderSystem) : BaseSprite(id)
 {

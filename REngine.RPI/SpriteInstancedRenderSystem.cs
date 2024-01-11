@@ -203,7 +203,7 @@ public sealed class SpriteInstancedRenderSystem(
     }
     
     private readonly object pSync = new();
-    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(SpriteRenderSystem.BatchGroupName);
+    private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(BatchGroupNames.Sprites);
     private readonly InstancedSpriteEffect pDefaultEffect = InstancedSpriteEffect.Build(provider);
 
     public InstancedSprite CreateBatch(SpriteInstancedCreateInfo createInfo)

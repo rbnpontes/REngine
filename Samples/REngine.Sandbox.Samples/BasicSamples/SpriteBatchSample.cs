@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
+using REngine.RPI.Batches;
 using REngine.RPI.Features;
 using REngine.RPI.Resources;
 using REngine.Sandbox.BaseSample;
@@ -28,8 +29,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private SpriteRenderItem? pFlickeredDoge;
-		private SpriteRenderItem? pColoredDoge;
+		private SpriteBatchItem? pFlickeredDoge;
+		private SpriteBatchItem? pColoredDoge;
 		private TextureSpriteEffect? pSpriteEffect;
 		public IWindow? Window { get; set; }
 		public void Dispose()
@@ -53,19 +54,13 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			pSpriteEffect = TextureSpriteEffect.Build(provider);
 			pSpriteEffect.Texture = spriteTex.Texture;
 			
-			pFlickeredDoge = spriteBatch.CreateSprite(pSpriteEffect);
-			pColoredDoge = spriteBatch.CreateSprite(pSpriteEffect);
-			
-			pFlickeredDoge.Lock();
-			pColoredDoge.Lock();
-			pFlickeredDoge.Color = Color.White;
-			pFlickeredDoge.Unlock();
-			pColoredDoge.Unlock();
+			pFlickeredDoge = spriteBatch.CreateSprite();
+			pColoredDoge = spriteBatch.CreateSprite();
 		}
 
 		public void Update(IServiceProvider provider)
 		{
-			if (pColoredDoge is null || pFlickeredDoge is null)
+			if (pColoredDoge is null || pFlickeredDoge is null || pSpriteEffect is null)
 				return;
 			var elapsedTime = (float)engine.ElapsedTime / 1000.0f;
 			var wndSize = Window?.Size ?? new Size();
@@ -75,20 +70,27 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			var sineT = stagger * (float)Math.Sin(elapsedTime);
 			var cosT = stagger * (float)Math.Cos(elapsedTime);
 			
-			pFlickeredDoge.Lock();
-			pFlickeredDoge.Size = new Vector2(300) * QuadTime(elapsedTime, 1f, 2);
-			pFlickeredDoge.Angle = elapsedTime;
-			pFlickeredDoge.Anchor = new Vector2(0.5f, 0.5f);
-			pFlickeredDoge.Position = halfSize + (new Vector3(cosT, sineT, 0) * 150);
-			pFlickeredDoge.Unlock();
+			pFlickeredDoge.Update(new SpriteBatchItemDesc()
+			{
+				Enabled = true,
+				Effect = pSpriteEffect,
+				Scale = new Vector2(300) * QuadTime(elapsedTime, 1f, 2),
+				Rotation = elapsedTime,
+				Anchor = new Vector2(0, 0.5f),
+				Position = halfSize + (new Vector3(cosT, sineT, 0) * 150),
+				Color = Color.White
+			});
 			
-			pColoredDoge.Lock();
-			pColoredDoge.Angle = elapsedTime;
-			pColoredDoge.Anchor = new Vector2(0.5f);
-			pColoredDoge.Position = halfSize;
-			pColoredDoge.Size = new Vector2(150);
-			pColoredDoge.Color = ColorUtils.FromHSL(elapsedTime, 1, 1);
-			pColoredDoge.Unlock();
+			pColoredDoge.Update(new SpriteBatchItemDesc()
+			{
+				Enabled = true,
+				Effect = pSpriteEffect,
+				Rotation = elapsedTime,
+				Anchor = new Vector2(0f),
+				Position = halfSize,
+				Scale = new Vector2(150),
+				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
+			});
 		}
 
 		private static float QuadTime(float t, float freq, float amplitude)

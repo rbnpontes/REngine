@@ -10,76 +10,59 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.DependencyInjection;
 using REngine.Core.Reflection;
+using REngine.RPI.Batches;
 using REngine.RPI.Events;
 
 namespace REngine.RPI
 {
 #if RENGINE_SPRITEBATCH
-	internal class SpriteBatchImpl : ISpriteBatch, IDisposable
+	internal class SpriteBatchImpl(
+		SpriteInstancedRenderSystem instanceRenderSystem,
+		IServiceProvider provider,
+		ITextRenderer textRenderer,
+		BatchSystem batchSystem,
+		IBufferManager bufferManager)
+		: ISpriteBatch
 	{
-		private readonly SpriteRenderSystem pRenderSystem;
-		private readonly SpriteInstancedRenderSystem pInstancedRenderSystem;
-		private readonly ITextRenderer pTextRenderer;
-		private readonly IServiceProvider pServiceProvider;
-		private readonly EngineEvents pEngineEvents;
-		
-		private bool pDisposed;
+		private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(BatchGroupNames.Sprites);
 
-		public SpriteBatchImpl(
-			SpriteRenderSystem renderSystem,
-			SpriteInstancedRenderSystem instanceRenderSystem,
-			IServiceProvider provider,
-			EngineEvents engineEvents,
-			ITextRenderer textRenderer)
-		{
-			pRenderSystem = renderSystem;
-			pInstancedRenderSystem = instanceRenderSystem;
-			pServiceProvider = provider;
-			pTextRenderer = textRenderer;
-
-			pEngineEvents = engineEvents;
-			engineEvents.OnBeforeStop += OnEngineStop;
-		}
-
-		private void OnEngineStop(object? sender, EventArgs e)
-		{
-			pEngineEvents.OnBeforeStop -= OnEngineStop;
-			Dispose();
-		}
-
-		public void Dispose()
-		{
-			if (pDisposed)
-				return;
-			
-			pRenderSystem.DestroyBatches();
-			pInstancedRenderSystem.DestroyBatches();
-			pDisposed = true;
-		}
+		public SpriteEffect DefaultEffect => SpriteEffect.Build(provider);
 
 		public SpriteFeature CreateRenderFeature()
 		{
-			return ActivatorExtended.CreateInstance<SpriteFeature>(pServiceProvider) ?? throw new NullReferenceException();
+			return ActivatorExtended.CreateInstance<SpriteFeature>(provider) ?? throw new NullReferenceException();
 		}
-		public SpriteRenderItem CreateSprite(SpriteEffect? effect)
+		public SpriteBatchItem CreateSprite()
 		{
-			return pRenderSystem.Create(effect);
+			var batch = new SpriteBatchItem(bufferManager, this, provider.Get<IGraphicsDriver>().Backend);
+			pBatchGroup.Lock();
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
+			return batch;
 		}
 		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo)
 		{
-			return pInstancedRenderSystem.CreateBatch(createInfo);
+			return instanceRenderSystem.CreateBatch(createInfo);
 		}
 
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo)
 		{
-			pTextRenderer.SetFont(createInfo.Font);
-			var batch = pTextRenderer.CreateBatch(createInfo.Font.Name);
+			textRenderer.SetFont(createInfo.Font);
+			var batch = textRenderer.CreateBatch(createInfo.Font.Name);
 			batch.Lock();
 			batch.Text = createInfo.Text;
 			batch.Color = createInfo.Color;
 			batch.Unlock();
 			return batch;
+		}
+
+		public void RemoveBatch(SpriteBatchItem batchItem)
+		{
+			pBatchGroup.Lock();
+			pBatchGroup.RemoveBatch(batchItem);
+			pBatchGroup.Unlock();
 		}
 	}
 #endif

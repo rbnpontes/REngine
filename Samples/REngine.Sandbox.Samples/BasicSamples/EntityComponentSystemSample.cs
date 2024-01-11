@@ -142,7 +142,7 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			ImGui.DragFloat2("Position", ref position);
 			ImGui.DragFloat("Rotation", ref rotation, 0.01f);
 			ImGui.DragFloat2("Scale", ref scale);
-			ImGui.DragFloat2("Anchor", ref anchor);
+			ImGui.DragFloat2("Anchor", ref anchor, 0.001f);
 			ImGui.ColorPicker4("Color", ref color);
 
 			if (spriteComponent.Owner != null) spriteComponent.Owner.Enabled = enabled;
