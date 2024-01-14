@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Reflection;
 using REngine.RPI.Batches;
+using REngine.RPI.Effects;
 using REngine.RPI.Events;
 using REngine.RPI.Structs;
 

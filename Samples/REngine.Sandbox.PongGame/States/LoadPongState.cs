@@ -10,6 +10,7 @@ using REngine.Game.Components;
 using REngine.RHI;
 using REngine.RPI;
 using REngine.RPI.Components;
+using REngine.RPI.Effects;
 using REngine.RPI.RenderGraph;
 using REngine.RPI.Resources;
 

@@ -9,6 +9,7 @@ using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RPI;
 using REngine.RPI.Batches;
+using REngine.RPI.Effects;
 
 namespace REngine.Game;
 

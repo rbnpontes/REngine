@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
 using REngine.RPI.Batches;
+using REngine.RPI.Effects;
 using REngine.RPI.Features;
 using REngine.RPI.Resources;
 using REngine.Sandbox.BaseSample;

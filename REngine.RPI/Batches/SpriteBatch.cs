@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using REngine.Core;
 using REngine.Core.Mathematics;
 using REngine.RHI;
+using REngine.RPI.Effects;
 
 namespace REngine.RPI.Batches;
 

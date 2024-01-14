@@ -2,6 +2,7 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI;
+using REngine.RPI.Effects;
 using REngine.RPI.Resources;
 
 namespace REngine.Sandbox.PongGame.Effects;

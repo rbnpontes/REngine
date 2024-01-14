@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using REngine.RPI.Batches;
+using REngine.RPI.Effects;
 using REngine.RPI.Features;
 
 namespace REngine.RPI

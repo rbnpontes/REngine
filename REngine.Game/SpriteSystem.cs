@@ -11,6 +11,7 @@ using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RPI;
 using REngine.RPI.Batches;
+using REngine.RPI.Effects;
 using REngine.RPI.Structs;
 
 namespace REngine.Game;

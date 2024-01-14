@@ -10,7 +10,7 @@ using REngine.Core.Resources;
 using REngine.RHI;
 using REngine.RPI.Resources;
 
-namespace REngine.RPI.SpriteEffects
+namespace REngine.RPI.Effects
 {
 	public sealed class RoundedEffect(
 		IServiceProvider provider

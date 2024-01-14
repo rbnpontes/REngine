@@ -11,7 +11,7 @@ using REngine.RHI;
 using REngine.RPI.Constants;
 using REngine.RPI.Resources;
 
-namespace REngine.RPI
+namespace REngine.RPI.Effects
 {
     public abstract class BaseSpriteEffect : IDisposable
     {

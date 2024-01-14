@@ -17,8 +17,7 @@ using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RPI;
 using REngine.RPI.Components;
-using REngine.RPI.SpriteEffects;
-// using REngine.RPkI.SpriteEffects;
+using REngine.RPI.Effects;
 using REngine.Sandbox.PongGame.Components;
 
 namespace REngine.Sandbox.PongGame.States

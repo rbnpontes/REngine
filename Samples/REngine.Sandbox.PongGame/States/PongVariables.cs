@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using REngine.Core.Resources;
 using REngine.RPI;
+using REngine.RPI.Effects;
 
 namespace REngine.Sandbox.PongGame.States
 {
