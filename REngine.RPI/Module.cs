@@ -60,7 +60,6 @@ namespace REngine.RPI
                 .Add<BatchSystem>()
                 .Add<ITextRenderer, TextRendererImpl>()
 #if RENGINE_SPRITEBATCH
-                .Add<SpriteInstancedRenderSystem>()
                 .Add<ISpriteBatch, SpriteBatchImpl>()
 #endif
 #if RENGINE_IMGUI

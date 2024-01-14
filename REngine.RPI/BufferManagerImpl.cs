@@ -180,7 +180,7 @@ namespace REngine.RPI
 
 				desc.Name = $"{nameof(IBufferManager)} - {type} CBuffer";
 				desc.Size = bufferSizes[i];
-
+				
 				pCBuffers[i] = pDriver.Device.CreateBuffer(desc);
 				pLogger.Info($"{type} buffer has been created.");
 			}

@@ -44,6 +44,9 @@ namespace REngine.RHI.NativeDriver
 
 		public IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)
 		{
+#if RENGINE_VALIDATIONS
+			ValidateBufferDesc(desc);
+#endif
 			ResultNative result = new();
 
 			BufferDescDTO.Fill(desc, out BufferDescDTO output);
@@ -64,6 +67,21 @@ namespace REngine.RHI.NativeDriver
 			return new BufferImpl(result.value);
 		}
 
+#if RENGINE_VALIDATIONS
+		private void ValidateBufferDesc(in BufferDesc desc)
+		{
+			if ((desc.BindFlags & BindFlags.UniformBuffer) != 0)
+				ValidateUniformBuffer(desc);
+		}
+
+		private void ValidateUniformBuffer(in BufferDesc desc)
+		{
+			if ((desc.BindFlags & BindFlags.VertexBuffer) != 0 || (desc.BindFlags & BindFlags.IndexBuffer) != 0)
+				throw new Exception(
+					"Is not possible to create a Uniform Buffer with VertexBuffer or IndexBuffer bind flags");
+		}
+#endif
+		
 		public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc)
 		{
 			List<IntPtr> strings2Dispose = new();

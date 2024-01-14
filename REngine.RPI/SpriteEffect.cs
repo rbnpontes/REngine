@@ -87,6 +87,20 @@ namespace REngine.RPI
 
             desc.Shaders.VertexShader = OnGetShader(ShaderType.Vertex);
             desc.Shaders.PixelShader = OnGetShader(ShaderType.Pixel);
+
+            for (var i = 0u; i < 4; ++i)
+            {
+                desc.InputLayouts.Add(new PipelineInputLayoutElementDesc()
+                {
+                   InputIndex = i,
+                   Input = new InputLayoutElementDesc()
+                   {
+                       BufferIndex = 0,
+                       ElementType = ElementType.Vector4,
+                       InstanceStepRate = 1
+                   }
+                });
+            }
         }
 
         protected virtual IShader OnGetShader(ShaderType shaderType)
@@ -115,8 +129,7 @@ namespace REngine.RPI
             var resourceMapping = new ResourceMapping();
             resourceMapping
                 .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, bufferManager.GetBuffer(BufferGroupType.Frame))
-                .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Object,
-                    bufferManager.GetBuffer(BufferGroupType.Object));
+                .Add(ShaderTypeFlags.Vertex, ConstantBufferNames.Object,bufferManager.GetBuffer(BufferGroupType.Object));
             return resourceMapping;
         }
     }
@@ -228,130 +241,130 @@ namespace REngine.RPI
         }
     }
 
-    public class InstancedSpriteEffect(
-        IPipelineStateManager pipelineStateManager,
-        GraphicsSettings settings,
-        IAssetManager assetManager,
-        IShaderResourceBindingCache shaderResourceBindingCache,
-        IBufferManager bufferManager,
-        IShaderManager shaderManager
-    ) : DefaultSpriteEffect(pipelineStateManager, settings, shaderResourceBindingCache, bufferManager, shaderManager)
-    {
-        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
-        {
-            shaderCi = new ShaderCreateInfo
-            {
-                Type = shaderType
-            };
-            string assetPath;
-            switch (shaderType)
-            {
-                case ShaderType.Vertex:
-                {
-                    shaderCi.Name = $"[Instanced][Vertex]{nameof(SpriteEffect)}";
-                    assetPath = "Shaders/spritebatch_instanced_vs.hlsl";
-                }
-                    break;
-                case ShaderType.Pixel:
-                {
-                    shaderCi.Name = $"[Pixel]{nameof(SpriteEffect)}";
-                    assetPath = "Shaders/spritebatch_ps.hlsl";
-                }
-                    break;
-                case ShaderType.Compute:
-                case ShaderType.Geometry:
-                case ShaderType.Hull:
-                case ShaderType.Domain:
-                default:
-                    throw new NotImplementedException();
-            }
+    // public class InstancedSpriteEffect(
+    //     IPipelineStateManager pipelineStateManager,
+    //     GraphicsSettings settings,
+    //     IAssetManager assetManager,
+    //     IShaderResourceBindingCache shaderResourceBindingCache,
+    //     IBufferManager bufferManager,
+    //     IShaderManager shaderManager
+    // ) : DefaultSpriteEffect(pipelineStateManager, settings, shaderResourceBindingCache, bufferManager, shaderManager)
+    // {
+    //     protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+    //     {
+    //         shaderCi = new ShaderCreateInfo
+    //         {
+    //             Type = shaderType
+    //         };
+    //         string assetPath;
+    //         switch (shaderType)
+    //         {
+    //             case ShaderType.Vertex:
+    //             {
+    //                 shaderCi.Name = $"[Instanced][Vertex]{nameof(SpriteEffect)}";
+    //                 assetPath = "Shaders/spritebatch_instanced_vs.hlsl";
+    //             }
+    //                 break;
+    //             case ShaderType.Pixel:
+    //             {
+    //                 shaderCi.Name = $"[Pixel]{nameof(SpriteEffect)}";
+    //                 assetPath = "Shaders/spritebatch_ps.hlsl";
+    //             }
+    //                 break;
+    //             case ShaderType.Compute:
+    //             case ShaderType.Geometry:
+    //             case ShaderType.Hull:
+    //             case ShaderType.Domain:
+    //             default:
+    //                 throw new NotImplementedException();
+    //         }
+    //
+    //         shaderCi.SourceCode = assetManager.GetAsset<ShaderAsset>(assetPath).ShaderCode;
+    //         shaderCi.Macros.Add("RENGINE_INSTANCED", "1");
+    //     }
+    //
+    //     protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+    //     {
+    //         base.OnCreatePipelineDesc(out desc);
+    //
+    //         for (var i = 0u; i < 4; ++i)
+    //         {
+    //             desc.InputLayouts.Add(new PipelineInputLayoutElementDesc()
+    //             {
+    //                 InputIndex = i,
+    //                 Input = new InputLayoutElementDesc()
+    //                 {
+    //                     BufferIndex = 0,
+    //                     ElementType = ElementType.Vector4,
+    //                     InstanceStepRate = 1
+    //                 }
+    //             });
+    //         }
+    //     }
+    //
+    //     public static InstancedSpriteEffect Build(IServiceProvider provider)
+    //     {
+    //         return ActivatorExtended.CreateInstance<InstancedSpriteEffect>(provider) ??
+    //                throw new NullReferenceException();
+    //     }
+    // }
 
-            shaderCi.SourceCode = assetManager.GetAsset<ShaderAsset>(assetPath).ShaderCode;
-            shaderCi.Macros.Add("RENGINE_INSTANCED", "1");
-        }
-
-        protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
-        {
-            base.OnCreatePipelineDesc(out desc);
-
-            for (var i = 0u; i < 4; ++i)
-            {
-                desc.InputLayouts.Add(new PipelineInputLayoutElementDesc()
-                {
-                    InputIndex = i,
-                    Input = new InputLayoutElementDesc()
-                    {
-                        BufferIndex = 0,
-                        ElementType = ElementType.Vector4,
-                        InstanceStepRate = 1
-                    }
-                });
-            }
-        }
-
-        public static InstancedSpriteEffect Build(IServiceProvider provider)
-        {
-            return ActivatorExtended.CreateInstance<InstancedSpriteEffect>(provider) ??
-                   throw new NullReferenceException();
-        }
-    }
-
-    public class TextureInstancedSpriteEffect(
-        IPipelineStateManager pipelineStateManager,
-        GraphicsSettings settings,
-        IAssetManager assetManager,
-        IShaderResourceBindingCache shaderResourceBindingCache,
-        IBufferManager bufferManager,
-        IShaderManager shaderManager
-    ) : InstancedSpriteEffect(
-        pipelineStateManager,
-        settings,
-        assetManager,
-        shaderResourceBindingCache,
-        bufferManager,
-        shaderManager)
-    {
-        private TextureAsset pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg");
-
-        public TextureAsset Texture
-        {
-            get => pTexture;
-            set
-            {
-                if (pTexture == value)
-                    return;
-                pTexture = value;
-                mDirtySrb = true;
-            }
-        }
-
-        protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
-        {
-            base.OnGetShaderCreateInfo(shaderType, out shaderCi);
-            shaderCi.Macros.Add("RENGINE_ENABLED_TEXTURE", "1");
-        }
-
-        protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
-        {
-            base.OnCreatePipelineDesc(out desc);
-            desc.Samplers.Add(new ImmutableSamplerDesc
-            {
-                Name = TextureNames.MainTexture,
-                Sampler = new SamplerStateDesc(TextureFilterMode.Default, TextureAddressMode.Clamp)
-            });
-        }
-
-        protected override ResourceMapping OnGetResourceMapping()
-        {
-            var resMapping = base.OnGetResourceMapping();
-            resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture.Texture);
-            return resMapping;
-        }
-
-        public static TextureInstancedSpriteEffect Build(IServiceProvider provider)
-        {
-            return ActivatorExtended.CreateInstance<TextureInstancedSpriteEffect>(provider) ??
-                   throw new NullReferenceException();
-        }
-    }
+    // public class TextureInstancedSpriteEffect(
+    //     IPipelineStateManager pipelineStateManager,
+    //     GraphicsSettings settings,
+    //     IAssetManager assetManager,
+    //     IShaderResourceBindingCache shaderResourceBindingCache,
+    //     IBufferManager bufferManager,
+    //     IShaderManager shaderManager
+    // ) : InstancedSpriteEffect(
+    //     pipelineStateManager,
+    //     settings,
+    //     assetManager,
+    //     shaderResourceBindingCache,
+    //     bufferManager,
+    //     shaderManager)
+    // {
+    //     private TextureAsset pTexture = assetManager.GetAsset<TextureAsset>("Textures/no_texture_dummy.jpg");
+    //
+    //     public TextureAsset Texture
+    //     {
+    //         get => pTexture;
+    //         set
+    //         {
+    //             if (pTexture == value)
+    //                 return;
+    //             pTexture = value;
+    //             mDirtySrb = true;
+    //         }
+    //     }
+    //
+    //     protected override void OnGetShaderCreateInfo(ShaderType shaderType, out ShaderCreateInfo shaderCi)
+    //     {
+    //         base.OnGetShaderCreateInfo(shaderType, out shaderCi);
+    //         shaderCi.Macros.Add("RENGINE_ENABLED_TEXTURE", "1");
+    //     }
+    //
+    //     protected override void OnCreatePipelineDesc(out GraphicsPipelineDesc desc)
+    //     {
+    //         base.OnCreatePipelineDesc(out desc);
+    //         desc.Samplers.Add(new ImmutableSamplerDesc
+    //         {
+    //             Name = TextureNames.MainTexture,
+    //             Sampler = new SamplerStateDesc(TextureFilterMode.Default, TextureAddressMode.Clamp)
+    //         });
+    //     }
+    //
+    //     protected override ResourceMapping OnGetResourceMapping()
+    //     {
+    //         var resMapping = base.OnGetResourceMapping();
+    //         resMapping.Add(ShaderTypeFlags.Pixel, TextureNames.MainTexture, pTexture.Texture);
+    //         return resMapping;
+    //     }
+    //
+    //     public static TextureInstancedSpriteEffect Build(IServiceProvider provider)
+    //     {
+    //         return ActivatorExtended.CreateInstance<TextureInstancedSpriteEffect>(provider) ??
+    //                throw new NullReferenceException();
+    //     }
+    // }
 }

@@ -1,15 +1,21 @@
-﻿// Transform Data is encoded
-cbuffer ObjectConstants {
-	float4x4 g_data;
-};
+﻿cbuffer ObjectConstants
+{
+	float4x4 g_model;
+}
 cbuffer FrameConstants
 {
     float4x4 g_projection;
 };
 
-struct vs_input {
+struct vs_input
+{
 	uint vertex_id : SV_VertexID;
+	float4 row0 : ATTRIB0;
+	float4 row1 : ATTRIB1;
+	float4 row2 : ATTRIB2;
+	float4 row3 : ATTRIB3;
 };
+
 struct PSOutput {
 	float4 pos		: SV_POSITION;
 	float2 uv		: TEXCOORD0;
@@ -43,49 +49,44 @@ float4x4 create_translate(float3 position)
 	return result;
 }
 
-float get_element(int x, int y)
+float3 get_position(vs_input data)
 {
-	return MATRIX_ELEMENT(g_data, x, y);
+	return float3(data.row0.x, data.row0.y, data.row0.z);
 }
-
-float3 get_position()
+float2 get_rotation_coefficients(vs_input data)
 {
-	return float3(get_element(0, 0), get_element(1, 0), get_element(2, 0));
+	return float2(data.row0.w, data.row1.x);
 }
-float2 get_rotation_coefficients()
+float2 get_scale(vs_input data)
 {
-	return float2(get_element(3, 0), get_element(0, 1));
+	return float2(data.row1.y, data.row1.z);
 }
-float2 get_scale()
+float2 get_anchor(vs_input data)
 {
-	return float2(get_element(1, 1), get_element(2, 1));
+	return float2(data.row1.w, data.row2.x);
 }
-float2 get_anchor()
-{
-	return float2(get_element(3,1), get_element(0, 2));
-}
-float4 get_color()
+float4 get_color(vs_input data)
 {
 	return float4(
-		get_element(1, 2),
-		get_element(2, 2),
-		get_element(3, 2),
-		get_element(0, 3)
+		data.row2.y,
+		data.row2.z,
+		data.row2.w,
+		data.row3.x
 	);
 }
 
-float4x4 get_transform()
+float4x4 get_transform(vs_input data)
 {
-	float3 position = get_position();
-	float2 coefficients = get_rotation_coefficients();
-	float2 scale = float2(get_element(1, 1), get_element(2, 1));
+	float3 position = get_position(data);
+	float2 coefficients = get_rotation_coefficients(data);
+	float2 scale = get_scale(data);
 
 	float4x4 transform = mul(create_scale(scale), create_rotation(coefficients.x, coefficients.y));
 	transform = mul(transform, create_translate(position));
 	return mul(g_projection, transpose(transform));
 }
 
-void main(in vs_input vs_input, out PSOutput ps_input) 
+void main(in vs_input vs_data, out PSOutput ps_input) 
 {
 	float2 vertices[4];
 	vertices[0] = float2(0, 1);
@@ -98,10 +99,12 @@ void main(in vs_input vs_input, out PSOutput ps_input)
 	uvs[2] = float2(1, 0);
 	uvs[3] = float2(1, 1);
 	
-	float2 vpos = vertices[vs_input.vertex_id] + get_anchor();
-	float4x4 transform = get_transform();
+	float2 vpos = vertices[vs_data.vertex_id] + get_anchor(vs_data);
+	float4x4 transform = get_transform(vs_data);
+	transform = mul(transform, g_model);
+	
 	float4 pos = mul(transform, float4(vpos, 0.0, 1.0));
 	ps_input.pos = pos;
-	ps_input.uv = uvs[vs_input.vertex_id];
-	ps_input.color = get_color();
+	ps_input.uv = uvs[vs_data.vertex_id];
+	ps_input.color = get_color(vs_data);
 }

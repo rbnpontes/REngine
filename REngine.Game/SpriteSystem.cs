@@ -40,7 +40,7 @@ public struct SpriteData()
 
     // Dependencies vars
     public SpriteEffect? Effect;
-    public SpriteBatchItem? RenderItem;
+    public SpriteBatch? Batch;
     public SpriteComponent? Ref;
 
     public WeakReference<Transform2D> Transform = new(null);
@@ -104,7 +104,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             pData[id].MouseExitEvent.ClearAllListeners();
             pData[id].ClickEvent.ClearAllListeners();
             // RPI Objects must dispose on Main Thread
-            DisposableQueue.Enqueue(pData[id].RenderItem);
+            DisposableQueue.Enqueue(pData[id].Batch);
             pAvailableIdx.Enqueue(id);
         }
     }
@@ -360,7 +360,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         SpriteData data;
         Transform2DSnapshot transformSnapshot;
         SpriteEffect? effect;
-        SpriteBatchItem? spriteBatch;
+        SpriteBatch? spriteBatch;
         bool enabled;
 
         lock (pSync)
@@ -369,7 +369,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
                 return;
             enabled = pData[componentId].Ref?.Enabled ?? false;
             data = pData[componentId];
-            spriteBatch = pData[componentId].RenderItem;
+            spriteBatch = pData[componentId].Batch;
             effect = pData[componentId].Effect;
             transformSnapshot = pData[componentId].LastTransformSnapshot;
         }
@@ -380,12 +380,15 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
         spriteBatch.Update(new SpriteBatchItemDesc()
         {
             Enabled = enabled,
-            Anchor = data.Anchor,
-            Color = data.Color,
-            Position = new Vector3(transformSnapshot.WorldPosition, transformSnapshot.WorldRotation),
-            Rotation = transformSnapshot.Rotation,
-            Scale = transformSnapshot.Scale,
-            Effect = effect
+            Effect = effect,
+            Item = new SpriteBatchItem()
+            {
+                Anchor = data.Anchor,
+                Color = data.Color,
+                Position = new Vector3(transformSnapshot.WorldPosition, transformSnapshot.WorldRotation),
+                Rotation = transformSnapshot.Rotation,
+                Scale = transformSnapshot.Scale,
+            }
         });
 
         lock (pSync)
@@ -397,7 +400,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
                 return;
             }
 
-            pData[componentId].RenderItem = spriteBatch;
+            pData[componentId].Batch = spriteBatch;
         }
     }
 
@@ -414,7 +417,7 @@ public sealed class SpriteSystem : BehaviorSystem<SpriteData>
             {
                 if (data.Ref is null)
                     continue;
-                DisposableQueue.Enqueue(data.RenderItem);
+                DisposableQueue.Enqueue(data.Batch);
             }
 
             pData = [];

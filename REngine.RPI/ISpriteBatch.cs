@@ -23,9 +23,12 @@ namespace REngine.RPI
 	{
 		public SpriteEffect DefaultEffect { get; }
 		public SpriteFeature CreateRenderFeature();
-		public SpriteBatchItem CreateSprite();
-		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo);
+		public SpriteBatch CreateSprite();
+		public DynamicSpriteInstanceBatch CreateDynamicSprite();
+		public DefaultSpriteInstanceBatch CreateDefaultSprite();
+		public StaticSpriteInstanceBatch CreateStaticSprite();
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo);
-		public void RemoveBatch(SpriteBatchItem batchItem);
+		public void RemoveBatch(SpriteBatch batch);
+		public void RemoveBatch(SpriteInstanceBatch batch);
 	}
 }

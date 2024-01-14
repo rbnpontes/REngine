@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using ImGuiNET;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
+using REngine.RPI.Batches;
 using REngine.RPI.Features;
 using REngine.RPI.Resources;
 using REngine.Sandbox.BaseSample;
@@ -28,8 +29,11 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		IImGuiSystem imGuiSystem) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private InstancedSprite? pSprite;
-		private TextureInstancedSpriteEffect? pEffect;
+		
+		private DynamicSpriteInstanceBatch? pBatch;
+		private TextureSpriteEffect? pEffect;
+		private SpriteBatchItem[] pItems = [];
+		
 		private int pGridSize = 30;
 		public IWindow? Window { get; set; }
 
@@ -37,8 +41,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 			renderer?.RemoveFeature(pSpriteFeature);
 			pSpriteFeature?.Dispose();
-			pSprite?.Dispose();
 			pEffect?.Dispose();
+			pBatch?.Dispose();
 			
 			GC.SuppressFinalize(this);
 
@@ -50,18 +54,11 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 			// Load Sprite
 			var sprite = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
-			pEffect = TextureInstancedSpriteEffect.Build(provider);
-			pEffect.Texture = sprite;
+			pEffect = TextureSpriteEffect.Build(provider);
+			pEffect.Texture = sprite.Texture;
 			// Allocate Batch
-			pSprite = spriteBatch.CreateSprite(new SpriteInstancedCreateInfo
-			{
-				NumInstances = (uint)(pGridSize * pGridSize),
-				Dynamic = true,
-				Effect = pEffect
-			});
-			pSprite.Lock();
-			pSprite.Color = Color.White;
-			pSprite.Unlock();
+			pBatch = spriteBatch.CreateDynamicSprite();
+			pItems = new SpriteBatchItem[pGridSize * pGridSize];
 			
 			// Allocate Render Feature
 			pSpriteFeature = ActivatorExtended.CreateInstance<SpriteFeature>(provider);
@@ -75,44 +72,53 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			ImGui.Begin("SpriteBatchInstanced Sample");
 
 			ImGui.SliderInt("Num Instances", ref pGridSize, 1, 100);
+			if ((pGridSize * pGridSize) != pItems.Length)
+				pItems = new SpriteBatchItem[pGridSize * pGridSize];
 			
 			ImGui.End();
 		}
 
 		public void Update(IServiceProvider provider)
 		{
-			if (pSprite is null)
+			if (pBatch is null)
 				return;
 			
 			var elapsedTime = (float)engine.ElapsedTime / 1000.0f;
 			var wndSize = Window?.Size ?? new Size();
 
-			UpdateInstances(pSprite, elapsedTime, wndSize);
+			UpdateInstances(pBatch, elapsedTime, wndSize);
 		}
 		
-		private void UpdateInstances(InstancedSprite batch, float elapsed, Size wndSize)
+		private void UpdateInstances(DynamicSpriteInstanceBatch batch, float elapsed, Size wndSize)
 		{
 			var size = new Vector2((5 + ((1 + (float)Math.Sin(elapsed)) * 0.5f) * 100));
 			var anchor = new Vector2(0.5f, 0.5f);
-
-			batch.Lock();
-			batch.ResizeInstances((uint)(pGridSize * pGridSize), true);
 			
-			for (var i = 0u; i < batch.InstanceCount; ++i)
+			for (var i = 0u; i < pItems.Length; ++i)
 			{
 				var x = i % pGridSize;
 				var y = i / pGridSize;
-				
-				batch
-					.SetInstanceScale(i, size)
-					.SetInstanceAnchor(i, anchor)
-					.SetInstancePosition(i, new Vector2(
+
+				pItems[i] = new SpriteBatchItem()
+				{
+					Color = Color.White,
+					Anchor = anchor,
+					Position = new Vector3(
 						(x / ((float)pGridSize - 1)) * wndSize.Width,
-						(y / ((float)pGridSize - 1)) * wndSize.Height
-					))
-					.SetInstanceAngle(i, (x - y) + elapsed);
+						(y / ((float)pGridSize - 1)) * wndSize.Height,
+						0
+					),
+					Rotation = (x - y) + elapsed,
+					Scale = size
+				};
 			}
-			batch.Unlock();
+			
+			batch.Update(new SpriteInstanceBatchItemDesc()
+			{
+				Enabled = true,
+				Effect = pEffect,
+				Items = pItems
+			});
 		}
 	}
 #endif

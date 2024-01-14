@@ -14,12 +14,12 @@ using REngine.Core.DependencyInjection;
 using REngine.Core.Reflection;
 using REngine.RPI.Batches;
 using REngine.RPI.Events;
+using REngine.RPI.Structs;
 
 namespace REngine.RPI
 {
 #if RENGINE_SPRITEBATCH
 	internal class SpriteBatchImpl(
-		SpriteInstancedRenderSystem instanceRenderSystem,
 		IServiceProvider provider,
 		ITextRenderer textRenderer,
 		BatchSystem batchSystem,
@@ -34,17 +34,40 @@ namespace REngine.RPI
 		{
 			return ActivatorExtended.CreateInstance<SpriteFeature>(provider) ?? throw new NullReferenceException();
 		}
-		public SpriteBatchItem CreateSprite()
+		public SpriteBatch CreateSprite()
 		{
-			var batch = new SpriteBatchItem(bufferManager, this, provider.Get<IGraphicsDriver>().Backend);
+			var batch = new SpriteBatch(bufferManager, this);
 			pBatchGroup.Lock();
 			pBatchGroup.AddBatch(batch);
 			pBatchGroup.Unlock();
 			return batch;
 		}
-		public InstancedSprite CreateSprite(SpriteInstancedCreateInfo createInfo)
+
+		public DynamicSpriteInstanceBatch CreateDynamicSprite()
 		{
-			return instanceRenderSystem.CreateBatch(createInfo);
+			var batch = new DynamicSpriteInstanceBatch(bufferManager, this);
+			pBatchGroup.Lock();
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
+			return batch;
+		}
+
+		public DefaultSpriteInstanceBatch CreateDefaultSprite()
+		{
+			var batch = new DefaultSpriteInstanceBatch(bufferManager, this);
+			pBatchGroup.Lock();
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
+			return batch;
+		}
+
+		public StaticSpriteInstanceBatch CreateStaticSprite()
+		{
+			var batch = new StaticSpriteInstanceBatch(bufferManager, this);
+			pBatchGroup.Lock();
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
+			return batch;
 		}
 
 		public TextRendererBatch CreateText(in TextCreateInfo createInfo)
@@ -58,10 +81,17 @@ namespace REngine.RPI
 			return batch;
 		}
 
-		public void RemoveBatch(SpriteBatchItem batchItem)
+		public void RemoveBatch(SpriteBatch batch)
 		{
 			pBatchGroup.Lock();
-			pBatchGroup.RemoveBatch(batchItem);
+			pBatchGroup.RemoveBatch(batch);
+			pBatchGroup.Unlock();
+		}
+
+		public void RemoveBatch(SpriteInstanceBatch batch)
+		{
+			pBatchGroup.Lock();
+			pBatchGroup.RemoveBatch(batch);
 			pBatchGroup.Unlock();
 		}
 	}

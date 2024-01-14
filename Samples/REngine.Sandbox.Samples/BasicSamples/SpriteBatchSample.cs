@@ -29,8 +29,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		) : ISample
 	{
 		private IRenderFeature? pSpriteFeature;
-		private SpriteBatchItem? pFlickeredDoge;
-		private SpriteBatchItem? pColoredDoge;
+		private SpriteBatch? pFlickeredDoge;
+		private SpriteBatch? pColoredDoge;
 		private TextureSpriteEffect? pSpriteEffect;
 		public IWindow? Window { get; set; }
 		public void Dispose()
@@ -74,22 +74,28 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			{
 				Enabled = true,
 				Effect = pSpriteEffect,
-				Scale = new Vector2(300) * QuadTime(elapsedTime, 1f, 2),
-				Rotation = elapsedTime,
-				Anchor = new Vector2(0, 0.5f),
-				Position = halfSize + (new Vector3(cosT, sineT, 0) * 150),
-				Color = Color.White
+				Item = new SpriteBatchItem()
+				{
+					Scale = new Vector2(300) * QuadTime(elapsedTime, 1f, 2),
+					Rotation = elapsedTime,
+					Anchor = new Vector2(0.5f),
+					Position = halfSize + (new Vector3(cosT, sineT, 0) * 150),
+					Color = Color.White
+				}
 			});
 			
 			pColoredDoge.Update(new SpriteBatchItemDesc()
 			{
 				Enabled = true,
 				Effect = pSpriteEffect,
-				Rotation = elapsedTime,
-				Anchor = new Vector2(0f),
-				Position = halfSize,
-				Scale = new Vector2(150),
-				Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
+				Item = new SpriteBatchItem()
+				{
+					Rotation = elapsedTime,
+					Anchor = new Vector2(0.5f),
+					Position = halfSize - new Vector3(75, 75, 0),
+					Scale = new Vector2(150),
+					Color = ColorUtils.FromHSL(elapsedTime, 1, 1)
+				}
 			});
 		}
 

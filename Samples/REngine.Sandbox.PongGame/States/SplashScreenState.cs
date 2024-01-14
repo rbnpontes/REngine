@@ -61,14 +61,11 @@ namespace REngine.Sandbox.PongGame.States
 			pComponent = entity.CreateComponent<Transform2D>();
 
 			var spriteComponent = entity.CreateComponent<SpriteComponent>();
-			spriteComponent.Anchor = new Vector2(0.5f, 0.5f);
+			spriteComponent.Anchor = new Vector2(0.5f);
 			spriteComponent.Effect = effect;
 
 			var winScale = mainWindow.Size.ToVector2();
-			pComponent.Position = winScale * new Vector2(0.5f, 0.5f);
-			winScale *= new Vector2(0.4f);
-			pComponent.Scale = new Vector2(Math.Min(winScale.X, winScale.Y));
-
+			UpdateLogoPosition(pComponent, winScale);
 			pEnableCrt.Value = new Ref<bool>(false);
 		}
 
@@ -79,6 +76,9 @@ namespace REngine.Sandbox.PongGame.States
 			if (pComponent is null)
 				return;
 
+			var winScale = mainWindow.Size.ToVector2();
+			UpdateLogoPosition(pComponent, winScale);
+			
 			if (pAudio is null)
 				return;
 
@@ -102,12 +102,7 @@ namespace REngine.Sandbox.PongGame.States
 			// Enable Component After Doge Bonk
 			if (pStopwatch.Elapsed.TotalSeconds > 1 && pComponent.Owner != null)
 				pComponent.Owner.Enabled = true;
-
-			var winScale = mainWindow.Size.ToVector2();
-			pComponent.Position = winScale * new Vector2(0.5f, 0.5f);
-			winScale *= new Vector2(0.4f);
-			pComponent.Scale = new Vector2(Math.Min(winScale.X, winScale.Y));
-
+			
 			renderState.DefaultClearColor = Color.White;
 		}
 
@@ -119,6 +114,13 @@ namespace REngine.Sandbox.PongGame.States
 			entityManager.DestroyAll();
 			if(pAudioAsset != null)
 				assetManager.UnloadAsset(pAudioAsset);
+		}
+
+		private void UpdateLogoPosition(Transform2D transform, Vector2 windowScale)
+		{
+			var scaleRatio = Math.Min(windowScale.X, windowScale.Y) * 0.35f;
+			transform.Scale = new Vector2(scaleRatio);
+			transform.Position = (windowScale * 0.5f) - new Vector2(scaleRatio * 0.5f);
 		}
 	}
 }
