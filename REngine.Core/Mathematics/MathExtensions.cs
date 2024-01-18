@@ -30,6 +30,16 @@ namespace REngine.Core.Mathematics
 			return new Vector2(size.Width, size.Height);
 		}
 
+		public static PointF ToPoint(this Vector2 vec)
+		{
+			return new PointF(vec);
+		}
+
+		public static SizeF ToSize(this Vector2 vec)
+		{
+			return new SizeF(vec);
+		}
+		
 		public static Vector3 ToVector3(this Vector2 vec, float z = 0)
 		{
 			return new Vector3(vec.X, vec.Y, z);

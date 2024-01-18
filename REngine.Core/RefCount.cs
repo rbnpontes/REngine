@@ -1,10 +1,10 @@
 namespace REngine.Core;
 
-public sealed class RefCount<T>(T instance) : IDisposable where T : IDisposable
+public sealed class RefCount<T>(T? instance) : IDisposable where T : IDisposable
 {
     private bool pDisposed;
     
-    public int Count { get; private set; } = 1;
+    public int Count { get; private set; } = instance is null ? 0 : 1;
 
     public T Ref
     {
@@ -27,7 +27,10 @@ public sealed class RefCount<T>(T instance) : IDisposable where T : IDisposable
         --Count;
         if (Count > 0)
             return;
-        instance.Dispose();
+        instance?.Dispose();
+        instance = default(T);
         pDisposed = true;
     }
+
+    public static RefCount<T> Empty = new (default(T));
 }

@@ -59,7 +59,7 @@ public sealed class SpriteBatch(
         lock (pSync)
         {
             pEnabled = desc.Enabled;
-            pPipelineState = desc.Effect?.OnBuildPipeline();
+            pPipelineState = desc.Effect?.BuildPipeline2();
             pShaderResourceBinding = desc.Effect?.OnGetShaderResourceBinding();
 
             BuildBatchData(desc.Item, out pData);

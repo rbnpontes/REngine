@@ -98,6 +98,7 @@ namespace REngine.RHI
 
 		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, T data) where T : unmanaged;
 		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, byte[] data);
+		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, Span<T> data) where T : unmanaged;
 		public ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, ReadOnlySpan<T> data) where T : unmanaged;
 		public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, ulong size, IntPtr data);
 

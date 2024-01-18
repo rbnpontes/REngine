@@ -7,6 +7,9 @@ public sealed class GameModule : IModule
 {
     public void Setup(IServiceRegistry registry)
     {
-        registry.Add<SpriteSystem>();
+        registry
+            .Add<SpriteSystem>()
+            .Add<SpriteInstanceSystem>()
+            .Add<TextSystem>();
     }
 }

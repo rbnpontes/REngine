@@ -10,6 +10,7 @@ public static class DisposableQueue
 {
     private static readonly ConcurrentQueue<IDisposable> sDisposables = new();
 
+    public static bool HasPendingItems => !sDisposables.IsEmpty;
     public static void Enqueue(IDisposable? disposable)
     {
         if(disposable is not null)

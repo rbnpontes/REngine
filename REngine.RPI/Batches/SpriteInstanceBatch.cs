@@ -65,7 +65,7 @@ public abstract class SpriteInstanceBatch(
             }
 
             mEnabled = desc.Enabled;
-            mPipelineState = desc.Effect?.OnBuildPipeline();
+            mPipelineState = desc.Effect?.BuildPipeline2();
             mShaderResourceBinding = desc.Effect?.OnGetShaderResourceBinding();
             mInstanceCount = (uint)desc.Items.Length;
             if (desc.Items.Length == 0)

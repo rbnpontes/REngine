@@ -9,7 +9,7 @@ using REngine.Core;
 using REngine.Core.Logic;
 using REngine.Core.Resources;
 using REngine.Core.WorldManagement;
-using REngine.RPI.Components;
+using REngine.Game.Components;
 using REngine.Sandbox.PongGame.Components;
 
 namespace REngine.Sandbox.PongGame.States
@@ -45,7 +45,6 @@ namespace REngine.Sandbox.PongGame.States
 			var transform = textEntity.CreateComponent<Transform2D>();
 			var textComponent = textEntity.CreateComponent<TextComponent>();
 			textComponent.Text = "Game Over";
-			textComponent.FontSize = 16;
 			textComponent.Font = fontAsset.Font;
 
 			transform.Position = new Vector2(10, -80);
@@ -55,7 +54,6 @@ namespace REngine.Sandbox.PongGame.States
 			transform = textEntity.CreateComponent<Transform2D>();
 			textComponent = textEntity.CreateComponent<TextComponent>();
 			textComponent.Text = $"Score: {PongVariables.Score}";
-			textComponent.FontSize = 16;
 			textComponent.Font = fontAsset.Font;
 
 			transform.Position = new Vector2(10, -40);

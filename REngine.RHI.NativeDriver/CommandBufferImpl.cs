@@ -32,14 +32,14 @@ namespace REngine.RHI.NativeDriver
             using (Profiler.Instance.Begin(ClearDepthName))
             {
 #endif
-                rengine_cmdbuffer_cleardepth(
-                    Handle,
-                    depthStencil.Handle,
-                    (uint)clearFlags,
-                    depth,
-                    stencil,
-                    GetIsDeferredByte()
-                );
+            rengine_cmdbuffer_cleardepth(
+                Handle,
+                depthStencil.Handle,
+                (uint)clearFlags,
+                depth,
+                stencil,
+                GetIsDeferredByte()
+            );
 #if PROFILER
             }
 #endif
@@ -66,6 +66,7 @@ namespace REngine.RHI.NativeDriver
                     GetIsDeferredByte()
                 );
             }
+
             return this;
         }
 
@@ -87,9 +88,9 @@ namespace REngine.RHI.NativeDriver
         {
 #if RENGINE_VALIDATIONS
             ObjectDisposedException.ThrowIf(IsDisposed, this);
-            if(copyInfo.SrcTexture is not null)
+            if (copyInfo.SrcTexture is not null)
                 ValidateGpuObject(copyInfo.SrcTexture);
-            if(copyInfo.DstTexture is not null)
+            if (copyInfo.DstTexture is not null)
                 ValidateGpuObject(copyInfo.DstTexture);
 #endif
             Box srcBox = copyInfo.SrcBox ?? new Box();
@@ -193,7 +194,7 @@ namespace REngine.RHI.NativeDriver
 #if RENGINE_VALIDATIONS
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             ValidateGpuObject(rt);
-            if(depthStencil is not null)
+            if (depthStencil is not null)
                 ValidateGpuObject(depthStencil);
 #endif
             pCopyRenderTargetsPointers[0] = rt.Handle;
@@ -338,6 +339,13 @@ namespace REngine.RHI.NativeDriver
         public ICommandBuffer UpdateBuffer(IBuffer buffer, ulong offset, byte[] data)
         {
             return UpdateBuffer(buffer, offset, new ReadOnlySpan<byte>(data));
+        }
+
+        public unsafe ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, Span<T> data) where T : unmanaged
+        {
+            fixed (T* dataPtr = data)
+                UpdateBuffer(buffer, offset, (ulong)(Unsafe.SizeOf<T>() * data.Length), new IntPtr(dataPtr));
+            return this;
         }
 
         public unsafe ICommandBuffer UpdateBuffer<T>(IBuffer buffer, ulong offset, ReadOnlySpan<T> data)
@@ -607,7 +615,7 @@ namespace REngine.RHI.NativeDriver
             {
 #if RENGINE_VALIDATIONS
                 ValidateGpuObject(resourceBarriers[i].Resource);
-                if(resourceBarriers[i].ResourceBefore is not null)
+                if (resourceBarriers[i].ResourceBefore is not null)
                     ValidateGpuObject(resourceBarriers[i].ResourceBefore);
 #endif
                 StateTransitionDTO.Fill(resourceBarriers[i], out var desc);

@@ -9,7 +9,6 @@ using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RHI;
 using REngine.RPI;
-using REngine.RPI.Components;
 using REngine.RPI.Effects;
 using REngine.RPI.RenderGraph;
 using REngine.RPI.Resources;
@@ -21,9 +20,9 @@ namespace REngine.Sandbox.PongGame.States
 		EntityManager entityManager,
 		RenderState renderState,
 		IWindow mainWindow,
-		ITextRenderer textRenderer,
 		IResourceManager resourceManager,
 		IAssetManager assetManager,
+		IFontSystem fontSystem,
 		IServiceProvider provider)
 		: IGameState
 	{
@@ -150,7 +149,7 @@ namespace REngine.Sandbox.PongGame.States
 		private void LoadFont(string assetName)
 		{
 			var fontAsset = assetManager.GetAsset<FontAsset>(assetName);
-			textRenderer.SetFont(fontAsset.Font);
+			fontSystem.SetFont(fontAsset.Font);
 		}
 	}
 }

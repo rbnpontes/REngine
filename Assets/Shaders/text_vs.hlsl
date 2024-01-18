@@ -4,8 +4,9 @@
 };
 cbuffer ObjectConstants
 {
+	float4x4 g_model;
     float4 g_color;
-    float4 g_positionAndSizes;
+	float2 g_font_offset;
 };
 
 struct VSInput
@@ -46,16 +47,13 @@ void main(in VSInput vs_input, out PSOutput ps_input)
     uvValues[2] = float2(normalizedBounds.z, normalizedBounds.w); // (1, 0)
     uvValues[3] = float2(normalizedBounds.z, normalizedBounds.y); // (1, 1)
 	
-    float2 position = posValues[vs_input.vertexId];
+    float2 position = posValues[vs_input.vertexId] - g_font_offset;
     float2 uv = uvValues[vs_input.vertexId];
+	
+	float4 vpos = mul(g_model, float4(position, 0.0, 1.0));
     
-    // char sizes is relative to atlas size
-    // in this case, we must scale down and apply final font size
-    position *= 1.0f / g_positionAndSizes.w;
-    position *= g_positionAndSizes.z;
-    
-    ps_input.fontScale = 1.0f / g_positionAndSizes.z;
-    ps_input.pos = mul(g_projection, float4(position + g_positionAndSizes.xy, 0.0, 1.0));
+    ps_input.fontScale = 1.0f / 16.0f;
+    ps_input.pos = mul(g_projection, vpos);
 	ps_input.color = g_color;
 	ps_input.uv = uv;
 }

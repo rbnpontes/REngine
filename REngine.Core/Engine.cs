@@ -114,7 +114,8 @@ namespace REngine.Core
 
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
-			DisposableQueue.Dispose();
+			while(DisposableQueue.HasPendingItems)
+				DisposableQueue.Dispose();
 			return this;
 		}
 

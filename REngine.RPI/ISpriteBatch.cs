@@ -13,23 +13,24 @@ using REngine.RPI.Features;
 
 namespace REngine.RPI
 {
-	public struct TextCreateInfo(Font font)
+	public struct TextCreateInfo(Font font, ITexture fontAtlas, bool isDynamic)
 	{
 		public Font Font = font;
-		public uint FontSize = 16;
-		public string Text = string.Empty;
-		public Color Color = Color.White;
+		public ITexture FontAtlas = fontAtlas;
+		public bool IsDynamic = isDynamic;
 	}
 	public interface ISpriteBatch
 	{
 		public SpriteEffect DefaultEffect { get; }
+		public TextEffect DefaultTextEffect { get; }
 		public SpriteFeature CreateRenderFeature();
 		public SpriteBatch CreateSprite();
 		public DynamicSpriteInstanceBatch CreateDynamicSprite();
 		public DefaultSpriteInstanceBatch CreateDefaultSprite();
 		public StaticSpriteInstanceBatch CreateStaticSprite();
-		public TextRendererBatch CreateText(in TextCreateInfo createInfo);
+		public TextBatch CreateTextBatch(TextCreateInfo createInfo);
 		public void RemoveBatch(SpriteBatch batch);
 		public void RemoveBatch(SpriteInstanceBatch batch);
+		public void RemoveBatch(TextBatch batch);
 	}
 }

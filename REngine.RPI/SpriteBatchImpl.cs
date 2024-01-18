@@ -22,7 +22,6 @@ namespace REngine.RPI
 #if RENGINE_SPRITEBATCH
 	internal class SpriteBatchImpl(
 		IServiceProvider provider,
-		ITextRenderer textRenderer,
 		BatchSystem batchSystem,
 		IBufferManager bufferManager)
 		: ISpriteBatch
@@ -30,7 +29,7 @@ namespace REngine.RPI
 		private readonly BatchGroup pBatchGroup = batchSystem.GetGroup(BatchGroupNames.Sprites);
 
 		public SpriteEffect DefaultEffect => SpriteEffect.Build(provider);
-
+		public TextEffect DefaultTextEffect => TextEffect.Build(provider);
 		public SpriteFeature CreateRenderFeature()
 		{
 			return ActivatorExtended.CreateInstance<SpriteFeature>(provider) ?? throw new NullReferenceException();
@@ -71,17 +70,17 @@ namespace REngine.RPI
 			return batch;
 		}
 
-		public TextRendererBatch CreateText(in TextCreateInfo createInfo)
+		public TextBatch CreateTextBatch(TextCreateInfo createInfo)
 		{
-			textRenderer.SetFont(createInfo.Font);
-			var batch = textRenderer.CreateBatch(createInfo.Font.Name);
-			batch.Lock();
-			batch.Text = createInfo.Text;
-			batch.Color = createInfo.Color;
-			batch.Unlock();
+			TextBatch batch = createInfo.IsDynamic
+				? DynamicTextBatch.Build(createInfo.Font, createInfo.FontAtlas, provider)
+				: DefaultTextBatch.Build(createInfo.Font, createInfo.FontAtlas, provider);
+			pBatchGroup.Lock();
+			pBatchGroup.AddBatch(batch);
+			pBatchGroup.Unlock();
 			return batch;
 		}
-
+		
 		public void RemoveBatch(SpriteBatch batch)
 		{
 			pBatchGroup.Lock();
@@ -90,6 +89,13 @@ namespace REngine.RPI
 		}
 
 		public void RemoveBatch(SpriteInstanceBatch batch)
+		{
+			pBatchGroup.Lock();
+			pBatchGroup.RemoveBatch(batch);
+			pBatchGroup.Unlock();
+		}
+
+		public void RemoveBatch(TextBatch batch)
 		{
 			pBatchGroup.Lock();
 			pBatchGroup.RemoveBatch(batch);

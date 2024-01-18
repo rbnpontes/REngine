@@ -5,7 +5,7 @@ using REngine.RHI;
 
 namespace REngine.RPI.Resources;
 
-public sealed class TextureAsset(IGraphicsDriver driver, IExecutionPipeline pipeline) : Asset
+public sealed class TextureAsset(ITextureManager textureManager, IExecutionPipeline pipeline) : Asset
 {
     private ITexture? pTexture;
     public ITexture Texture => pTexture ?? throw new NullReferenceException($"{nameof(TextureAsset)} not loaded");
@@ -16,15 +16,7 @@ public sealed class TextureAsset(IGraphicsDriver driver, IExecutionPipeline pipe
         asset.Load(stream);
         var img = asset.Image;
 
-        pTexture = driver.Device.CreateTexture(new TextureDesc()
-        {
-            Name = Name,
-            AccessFlags = CpuAccessFlags.None,
-            BindFlags = BindFlags.ShaderResource,
-            Size = new TextureSize(img.Size.Width, img.Size.Height),
-            Format = TextureFormat.RGBA8UNormSRGB,
-            Usage = Usage.Immutable
-        }, [new ByteTextureData(img.Data, img.Stride)]);
+        pTexture = textureManager.Create(img);
     }
 
     protected override void OnDispose()

@@ -18,7 +18,7 @@ float4 main(in PSInput ps_input) : SV_TARGET
 #endif
     float4 color = g_texture.Sample(g_texture_sampler, uv);
     float alpha = color.a;
-    color = float4(1.0f) - color;
+    color = float4(1.0f, 1.0f, 1.0f, 1.0f) - color;
     color.a = alpha;
     return color;
 }

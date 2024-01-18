@@ -16,7 +16,6 @@ using REngine.Core.Storage;
 using REngine.Core.WorldManagement;
 using REngine.Game.Components;
 using REngine.RPI;
-using REngine.RPI.Components;
 using REngine.RPI.Effects;
 using REngine.Sandbox.PongGame.Components;
 
@@ -85,7 +84,6 @@ namespace REngine.Sandbox.PongGame.States
 			var textTransform = textEntity.CreateComponent<Transform2D>();
 			var text = textEntity.CreateComponent<TextComponent>();
 			text.Font = font.Font;
-			text.FontSize = 16;
 			textTransform.Position = new Vector2(wndSize.Width, wndSize.Height - PongVariables.BarSize.Y - 16);
 			pTextTransform = textTransform;
 
