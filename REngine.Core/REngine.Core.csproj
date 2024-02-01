@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
+        <Platforms>x64</Platforms>
     </PropertyGroup>
 
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>

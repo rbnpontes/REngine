@@ -7,6 +7,8 @@
     <Description>A .NET wrapper for the ImGuizmo library.</Description>
     <AssemblyName>ImGuizmo.NET</AssemblyName>
     <RootNamespace>ImPlotNET</RootNamespace>
+    <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>

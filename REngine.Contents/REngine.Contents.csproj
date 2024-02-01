@@ -4,6 +4,8 @@
         <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
+        <Platforms>x64</Platforms>
     </PropertyGroup>
 
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
@@ -268,7 +270,6 @@
         </AndroidNativeLibrary>
     </ItemGroup>
     <!-- End Android Dependencies -->
-    
     <!-- Begin Asset Files -->
         <!-- Desktop Copy Command -->
         <ItemGroup Condition="'$(IsDesktop)'=='1'">

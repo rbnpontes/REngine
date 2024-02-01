@@ -10,7 +10,6 @@ using REngine.Android.Windows;
 using REngine.Assets;
 using REngine.Core.Threading;
 using REngine.RHI;
-using REngine.RHI.DiligentDriver;
 using REngine.RHI.NativeDriver;
 using REngine.RPI;
 using Activity = Android.App.Activity;

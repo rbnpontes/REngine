@@ -60,5 +60,17 @@ namespace REngine.Core
 			return builder.ToString();
 		}
 	}
+#elif WEB
+	public struct NativeWindow()
+	{
+		public string CanvasSelector = string.Empty;
+		public override string ToString()
+		{
+			StringBuilder builder = new();
+			builder.Append("Canvas Selector: ");
+			builder.AppendLine(CanvasSelector);
+			return builder.ToString();
+		}
+	}
 #endif
 }

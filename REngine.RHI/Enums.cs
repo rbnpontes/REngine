@@ -75,18 +75,6 @@ namespace REngine.RHI
 		UByte4,
 		UByte4Norm
 	}
-	public enum ElementSemantic
-	{
-		Position,
-		Normal,
-		BiNormal,
-		Tangent,
-		Texcoord,
-		Color,
-		BlendWeights,
-		BlendIndices,
-		ObjectIndex
-	}
 	public enum TextureFormat
 	{
 		Unknown,

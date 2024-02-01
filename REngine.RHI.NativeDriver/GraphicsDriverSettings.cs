@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using REngine.Core.Serialization;
+﻿using REngine.Core.Serialization;
 
-namespace REngine.RHI.DiligentDriver
+namespace REngine.RHI.NativeDriver
 {
 #if WINDOWS
 	public class D3D12Settings
