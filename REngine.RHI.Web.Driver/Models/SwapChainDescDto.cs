@@ -39,13 +39,8 @@ internal unsafe struct SwapChainDescDto()
             NativeApis.js_memcpy(srcPtr, ptr, size);
         return ptr;
     }
-    public static void ReadSwapChainDesc(IntPtr ptr, ref SwapChainDescDto output)
-    {
-        fixed (void* dstPtr = output)
-            NativeApis.js_memcpy(ptr, dstPtr, Unsafe.SizeOf<SwapChainDescDto>());
-    }
 
-    private ref SwapChainDescDto GetPinnableReference()
+    public ref SwapChainDescDto GetPinnableReference()
     {
         return ref this;
     }

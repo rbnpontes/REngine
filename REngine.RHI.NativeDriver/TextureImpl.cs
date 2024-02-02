@@ -55,7 +55,7 @@ namespace REngine.RHI.NativeDriver
 				return texView;
 
 			ResultNative result = new();
-			rengine_texture_getdefaultview(Handle, (byte)view, ref result);
+			rengine_texture_getdefaultview	(Handle, (byte)view, ref result);
 			
 			if(result.error != IntPtr.Zero)
 				throw new Exception(Marshal.PtrToStringAnsi(result.error) ?? $"Can´t retrieve default viewType {view}. Texture View is null");

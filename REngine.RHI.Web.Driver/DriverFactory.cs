@@ -48,13 +48,19 @@ public static partial class DriverFactory
         NativeApis.js_writei32(nativeWindowPtr, selectorPtr.ToInt32());
         return (nativeWindowPtr, selectorPtr);
     }
+    private static unsafe void ReadDriverData(IntPtr driverPtr, out DriverData result)
+    {
+        result = new DriverData();
+        fixed (void* dataPtr = result)
+            NativeApis.js_memcpy(driverPtr, dataPtr, Unsafe.SizeOf<DriverData>());
+    }
     
     public static (IGraphicsDriver, ISwapChain) Build(DriverFactoryCreateInfo createInfo)
     {
         var canvasElement = NativeApis.js_query_selector(createInfo.CanvasSelector);
         if (canvasElement is null)
             throw new NullReferenceException("Canvas Selector is not found or is not a valid selector");
-        if (createInfo.SwapChainDesc.Size.Width == 0 && createInfo.SwapChainDesc.Size.Height == 0)
+        if (createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 })
         {
             var swapChainSize = NativeApis.js_get_element_size(canvasElement);
             createInfo.SwapChainDesc.Size = new SwapChainSize((uint)swapChainSize[0], (uint)swapChainSize[1]);
@@ -67,22 +73,32 @@ public static partial class DriverFactory
         var swapChainDescPtr = SwapChainDescDto.CreateSwapChainPtr(ref swapChainDesc);
         
         var result = new DriverResult();
-        Console.WriteLine("Result Ptr: "+result.Handle.ToInt32());
         js_rengine_create_driver(settingsPtr, swapChainDescPtr, nativeWindowPtr, result.Handle);
-        Console.WriteLine("Loading Ptr");
         result.Load();
-        result.Dispose();
-
-        NativeApis.js_free(settingsPtr);
-        NativeApis.js_free(nativeWindowPtr);
-        NativeApis.js_free(swapChainDescPtr);
         
         if (!result.Error.Equals(string.Empty))
+        {
+            DisposeResources();
             throw new DriverException(result.Error);
+        }
+
+        ReadDriverData(result.Driver, out var driverResult);
+        DisposeResources();
         
-        Console.WriteLine($"Driver: {result.Driver.ToInt32()}");
-        Console.WriteLine($"SwapChain: {result.SwapChain.ToInt32()}");
-        return (NullDriver.Instance, NullSwapChain.Instance);
+        Console.WriteLine("Context: "+driverResult.Context);
+        Console.WriteLine("Device: "+driverResult.Device);
+        Console.WriteLine("Factory: "+driverResult.Factory);
+        return (NullDriver.Instance, new SwapChainImpl(result.SwapChain, canvasElement));
+
+        void DisposeResources()
+        {
+            result.Dispose();
+            NativeApis.js_free(settingsPtr);
+            NativeApis.js_free(nativeWindowPtr);
+            NativeApis.js_free(canvasSelectorPtr);
+            NativeApis.js_free(swapChainDescPtr);
+            NativeApis.js_free(result.Driver);
+        }
     }
 
     private static void HandleDriverMessage(Action<MessageEventData> callback)

@@ -44,7 +44,9 @@ internal partial class NativeApis
     
     [JSImport("registerFunction", Constants.LibName)]
     public static partial IntPtr js_register_function([JSMarshalAs<JSType.Function>] Action callback, string signature);
-    
+
+    [JSImport("unregisterFunction", Constants.LibName)]
+    public static partial void js_unregister_function(IntPtr functPtr);
     [JSImport("getString", Constants.LibName)]
     public static partial string js_get_string(IntPtr ptr);
 
@@ -86,4 +88,10 @@ internal partial class NativeApis
 
     [JSImport("getElementSize", Constants.LibName)]
     public static partial double[] js_get_element_size([JSMarshalAs<JSType.Any>] object htmlElement);
+
+    [JSImport("listenResizeEvent", Constants.LibName)]
+    [return: JSMarshalAs<JSType.Function>]
+    public static partial Action js_listen_resize_event(
+        [JSMarshalAs<JSType.Any>] object element, 
+        [JSMarshalAs<JSType.Function>] Action resizeEvent);
 }

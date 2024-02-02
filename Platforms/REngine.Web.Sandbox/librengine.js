@@ -15,7 +15,8 @@ function malloc(size) {
  * @param {Number} ptr_addr
  */
 function free(ptr_addr) {
-    module._free(ptr_addr);
+    if(ptr_addr)
+        module._free(ptr_addr);
 }
 
 /**
@@ -102,6 +103,8 @@ let _lastMethodArgs = null;
 function getLastMethodArgs() {
     return _lastMethodArgs;
 }
+
+const _funcTbl = {};
 /**
  * Register JS function and retrieves a pointer to it.
  * @param {Function} callback
@@ -109,10 +112,23 @@ function getLastMethodArgs() {
  * @return {Number} return function pointer
  */
 function registerFunction(callback, signature) {
-    return module.addFunction((...args)=> {
+    const funcPtr = module.addFunction((...args)=> {
         _lastMethodArgs = args;
         callback();
     }, signature);
+    _funcTbl[funcPtr] = callback;
+    return funcPtr;
+}
+
+/**
+ * Unregister JS function
+ * @param {Number} func_ptr_idx
+ */
+function unregisterFunction(func_ptr_idx) {
+    const callback = _funcTbl[func_ptr_idx];
+    delete _funcTbl[func_ptr_idx];
+    if(callback?.dispose)
+        callback.dispose();
 }
 
 function getPtrSize() {
@@ -158,6 +174,24 @@ function getElementSize(element) {
     return [width, height];
 }
 
+/**
+ * Listen to element size changes
+ * @param {HTMLElement} element
+ * @param {Function} callback
+ */
+function listenResizeEvent(element, callback) {
+    if(!element || !callback)
+        return;
+    const resizeObserver = new ResizeObserver(()=> {
+        callback();
+    });
+    resizeObserver.observe(element, {box: 'content-box'});
+    return ()=> {
+        resizeObserver.disconnect();
+        if(callback?.dispose)
+            callback.dispose();
+    };
+}
 export async function init() {
     module = await DriverModule();
     await module.ready;
@@ -178,10 +212,12 @@ export async function init() {
         memset,
         getLastMethodArgs,
         registerFunction,
+        unregisterFunction,
         getString,
         allocString,
         querySelector,
         getElementSize,
+        listenResizeEvent,
         ...driverCalls
     };
 }
