@@ -13,11 +13,16 @@ namespace REngine.Core.Mathematics
 		public float Right;
 		public float Bottom;
 	}
-	public struct IntRect
+	public unsafe struct IntRect
 	{
 		public int Left;
 		public int Top;
 		public int Right;
 		public int Bottom;
+
+		public ref IntRect GetPinnableReference()
+		{
+			return ref this;
+		}
 	}
 }

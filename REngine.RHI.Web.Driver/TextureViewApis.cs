@@ -17,6 +17,7 @@ internal partial class TextureViewImpl
         var result = new ResultNative();
         var sizeOf = Unsafe.SizeOf<ResultNative>();
         var resultPtr = NativeApis.js_malloc(sizeOf);
+        NativeApis.js_memset(resultPtr, 0x0, sizeOf);
         
         js_rengine_textureview_getparent(ptr, resultPtr);
         fixed(void* dataPtr = result)

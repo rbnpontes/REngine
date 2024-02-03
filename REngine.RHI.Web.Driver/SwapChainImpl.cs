@@ -29,13 +29,14 @@ internal partial class SwapChainImpl : ISwapChain
         pHandle = handle;
         pCanvasElement = canvasElement;
         Desc = GetDesc(handle);
-        pCanvasResizeEventDisposeCall = NativeApis.js_listen_resize_event(canvasElement, OnCanvasResize);
 
         var size = new TextureSize(Desc.Size.Width, Desc.Size.Height);
         var depthBufferPtr = js_rengine_swapchain_get_depthbuffer(handle);
         if (depthBufferPtr != IntPtr.Zero)
             pDepthBuffer = new InternalTextureView(depthBufferPtr, size);
+        
         pColorBuffer = new InternalTextureView(js_rengine_swapchain_get_backbuffer(handle), size);
+        pCanvasResizeEventDisposeCall = NativeApis.js_listen_resize_event(canvasElement, OnCanvasResize);
     }
     public void Dispose()
     {

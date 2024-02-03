@@ -28,16 +28,16 @@ internal partial class NativeApis
     public static partial int js_get_ptr_size();
 
     [JSImport("memcpy", Constants.LibName)]
-    private static partial void js_memcpy_v0([JSMarshalAs<JSType.MemoryView>]Span<int> src, IntPtr dst, int length);
+    private static partial void js_memcpy_v0([JSMarshalAs<JSType.MemoryView>]Span<byte> src, IntPtr dst, int @sizeof);
 
     [JSImport("memcpy", Constants.LibName)]
-    private static partial void js_memcpy_v1(IntPtr src, [JSMarshalAs<JSType.MemoryView>] Span<int> dst, int length);
+    private static partial void js_memcpy_v1(IntPtr src, [JSMarshalAs<JSType.MemoryView>] Span<byte> dst, int @sizeof);
 
     [JSImport("memcpy", Constants.LibName)]
-    private static partial void js_memcpy_v2(IntPtr src, IntPtr dst, int length);
+    private static partial void js_memcpy_v2(IntPtr src, IntPtr dst, int @sizeof);
 
     [JSImport("memset", Constants.LibName)]
-    public static partial void js_memset(IntPtr src, int value, int length);
+    public static partial void js_memset(IntPtr src, int value, int @sizeof);
 
     [JSImport("getLastMethodArgs", Constants.LibName)]
     public static partial int[] js_get_last_method_v0();
@@ -53,12 +53,12 @@ internal partial class NativeApis
     [JSImport("allocString", Constants.LibName)]
     public static partial IntPtr js_alloc_string(string str);
     
-    public static void js_memcpy(Span<int> src, IntPtr dst, int length)
+    public static void js_memcpy(Span<byte> src, IntPtr dst, int length)
     {
         js_memcpy_v0(src, dst, length);
     }
 
-    public static void js_memcpy(IntPtr src, Span<int> dst, int length)
+    public static void js_memcpy(IntPtr src, Span<byte> dst, int length)
     {
         js_memcpy_v1(src, dst, length);
     }
@@ -70,16 +70,14 @@ internal partial class NativeApis
 
     public static unsafe void js_memcpy(void* src, IntPtr dst, int sizeOf)
     {
-        var len = sizeOf / js_get_ptr_size();
-        var span = new Span<int>(src, len);
-        js_memcpy(span, dst, len);
+        var span = new Span<byte>(src, sizeOf);
+        js_memcpy(span, dst, sizeOf);
     }
 
     public static unsafe void js_memcpy(IntPtr src, void* dst, int sizeOf)
     {
-        var len = sizeOf / js_get_ptr_size();
-        var span = new Span<int>(dst, len);
-        js_memcpy(src, span, len);
+        var span = new Span<byte>(dst, sizeOf);
+        js_memcpy(src, span, sizeOf);
     }
 
     [JSImport("querySelector", Constants.LibName)]
@@ -94,4 +92,9 @@ internal partial class NativeApis
     public static partial Action js_listen_resize_event(
         [JSMarshalAs<JSType.Any>] object element, 
         [JSMarshalAs<JSType.Function>] Action resizeEvent);
+
+    [JSImport("makeEventLoop", Constants.LibName)]
+    [return: JSMarshalAs<JSType.Function>]
+    public static partial Action js_make_event_loop(
+        [JSMarshalAs<JSType.Function>] Action callback);
 }

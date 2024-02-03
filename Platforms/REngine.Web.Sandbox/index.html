@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <title>REngine Web Sandbox</title>
+    <script type="module" src="./_framework/dotnet.js"></script>
+    <script type="module" src="./engine-boot.js"></script>
+    <link rel="prefetch" href="./REngine-DiligentNativeDriver.wasm" as="fetch"/>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>

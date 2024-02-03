@@ -7,11 +7,11 @@ internal class DriverResult : IDisposable
     public string Error { get; private set; } = string.Empty;
     public IntPtr Handle { get; private set; } = NativeApis.js_malloc(3 * NativeApis.js_get_ptr_size());
 
-    public void Load()
+    public unsafe void Load()
     {
         var data = new int[3];
-        var span = data.AsSpan();
-        NativeApis.js_memcpy(Handle, span, 3);
+        fixed(void* ptr = data)
+            NativeApis.js_memcpy(Handle, ptr, 3 * sizeof(int));
         
         Driver = new IntPtr(data[0]);
         SwapChain = new IntPtr(data[1]);

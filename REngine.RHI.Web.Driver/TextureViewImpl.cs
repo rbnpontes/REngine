@@ -17,7 +17,7 @@ internal partial class TextureViewImpl : NativeObject, ITextureView
         Size = size;
         GetObjectDesc(handle, out var desc);
         Desc = desc;
-        Name = string.Intern(js_rengine_object_getname(handle));
+        Name = GetObjectName(handle);
         Parent = NullTexture.Instance;
     }
 
@@ -55,7 +55,7 @@ internal class InternalTextureView : ITextureView
     {
         Handle = handle;
         Size = size;
-        Name = string.Intern(NativeObject.js_rengine_object_getname(handle));
+        Name = NativeObject.GetObjectName(handle);
         TextureViewImpl.GetObjectDesc(handle, out var desc);
         Desc = desc;
         Parent = new InternalTexture(TextureViewImpl.GetTextureParentPtr(Handle));

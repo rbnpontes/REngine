@@ -56,7 +56,7 @@ internal unsafe struct TextureDescDto
 
     public void CopyTo(ref TextureDesc desc)
     {
-        desc.Name = NativeApis.js_get_string(Name);
+        desc.Name = Name == IntPtr.Zero ? string.Empty : string.Intern(NativeApis.js_get_string(Name));
         desc.Dimension = (TextureDimension)Dimension;
         desc.Size.Width = Width;
         desc.Size.Height = Height;

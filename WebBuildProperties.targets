@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ItemGroup>
+        <WasmExtraFilesToDeploy Include="$(SolutionDir)\dependencies\runtimes\web\*.js"/>
+        <WasmExtraFilesToDeploy Include="$(SolutionDir)\dependencies\runtimes\web\*.wasm"/>
+    </ItemGroup>
+</Project>

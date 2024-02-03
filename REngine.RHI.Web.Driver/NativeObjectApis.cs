@@ -23,5 +23,13 @@ internal partial class NativeObject
     public static partial void js_rengine_object_addref(IntPtr ptr);
 
     [JSImport("_rengine_object_getname", Constants.LibName)]
-    public static partial string js_rengine_object_getname(IntPtr handle);
+    private static partial IntPtr js_rengine_object_getname(IntPtr handle);
+
+    public static string GetObjectName(IntPtr handle)
+    {
+        var strPtr = js_rengine_object_getname(handle);
+        if (strPtr == IntPtr.Zero)
+            return string.Empty;
+        return string.Intern(NativeApis.js_get_string(strPtr));
+    }
 }

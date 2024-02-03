@@ -85,11 +85,12 @@ public static partial class DriverFactory
         ReadDriverData(result.Driver, out var driverResult);
         DisposeResources();
         
-        Console.WriteLine("Context: "+driverResult.Context);
-        Console.WriteLine("Device: "+driverResult.Device);
-        Console.WriteLine("Factory: "+driverResult.Factory);
-        return (NullDriver.Instance, new SwapChainImpl(result.SwapChain, canvasElement));
 
+        var commandBuffer = new CommandBufferImpl(driverResult.Context);
+        var device = new DeviceImpl(driverResult.Device);
+        var driver = new DriverImpl(commandBuffer, device, driverResult.Factory, messageCallbackPtr);
+        return (driver, new SwapChainImpl(result.SwapChain, canvasElement));
+        
         void DisposeResources()
         {
             result.Dispose();

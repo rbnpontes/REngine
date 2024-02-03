@@ -57,26 +57,26 @@ function writeF32(ptr_addr, value) {
  * Copy memory from .NET to Driver and Vice verse
  * @param {number | Object} src
  * @param {number | Object} dst
- * @param {number} length
+ * @param {number} sizeof
  */
-function memcpy(src, dst, length) {
-    if (length === 0)
+function memcpy(src, dst, sizeof) {
+    if (sizeof === 0)
         return;
     if (typeof src == 'object' && typeof dst == 'object')
         throw new Error('invalid memcpy call. it seems you\'re copying two span\'s. Do this operation under .NET');
     if (typeof src == 'number' && typeof dst == 'object') {
-        const ptr_idx = src >> 2;
-        const buffer = module.HEAP32.subarray(ptr_idx, ptr_idx + length);
+        const ptr_idx = src >> 0;
+        const buffer = module.HEAPU8.subarray(ptr_idx, ptr_idx + sizeof);
         dst.set(buffer, 0);
     } else if (typeof src == 'object' && typeof dst == 'number') {
-        const ptr_idx = dst >> 2;
-        const buffer = module.HEAP32.subarray(ptr_idx, ptr_idx + length);
+        const ptr_idx = dst >> 0;
+        const buffer = module.HEAPU8.subarray(ptr_idx, ptr_idx + sizeof);
         src.copyTo(buffer, 0);
     } else if (typeof src == 'number' && typeof dst == 'number') {
-        const src_idx = src >> 2;
-        const dst_idx = dst >> 2;
-        const srcBuffer = module.HEAP32.sub(src_idx, src_idx + length);
-        module.HEAP32.set(srcBuffer, dst_idx);
+        const src_idx = src >> 0;
+        const dst_idx = dst >> 0;
+        const srcBuffer = module.HEAPU8.sub(src_idx, src_idx + sizeof);
+        module.HEAPU8.set(srcBuffer, dst_idx);
     }
 }
 
@@ -84,16 +84,16 @@ function memcpy(src, dst, length) {
  * set a default value on block of memory
  * @param {number} ptr
  * @param {number} value
- * @param {number} length
+ * @param {number} sizeof
  */
-function memset(ptr, value, length) {
-    if(ptr === 0 || length === 0)
+function memset(ptr, value, sizeof) {
+    if(ptr === 0 || sizeof === 0)
         return;
     
     ptr = ptr >> 0;
-    const targetPtrIdx = (ptr >> 0) + length;
+    const targetPtrIdx = ptr + sizeof;
     while(ptr < targetPtrIdx) {
-        module.HEAPU32[ptr] = value;
+        module.HEAPU8[ptr] = value;
         ++ptr; 
     }
 }
@@ -192,6 +192,24 @@ function listenResizeEvent(element, callback) {
             callback.dispose();
     };
 }
+
+function makeEventLoop(callback) {
+    let stop = false;
+    const runFrame = ()=> {
+        if(stop) {
+            callback.dispose();
+            return;
+        }
+        
+        callback();
+        window.requestAnimationFrame(runFrame);
+    };
+    
+    window.requestAnimationFrame(runFrame);
+    return ()=> {
+        stop = true;  
+    };
+}
 export async function init() {
     module = await DriverModule();
     await module.ready;
@@ -218,6 +236,7 @@ export async function init() {
         querySelector,
         getElementSize,
         listenResizeEvent,
+        makeEventLoop,
         ...driverCalls
     };
 }

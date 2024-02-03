@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RunAOTCompilation>true</RunAOTCompilation>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>full</TrimMode>
+        <WasmMainJSPath>engine-boot.js</WasmMainJSPath>
+        <WasmStripILAfterAOT>true</WasmStripILAfterAOT>
+    </PropertyGroup>
+    
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    <PropertyGroup>
+        <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <WasmExtraFilesToDeploy Include="index.html"/>
+        <WasmExtraFilesToDeploy Include="*.js"/>
+    </ItemGroup>
+    <Import Project="$(SolutionDir)WebBuildProperties.targets"/>
+    <ItemGroup>
+      <ProjectReference Include="..\..\REngine.Contents\REngine.Contents.csproj" />
+      <ProjectReference Include="..\..\REngine.RHI.Web.Driver\REngine.RHI.Web.Driver.csproj" />
+    </ItemGroup>
+</Project>
