@@ -1,6 +1,10 @@
+using System.Runtime.CompilerServices;
+using REngine.Core.Exceptions;
+using REngine.RHI.Web.Driver.Models;
+
 namespace REngine.RHI.Web.Driver;
 
-internal class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
+internal partial class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
 {
     public IBuffer CreateBuffer(in BufferDesc desc)
     {
@@ -27,9 +31,75 @@ internal class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
         throw new NotImplementedException();
     }
 
-    public IShader CreateShader(in ShaderCreateInfo createInfo)
+    public unsafe IShader CreateShader(in ShaderCreateInfo createInfo)
     {
-        throw new NotImplementedException();
+        if (createInfo.ByteCode.Length > 0)
+            throw new NotSupportedException("Web Driver does not support shader creation from bytecode");
+        if (string.IsNullOrEmpty(createInfo.SourceCode))
+            throw new RequiredFieldException(typeof(ShaderCreateInfo), nameof(ShaderCreateInfo.SourceCode));
+        
+        var namePtr = string.IsNullOrEmpty(createInfo.Name)
+            ? IntPtr.Zero
+            : NativeApis.js_alloc_string(createInfo.Name);
+        var sourceCodePtr = NativeApis.js_alloc_string(createInfo.SourceCode);
+        var macroKeysPtr = createInfo.Macros.Count == 0
+            ? IntPtr.Zero
+            : NativeApis.js_malloc(NativeApis.js_get_ptr_size() * createInfo.Macros.Count);
+        var macroValuesPtr = createInfo.Macros.Count == 0
+            ? IntPtr.Zero
+            : NativeApis.js_malloc(NativeApis.js_get_ptr_size() * createInfo.Macros.Count);
+        var dataPtr = NativeApis.js_malloc(Unsafe.SizeOf<ShaderCreateInfoDto>());
+        var resultPtr = NativeApis.js_malloc(Unsafe.SizeOf<ResultNative>());
+        NativeApis.js_memset(resultPtr, 0, Unsafe.SizeOf<ResultNative>());
+        
+        List<IntPtr> pointers2Free = [
+            namePtr, 
+            sourceCodePtr, 
+            macroKeysPtr, 
+            macroValuesPtr,
+            dataPtr,
+            resultPtr
+        ];
+        
+        for (var i = 0; i < createInfo.Macros.Count; ++i)
+        {
+            var macroKey = createInfo.Macros.Values.ElementAt(i);
+            var macroValue = createInfo.Macros.Values.ElementAt(i);
+
+            var macroKeyPtr = NativeApis.js_alloc_string(macroKey);
+            var macroValuePtr = NativeApis.js_alloc_string(macroValue);
+            
+            NativeApis.js_write_i32(macroKeysPtr + i, macroKeyPtr.ToInt32());
+            NativeApis.js_write_i32(macroValuesPtr + i, macroValuePtr.ToInt32());
+            
+            pointers2Free.Add(macroKeyPtr);
+            pointers2Free.Add(macroValuePtr);
+        }
+
+        var dto = new ShaderCreateInfoDto(createInfo);
+        dto.Name = namePtr;
+        dto.SourceCode = sourceCodePtr;
+        dto.MacroKeysPtr = macroKeysPtr;
+        dto.MacroValuesPtr = macroValuesPtr;
+        fixed(void* ptr = dto)
+            NativeApis.js_memcpy(ptr, dataPtr, Unsafe.SizeOf<ShaderCreateInfoDto>());
+        
+        js_rengine_device_create_shader(handle, dataPtr, resultPtr);
+
+        var result = new ResultNative();
+        fixed(void* ptr = result)
+            NativeApis.js_memcpy(resultPtr, ptr, Unsafe.SizeOf<ResultNative>());
+
+        // Free Allocated Pointers
+        foreach (var ptr in pointers2Free)
+            NativeApis.js_free(ptr);
+
+        if (result.Error != IntPtr.Zero)
+            throw new DeviceException(NativeApis.js_get_string(result.Value));
+        if (result.Value == IntPtr.Zero)
+            throw new NullReferenceException("Driver returns null pointer");
+
+        return new ShaderImpl(result.Value, createInfo);
     }
 
     public IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc)

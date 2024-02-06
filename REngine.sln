@@ -87,6 +87,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Driver", "Driver", "{F91766
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.RHI.Web.Driver", "REngine.RHI.Web.Driver\REngine.RHI.Web.Driver.csproj", "{2C60F00B-895F-47CC-A3BE-209C4C1550C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REngine.Core.Web", "Platforms\REngine.Core.Web\REngine.Core.Web.csproj", "{4330AE2F-1120-47FF-8CA8-9B711C14296F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -528,6 +530,22 @@ Global
 		{2C60F00B-895F-47CC-A3BE-209C4C1550C4}.Release-Profiler|x64.Build.0 = Debug|Any CPU
 		{2C60F00B-895F-47CC-A3BE-209C4C1550C4}.Debug-Web|x64.ActiveCfg = Debug|Any CPU
 		{2C60F00B-895F-47CC-A3BE-209C4C1550C4}.Debug-Web|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Android|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Android|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Android-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Android-Profiler|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Linux|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Linux|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Profiler|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Release|x64.ActiveCfg = Release|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Release|x64.Build.0 = Release|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Release-Profiler|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Release-Profiler|x64.Build.0 = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Web|x64.ActiveCfg = Debug|Any CPU
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F}.Debug-Web|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -555,6 +573,7 @@ Global
 		{B7B1EB4E-F408-46BE-BC01-1E43CE38714E} = {1DB13791-CCAF-42A7-830B-85241C369497}
 		{796A9BE6-5B6C-4329-A1D9-235787383DBE} = {F9176636-E15E-4402-9F8D-EF8DF503E0B7}
 		{2C60F00B-895F-47CC-A3BE-209C4C1550C4} = {F9176636-E15E-4402-9F8D-EF8DF503E0B7}
+		{4330AE2F-1120-47FF-8CA8-9B711C14296F} = {1DB13791-CCAF-42A7-830B-85241C369497}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {442101DB-44FD-4852-8822-6A9E88961410}

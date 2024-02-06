@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using REngine.Core.Web;
 using REngine.RHI.Web.Driver.Models;
 
 namespace REngine.RHI.Web.Driver;
@@ -37,7 +38,6 @@ public static partial class DriverFactory
 
         fixed (void* dataPtr = driverSettings)
             NativeApis.js_memcpy(dataPtr, driverSettingsPtr, Unsafe.SizeOf<GraphicsDriverSettingsDto>());
-        
         return (driverSettingsPtr, messageCallbackPtr);
     }
     private static (IntPtr, IntPtr) CreateNativeWindowPtr(string canvasSelector)
@@ -45,7 +45,7 @@ public static partial class DriverFactory
         var nativeWindowPtr = NativeApis.js_malloc(NativeApis.js_get_ptr_size());
         var selectorPtr = NativeApis.js_alloc_string(canvasSelector);
         
-        NativeApis.js_writei32(nativeWindowPtr, selectorPtr.ToInt32());
+        NativeApis.js_write_i32(nativeWindowPtr, selectorPtr.ToInt32());
         return (nativeWindowPtr, selectorPtr);
     }
     private static unsafe void ReadDriverData(IntPtr driverPtr, out DriverData result)
@@ -57,17 +57,17 @@ public static partial class DriverFactory
     
     public static (IGraphicsDriver, ISwapChain) Build(DriverFactoryCreateInfo createInfo)
     {
-        var canvasElement = NativeApis.js_query_selector(createInfo.CanvasSelector);
+        var canvasElement = DomUtils.QuerySelector(createInfo.CanvasSelector);
         if (canvasElement is null)
             throw new NullReferenceException("Canvas Selector is not found or is not a valid selector");
+        
         if (createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 })
         {
-            var swapChainSize = NativeApis.js_get_element_size(canvasElement);
-            createInfo.SwapChainDesc.Size = new SwapChainSize((uint)swapChainSize[0], (uint)swapChainSize[1]);
+            var swapChainSize = DomUtils.GetElementSize(canvasElement);
+            createInfo.SwapChainDesc.Size = new SwapChainSize(swapChainSize.ToSize());
         }
         
         var swapChainDesc = new SwapChainDescDto(createInfo.SwapChainDesc);
-        
         var (settingsPtr, messageCallbackPtr) = CreateDriverSettingsPtr(createInfo);
         var (nativeWindowPtr, canvasSelectorPtr) = CreateNativeWindowPtr(createInfo.CanvasSelector);
         var swapChainDescPtr = SwapChainDescDto.CreateSwapChainPtr(ref swapChainDesc);
@@ -89,8 +89,8 @@ public static partial class DriverFactory
         var commandBuffer = new CommandBufferImpl(driverResult.Context);
         var device = new DeviceImpl(driverResult.Device);
         var driver = new DriverImpl(commandBuffer, device, driverResult.Factory, messageCallbackPtr);
-        return (driver, new SwapChainImpl(result.SwapChain, canvasElement));
         
+        return (driver, new SwapChainImpl(result.SwapChain, canvasElement));
         void DisposeResources()
         {
             result.Dispose();

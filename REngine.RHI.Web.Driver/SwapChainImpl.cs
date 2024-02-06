@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.JavaScript;
+using REngine.Core.Web;
 using REngine.RHI.Web.Driver.Models;
 
 namespace REngine.RHI.Web.Driver;
@@ -8,8 +9,8 @@ namespace REngine.RHI.Web.Driver;
 internal partial class SwapChainImpl : ISwapChain
 {
     private IntPtr pHandle;
-    private readonly object pCanvasElement;
-    private readonly Action pCanvasResizeEventDisposeCall;
+    private readonly HTMLElement pCanvas;
+    private readonly IDisposable pCanvasResizeEvent;
     private readonly InternalTextureView pColorBuffer;
     private readonly InternalTextureView? pDepthBuffer;
     public bool IsDisposed { get; private set; }
@@ -24,10 +25,10 @@ internal partial class SwapChainImpl : ISwapChain
     public event EventHandler? OnPresent;
     public event EventHandler? OnDispose;
 
-    public SwapChainImpl(IntPtr handle, object canvasElement)
+    public SwapChainImpl(IntPtr handle, HTMLElement canvas)
     {
         pHandle = handle;
-        pCanvasElement = canvasElement;
+        pCanvas = canvas;
         Desc = GetDesc(handle);
 
         var size = new TextureSize(Desc.Size.Width, Desc.Size.Height);
@@ -36,14 +37,14 @@ internal partial class SwapChainImpl : ISwapChain
             pDepthBuffer = new InternalTextureView(depthBufferPtr, size);
         
         pColorBuffer = new InternalTextureView(js_rengine_swapchain_get_backbuffer(handle), size);
-        pCanvasResizeEventDisposeCall = NativeApis.js_listen_resize_event(canvasElement, OnCanvasResize);
+        pCanvasResizeEvent = DomUtils.ListenResizeEvent(canvas, OnCanvasResize);
     }
     public void Dispose()
     {
         if (IsDisposed)
             return;
         IsDisposed = true;
-        pCanvasResizeEventDisposeCall();
+        pCanvasResizeEvent.Dispose();
         NativeObject.js_rengine_object_release(pHandle);
         pHandle = IntPtr.Zero;
         OnDispose?.Invoke(this, EventArgs.Empty);
@@ -64,8 +65,8 @@ internal partial class SwapChainImpl : ISwapChain
     }
     private void OnCanvasResize()
     {
-        var size = NativeApis.js_get_element_size(pCanvasElement);
-        Resize((uint)size[0], (uint)size[1], Desc.Transform);
+        var size = DomUtils.GetElementSize(pCanvas);
+        Resize(size.ToSize(), Desc.Transform);
     }
     public ISwapChain Present(bool vsync)
     {

@@ -39,7 +39,7 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
             ValidateGpuObject(depthStencil);
 #endif
 
-        NativeApis.js_writei32(pTmpMem, rt.Handle.ToInt32());
+        NativeApis.js_write_i32(pTmpMem, rt.Handle.ToInt32());
         js_rengine_cmdbuffer_setrts(
             Handle, pTmpMem, 1,
             depthStencil?.Handle ?? IntPtr.Zero,
@@ -56,7 +56,7 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(rts[i]);
 #endif
-            NativeApis.js_writei32(pTmpMem + i, rts[0].Handle.ToInt32());
+            NativeApis.js_write_i32(pTmpMem + i, rts[0].Handle.ToInt32());
         }
 
         js_rengine_cmdbuffer_setrts(
@@ -145,8 +145,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ValidateGpuObject(buffer);
 #endif
 
-        NativeApis.js_writei32(pTmpMem, buffer.Handle.ToInt32());
-        NativeApis.js_writef32(pTmpMem + 1, 0.0f);
+        NativeApis.js_write_i32(pTmpMem, buffer.Handle.ToInt32());
+        NativeApis.js_write_float(pTmpMem + 1, 0.0f);
         js_rengine_cmdbuffer_setvbuffer(
             Handle, 0, 1, 
             pTmpMem, pTmpMem + 1, reset ? 0x1 : 0x0,
@@ -166,8 +166,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(buffers[i]);
 #endif
-            NativeApis.js_writei32(pTmpMem + i, buffers[i].Handle.ToInt32());
-            NativeApis.js_writei32(pTmpMem + buffers.Length + i, 0);
+            NativeApis.js_write_i32(pTmpMem + i, buffers[i].Handle.ToInt32());
+            NativeApis.js_write_i32(pTmpMem + buffers.Length + i, 0);
         }
         
         js_rengine_cmdbuffer_setvbuffer(
@@ -191,8 +191,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(buffers[i]);
 #endif
-            NativeApis.js_writei32(pTmpMem + i, buffers[i].Handle.ToInt32());
-            NativeApis.js_writei32(pTmpMem + buffers.Length + i, (int)offsets[i]);
+            NativeApis.js_write_i32(pTmpMem + i, buffers[i].Handle.ToInt32());
+            NativeApis.js_write_i32(pTmpMem + buffers.Length + i, (int)offsets[i]);
         }
         
         js_rengine_cmdbuffer_setvbuffer(
@@ -207,7 +207,7 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        NativeApis.js_writei32(pTmpMem, buffer.Handle.ToInt32());
+        NativeApis.js_write_i32(pTmpMem, buffer.Handle.ToInt32());
         js_rengine_cmdbuffer_setibuffer(
             Handle, pTmpMem, (int)byteOffset, 0x0);
         return this;

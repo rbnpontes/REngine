@@ -8,7 +8,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PublishTrimmed>true</PublishTrimmed>
         <TrimMode>full</TrimMode>
-        <WasmMainJSPath>engine-boot.js</WasmMainJSPath>
         <WasmStripILAfterAOT>true</WasmStripILAfterAOT>
     </PropertyGroup>
     
@@ -23,8 +22,10 @@
         <WasmExtraFilesToDeploy Include="*.js"/>
     </ItemGroup>
     <Import Project="$(SolutionDir)WebBuildProperties.targets"/>
+    
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Contents\REngine.Contents.csproj" />
       <ProjectReference Include="..\..\REngine.RHI.Web.Driver\REngine.RHI.Web.Driver.csproj" />
+      <ProjectReference Include="..\REngine.Core.Web\REngine.Core.Web.csproj" />
     </ItemGroup>
 </Project>
