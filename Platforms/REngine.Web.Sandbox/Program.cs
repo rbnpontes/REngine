@@ -74,16 +74,33 @@ public class Program
             ",
             Type = ShaderType.Pixel
         });
-        
-        Console.WriteLine("Vertex Shader: "+vertexShader.Handle);
-        Console.WriteLine("Pixel Shader: "+pixelShader.Handle);
+
+        var pipelineDesc = new GraphicsPipelineDesc();
+        pipelineDesc.Name = "Triangle PSO";
+        pipelineDesc.Shaders.VertexShader = vertexShader;
+        pipelineDesc.Shaders.PixelShader = pixelShader;
+        pipelineDesc.Output.RenderTargetFormats = [swapChain.Desc.Formats.Color];
+        pipelineDesc.Output.DepthStencilFormat = swapChain.Desc.Formats.Depth;
+        pipelineDesc.PrimitiveType = PrimitiveType.TriangleList;
+        pipelineDesc.RasterizerState.CullMode = CullMode.Both;
+        pipelineDesc.DepthStencilState.EnableDepth = false;
+
+        var pipelineState = driver.Device.CreateGraphicsPipeline(pipelineDesc);
+        vertexShader.Dispose();
+        pixelShader.Dispose();
         
         var looper = Looper.Build(() =>
         {
             driver.ImmediateCommand
                 .SetRT(swapChain.ColorBuffer, swapChain.DepthBuffer)
                 .ClearRT(swapChain.ColorBuffer, Color.Black)
-                .ClearDepth(swapChain.DepthBuffer, ClearDepthStencil.Depth, 1.0f, 0);
+                .ClearDepth(swapChain.DepthBuffer, ClearDepthStencil.Depth, 1.0f, 0)
+                .SetPipeline(pipelineState)
+                .Draw(new DrawArgs()
+                {
+                    NumInstances = 1,
+                    NumVertices = 3
+                });
         });
 
         Console.WriteLine("[REngine]: Finished");

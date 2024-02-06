@@ -3,18 +3,28 @@ using System.Runtime.InteropServices;
 
 namespace REngine.RHI.Web.Driver.Models;
 
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit)]
 internal unsafe struct SwapChainDescDto()
 {
+    [FieldOffset(0)]
     public uint Width;
+    [FieldOffset(4)]
     public uint Height;
+    [FieldOffset(8)]
     public uint ColorFormat;
+    [FieldOffset(12)]
     public uint DepthFormat;
+    [FieldOffset(16)]
     public uint Usage;
+    [FieldOffset(20)]
     public uint Transform;
+    [FieldOffset(24)]
     public uint BufferCount;
+    [FieldOffset(28)]
     public float DefaultDepthValue;
+    [FieldOffset(32)]
     public uint DefaultStencilValue;
+    [FieldOffset(36)]
     public bool IsPrimary;
 
     public SwapChainDescDto(SwapChainDesc desc) : this()

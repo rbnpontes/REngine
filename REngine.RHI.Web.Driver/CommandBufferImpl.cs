@@ -12,7 +12,7 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
     private const int MaxVertexBuffers = 4;
     protected override void OnBeginDispose()
     {
-        NativeApis.js_free(pTmpMem);
+        NativeApis.js_free(pDriverMem);
     }
 #if RENGINE_VALIDATIONS
     private static void ValidateGpuObject(INativeObject texView)
@@ -39,9 +39,9 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
             ValidateGpuObject(depthStencil);
 #endif
 
-        NativeApis.js_write_i32(pTmpMem, rt.Handle.ToInt32());
+        NativeApis.js_write_i32(pDriverMem, rt.Handle.ToInt32());
         js_rengine_cmdbuffer_setrts(
-            Handle, pTmpMem, 1,
+            Handle, pDriverMem, 1,
             depthStencil?.Handle ?? IntPtr.Zero,
             0x0);
     }
@@ -56,11 +56,11 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(rts[i]);
 #endif
-            NativeApis.js_write_i32(pTmpMem + i, rts[0].Handle.ToInt32());
+            NativeApis.js_write_i32(pDriverMem + i, rts[0].Handle.ToInt32());
         }
 
         js_rengine_cmdbuffer_setrts(
-            Handle, pTmpMem, rts.Length,
+            Handle, pDriverMem, rts.Length,
             depthStencil?.Handle ?? IntPtr.Zero,
             0x0);
     }
@@ -83,25 +83,24 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         return this;
     }
 
-    private float[] pTmpColor = new float[4];
     public unsafe ICommandBuffer ClearRT(ITextureView renderTarget, in Color clearColor)
     {
 #if RENGINE_VALIDATIONS
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(renderTarget);
 #endif
-        pTmpColor[0] = clearColor.R / 255.0f;
-        pTmpColor[1] = clearColor.G / 255.0f;
-        pTmpColor[2] = clearColor.B / 255.0f;
-        pTmpColor[3] = clearColor.A / 255.0f;
+        pFloatArray[0] = clearColor.R / 255.0f;
+        pFloatArray[1] = clearColor.G / 255.0f;
+        pFloatArray[2] = clearColor.B / 255.0f;
+        pFloatArray[3] = clearColor.A / 255.0f;
 
-        fixed (void* colorPtr = pTmpColor)
-            NativeApis.js_memcpy(colorPtr, pTmpMem, pTmpColor.Length * sizeof(float));
+        fixed (void* colorPtr = pFloatArray)
+            NativeApis.js_memcpy(colorPtr, pDriverMem, 4 * sizeof(float));
 
         js_rengine_cmdbuffer_clearrt(
             Handle,
             renderTarget.Handle,
-            pTmpMem,
+            pDriverMem,
             0x0);
         return this;
     }
@@ -145,11 +144,11 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ValidateGpuObject(buffer);
 #endif
 
-        NativeApis.js_write_i32(pTmpMem, buffer.Handle.ToInt32());
-        NativeApis.js_write_float(pTmpMem + 1, 0.0f);
+        NativeApis.js_write_i32(pDriverMem, buffer.Handle.ToInt32());
+        NativeApis.js_write_float(pDriverMem + 1, 0.0f);
         js_rengine_cmdbuffer_setvbuffer(
             Handle, 0, 1, 
-            pTmpMem, pTmpMem + 1, reset ? 0x1 : 0x0,
+            pDriverMem, pDriverMem + 1, reset ? 0x1 : 0x0,
             0x0);
         return this;
     }
@@ -166,13 +165,13 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(buffers[i]);
 #endif
-            NativeApis.js_write_i32(pTmpMem + i, buffers[i].Handle.ToInt32());
-            NativeApis.js_write_i32(pTmpMem + buffers.Length + i, 0);
+            NativeApis.js_write_i32(pDriverMem + i, buffers[i].Handle.ToInt32());
+            NativeApis.js_write_i32(pDriverMem + buffers.Length + i, 0);
         }
         
         js_rengine_cmdbuffer_setvbuffer(
             Handle, (int)startSlot, buffers.Length,
-            pTmpMem, pTmpMem + buffers.Length, reset ? 0x1 : 0x0,
+            pDriverMem, pDriverMem + buffers.Length, reset ? 0x1 : 0x0,
             0x0);
         return this;
     }
@@ -191,12 +190,12 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(buffers[i]);
 #endif
-            NativeApis.js_write_i32(pTmpMem + i, buffers[i].Handle.ToInt32());
-            NativeApis.js_write_i32(pTmpMem + buffers.Length + i, (int)offsets[i]);
+            NativeApis.js_write_i32(pDriverMem + i, buffers[i].Handle.ToInt32());
+            NativeApis.js_write_i32(pDriverMem + buffers.Length + i, (int)offsets[i]);
         }
         
         js_rengine_cmdbuffer_setvbuffer(
-            Handle, (int)startSlot, buffers.Length, pTmpMem, pTmpMem + buffers.Length,
+            Handle, (int)startSlot, buffers.Length, pDriverMem, pDriverMem + buffers.Length,
             reset ? 0x1 : 0x0, 0x0);
         return this;
     }
@@ -207,9 +206,9 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        NativeApis.js_write_i32(pTmpMem, buffer.Handle.ToInt32());
+        NativeApis.js_write_i32(pDriverMem, buffer.Handle.ToInt32());
         js_rengine_cmdbuffer_setibuffer(
-            Handle, pTmpMem, (int)byteOffset, 0x0);
+            Handle, pDriverMem, (int)byteOffset, 0x0);
         return this;
     }
 
@@ -232,8 +231,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #endif
         var drawArgs = new DrawArgsDto(args);
         fixed (void* argsPtr = drawArgs)
-            NativeApis.js_memcpy(pTmpMem, argsPtr, Unsafe.SizeOf<DrawArgsDto>());
-        js_rengine_cmdbuffer_draw(handle, pTmpMem);
+            NativeApis.js_memcpy(argsPtr, pDriverMem, Unsafe.SizeOf<DrawArgsDto>());
+        js_rengine_cmdbuffer_draw(handle, pDriverMem);
         return this;
     }
 
@@ -244,8 +243,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #endif
         var drawArgs = new DrawIndexedArgsDto(args);
         fixed(void* argsPtr = drawArgs)
-            NativeApis.js_memcpy(pTmpMem, argsPtr, Unsafe.SizeOf<DrawIndexedArgsDto>());
-        js_rengine_cmdbuffer_drawindexed(Handle, pTmpMem);
+            NativeApis.js_memcpy(pDriverMem, argsPtr, Unsafe.SizeOf<DrawIndexedArgsDto>());
+        js_rengine_cmdbuffer_drawindexed(Handle, pDriverMem);
         return this;
     }
 
@@ -280,13 +279,13 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         {
             var viewport = new ViewportDto(viewports[i]);
             fixed(void* ptr = viewport)
-                NativeApis.js_memcpy(ptr, pTmpMem + offset, sizeOf);
+                NativeApis.js_memcpy(ptr, pDriverMem + offset, sizeOf);
             offset += sizeOf;
         }
 
         js_rengine_cmdbuffer_setviewports(
             Handle,
-            pTmpMem,
+            pDriverMem,
             viewports.Length,
             (int)rtWidth,
             (int)rtHeight,
@@ -303,11 +302,11 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         var view = new ViewportDto(viewport);
         
         fixed(void* viewPtr = view)
-            NativeApis.js_memcpy(viewPtr, pTmpMem, sizeOf);
+            NativeApis.js_memcpy(viewPtr, pDriverMem, sizeOf);
         
         js_rengine_cmdbuffer_setviewports(
             Handle,
-            pTmpMem,
+            pDriverMem,
             1,
             (int)rtWidth, (int)rtHeight, 0x0);
         return this;
@@ -319,11 +318,11 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 #endif
         fixed(void* ptr = scissors.AsSpan())
-            NativeApis.js_memcpy(ptr, pTmpMem, Unsafe.SizeOf<IntRect>() * scissors.Length);
+            NativeApis.js_memcpy(ptr, pDriverMem, Unsafe.SizeOf<IntRect>() * scissors.Length);
        
         js_rengine_cmdbuffer_setscissors(
             Handle,
-            pTmpMem,
+            pDriverMem,
             scissors.Length,
             (int)rtWidth,
             (int)rtHeight);
@@ -337,11 +336,11 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #endif
         
         fixed(void* ptr = scissor)
-            NativeApis.js_memcpy(ptr, pTmpMem, Unsafe.SizeOf<IntRect>());
+            NativeApis.js_memcpy(ptr, pDriverMem, Unsafe.SizeOf<IntRect>());
         
         js_rengine_cmdbuffer_setscissors(
             Handle,
-            pTmpMem,
+            pDriverMem,
             1,
             (int)rtWidth,
             (int)rtHeight);

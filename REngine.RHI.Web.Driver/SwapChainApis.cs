@@ -19,6 +19,7 @@ internal partial class SwapChainImpl
         var descDto = new SwapChainDescDto();
         var descSize = Unsafe.SizeOf<SwapChainDescDto>();
         var descPtr = NativeApis.js_malloc(descSize);
+        NativeApis.js_memset(descPtr, 0x0, descSize);
         
         js_rengine_swapchain_get_desc(handle, descPtr);
         fixed (void* descDataPtr = descDto)

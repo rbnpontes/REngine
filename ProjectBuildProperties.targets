@@ -5,7 +5,7 @@
         <PlatformTarget>x64</PlatformTarget>
         <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
         <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
-        <DefineConstants>$(DefineConstants);RENGINE_IMGUI;RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH;RENGINE_VALIDATIONS</DefineConstants>
+        <DefineConstants>$(DefineConstants);RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH;RENGINE_VALIDATIONS</DefineConstants>
     </PropertyGroup>
     
     <!-- Helper Variables -->
@@ -48,5 +48,9 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(IsWeb)'=='1'">
         <DefineConstants>$(DefineConstants);WEB</DefineConstants>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(IsWeb)'=='0'">
+        <DefineConstants>$(DefineConstants);RENGINE_IMGUI</DefineConstants>
     </PropertyGroup>
 </Project>

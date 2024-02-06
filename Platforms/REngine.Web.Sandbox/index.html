@@ -13,15 +13,20 @@
             height: 100vh;
             display: flex;
         }
-        #canvas {
+        #game-view {
             width: 100%;
-            height: 100%;
+            height: 100%;  
+        }
+        #canvas {
+            display: block;
         }
     </style>
 </head>
 
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="game-view">
+        <canvas id="canvas" width="500" height="500"></canvas>
+    </div>
 
     <script type="module">
         import { initEngine } from './engine-boot.js';

@@ -39,6 +39,11 @@ public static class Platform
         return OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
     }
 
+    public static bool IsWeb()
+    {
+        return OperatingSystem.IsBrowser();
+    }
+
     public static bool IsTargetPlatform(ulong platformId)
     {
         if (platformId == Mobile)

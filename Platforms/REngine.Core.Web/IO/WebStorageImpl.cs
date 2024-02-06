@@ -1,0 +1,57 @@
+namespace REngine.Core.Web.IO;
+
+internal partial class SessionStorageImpl : IWebStorage
+{
+    public static readonly SessionStorageImpl Instance = new();
+    public int Length => js_session_storage_length();
+    public string[] Keys => js_session_storage_keys();
+    public string GetItem(string key) => js_session_storage_get(key);
+
+    public IWebStorage SetItem(string key, string value)
+    {
+        js_session_storage_set(key, value);
+        return this;
+    }
+
+    public IWebStorage RemoveItem(string key)
+    {
+        js_session_storage_remove(key);
+        return this;
+    }
+
+    public IWebStorage Clear()
+    {
+        js_session_storage_clear();
+        return this;
+    }
+
+    public bool Contains(string key) => js_session_storage_contains(key);
+}
+
+internal partial class LocalStorageImpl : IWebStorage
+{
+    public static readonly LocalStorageImpl Instance = new();
+    public int Length => js_local_storage_length();
+    public string[] Keys => js_local_storage_keys();
+    public string GetItem(string key) => js_local_storage_get(key);
+
+    public IWebStorage SetItem(string key, string value)
+    {
+        js_local_storage_set(key, value);
+        return this;
+    }
+
+    public IWebStorage RemoveItem(string key)
+    {
+        js_local_storage_remove(key);
+        return this;
+    }
+
+    public IWebStorage Clear()
+    {
+        js_local_storage_clear();
+        return this;
+    }
+    
+    public bool Contains(string key) => js_local_storage_contains(key);
+}

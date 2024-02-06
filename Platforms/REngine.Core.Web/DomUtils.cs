@@ -12,10 +12,19 @@ public static partial class DomUtils
         return new HTMLElement(target);
     }
 
-    public static SizeF GetElementSize(HTMLElement element)
+    public static SizeF GetElementSize(HTMLElement? element)
     {
+        if (element is null)
+            return SizeF.Empty;
         var res = js_get_element_size(element.Handle);
         return new SizeF((float)res[0], (float)res[1]);
+    }
+
+    public static void SetElementSize(HTMLElement? element, SizeF size)
+    {
+        if (element is null)
+            return;
+        js_set_element_size(element.Handle, size.Width, size.Height);
     }
 
     public static IDisposable ListenResizeEvent(HTMLElement element, Action callback)

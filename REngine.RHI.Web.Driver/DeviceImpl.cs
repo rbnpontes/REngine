@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using REngine.Core.Exceptions;
 using REngine.RHI.Web.Driver.Models;
 
@@ -102,14 +103,74 @@ internal partial class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
         return new ShaderImpl(result.Value, createInfo);
     }
 
-    public IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc)
+    public unsafe IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc)
     {
-        throw new NotImplementedException();
+        var inputLayoutSize = Unsafe.SizeOf<InputLayoutElementDescDto>() * desc.InputLayouts.Count;
+        var immutableSamplerSize = Unsafe.SizeOf<ImmutableSamplerDescDto>() * desc.Samplers.Count;
+        var renderTargetFormatsSize = sizeof(int) * desc.Output.RenderTargetFormats.Count;
+        var descSize = Unsafe.SizeOf<GraphicsPipelineDescDto>();
+        var resultSize = Unsafe.SizeOf<ResultNative>();
+        var totalMemory = inputLayoutSize + immutableSamplerSize + renderTargetFormatsSize + descSize + resultSize;
+        // Allocate an single block of memory
+        // This can improve efficiency when CPU is reading data
+        var inputLayoutsPtr = NativeApis.js_malloc(totalMemory);
+        var immutableSamplersPtr = inputLayoutsPtr + inputLayoutSize;
+        var rtFormatsPtr = immutableSamplersPtr + immutableSamplerSize;
+        var descPtr = rtFormatsPtr + renderTargetFormatsSize;
+        var resultPtr = descPtr + descSize;
+        
+        NativeApis.js_memset(inputLayoutsPtr, 0x0, totalMemory);
+        if(inputLayoutSize == 0)
+            inputLayoutsPtr = IntPtr.Zero;
+        if(immutableSamplerSize == 0)
+            immutableSamplersPtr = IntPtr.Zero;
+        if(renderTargetFormatsSize == 0)
+            rtFormatsPtr = IntPtr.Zero;
+        
+        
+        var inputLayouts = desc.InputLayouts.Select(x => new InputLayoutElementDescDto(x)).ToArray();
+        var immutableSamplers = desc.Samplers.Select(x =>
+        {
+            var str = NativeApis.js_alloc_string(x.Name);
+            return new ImmutableSamplerDescDto(x) { Name = str };
+        }).ToArray();
+        var rtFormats = desc.Output.RenderTargetFormats.Select(x => (int)x).ToArray();
+        var dto = new GraphicsPipelineDescDto(desc)
+        {
+            Name = NativeApis.js_alloc_string(desc.Name),
+            InputLayouts = inputLayoutsPtr,
+            ImmutableSamplers = immutableSamplersPtr,
+            Output_RtFormats = rtFormatsPtr
+        };
+        
+        fixed(void* ptr = inputLayouts)
+            NativeApis.js_memcpy(ptr, inputLayoutsPtr, inputLayoutSize);
+        fixed(void* ptr = immutableSamplers)
+            NativeApis.js_memcpy(ptr, immutableSamplersPtr, immutableSamplerSize);
+        fixed(void* ptr = rtFormats)
+            NativeApis.js_memcpy(ptr, rtFormatsPtr, renderTargetFormatsSize);
+        fixed(void* ptr = dto)
+            NativeApis.js_memcpy(ptr, descPtr, descSize);
+        
+        js_rengine_device_create_graphicspipeline(Handle, descPtr, 0x1, resultPtr);
+        ResultNative result = new();
+        fixed(void* ptr = result)
+            NativeApis.js_memcpy(resultPtr, ptr, resultSize);
+        NativeApis.js_free(inputLayoutsPtr);
+        NativeApis.js_free(dto.Name);
+        foreach(var sampler in immutableSamplers)
+            NativeApis.js_free(sampler.Name);
+        
+        if (result.Error != IntPtr.Zero)
+            throw new DriverException(NativeApis.js_get_string(result.Error));
+        if (result.Value == IntPtr.Zero)
+            throw new NullReferenceException("Could not possible to create Pipeline State. Driver returns null pointer");
+        return new PipelineStateImpl(result.Value, desc);
     }
 
     public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     public IPipelineStateCache CreatePipelineStateCache()

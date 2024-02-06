@@ -8,6 +8,8 @@ let module = null;
  * @returns {number} Memory Address
  */
 function malloc(sizeof) {
+    if(sizeof === 0)
+        return 0;
     return module._malloc(sizeof);
 }
 
@@ -199,10 +201,11 @@ function get_ptr_size() {
 /**
  * allocate string on driver memory
  * @param {string} str
+ * @return {number}
  */
 function alloc_string(str) {
     if (!str)
-        return;
+        return 0;
     return module.allocateUTF8(str);
 }
 

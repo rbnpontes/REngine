@@ -165,6 +165,7 @@ Global
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release-Profiler|x64.ActiveCfg = Release-Profiler|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Release-Profiler|x64.Build.0 = Release-Profiler|x64
 		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Web|x64.ActiveCfg = Debug-Web|x64
+		{B98478AB-7430-4168-8EB6-A9D51A4D9C1E}.Debug-Web|x64.Build.0 = Debug-Web|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.ActiveCfg = Debug|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug|x64.Build.0 = Debug|x64
 		{03092AC2-1D1B-4872-A057-0D25B4A68875}.Debug-Android|x64.ActiveCfg = Debug-Android|x64
@@ -251,6 +252,7 @@ Global
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Release-Profiler|x64.ActiveCfg = Release|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Release-Profiler|x64.Build.0 = Release|x64
 		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Web|x64.ActiveCfg = Debug-Web|x64
+		{7C7279CA-63FF-4747-B332-965091DD8611}.Debug-Web|x64.Build.0 = Debug-Web|x64
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug|x64.ActiveCfg = Debug|x64
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug|x64.Build.0 = Debug|x64
 		{BA888C77-BB48-4910-9C05-25F6BD425E8A}.Debug-Android|x64.ActiveCfg = Debug-Android|x64

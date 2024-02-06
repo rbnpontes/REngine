@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
 using REngine.Core.Web;
@@ -24,7 +25,7 @@ public struct DriverFactoryCreateInfo()
 {
     public string CanvasSelector = string.Empty;
     public Action<MessageEventData> MessageEvent = (evtData) => { };
-    public SwapChainDesc SwapChainDesc = new SwapChainDesc();
+    public SwapChainDesc SwapChainDesc = new();
 }
 
 public static partial class DriverFactory
@@ -60,13 +61,18 @@ public static partial class DriverFactory
         var canvasElement = DomUtils.QuerySelector(createInfo.CanvasSelector);
         if (canvasElement is null)
             throw new NullReferenceException("Canvas Selector is not found or is not a valid selector");
-        
-        if (createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 })
+        var autoResize = createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 };
+
+        if (autoResize)
         {
-            var swapChainSize = DomUtils.GetElementSize(canvasElement);
+            var swapChainSize = DomUtils.GetElementSize(canvasElement.Parent);
             createInfo.SwapChainDesc.Size = new SwapChainSize(swapChainSize.ToSize());
         }
         
+        // Resize Canvas to SwapChain Desc Size
+        DomUtils.SetElementSize(canvasElement, 
+            new SizeF(createInfo.SwapChainDesc.Size.Width, createInfo.SwapChainDesc.Size.Height));
+
         var swapChainDesc = new SwapChainDescDto(createInfo.SwapChainDesc);
         var (settingsPtr, messageCallbackPtr) = CreateDriverSettingsPtr(createInfo);
         var (nativeWindowPtr, canvasSelectorPtr) = CreateNativeWindowPtr(createInfo.CanvasSelector);
@@ -90,7 +96,7 @@ public static partial class DriverFactory
         var device = new DeviceImpl(driverResult.Device);
         var driver = new DriverImpl(commandBuffer, device, driverResult.Factory, messageCallbackPtr);
         
-        return (driver, new SwapChainImpl(result.SwapChain, canvasElement));
+        return (driver, new SwapChainImpl(result.SwapChain, canvasElement, autoResize));
         void DisposeResources()
         {
             result.Dispose();

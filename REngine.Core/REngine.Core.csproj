@@ -18,7 +18,7 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <PackageReference Include="Standart.Hash.xxHash" Version="4.0.5"/>
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Condition="'$(IsWeb)'=='0'">
         <ProjectReference Include="..\ThirdParty\Tracy\Tracy.csproj"/>
     </ItemGroup>
 </Project>

@@ -12,6 +12,11 @@ public static partial class DomUtils
     private static partial double[] js_get_element_size(
         [JSMarshalAs<JSType.Any>] object element);
 
+    [JSImport("set_element_size", Constants.LibName)]
+    private static partial void js_set_element_size(
+        [JSMarshalAs<JSType.Any>] object element,
+        double width, double height);
+    
     [JSImport("on_resize_event", Constants.LibName)]
     [return: JSMarshalAs<JSType.Function>]
     private static partial Action js_on_resize_element(

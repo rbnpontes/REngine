@@ -17,6 +17,9 @@
 		<ProjectReference Include="..\REngine.Assets\REngine.Assets.csproj" />
 		<ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(IsWeb)'=='0'">
 		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />
 	</ItemGroup>
 </Project>

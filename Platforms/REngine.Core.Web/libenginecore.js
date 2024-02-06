@@ -32,6 +32,14 @@ function query_selector(query) {
 }
 
 /**
+ * Get Parent Element
+ * @param element
+ * @return {HTMLElement?}
+ */
+function get_element_parent(element) {
+    return element.parentElement;
+}
+/**
  * Get Element Size
  * @param {HTMLElement} element
  * @return {[number, number]}
@@ -41,6 +49,21 @@ function get_element_size(element) {
     return [width, height];
 }
 
+/**
+ * Set Element Size
+ * @param {HTMLElement | HTMLCanvasElement} element
+ * @param {number} width
+ * @param {number} height
+ */
+function set_element_size(element, width, height) {
+    if(element instanceof HTMLCanvasElement) {
+        element.width = width;
+        element.height = height;
+    } else {
+        element.style.width = width+'px';
+        element.style.height = height+'px';
+    }
+}
 /**
  * Listen to element size changes
  * @param {HTMLElement} element
@@ -193,6 +216,130 @@ function console_err(arr_id) {
 }
 
 /**
+ * get the length of sessionStorage
+ * @returns {number}
+ */
+function session_storage_length() {
+    return sessionStorage.length;
+}
+
+/**
+ * gets the keys in sessionStorage
+ * @returns {string[]}
+ */
+function session_storage_keys(){
+    const arr = new Array(sessionStorage.length);
+    let i = arr.length;
+    while(i--)
+        arr[i] = sessionStorage.key(i);
+    return arr;
+}
+
+/**
+ * sets a value in sessionStorage
+ * @param {string} key
+ * @param {string} value
+ */
+function session_storage_set(key, value) {
+    sessionStorage.setItem(key, value);
+}
+
+/**
+ * gets a value from sessionStorage
+ * @param key
+ * @returns {string}
+ */
+function session_storage_get(key) {
+    return sessionStorage.getItem(key) ?? '';
+}
+
+/**
+ * removes an item from sessionStorage
+ * @param {string} key
+ */
+function session_storage_remove(key) {
+    sessionStorage.removeItem(key);
+}
+
+/**
+ * clear all items from sessionStorage
+ */
+function session_storage_clear() {
+    sessionStorage.clear();
+}
+
+/**
+ * Test if key exists in sessionStorage
+ * @param {string} key
+ * @returns {boolean}
+ */
+function session_storage_contains(key) {
+    return Boolean(sessionStorage.getItem(key));
+}
+
+/**
+ * get the length of localStorage
+ * @returns {number}
+ */
+function local_storage_length() {
+    return localStorage.length;
+}
+
+/**
+ * gets the keys in localStorage
+ * @returns {string[]}
+ */
+function local_storage_keys(){
+    const arr = new Array(localStorage.length);
+    let i = arr.length;
+    while(i--)
+        arr[i] = localStorage.key(i);
+    return arr;
+}
+
+/**
+ * sets a value in localStorage
+ * @param {string} key
+ * @param {string} value
+ */
+function local_storage_set(key, value) {
+    localStorage.setItem(key, value);
+}
+
+/**
+ * Gets a value from localStorage
+ * @param {string} key
+ * @returns {string}
+ */
+function local_storage_get(key) {
+    return localStorage.getItem(key) ?? '';
+}
+
+/**
+ * Removes an item from localStorage
+ * @param {string} key
+ */
+function local_storage_remove(key) {
+    localStorage.removeItem(key);
+}
+
+/**
+ * clears all items from localStorage
+ */
+function local_storage_clear() {
+    localStorage.clear();
+}
+
+/**
+ * tests if key exists in localStorage
+ * @param {string} key
+ * @returns {boolean}
+ */
+function local_storage_contains(key) {
+    return Boolean(localStorage.getItem(key));
+}
+
+/**
  * Util call used on .NET to convert
  * JavaScript objects to managed objects
  * @param obj
@@ -213,7 +360,9 @@ export function init() {
     return {
         make_frame_loop,
         query_selector,
+        get_element_parent,
         get_element_size,
+        set_element_size,
         on_resize_event,
         array_new,
         array_free,
@@ -229,6 +378,20 @@ export function init() {
         console_log,
         console_warn,
         console_err,
+        session_storage_length,
+        session_storage_keys,
+        session_storage_set,
+        session_storage_get,
+        session_storage_remove,
+        session_storage_clear,
+        session_storage_contains,
+        local_storage_length,
+        local_storage_keys,
+        local_storage_set,
+        local_storage_get,
+        local_storage_remove,
+        local_storage_clear,
+        local_storage_contains,
         cast,
         _typeof,
     };

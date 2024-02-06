@@ -6,4 +6,10 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
+      <ProjectReference Include="..\..\REngine.RHI\REngine.RHI.csproj" />
+      <ProjectReference Include="..\..\REngine.RPI\REngine.RPI.csproj" />
+    </ItemGroup>
 </Project>

@@ -21,7 +21,9 @@
         <WasmExtraFilesToDeploy Include="index.html"/>
         <WasmExtraFilesToDeploy Include="*.js"/>
     </ItemGroup>
+    
     <Import Project="$(SolutionDir)WebBuildProperties.targets"/>
+    <Import Project="$(SolutionDir)WebAssetsBuildProperties.targets"/>
     
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Contents\REngine.Contents.csproj" />

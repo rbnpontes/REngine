@@ -12,14 +12,16 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.Logic;
 using REngine.Core.Resources;
+#if !WEB && PROFILER
 using Tracy;
-
+#endif
 namespace REngine.Core
 {
 	public sealed class CoreModule : IModule
 	{
 		static CoreModule()
 		{
+#if !WEB && PROFILER
 			try
 			{
 				NativeLibrary.SetDllImportResolver(typeof(PInvoke.TracyCZoneCtx).Assembly,
@@ -29,6 +31,7 @@ namespace REngine.Core
 			{
 				// ignored
 			}
+#endif
 		}
 		public void Setup(IServiceRegistry registry)
 		{
@@ -37,7 +40,9 @@ namespace REngine.Core
 				.Add<AssetManagerSettings>()
 				.Add<EntityManager>()
 				.Add<ILoggerFactory, DebugLoggerFactory>()
+#if !WEB && !ANDROID
 				.Add<IAssetManager, FileAssetManager>()
+#endif
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, Engine>()
 				.Add<EngineEvents>()

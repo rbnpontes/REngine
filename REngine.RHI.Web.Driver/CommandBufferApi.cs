@@ -6,15 +6,6 @@ namespace REngine.RHI.Web.Driver;
 
 internal partial class CommandBufferImpl
 {
-    private IntPtr pTmpMem = NativeApis.js_malloc(
-        1024
-    );
-
-    private ArrayPool<byte> pPool = ArrayPool<byte>.Shared;
-    private byte[] pMappedData = [];
-    private GCHandle? pPinnedHandle;
-    private IntPtr pMappedPtr = IntPtr.Zero;
-
     [JSImport("_rengine_cmdbuffer_setrts", Constants.LibName)]
     public static partial IntPtr js_rengine_cmdbuffer_setrts(
         IntPtr handle,

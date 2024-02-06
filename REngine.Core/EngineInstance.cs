@@ -209,7 +209,8 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 #if PROFILER
         Profiler.Instance.Dispose();
 #endif
-        NativeReferences.UnloadLibs();
+        if(!Platform.IsWeb())
+            NativeReferences.UnloadLibs();
 
         Logger.Info("Writing Settings Before Exit");
         OnWriteSettings();
@@ -226,7 +227,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
             WriteSettings(EngineSettings.AssetManagerSettingsPath, assetSettings);
     }
 
-    protected static void WriteSettings<T>(string path, T data)
+    protected virtual void WriteSettings<T>(string path, T data)
     {
         if(File.Exists(path))
             File.Delete(path);
@@ -235,7 +236,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         writer.Write(data.ToJson());
     }
 
-    protected static T LoadSettings<T>(string path)
+    protected virtual T LoadSettings<T>(string path)
     {
         using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read);
         using var reader = new StreamReader(stream);
