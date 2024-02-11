@@ -12,7 +12,11 @@ public class FileAssetManagerSettings
 
 public class HttpAssetManagerSettings
 {
+#if WEB
+     public string MetadataUrl { get; set; } = "./Assets/assets_list.txt";
+#else
      public string MetadataUrl { get; set; } = "http://127.0.0.1/metadata";
+#endif
 }
 public class AssetManagerSettings
 {

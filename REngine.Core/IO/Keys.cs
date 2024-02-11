@@ -718,37 +718,37 @@ namespace REngine.Core.IO
 		RMenu = 0xA5,
 
 		/// <summary>
-		///  The Browser Back key.
+		///  The Web Back key.
 		/// </summary>
 		BrowserBack = 0xA6,
 
 		/// <summary>
-		///  The Browser Forward key.
+		///  The Web Forward key.
 		/// </summary>
 		BrowserForward = 0xA7,
 
 		/// <summary>
-		///  The Browser Refresh key.
+		///  The Web Refresh key.
 		/// </summary>
 		BrowserRefresh = 0xA8,
 
 		/// <summary>
-		///  The Browser Stop key.
+		///  The Web Stop key.
 		/// </summary>
 		BrowserStop = 0xA9,
 
 		/// <summary>
-		///  The Browser Search key.
+		///  The Web Search key.
 		/// </summary>
 		BrowserSearch = 0xAA,
 
 		/// <summary>
-		///  The Browser Favorites key.
+		///  The Web Favorites key.
 		/// </summary>
 		BrowserFavorites = 0xAB,
 
 		/// <summary>
-		///  The Browser Home key.
+		///  The Web Home key.
 		/// </summary>
 		BrowserHome = 0xAC,
 

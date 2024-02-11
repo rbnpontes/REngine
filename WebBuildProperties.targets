@@ -2,7 +2,7 @@
     <ItemGroup>
         <WasmExtraFilesToDeploy Include="$(SolutionDir)\dependencies\runtimes\web\*.js"/>
         <WasmExtraFilesToDeploy Include="$(SolutionDir)\dependencies\runtimes\web\*.wasm"/>
-        <WasmExtraFilesToDeploy Include="$(SolutionDir)\Platforms\REngine.Core.Web\libenginecore.js"/>
+        <WasmExtraFilesToDeploy Include="$(SolutionDir)\REngine.Core\libenginecore.js"/>
         <WasmExtraFilesToDeploy Include="$(SolutionDir)\Platforms\REngine.Core.Web\engine-boot.js"/>
         <WasmExtraFilesToDeploy Include="$(SolutionDir)\REngine.RHI.Web.Driver\librengine.js"/>
     </ItemGroup>

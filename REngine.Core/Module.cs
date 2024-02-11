@@ -43,6 +43,9 @@ namespace REngine.Core
 #if !WEB && !ANDROID
 				.Add<IAssetManager, FileAssetManager>()
 #endif
+#if WEB
+				.Add<IAssetManager, WebAssetManager>()
+#endif
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, Engine>()
 				.Add<EngineEvents>()

@@ -19,6 +19,7 @@
         <IsProfilerEnabled Condition="$(Configuration.Contains('Profiler'))">1</IsProfilerEnabled>
         <IsDebug Condition="$(Configuration.StartsWith('Debug'))">1</IsDebug>
         <IsRelease Condition="$(Configuration.StartsWith('Release'))">1</IsRelease>
+        <EnableImGui Condition="'$(IsWeb)' == '0'">1</EnableImGui>
     </PropertyGroup>
     
     <!-- Project Define Constants -->
@@ -50,7 +51,7 @@
         <DefineConstants>$(DefineConstants);WEB</DefineConstants>
     </PropertyGroup>
     
-    <PropertyGroup Condition="'$(IsWeb)'=='0'">
+    <PropertyGroup Condition="'$(EnableImGui)'=='1'">
         <DefineConstants>$(DefineConstants);RENGINE_IMGUI</DefineConstants>
     </PropertyGroup>
 </Project>

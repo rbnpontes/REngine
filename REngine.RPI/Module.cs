@@ -8,7 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+#if RENGINE_IMGUI && !WEB
 using ImGuiNET;
+#endif
 using REngine.Core;
 using REngine.Core.Runtimes;
 using REngine.RPI.Events;
@@ -20,6 +22,7 @@ namespace REngine.RPI
     {
         public void Setup(IServiceRegistry registry)
         {
+#if !WEB && RENGINE_IMGUI
             try
             {
                 // If Import has been added, we must skip
@@ -29,6 +32,7 @@ namespace REngine.RPI
             {
                 // ignored
             }
+#endif
 #if RENGINE_RENDERGRAPH
             RenderGraphModule.Setup(registry);
             var renderGraphRegistry = RenderGraphModule.GetBaseRegistry();

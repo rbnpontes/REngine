@@ -9,8 +9,6 @@ namespace REngine.RHI.Web.Driver;
 internal partial class SwapChainImpl : ISwapChain
 {
     private IntPtr pHandle;
-    private readonly HTMLElement pCanvas;
-    private readonly IDisposable? pCanvasResizeEvent;
     private readonly InternalTextureView pColorBuffer;
     private readonly InternalTextureView? pDepthBuffer;
     public bool IsDisposed { get; private set; }
@@ -25,10 +23,9 @@ internal partial class SwapChainImpl : ISwapChain
     public event EventHandler? OnPresent;
     public event EventHandler? OnDispose;
 
-    public SwapChainImpl(IntPtr handle, HTMLElement canvas, bool autoResize)
+    public SwapChainImpl(IntPtr handle)
     {
         pHandle = handle;
-        pCanvas = canvas;
         Desc = GetDesc(handle);
 
         var size = new TextureSize(Desc.Size.Width, Desc.Size.Height);
@@ -37,14 +34,12 @@ internal partial class SwapChainImpl : ISwapChain
             pDepthBuffer = new InternalTextureView(depthBufferPtr, size);
         
         pColorBuffer = new InternalTextureView(js_rengine_swapchain_get_backbuffer(handle), size);
-        pCanvasResizeEvent = autoResize ? DomUtils.ListenResizeEvent(canvas.Parent, OnCanvasResize) : null;
     }
     public void Dispose()
     {
         if (IsDisposed)
             return;
         IsDisposed = true;
-        pCanvasResizeEvent?.Dispose();
         NativeObject.js_rengine_object_release(pHandle);
         pHandle = IntPtr.Zero;
         OnDispose?.Invoke(this, EventArgs.Empty);
@@ -63,14 +58,7 @@ internal partial class SwapChainImpl : ISwapChain
         pColorBuffer.Handle = js_rengine_swapchain_get_backbuffer(pHandle);
         pColorBuffer.Size = size;
     }
-    private void OnCanvasResize()
-    {
-        // Generally, this method is called if swapchain has auto resize enabled
-        // Then every time parent of canvas is resized this method is called
-        // So we need to get parent size to correct resize buffers
-        var size = DomUtils.GetElementSize(pCanvas.Parent);
-        Resize(size.ToSize(), Desc.Transform);
-    }
+    
     public ISwapChain Present(bool vsync)
     {
         // Present is made automatically by the browser
@@ -90,8 +78,6 @@ internal partial class SwapChainImpl : ISwapChain
         if (currSize.Width == width && currSize.Height == height)
             return this;
         
-        // Canvas needs to resize too
-        DomUtils.SetElementSize(pCanvas, new SizeF(width, height));
         js_rengine_swapchain_resize(pHandle, (int)width, (int)height, (int)transform);
         var desc = Desc;
         desc.Transform = transform;

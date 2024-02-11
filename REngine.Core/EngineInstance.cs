@@ -116,8 +116,11 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         pLoggerFactory = OnGetLoggerFactory();
         pLogger = pLoggerFactory.Build(GetType());
 
-        NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
-        NativeReferences.PreloadLibs();
+        if (!Platform.IsWeb())
+        {
+            NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
+            NativeReferences.PreloadLibs();
+        }
 
         app.OnSetLogger(pLoggerFactory.Build(app.GetType()));
 

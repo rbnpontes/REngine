@@ -4,10 +4,12 @@ namespace REngine.Core.Web;
 
 public static partial class WebConsole
 {
-    [JSImport("console_log", Constants.LibName)]
+#if WEB
+    [JSImport("console_log", WebLibConstants.LibName)]
     private static partial void js_console_log(int array);
-    [JSImport("console_warn", Constants.LibName)]
+    [JSImport("console_warn", WebLibConstants.LibName)]
     private static partial void js_console_warn(int array);
-    [JSImport("console_error", Constants.LibName)]
+    [JSImport("console_error", WebLibConstants.LibName)]
     private static partial void js_console_error(int array);
+#endif
 }

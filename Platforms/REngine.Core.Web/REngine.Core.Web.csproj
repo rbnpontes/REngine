@@ -9,7 +9,14 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
+      <ProjectReference Include="..\..\REngine.Game\REngine.Game.csproj" />
+      <ProjectReference Include="..\..\REngine.RHI.Web.Driver\REngine.RHI.Web.Driver.csproj" />
       <ProjectReference Include="..\..\REngine.RHI\REngine.RHI.csproj" />
       <ProjectReference Include="..\..\REngine.RPI\REngine.RPI.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="IO\" />
+      <Folder Include="Resources\" />
     </ItemGroup>
 </Project>

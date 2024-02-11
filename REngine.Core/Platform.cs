@@ -2,6 +2,17 @@ using REngine.Core.Mathematics;
 
 namespace REngine.Core;
 
+public enum PlatformType
+{
+    Desktop,
+    Mobile,
+    Windows,
+    Android,
+    Linux,
+    Ios,
+    Mac,
+    Web
+}
 public static class Platform
 {
     public static readonly ulong Desktop = Hash.Digest("Desktop");
@@ -11,7 +22,7 @@ public static class Platform
     public static readonly ulong Linux = Hash.Digest("Linux");
     public static readonly ulong Ios = Hash.Digest("iOS");
     public static readonly ulong Mac = Hash.Digest("MacOS");
-    public static readonly ulong Browser = Hash.Digest("Browser");
+    public static readonly ulong Web = Hash.Digest("Web");
 
     public static ulong GetPlatform()
     {
@@ -25,7 +36,7 @@ public static class Platform
             return Ios;
         if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
             return Mac;
-        return OperatingSystem.IsBrowser() ? Browser : 0ul;
+        return OperatingSystem.IsBrowser() ? Web : 0ul;
     }
 
     public static bool IsDesktop()

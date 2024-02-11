@@ -25,6 +25,9 @@ namespace REngine.Assets
 		}
 		protected override void OnLoad(AssetStream stream)
 		{
+#if WEB
+			throw new NotImplementedException();
+#else
 			var img = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 			var dataInfo = new ImageDataInfo
 			{
@@ -34,6 +37,7 @@ namespace REngine.Assets
 			};
 			Image.SetData(dataInfo);
 			mSize = img.Data.Length;
+#endif
 		}
 
 		public Task Save(ImageType imageType, Stream stream)
@@ -49,6 +53,9 @@ namespace REngine.Assets
 				throw new Exception("You must set a ImageType before save, Or call specialized Save method from ImageAsset.");
 			return Task.Run(() =>
 			{
+#if WEB
+				throw new NotImplementedException();
+#else
 				var writer = new StbImageWriteSharp.ImageWriter();
 				var colorComponents = GetColorComponents(Image.Components);
 				switch (imgType)
@@ -69,6 +76,7 @@ namespace REngine.Assets
 						writer.WriteHdr(Image.Data, Image.Size.Width, Image.Size.Height, colorComponents, stream);
 						break;
 				}
+#endif
 			});
 		}
 
@@ -77,6 +85,7 @@ namespace REngine.Assets
 			Image = Image.Empty();
 		}
 
+#if !WEB
 		private StbImageWriteSharp.ColorComponents GetColorComponents(byte components)
 		{
 			StbImageWriteSharp.ColorComponents result;
@@ -100,5 +109,6 @@ namespace REngine.Assets
 
 			return result;
 		}
+#endif
 	}
 }

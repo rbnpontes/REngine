@@ -1,6 +1,7 @@
 using REngine.Core.IO;
+using REngine.Core.Web;
 
-namespace REngine.Core.Web.IO;
+namespace REngine.Core.IO;
 
 public sealed class WebLoggerFactory : BaseLoggerFactory, ILoggerFactory
 {

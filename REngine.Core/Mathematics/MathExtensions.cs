@@ -39,6 +39,19 @@ namespace REngine.Core.Mathematics
 		{
 			return new SizeF(vec);
 		}
+
+		public static SizeF ToSizeF(this Size size)
+		{
+			return new SizeF(size);
+		}
+
+		public static Rectangle ToRect(this RectangleF rect)
+		{
+			return new Rectangle(
+				(int)rect.X, (int)rect.Y,
+				(int)rect.Width, (int)rect.Height
+			);
+		}
 		
 		public static Vector3 ToVector3(this Vector2 vec, float z = 0)
 		{

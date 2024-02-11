@@ -32,19 +32,27 @@ namespace REngine.Assets
 	/// </summary>
 	public sealed class AudioAsset : BaseAudioAsset
 	{
+#if !WEB
 		private SoundWrapperAudio? pAudio;
+#endif
 		protected override IAudio OnBuildAudio(Stream stream)
 		{
+#if WEB
+			throw new NotImplementedException();
+#else
 			var buffer = new SFML.Audio.SoundBuffer(stream);
 			var sound = new SFML.Audio.Sound(buffer);
 			pAudio = new SoundWrapperAudio(sound);
 			return pAudio;
+#endif
 		}
 
 		protected override void OnDispose()
 		{
 			base.OnDispose();
+#if !WEB
 			pAudio?.Dispose();
+#endif
 		}
 	}
 	/// <summary>
@@ -57,20 +65,28 @@ namespace REngine.Assets
 	public sealed class StreamedAudioAsset : BaseAudioAsset
 	{
 		private Stream? pStream;
+#if !WEB
 		private MusicWrapperAudio? pAudio;
+#endif
 		protected override IAudio OnBuildAudio(Stream stream)
 		{
+#if WEB
+			throw new NotImplementedException();
+#else
 			pStream = stream;
 			SFML.Audio.Music music = new(stream);
 			pAudio = new MusicWrapperAudio(music);
 			return pAudio;
+#endif
 		}
 
 		protected override void OnDispose()
 		{
 			base.OnDispose();
+#if !WEB
 			pAudio?.Dispose();
 			pStream?.Dispose();
+#endif
 		}
 	}
 }

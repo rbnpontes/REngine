@@ -1,4 +1,4 @@
-using REngine.Core.Web.IO;
+using REngine.Core.Web;
 
 namespace REngine.Core.Web;
 
@@ -16,6 +16,11 @@ public interface IWebStorage
 }
 public static class WebStorage
 {
-     public static IWebStorage GetSessionStorage() => SessionStorageImpl.Instance;
-     public static IWebStorage GetLocalStorage() => LocalStorageImpl.Instance;
+#if WEB
+    public static IWebStorage GetSessionStorage() => SessionStorageImpl.Instance;
+    public static IWebStorage GetLocalStorage() => LocalStorageImpl.Instance;
+#else
+     public static IWebStorage GetSessionStorage() => GlobalStorageImpl.Instance;
+     public static IWebStorage GetLocalStorage() => GlobalStorageImpl.Instance;
+#endif
 }

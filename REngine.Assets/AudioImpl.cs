@@ -9,6 +9,7 @@ using SFML.Audio;
 
 namespace REngine.Assets
 {
+#if !WEB
 	internal abstract class BaseAudio : IAudio
 	{
 #if PROFILER
@@ -413,4 +414,5 @@ namespace REngine.Assets
 			sound.Loop = loop;
 		}
 	}
+#endif
 }

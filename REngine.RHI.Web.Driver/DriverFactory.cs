@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
+using REngine.Core;
 using REngine.Core.Web;
 using REngine.RHI.Web.Driver.Models;
 
@@ -23,7 +24,7 @@ public struct MessageEventData()
 }
 public struct DriverFactoryCreateInfo()
 {
-    public string CanvasSelector = string.Empty;
+    public NativeWindow? Window = null;
     public Action<MessageEventData> MessageEvent = (evtData) => { };
     public SwapChainDesc SwapChainDesc = new();
 }
@@ -58,24 +59,23 @@ public static partial class DriverFactory
     
     public static (IGraphicsDriver, ISwapChain) Build(DriverFactoryCreateInfo createInfo)
     {
-        var canvasElement = DomUtils.QuerySelector(createInfo.CanvasSelector);
+        if (createInfo.Window is null)
+            throw new NullReferenceException("Window is required");
+        var selector = createInfo.Window.Value.CanvasSelector;
+        var canvasElement = DomUtils.QuerySelector(selector);
         if (canvasElement is null)
             throw new NullReferenceException("Canvas Selector is not found or is not a valid selector");
         var autoResize = createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 };
 
         if (autoResize)
         {
-            var swapChainSize = DomUtils.GetElementSize(canvasElement.Parent);
+            var swapChainSize = DomUtils.GetElementSize(canvasElement);
             createInfo.SwapChainDesc.Size = new SwapChainSize(swapChainSize.ToSize());
         }
         
-        // Resize Canvas to SwapChain Desc Size
-        DomUtils.SetElementSize(canvasElement, 
-            new SizeF(createInfo.SwapChainDesc.Size.Width, createInfo.SwapChainDesc.Size.Height));
-
         var swapChainDesc = new SwapChainDescDto(createInfo.SwapChainDesc);
         var (settingsPtr, messageCallbackPtr) = CreateDriverSettingsPtr(createInfo);
-        var (nativeWindowPtr, canvasSelectorPtr) = CreateNativeWindowPtr(createInfo.CanvasSelector);
+        var (nativeWindowPtr, canvasSelectorPtr) = CreateNativeWindowPtr(selector);
         var swapChainDescPtr = SwapChainDescDto.CreateSwapChainPtr(ref swapChainDesc);
         
         var result = new DriverResult();
@@ -96,7 +96,7 @@ public static partial class DriverFactory
         var device = new DeviceImpl(driverResult.Device);
         var driver = new DriverImpl(commandBuffer, device, driverResult.Factory, messageCallbackPtr);
         
-        return (driver, new SwapChainImpl(result.SwapChain, canvasElement, autoResize));
+        return (driver, new SwapChainImpl(result.SwapChain));
         void DisposeResources()
         {
             result.Dispose();

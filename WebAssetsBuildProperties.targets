@@ -1,5 +1,26 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Target Name="GenerateFileList" BeforeTargets="Build">
+        <PropertyGroup>
+            <AssetListOutputPath>$(SolutionDir)bin\assets_metadata.txt</AssetListOutputPath>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <FileList Include="$(SolutionDir)Assets/**/*.*"/>
+            <RelativeFileList Include="@(FileList->'%(RecursiveDir)%(Filename)%(Extension)')"/>
+        </ItemGroup>
+
+        <WriteLinesToFile
+            File="$(AssetListOutputPath)"
+            Lines="@(RelativeFileList)"
+            Overwrite="true"/>
+    </Target>
+    <Target Name="EmbedAssetFileList" AfterTargets="GenerateFileList">
+        <ItemGroup>
+            <WasmExtraFilesToDeploy Include="$(AssetListOutputPath)" TargetPath="Assets/assets_list.txt"/>
+        </ItemGroup>
+    </Target>
     <ItemGroup>
-        <WasmExtraFilesToDeploy Include="$(SolutionDir)\Assets\**\*.*"/>
+        <_ExtraFiles Include="$(SolutionDir)Assets\**\*.*"/>
+        <WasmExtraFilesToDeploy Include="@(_ExtraFiles)" TargetPath="Assets/%(RecursiveDir)%(FileName)%(Extension)"/>
     </ItemGroup>
 </Project>

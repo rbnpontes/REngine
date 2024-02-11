@@ -16,6 +16,7 @@ public static partial class WebConsole
 
     private static void ExecuteLog(LogType type, object[] args)
     {
+#if WEB
         var arr = new JSArray();
         foreach (var arg in args)
             arr.Add(arg);
@@ -34,5 +35,8 @@ public static partial class WebConsole
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
+#else
+        throw new RequiredPlatformException(PlatformType.Web);
+#endif
     }
 }

@@ -19,7 +19,7 @@
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
 	</ItemGroup>
 	
-	<ItemGroup Condition="'$(IsWeb)'=='0'">
+	<ItemGroup Condition="'$(EnableImGui)'=='0'">
 		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />
 	</ItemGroup>
 </Project>

@@ -25,9 +25,16 @@ namespace REngine.Core.Storage
 			return (T?)value;
 		}
 
+		public static bool Contains(string key) => sItems.ContainsKey(key);
+		
 		public static void RemoveItem(string key)
 		{
 			sItems.Remove(key);
+		}
+
+		public static void ClearItems()
+		{
+			sItems.Clear();
 		}
 	}
 }

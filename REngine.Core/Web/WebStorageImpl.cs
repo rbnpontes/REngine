@@ -1,5 +1,8 @@
-namespace REngine.Core.Web.IO;
+using REngine.Core.Storage;
 
+namespace REngine.Core.Web;
+
+#if WEB
 internal partial class SessionStorageImpl : IWebStorage
 {
     public static readonly SessionStorageImpl Instance = new();
@@ -54,4 +57,40 @@ internal partial class LocalStorageImpl : IWebStorage
     }
     
     public bool Contains(string key) => js_local_storage_contains(key);
+}
+#endif
+
+internal class GlobalStorageImpl : IWebStorage
+{
+    public int Length => GlobalStorage.Keys.Length;
+    public string[] Keys => GlobalStorage.Keys;
+    public string GetItem(string key)
+    {
+        return GlobalStorage.GetItem<string>(key) ?? string.Empty;
+    }
+
+    public IWebStorage SetItem(string key, string value)
+    {
+        GlobalStorage.SetItem(key, value);
+        return this;
+    }
+
+    public IWebStorage RemoveItem(string key)
+    {
+        GlobalStorage.RemoveItem(key);
+        return this;
+    }
+
+    public IWebStorage Clear()
+    {
+        GlobalStorage.ClearItems();
+        return this;
+    }
+
+    public bool Contains(string key)
+    {
+        return GlobalStorage.Contains(key);
+    }
+
+    public static readonly GlobalStorageImpl Instance = new();
 }

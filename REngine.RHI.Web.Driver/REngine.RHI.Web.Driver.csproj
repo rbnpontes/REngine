@@ -9,7 +9,6 @@
     
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
     <ItemGroup>
-        <ProjectReference Include="..\Platforms\REngine.Core.Web\REngine.Core.Web.csproj" />
         <ProjectReference Include="..\REngine.RHI\REngine.RHI.csproj" />
     </ItemGroup>
 </Project>

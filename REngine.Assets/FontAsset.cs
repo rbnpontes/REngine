@@ -22,7 +22,7 @@ namespace REngine.Assets
 	public class FontAsset : Asset
 	{
 		private const int DefaultFontSize = 48;
-
+#if !WEB
 		private class FontImpl : Font
 		{
 			private static readonly Dictionary<int, byte> sKeyPair = new ();
@@ -104,7 +104,7 @@ namespace REngine.Assets
 				return pCharData[glyphIndex];
 			}
 		}
-
+#endif
 		private FreeTypeLibrary? pLib;
 		private IntPtr pFace = IntPtr.Zero;
 		private Font? pFont;
@@ -133,10 +133,15 @@ namespace REngine.Assets
 
 		protected override void OnLoad(AssetStream stream)
 		{
+#if WEB
+			throw new NotImplementedException();
+#else
 			LoadFace(stream);
 			BuildFont();
+#endif
 		}
 
+#if !WEB
 		private void LoadFace(Stream stream)
 		{
 			byte[] fontData;
@@ -269,5 +274,6 @@ namespace REngine.Assets
 			mSize += font.Atlas.Data.Length;
 			pFont = font;
 		}
+#endif
 	}
 }
