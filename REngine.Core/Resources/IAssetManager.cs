@@ -24,6 +24,13 @@ namespace REngine.Core.Resources
 		 * Load Asset Data into <see cref="AssetStream"/>
 		 */
 		public AssetStream GetStream(string assetName);
+
+		/**
+		 * Load async data into <see cref="AssetStream"/>
+		 * On Web Platforms is preferred to use this instead of <see cref="GetStream"/>
+		 */
+		public Task<AssetStream> GetAsyncStream(string assetName);
+		
 		/**
 		 * Add <see cref="Asset"/> to this manager
 		 * this asset will be threat as Loaded Asset
@@ -43,7 +50,10 @@ namespace REngine.Core.Resources
 		 * will return, otherwise a null object will return instead
 		 */
 		public Asset GetAsset(string assetName, Type assetType);
+
+		public Task<Asset> GetAsyncAsset(string assetName, Type assetType);
 		public T GetAsset<T>(string assetName) where T : Asset;
+		public Task<T> GetAsyncAsset<T>(string assetName) where T : Asset;
 		public void TryGetAsset(string assetName, Type assetType, out Asset? asset);
 		public void TryGetAsset<T>(string assetName, out T? asset) where T : Asset;
 	}

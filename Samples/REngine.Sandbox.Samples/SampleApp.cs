@@ -6,8 +6,9 @@ using App = REngine.Core.Desktop.App;
 using System.Drawing;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
+#if !WEB
 using REngine.Sandbox.PongGame;
-
+#endif
 namespace REngine.Sandbox.Samples;
 
 public class SampleApp : App
@@ -19,7 +20,9 @@ public class SampleApp : App
          // this will make visible to Reflection
          Type[] unused =
          [
+#if !WEB
             typeof(PongGameSample)
+#endif
          ];
          
          base.OnStart(provider);

@@ -30,4 +30,12 @@ namespace REngine.Core
 		public IEngineStartup Run();
 		public IEngineStartup Stop();
 	}
+
+	public interface IAsyncEngineStartup
+	{
+		public Task Setup();
+		public Task Start();
+		public Task Run();
+		public Task Stop();
+	}
 }

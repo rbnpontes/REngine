@@ -107,7 +107,7 @@ namespace REngine.Core.DependencyInjection
 			var provider = new ServiceProviderImpl(services);
 			// insert service provider into dependency injection
 			services.Add(typeof(IServiceProvider), provider);
-
+			
 			ServiceResolver resolver = new ServiceResolver(pConstructors);
 			resolver.Resolve(services);
 

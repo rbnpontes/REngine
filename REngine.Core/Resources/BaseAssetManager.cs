@@ -68,6 +68,12 @@ namespace REngine.Core.Resources
 
 		public abstract AssetStream GetStream(string assetName);
 
+		public virtual async Task<AssetStream> GetAsyncStream(string assetName)
+		{
+			await Task.Yield();
+			return GetStream(assetName);
+		}
+		
 		public virtual IAssetManager AddAsset(Asset asset)
 		{
 			mLoadedAssets[asset.ToHash()] = asset;
@@ -90,31 +96,41 @@ namespace REngine.Core.Resources
 			GC.WaitForPendingFinalizers();
 			return this;
 		}
+		
+		private static void LogAssetNotFound(ILogger<IAssetManager> logger, string assetName)
+		{
+			logger.Error($"Asset '{assetName}' not found.");
+		}
 
-		public void TryGetAsset(string assetName, Type assetType, out Asset? asset)
+		protected bool TryFindAsset(ref string assetName, Type assetType, out Asset? asset, out ulong assetHash)
 		{
 			assetName = NormalizeAssetName(assetName);
-			var assetHash = Hash.Digest(assetName);
+			assetHash = Hash.Digest(assetName);
 #if DEBUG
 			if (!assetType.IsSubclassOf(typeof(Asset)))
 				throw new ArgumentException($"Asset Type must inherit {nameof(Asset)}");
 #endif
-
-			if (mLoadedAssets.TryGetValue(assetHash, out asset))
+			if (!mLoadedAssets.TryGetValue(assetHash, out asset))
 			{
-				if (!asset.GetType().IsAssignableTo(assetType))
-					LogAssetNotFound();
-				return;
+				LogAssetNotFound(mLogger, assetName);
+				return false;
 			}
+			
+			var result = asset.GetType().IsAssignableTo(assetType);
+			if (!result)
+				LogAssetNotFound(mLogger, assetName);
+			return result;
+		}
 
-			var stream = GetStream(assetName);
+		private void TryBuildAsset(AssetStream stream, string assetName, ulong assetHash, Type assetType, out Asset? asset)
+		{
 			asset = ActivatorExtended.CreateInstance(mServiceProvider, assetType) as Asset;
 			if (asset is null)
 			{
-				LogAssetNotFound();
+				LogAssetNotFound(mLogger, assetName);
 				return;
 			}
-
+			
 			mLogger.Info($"Loading Asset: {assetName}");
 #if DEBUG
 			var profileKey = $"Load {assetName} Time";
@@ -126,12 +142,15 @@ namespace REngine.Core.Resources
 #endif
 			mLogger.Success($"Loaded Asset: {assetName}");
 			mLoadedAssets[assetHash] = asset;
-			return;
+		}
+		
+		public void TryGetAsset(string assetName, Type assetType, out Asset? asset)
+		{
+			if (TryFindAsset(ref assetName, assetType, out asset, out var assetHash))
+				return;
 
-			void LogAssetNotFound()
-			{
-				mLogger.Error($"Asset '{assetName}' not found.");
-			}
+			var stream = GetStream(assetName);
+			TryBuildAsset(stream, assetName, assetHash, assetType, out asset);
 		}
 
 		public void TryGetAsset<T>(string assetName, out T? asset) where T : Asset
@@ -139,10 +158,33 @@ namespace REngine.Core.Resources
 			TryGetAsset(assetName, typeof(T), out var tmpAsset);
 			asset = (T?)tmpAsset;
 		}
+
+		public virtual async Task<Asset?> TryGetAsyncAsset(string assetName, Type assetType)
+		{
+			if (TryFindAsset(ref assetName, assetType, out var asset, out var assetHash))
+				return asset;
+
+			var stream = await GetAsyncStream(assetName);
+			TryBuildAsset(stream, assetName, assetHash, assetType, out asset);
+			return asset;
+		}
+
+		public virtual async Task<T?> TryGetAsyncAsset<T>(string assetName) where T : Asset
+		{
+			var asset = await TryGetAsyncAsset(assetName, typeof(T));
+			return (T?)asset;
+		}
+		
 		public virtual Asset GetAsset(string assetName, Type assetType)
 		{
 			TryGetAsset(assetName, assetType, out var asset);
 			return asset ?? throw new NotFoundAssetException(assetName);
+		}
+
+		public virtual async Task<Asset> GetAsyncAsset(string assetName, Type assetType)
+		{
+			await Task.Yield();
+			return GetAsset(assetName, assetType);
 		}
 
 		public T GetAsset<T>(string assetName) where T : Asset
@@ -151,6 +193,11 @@ namespace REngine.Core.Resources
 			return asset ?? throw new NotFoundAssetException(assetName);
 		}
 
+		public virtual async Task<T> GetAsyncAsset<T>(string assetName) where T : Asset
+		{
+			await Task.Yield();
+			return GetAsset<T>(assetName);
+		}
 		private static string NormalizePath(string path)
 		{
 			return path.Replace('\\', '/');

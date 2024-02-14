@@ -1,4 +1,6 @@
-﻿using REngine.Assets;
+﻿// todo: fix imgui system on web
+#if !WEB
+using REngine.Assets;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.RPI;
@@ -124,3 +126,4 @@ namespace REngine.Sandbox.Samples.BasicSamples
 	}
 #endif
 }
+#endif

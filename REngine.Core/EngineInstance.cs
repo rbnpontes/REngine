@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Text;
 using REngine.Core.DependencyInjection;
 using REngine.Core.Events;
+using REngine.Core.Exceptions;
 using REngine.Core.IO;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
@@ -16,6 +18,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     private readonly Stopwatch pSetupTime = new();
     private readonly Stopwatch pStartTime = new();
 
+#if RENGINE_VALIDATIONS
+    private EngineInstanceStep pCurrentStep = EngineInstanceStep.Setup;
+#endif
+    
     private ILoggerFactory? pLoggerFactory;
     private ILogger? pLogger;
     private IServiceProvider? pServiceProvider;
@@ -45,6 +51,9 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
     public virtual IEngineStartup Run()
     {
+#if RENGINE_VALIDATIONS
+        InvalidEngineInstanceCallException.Validate(pCurrentStep, EngineInstanceStep.Run);
+#endif
         var engine = Provider.Get<IEngine>();
         var events = Provider.Get<EngineEvents>();
         events.OnUpdate += HandleUpdate;
@@ -82,8 +91,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
             .Info($"Start Time: {pStartTime.Elapsed}")
             .Info($"Total Time: {pEngineStartTime.Elapsed}");
 
+#if RENGINE_VALIDATIONS
+        pCurrentStep = EngineInstanceStep.Stop;
+#endif
         OnReady();
-
         RunGameLoop(engine);
         return this;
     }
@@ -110,42 +121,85 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     }
     public virtual IEngineStartup Setup()
     {
+#if RENGINE_VALIDATIONS
+        InvalidEngineInstanceCallException.Validate(pCurrentStep, EngineInstanceStep.Setup);
+#endif
+        
         pEngineStartTime.Start();
         pSetupTime.Start();
 
         pLoggerFactory = OnGetLoggerFactory();
         pLogger = pLoggerFactory.Build(GetType());
 
-        if (!Platform.IsWeb())
-        {
-            NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
-            NativeReferences.PreloadLibs();
-        }
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        
+        pLogger.Debug("Begin Setup Engine");
+#if WEB
+        if (Platform.IsWeb())
+            throw new PlatformNotSupportedException(
+                $"{nameof(EngineInstance)} is not supported on Web. Please use {nameof(AsyncEngineInstance)} instead!");
+#endif
+        
+        NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
+        NativeReferences.PreloadLibs();
 
-        app.OnSetLogger(pLoggerFactory.Build(app.GetType()));
+        pLogger.Debug("Set App Logger");
+        app.OnSetLogger(pLogger);
 
         var registry = ServiceRegistryFactory.Build();
         var modules = new List<IModule>();
-
+        
+        pLogger.Debug("Begin OnSetupModules");
         OnSetupModules(modules);
-
+        pLogger.Debug("End OnSetupModules");
+        
+        pLogger.Debug("Executing Setup of Modules");
         modules.ForEach(x => x.Setup(registry));
 
+        pLogger.Debug($"Begin {nameof(OnSetupSettings)}");
         OnSetupSettings(registry);
+        pLogger.Debug($"End {nameof(OnSetupSettings)}");
+        
+        pLogger.Debug($"Begin {nameof(OnSetup)}");
         OnSetup(registry);
+        pLogger.Debug($"End {nameof(OnSetup)}");
+        
+        pLogger.Debug($"Begin {nameof(app.OnSetup)}");
         app.OnSetup(registry);
+        pLogger.Debug($"End {nameof(app.OnSetup)}");
+        
+        pLogger.Debug($"Execute {nameof(ApplicationLifecyle)} Setup");
         ApplicationLifecyle.ExecuteSetup(registry);
 
+        pLogger.Debug("Building Service Provider");
         pServiceProvider = registry.Build();
 
+        pLogger.Debug("Loading Execution Pipeline");
         var assetManager = pServiceProvider.Get<IAssetManager>();
         pServiceProvider.Get<IExecutionPipeline>().Load(
             assetManager.GetStream("default_execution_pipeline.xml")
         );
 
         pSetupTime.Stop();
+        pLogger.Debug("End Setup Engine");
+
+#if RENGINE_VALIDATIONS
+        pCurrentStep = EngineInstanceStep.Start;
+#endif
         return this;
     }
+
+    protected virtual void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is not Exception ex)
+        {
+            Logger.Critical($"Unhandled Exception: " + e.ExceptionObject.ToString());
+            return;
+        }
+
+        Logger.Critical(ex.GetFullString());
+    }
+
     protected virtual void OnSetup(IServiceRegistry registry)
     {
     }
@@ -179,9 +233,16 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
     public IEngineStartup Start()
     {
+#if RENGINE_VALIDATIONS
+        InvalidEngineInstanceCallException.Validate(pCurrentStep, EngineInstanceStep.Start);
+#endif
         ApplicationLifecyle.ExecuteStart(Provider);
         OnStart();
         app.OnStart(Provider);
+
+#if RENGINE_VALIDATIONS
+        pCurrentStep = EngineInstanceStep.Stop;
+#endif
         return this;
     }
 
@@ -194,6 +255,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
             return this;
         }
 
+#if RENGINE_VALIDATIONS
+        InvalidEngineInstanceCallException.Validate(pCurrentStep, EngineInstanceStep.Stop);
+#endif
+        
         pHasCallStop = true;
         
         Provider
@@ -217,6 +282,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
         Logger.Info("Writing Settings Before Exit");
         OnWriteSettings();
+        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
     }
 
     protected virtual void OnWriteSettings()

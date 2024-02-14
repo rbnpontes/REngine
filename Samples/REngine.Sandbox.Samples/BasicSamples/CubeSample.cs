@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using REngine.Core;
+﻿using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.SceneManagement;
 using REngine.Core.WorldManagement;

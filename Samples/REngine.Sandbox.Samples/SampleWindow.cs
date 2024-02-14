@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿// TODO: fix imgui system on web
+//using ImGuiNET;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.RPI;
@@ -95,7 +96,7 @@ namespace REngine.Sandbox.Samples
 			if (item != null)
 				LoadSample(item);
 
-			provider.Get<IImGuiSystem>().OnGui += OnGui;
+			//provider.Get<IImGuiSystem>().OnGui += OnGui;
 
 			pRenderState = provider.Get<RenderState>();
 			pGameWindow = provider.Get<IWindow>();
@@ -121,6 +122,7 @@ namespace REngine.Sandbox.Samples
 			pLastSample = null;
 		}
 
+#if !WEB
 		private bool pOpenedWindow = true;
 		private void OnGui(object? sender, EventArgs e)
 		{
@@ -156,11 +158,9 @@ namespace REngine.Sandbox.Samples
 		private void RenderToggleVsyncButton()
 		{
 			if(pRenderState is null) return;
-
 			if (ImGui.Button(pRenderState.Vsync ? "Disable Vsync" : "Enable Vsync"))
 				pRenderState.Vsync = !pRenderState.Vsync;
 		}
-
 		private void RenderSampleList()
 		{
 			for(int i =0; i< pSamples.Count; ++i)
@@ -169,5 +169,6 @@ namespace REngine.Sandbox.Samples
 					pSelectedItemIdx = i;
 			}
 		}
+#endif
 	}
 }

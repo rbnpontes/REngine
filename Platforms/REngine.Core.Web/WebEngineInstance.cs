@@ -11,36 +11,40 @@ using REngine.RPI;
 
 namespace REngine.Core.Web;
 
-public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : EngineInstance(app)
+public sealed class WebEngineInstance(IEngineApplication app, IWebStorage storage) : AsyncEngineInstance(app)
 {
     private readonly GraphicsSettings pGraphicsSettings = new();
     private readonly RenderSettings pRenderSettings = new();
-    protected override ILoggerFactory OnGetLoggerFactory()
+    private readonly WebLoggerFactory pWebLoggerFactory = new();
+    protected override async Task<ILoggerFactory> OnGetLoggerFactory()
     {
-        return new WebLoggerFactory();
+        await Task.Yield();
+        return pWebLoggerFactory;
     }
 
-    protected override void OnWriteSettings()
+    protected override async Task OnWriteSettings()
     {
-         base.OnWriteSettings();
-         WriteSettings(EngineSettings.GraphicsSettingsPath, pGraphicsSettings);
-         WriteSettings(EngineSettings.RenderSettingsPath, pRenderSettings);
+         await base.OnWriteSettings();
+         await WriteSettings(EngineSettings.GraphicsSettingsPath, pGraphicsSettings);
+         await WriteSettings(EngineSettings.RenderSettingsPath, pRenderSettings);
     }
 
-    protected override void WriteSettings<T>(string path, T data)
+    protected override async Task WriteSettings<T>(string path, T data)
     {
+        await Task.Yield();
         storage.SetItem($"@rengine/{path}", data.ToJson());
     }
 
-    protected override T LoadSettings<T>(string path)
+    protected override async Task<T> LoadSettings<T>(string path)
     {
+        await Task.Yield();
         var value = storage.GetItem($"@rengine/{path}");
         if (string.IsNullOrEmpty(value))
             return ActivatorExtended.CreateInstance<T>([]);
         return value.FromJson<T>() ?? ActivatorExtended.CreateInstance<T>([]);
     }
 
-    protected override void OnSetupModules(List<IModule> modules)
+    protected override Task OnSetupModules(List<IModule> modules)
     {
         modules.AddRange([
             new AssetsModule(),
@@ -49,17 +53,19 @@ public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : En
             new RPIModule(),
             new GameModule()
         ]);
-        base.OnSetupModules(modules);
+        return base.OnSetupModules(modules);
     }
 
-    protected virtual IWindow OnCreateWindow(WebWindowManager windowManager)
+    private IWindow OnCreateWindow(WebWindowManager windowManager)
     {
         return windowManager.Create("#canvas");
     }
 
-    protected override void OnSetup(IServiceRegistry registry)
+    protected override async Task OnSetup(IServiceRegistry registry)
     {
+        await Task.Yield();
         registry
+            .Add<ILoggerFactory>(()=> pWebLoggerFactory)
             .Add(
                 deps => OnCreateWindow((WebWindowManager)deps[0]),
                 new Type[] { typeof(IWindowManager) })
@@ -67,10 +73,8 @@ public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : En
             {
                 var window = provider.Get<IWindow>();
                 window.GetNativeWindow(out var nativeWindow);
-                window.OnResize += OnWindowResize;
             
                 Logger.Info(window);
-
                 var (driver, swapChain) = DriverFactory.Build(new DriverFactoryCreateInfo()
                 {
                     Window = nativeWindow,
@@ -82,6 +86,8 @@ public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : En
                     }
                 });
 
+                window.OnResize += OnWindowResize;
+                
                 pGraphicsSettings.DefaultColorFormat = swapChain.Desc.Formats.Color;
                 pGraphicsSettings.DefaultDepthFormat = swapChain.Desc.Formats.Depth;
 
@@ -89,30 +95,41 @@ public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : En
                 return driver;
             });
     }
-
-    protected override void RunGameLoop(IEngine engine)
+    
+    protected override async Task RunGameLoop(IEngine engine)
     {
+        var taskCompletionSrc = new TaskCompletionSource<bool>();
         GC.Collect();
         GC.WaitForPendingFinalizers();
         WebMarshal.CollectJsMemory();
         
         WebLooper.Build(ExecuteFrame);
+        await taskCompletionSrc.Task;
+        Logger.Debug("Exiting");
+        App.OnExit(Provider);
+        await OnStop();
+        Logger.Info("Finished!!!");
+        
+        return;
         void ExecuteFrame(WebLooper looper)
         {
             if (engine.IsStopped)
             {
-                ExecuteStop(looper);
+                // ExecuteStop(looper);
+                taskCompletionSrc.SetResult(true);
                 return;
             }
-
+        
             engine.ExecuteFrame();
         }
-        void ExecuteStop(WebLooper looper)
-        {
-            Logger.Info("Exiting App");
-            App.OnExit(Provider);
-            OnStop();
-        }
+        // void ExecuteStop(WebLooper looper)
+        // {
+        //     Logger.Info("Exiting App");
+        //     looper.Dispose();
+        //     AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+        //     App.OnExit(Provider);
+        //     OnStop();
+        // }
     }
     
     private void OnDriverMessage(MessageEventData e)
@@ -121,22 +138,36 @@ public class WebEngineInstance(IEngineApplication app, IWebStorage storage) : En
         {
             case DbgMsgSeverity.Error:
             case DbgMsgSeverity.FatalError:
-            case DbgMsgSeverity.Warning:
                 Logger.Critical($"Diligent Engine: {e.Severity} in {e.Function}() ({e.File}, {e.Line}): {e.Message}");
+                break;
+            case DbgMsgSeverity.Warning:
+                Logger.Warning($"Diligent Engine: {e.Severity} {e.Message}");
                 break;
             case DbgMsgSeverity.Info:
                 Logger.Debug($"Diligent Engine: {e.Severity} {e.Message}");
                 break;
-            default:
-                throw new ArgumentOutOfRangeException();
         }
     }
 
-    protected virtual void OnWindowResize(object sender, WindowResizeEventArgs eventArgs)
+    private void OnWindowResize(object sender, WindowResizeEventArgs eventArgs)
     {
         if (sender is not IWindow window)
             return;
-        var swapChain = Provider.GetOrDefault<ISwapChain>();
-        swapChain?.Resize(window.Size);
+        try
+        {
+            var swapChain = Provider.GetOrDefault<ISwapChain>();
+            swapChain?.Resize(window.Size);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message, ex.StackTrace);
+        }
+    }
+
+    public static WebEngineInstance CreateStartup<T>() where T : IEngineApplication
+    {
+        if (ActivatorExtended.CreateInstance<T>([]) is not IEngineApplication app)
+            throw new NullReferenceException($"Could not possible to create '{nameof(T)}'");
+        return new WebEngineInstance(app, WebStorage.GetLocalStorage());
     }
 }

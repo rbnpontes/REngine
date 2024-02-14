@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RunAOTCompilation>true</RunAOTCompilation>
+<!--        <RunAOTCompilation>true</RunAOTCompilation>-->
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <PublishTrimmed>true</PublishTrimmed>
-        <TrimMode>full</TrimMode>
-        <WasmStripILAfterAOT>true</WasmStripILAfterAOT>
+<!--        <PublishTrimmed>true</PublishTrimmed>-->
+<!--        <TrimMode>full</TrimMode>-->
+<!--        <WasmStripILAfterAOT>true</WasmStripILAfterAOT>-->
+        <WasmNativeDebugSymbols>true</WasmNativeDebugSymbols>
+        <WasmDebugLevel>1</WasmDebugLevel>
     </PropertyGroup>
     
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
@@ -28,6 +29,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Contents\REngine.Contents.csproj" />
       <ProjectReference Include="..\..\REngine.RHI.Web.Driver\REngine.RHI.Web.Driver.csproj" />
+      <ProjectReference Include="..\..\Samples\REngine.Sandbox.Samples\REngine.Sandbox.Samples.csproj" />
       <ProjectReference Include="..\REngine.Core.Web\REngine.Core.Web.csproj" />
     </ItemGroup>
 </Project>

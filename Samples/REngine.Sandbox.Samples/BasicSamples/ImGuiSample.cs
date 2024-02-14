@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿#if !WEB
+using ImGuiNET;
 using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
@@ -97,3 +98,4 @@ namespace REngine.Sandbox.Samples.BasicSamples
 
 	}
 }
+#endif

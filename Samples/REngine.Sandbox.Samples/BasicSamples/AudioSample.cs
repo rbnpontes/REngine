@@ -1,4 +1,6 @@
-﻿using System;
+﻿// TODO: fix ImGui system on web
+#if !WEB
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -131,3 +133,4 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		}
 	}
 }
+#endif

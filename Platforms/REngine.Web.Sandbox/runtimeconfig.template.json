@@ -6,6 +6,10 @@
         "html-path": "index.html",
         "Host": "browser"
       }
-    ]
+    ],
+    "mainAssembly": "REngine.Web.Sandbox.dll",
+    "webServerPort" : 9000,
+    "chromeProxyPort" : 9001,
+    "chromeDebuggingPort" : 9002
   }
 }

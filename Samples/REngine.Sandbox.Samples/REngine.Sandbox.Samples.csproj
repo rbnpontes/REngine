@@ -20,11 +20,16 @@
     <ItemGroup Condition="'$(IsAndroid)'=='1'">
         <ProjectReference Include="..\..\Platforms\REngine.Core.Android\REngine.Core.Android.csproj"/>
     </ItemGroup>
+    <ItemGroup Condition="'$(IsWeb)'=='1'">
+        <ProjectReference Include="..\..\Platforms\REngine.Core.Web\REngine.Core.Web.csproj"/>
+    </ItemGroup>
+    
+    
     <ItemGroup>
         <ProjectReference Include="..\REngine.Sandbox.BaseSample\REngine.Sandbox.BaseSample.csproj"/>
-        <ProjectReference Include="..\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="BasicSamples\ComputeSample.cs" />
+<!-- FIX-ME: ImGui is required to work on Web-->
+    <ItemGroup Condition="'$(IsWeb)'=='0'">
+        <ProjectReference Include="..\REngine.Sandbox.PongGame\REngine.Sandbox.PongGame.csproj"/>
     </ItemGroup>
 </Project>
