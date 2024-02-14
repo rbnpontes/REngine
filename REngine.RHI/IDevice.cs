@@ -12,7 +12,7 @@ namespace REngine.RHI
 		public IBuffer CreateBuffer(in BufferDesc desc);
 		public IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged;
 		public IBuffer CreateBuffer<T>(in BufferDesc desc, ReadOnlySpan<T> values) where T : unmanaged;
-		public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : struct;
+		public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : unmanaged;
 		public IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size);
 		public IShader CreateShader(in ShaderCreateInfo createInfo);
 		public IPipelineState CreateGraphicsPipeline(GraphicsPipelineDesc desc);

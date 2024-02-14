@@ -77,13 +77,17 @@ internal partial class TextureImpl : NativeObject, ITexture
         var sizeOf = Unsafe.SizeOf<TextureDescDto>();
         var dto = new TextureDescDto();
         var descPtr = NativeApis.js_malloc(sizeOf);
+        NativeApis.js_memset(descPtr, 0x0, sizeOf);
         
+        js_rengine_texture_getdesc(ptr, descPtr);
         fixed(void* dataPtr = dto)
             NativeApis.js_memcpy(descPtr, dataPtr, sizeOf);
-    
+        
         var desc = new TextureDesc();
         dto.CopyTo(ref desc);
         output = desc;
+        
+        NativeApis.js_free(descPtr);
     }
     
     public static GPUObjectType GetObjectTypeFromDesc(in TextureDesc desc)

@@ -2,36 +2,55 @@ using System.Runtime.InteropServices;
 
 namespace REngine.RHI.Web.Driver.Models;
 
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit)]
 internal unsafe struct TextureDescDto
 {
+    [FieldOffset(0)]
     public IntPtr Name;
+    [FieldOffset(4)]
     public byte Dimension;
+    [FieldOffset(8)]
     public uint Width;
+    [FieldOffset(12)]
     public uint Height;
+    [FieldOffset(16)]
     public uint ArraySizeOrDepth;
+    [FieldOffset(20)]
     public ushort Format;
+    [FieldOffset(24)]
     public uint MipLevels;
+    [FieldOffset(28)]
     public uint SampleCount;
+    [FieldOffset(32)]
     public uint BindFlags;
+    [FieldOffset(36)]
     public byte Usage;
+    [FieldOffset(40)]
     public byte AccessFlags;
+    [FieldOffset(44)]
     public byte TextureFlags;
 
+    [FieldOffset(48)]
     public ushort Clear_Format;
+    [FieldOffset(52)]
     public float Clear_R;
+    [FieldOffset(56)]
     public float Clear_G;
+    [FieldOffset(60)]
     public float Clear_B;
+    [FieldOffset(64)]
     public float Clear_A;
 
+    [FieldOffset(68)]
     public float Clear_Depth;
+    [FieldOffset(72)]
     public byte Clear_Stencil;
     
     public TextureDescDto() {}
 
-    public TextureDescDto(TextureDesc desc, IntPtr namePtr)
+    public TextureDescDto(TextureDesc desc)
     {
-        Name = namePtr;
+        Name = string.IsNullOrEmpty(desc.Name) ? IntPtr.Zero : NativeApis.js_alloc_string(desc.Name);
         Dimension = (byte)desc.Dimension;
         Width = desc.Size.Width;
         Height = desc.Size.Height;

@@ -1,35 +1,83 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using REngine.Core.Exceptions;
+using REngine.Core.IO;
+using REngine.Core.Serialization;
+using REngine.RHI.Utils;
 using REngine.RHI.Web.Driver.Models;
 
 namespace REngine.RHI.Web.Driver;
 
-internal partial class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
+internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : NativeObject(handle), IDevice
 {
-    public IBuffer CreateBuffer(in BufferDesc desc)
+#if RENGINE_VALIDATIONS
+    private void ValidateBufferDesc(in BufferDesc desc)
     {
-        throw new NotImplementedException();
+        if((desc.BindFlags & BindFlags.UniformBuffer) != 0)
+            ValidateUniformBuffer(desc);
+    }
+    private void ValidateUniformBuffer(in BufferDesc desc)
+    {
+        if ((desc.BindFlags & BindFlags.VertexBuffer) != 0 || (desc.BindFlags & BindFlags.IndexBuffer) != 0)
+            throw new Exception(
+                "Is not possible to create a Uniform Buffer with VertexBuffer or IndexBuffer bind flags");
+    }
+#endif
+    public IBuffer CreateBuffer(in BufferDesc desc) => CreateBuffer(desc, IntPtr.Zero, 0);
+
+    public unsafe IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged
+    {
+        var data = (values ?? []).ToArray().AsSpan();
+        fixed(void* ptr = data)
+            return CreateBuffer(desc, new IntPtr(ptr), (ulong)(data.Length * Unsafe.SizeOf<T>()));
     }
 
-    public IBuffer CreateBuffer<T>(in BufferDesc desc, IEnumerable<T> values) where T : unmanaged
+    public unsafe IBuffer CreateBuffer<T>(in BufferDesc desc, ReadOnlySpan<T> values) where T : unmanaged
     {
-        throw new NotImplementedException();
+        fixed (void* ptr = values)
+            return CreateBuffer(desc, new IntPtr(ptr), (ulong)(values.Length * Unsafe.SizeOf<T>()));
     }
 
-    public IBuffer CreateBuffer<T>(in BufferDesc desc, ReadOnlySpan<T> values) where T : unmanaged
+    public unsafe IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : unmanaged
     {
-        throw new NotImplementedException();
+        T[] dataArr = [data];
+        fixed(void* ptr = dataArr)
+            return CreateBuffer(desc, new IntPtr(ptr), (ulong)Unsafe.SizeOf<T>());
     }
 
-    public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : struct
+    public unsafe IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)
     {
-        throw new NotImplementedException();
-    }
+#if RENGINE_VALIDATIONS
+        ValidateBufferDesc(desc);
+#endif
+        var descSize = Unsafe.SizeOf<BufferDescDto>();
+        var resultSize = Unsafe.SizeOf<ResultNative>();
+        var totalMemory = resultSize + descSize + (int)size;
 
-    public IBuffer CreateBuffer(in BufferDesc desc, IntPtr data, ulong size)
-    {
-        throw new NotImplementedException();
+        var resultPtr = NativeApis.js_malloc(totalMemory);
+        var descPtr = resultPtr + resultSize;
+        var dataPtr = descPtr + descSize;
+        NativeApis.js_memset(resultPtr, 0x0, totalMemory);
+
+        var result = new ResultNative();
+        var descDto = new BufferDescDto(desc);
+        fixed(void* ptr = descDto)
+            NativeApis.js_memcpy(ptr, descPtr, descSize);
+        NativeApis.js_memcpy(data.ToPointer(), dataPtr, (int)size);
+        
+        js_rengine_device_create_buffer(Handle, descPtr, (int)size, dataPtr, resultPtr);
+        fixed(void* ptr = result)
+            NativeApis.js_memcpy(resultPtr, ptr, resultSize);
+            
+        NativeApis.js_free(resultPtr);
+        NativeApis.js_free(descDto.Name);
+
+        if (result.Error != IntPtr.Zero)
+            throw new DeviceException(NativeApis.js_get_string(result.Error));
+        if (result.Value == IntPtr.Zero)
+            throw new NullReferenceException(
+                $"Could not possible to create {nameof(IBuffer)} object. Device returns null");
+        return new BufferImpl(result.Value, desc);
     }
 
     public unsafe IShader CreateShader(in ShaderCreateInfo createInfo)
@@ -170,26 +218,130 @@ internal partial class DeviceImpl(IntPtr handle) : NativeObject(handle), IDevice
 
     public IComputePipelineState CreateComputePipeline(ComputePipelineDesc desc)
     {
-        throw new NotSupportedException();
+        logger.Warning("Compute Pipeline State is not supported on WebGL");
+        return NullComputePipelineState.Instance;
     }
 
     public IPipelineStateCache CreatePipelineStateCache()
     {
-        throw new NotImplementedException();
+        logger.Warning("Pipeline State Cache is not supported on WebGL");
+        return NullPipelineStateCache.Instance;
     }
 
     public IPipelineStateCache CreatePipelineStateCache(byte[] initialData)
     {
-        throw new NotImplementedException();
+        logger.Warning("Pipeline State Cache is not supported on WebGL");
+        return NullPipelineStateCache.Instance;
     }
 
     public ITexture CreateTexture(in TextureDesc desc)
     {
-        throw new NotImplementedException();
+        return CreateTexture(desc, []);
     }
 
-    public ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
+    public unsafe ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
     {
-        throw new NotImplementedException();
+        var texDescSize = Unsafe.SizeOf<TextureDescDto>();
+        var texDataSize = Unsafe.SizeOf<TextureDataDto>();
+        var resultSize = Unsafe.SizeOf<ResultNative>();
+        
+        var textureDatas = subresources as ITextureData[] ?? subresources.ToArray();
+        
+        var totalMemory = 0;
+        
+        if (desc.Usage is Usage.Immutable or Usage.Default && (desc.BindFlags & BindFlags.RenderTarget) == 0)
+        {
+            if (TextureUtils.IsTextureArray(desc))
+            {
+                if (desc.MipLevels * desc.ArraySizeOrDepth != textureDatas.Length)
+                    throw new DeviceException(
+                        $"MipLevels or ArraySize or Depth does not match SubResources Count. MipLevels={desc.MipLevels}, ArraySizeOrDepth={desc.ArraySizeOrDepth}, SubResources={textureDatas.Length}");
+
+                for (var i = 0; i < textureDatas.Length; ++i)
+                {
+                    var mipSize = TextureUtils.CalculateMipSize(desc, i % (int)desc.MipLevels);
+                    var size = mipSize.Y * mipSize.Z * (int)textureDatas[i].Stride;
+                    if (textureDatas[i].Data != IntPtr.Zero)
+                        totalMemory += size;
+                }
+            }
+            else
+            {
+                if (textureDatas.Length != desc.MipLevels)
+                    throw new DeviceException(
+                        $"MipLevels Count does not match SubResources Count. MipLevels={desc.MipLevels}, SubResources={textureDatas.Length}");
+
+                for (var i = 0; i < textureDatas.Length; ++i)
+                {
+                    var mipSize = TextureUtils.CalculateMipSize(desc, i);
+                    var size = mipSize.Y * mipSize.Z * (int)textureDatas[i].Stride;
+                    if (textureDatas[i].Data != IntPtr.Zero)
+                        totalMemory += size;
+                }
+            }
+        }
+
+        totalMemory += texDescSize;
+        totalMemory += texDataSize * textureDatas.Length;
+        totalMemory += resultSize;
+
+        // Allocate enough memory on driver side
+        // Then copy all data into this memory and creates Texture handle
+        var memData = NativeApis.js_malloc(totalMemory);
+        NativeApis.js_memset(memData, 0x0, totalMemory);
+        
+        var resultPtr = memData;
+        var texDescPtr = resultPtr + Unsafe.SizeOf<ResultNative>();
+        var subResourcesPtr = texDescPtr + Unsafe.SizeOf<TextureDescDto>();
+        var resourcesDataPtr = subResourcesPtr + Unsafe.SizeOf<TextureDataDto>() * textureDatas.Length;
+
+        if (textureDatas.Length == 0)
+            subResourcesPtr = resourcesDataPtr = IntPtr.Zero;
+        
+        var texDto = new TextureDescDto(desc);
+        // Copy Desc Data
+        fixed(void* ptr = texDto)
+            NativeApis.js_memcpy(ptr, texDescPtr, texDescSize);
+
+        var nextResourceStructPtr = subResourcesPtr;
+        var nextResourceDataPtr = resourcesDataPtr;
+        
+        for (var i = 0; i < textureDatas.Length; ++i)
+        {
+            var mipSize = TextureUtils.CalculateMipSize(desc, i % (int)desc.MipLevels);
+            var texData = new TextureDataDto(textureDatas[i], nextResourceDataPtr);
+            fixed(void* ptr = texData)
+                NativeApis.js_memcpy(ptr, nextResourceStructPtr, texDataSize);
+
+            nextResourceStructPtr += texDataSize;
+            if(textureDatas[i].SrcBuffer is not null)
+                continue;
+
+            var size = mipSize.Y * mipSize.Z * (int)textureDatas[i].Stride;
+            // Copy Data to Driver Data
+            NativeApis.js_memcpy(textureDatas[i].Data.ToPointer(), nextResourceDataPtr, size);
+            nextResourceDataPtr += size;
+        }
+        
+        var result = new ResultNative();
+        js_rengine_device_create_texture(
+            Handle,
+            texDescPtr,
+            resourcesDataPtr,
+            textureDatas.Length,
+            resultPtr);
+
+        fixed(void* ptr = result)
+            NativeApis.js_memcpy(resultPtr, ptr, resultSize);
+        NativeApis.js_free(memData);
+        NativeApis.js_free(texDto.Name);
+
+        if (result.Error != IntPtr.Zero)
+            throw new DeviceException(NativeApis.js_get_string(result.Error));
+        if (result.Value == IntPtr.Zero)
+            throw new NullReferenceException(
+                $"Could not possible to create {nameof(ITexture)} object. Device returned null.");
+        
+        return new TextureImpl(result.Value);
     }
 }

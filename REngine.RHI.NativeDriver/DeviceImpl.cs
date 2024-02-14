@@ -38,7 +38,7 @@ namespace REngine.RHI.NativeDriver
 			}
 		}
 
-		public unsafe IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : struct
+		public unsafe IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : unmanaged
 		{
 			return CreateBuffer(desc, new IntPtr(Unsafe.AsPointer(ref data)), (ulong)Unsafe.SizeOf<T>());
 		}

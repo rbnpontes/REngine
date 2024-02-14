@@ -79,6 +79,7 @@ public sealed class WebEngineInstance(IEngineApplication app, IWebStorage storag
                 {
                     Window = nativeWindow,
                     MessageEvent = OnDriverMessage,
+                    LoggerFactory = provider.Get<ILoggerFactory>(),
                     SwapChainDesc =  new SwapChainDesc(pGraphicsSettings)
                     {
                         Size = new SwapChainSize(window.Size),

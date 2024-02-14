@@ -26,7 +26,7 @@ internal class NullDevice : IDevice
         throw new NotImplementedException();
     }
 
-    public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : struct
+    public IBuffer CreateBuffer<T>(in BufferDesc desc, T data) where T : unmanaged
     {
         throw new NotImplementedException();
     }

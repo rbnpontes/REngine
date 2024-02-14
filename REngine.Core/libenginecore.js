@@ -405,7 +405,7 @@ function console_warn(arr_id) {
  * Log error value on console
  * @param {number} arr_id
  */
-function console_err(arr_id) {
+function console_error(arr_id) {
     console.error.apply(console, _internal_arrayList[arr_id]);
 }
 
@@ -562,11 +562,11 @@ function free_internal_memory() {
  * make fetch request
  * @param {string} url
  * @param {'GET' | 'POST'}method
- * @return {Promise<{data: Int8Array, length: number}>}
+ * @return {Promise<{data: Uint8Array, length: number}>}
  */
 async function _fetch(url, method) {
     const buffer = await fetch(url, {method}).then(x => x.arrayBuffer());
-    const view = new Int8Array(buffer);
+    const view = new Uint8Array(buffer);
     return { data: view, length: view.length };
 }
 
@@ -576,7 +576,7 @@ async function _fetch(url, method) {
  * @param buffer
  */
 function fetch_read_result(result, buffer) {
-    buffer.set(result, 0);
+    buffer.set(result.data, 0);
 }
 
 export function init() {
@@ -616,7 +616,7 @@ export function init() {
         object_set_prop,
         console_log,
         console_warn,
-        console_err,
+        console_error,
         session_storage_length,
         session_storage_keys,
         session_storage_set,

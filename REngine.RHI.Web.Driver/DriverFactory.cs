@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
 using REngine.Core;
+using REngine.Core.IO;
 using REngine.Core.Web;
 using REngine.RHI.Web.Driver.Models;
 
@@ -25,6 +26,7 @@ public struct MessageEventData()
 public struct DriverFactoryCreateInfo()
 {
     public NativeWindow? Window = null;
+    public ILoggerFactory? LoggerFactory = null;
     public Action<MessageEventData> MessageEvent = (evtData) => { };
     public SwapChainDesc SwapChainDesc = new();
 }
@@ -61,6 +63,8 @@ public static partial class DriverFactory
     {
         if (createInfo.Window is null)
             throw new NullReferenceException("Window is required");
+        
+        var loggerFactory = createInfo.LoggerFactory ?? new WebLoggerFactory();
         var selector = createInfo.Window.Value.CanvasSelector;
         var canvasElement = DomUtils.QuerySelector(selector);
         if (canvasElement is null)
@@ -93,7 +97,7 @@ public static partial class DriverFactory
         
 
         var commandBuffer = new CommandBufferImpl(driverResult.Context);
-        var device = new DeviceImpl(driverResult.Device);
+        var device = new DeviceImpl(driverResult.Device, loggerFactory.Build<IDevice>());
         var driver = new DriverImpl(commandBuffer, device, driverResult.Factory, messageCallbackPtr);
         
         return (driver, new SwapChainImpl(result.SwapChain));

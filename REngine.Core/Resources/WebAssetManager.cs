@@ -12,6 +12,7 @@ public sealed class WebAssetManager(
     IServiceProvider serviceProvider) : BaseAssetManager(loggerFactory, engineEvents, serviceProvider)
 {
     private bool pStarted;
+    private Dictionary<string, string> pAssetAddresses = new();
     protected override void OnStart()
     {
         mLogger.Warning($"Invalid Call. Please use '{nameof(OnStartAsync)}' instead");
@@ -25,10 +26,23 @@ public sealed class WebAssetManager(
         if (settings.HttpSettings is null)
             throw new NullReferenceException(
                 $"{nameof(HttpAssetManagerSettings)} is required on {nameof(AssetManagerSettings)}");
+        mLogger.Debug("Loading Metadata: " + settings.HttpSettings.MetadataUrl);
         var data = await WebFetch.Get(settings.HttpSettings.MetadataUrl);
-        var str = Encoding.UTF8.GetString(data);
-        mLogger.Debug("Metadata: ", str);
+        var items = Encoding.UTF8.GetString(data).Split('\n');
+        var baseAssetPath = settings.HttpSettings.MetadataUrl.Replace(Path.GetFileName(settings.HttpSettings.MetadataUrl), string.Empty);
 
+        foreach (var item in items)
+        {
+            var targetItem = item.Trim();
+            var assetPath = targetItem;
+            if(string.IsNullOrEmpty(targetItem))
+                continue;
+            if (!(targetItem.StartsWith("http://") || targetItem.StartsWith("https://")))
+                assetPath = $"{baseAssetPath}{item}";
+            
+            Console.WriteLine($"Asset Item: [{targetItem}] = {assetPath}");
+            pAssetAddresses[targetItem] = assetPath;
+        }
         pStarted = true;
     }
 
@@ -38,7 +52,7 @@ public sealed class WebAssetManager(
 
     public override string[] GetAssets()
     {
-        return [];
+        return pAssetAddresses.Keys.ToArray();
     }
 
     public override AssetStream GetStream(string assetName)
@@ -48,7 +62,10 @@ public sealed class WebAssetManager(
     public override async Task<AssetStream> GetAsyncStream(string assetName)
     {
         await OnStartAsync();
-        throw new NotImplementedException();
+        if (!pAssetAddresses.TryGetValue(assetName, out var assetUrl))
+            throw new NotFoundAssetException(assetName);
+        var memStream = await DownloadFile(assetUrl);
+        return new AssetStream(assetName, memStream);
     }
 
     public override Asset GetAsset(string assetName, Type assetType)
@@ -68,5 +85,11 @@ public sealed class WebAssetManager(
     {
         var asset = await TryGetAsyncAsset<T>(assetName);
         return asset ?? throw new NotFoundAssetException(assetName);
+    }
+
+    private async Task<Stream> DownloadFile(string url)
+    {
+        var data = await WebFetch.Get(url);
+        return new MemoryStream(data);
     }
 }
