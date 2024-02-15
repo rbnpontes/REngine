@@ -5,11 +5,15 @@ namespace REngine.RHI.Web.Driver;
 
 internal partial class CommandBufferImpl
 {
+    private class MappedData
+    {
+        public IntPtr Data = IntPtr.Zero;
+        public IntPtr DriverData = IntPtr.Zero;
+        public MapFlags Flags;
+    }
+    
     private IntPtr pDriverMem = NativeApis.js_malloc((int)DriverSettings.CommandBufferMemorySize);
-    private ArrayPool<byte> pPool = ArrayPool<byte>.Shared;
-    private byte[] pMappedData = [];
-    private GCHandle? pPinnedHandle;
-    private IntPtr pMappedPtr = IntPtr.Zero;
+    private Dictionary<IntPtr, MappedData> pMappedDataMap = new();
     
     private float[] pFloatArray = new float[4];
 }

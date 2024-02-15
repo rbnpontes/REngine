@@ -353,15 +353,9 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        if(pMappedData.Length > 0)
-            pPool.Return(pMappedData);
-        pPinnedHandle?.Free();
-
-        pMappedData = pPool.Rent((int)buffer.Size);
-        pPinnedHandle = GCHandle.Alloc(pMappedData);
-
+        var data = Map(buffer, mapType, mapFlags);
         var len = (int)buffer.Size / Unsafe.SizeOf<T>();
-        return new Span<T>(pPinnedHandle.Value.AddrOfPinnedObject().ToPointer(), len);
+        return new Span<T>(data.ToPointer(), len);
     }
 
     public unsafe IntPtr Map(IBuffer buffer, MapType mapType, MapFlags mapFlags)
@@ -370,23 +364,27 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        
-        if(pMappedData.Length > 0)
-            pPool.Return(pMappedData);
-        if(pPinnedHandle.HasValue)
-            pPinnedHandle.Value.Free();
 
-        pMappedData = pPool.Rent((int)buffer.Size);
-        pPinnedHandle = GCHandle.Alloc(pMappedData);
-        pMappedPtr = js_rengine_cmdbuffer_map(
-            Handle, buffer.Handle, (int)mapType, (int)mapFlags);
-        
-        var ptr = pPinnedHandle.Value.AddrOfPinnedObject();
-        // Copy Buffer Data into Pinned Reference
-        if (mapType is MapType.Read or MapType.ReadWrite)
+        if (!pMappedDataMap.TryGetValue(buffer.Handle, out var mappedData))
         {
+            mappedData = new MappedData()
+            {
+                Data = Marshal.AllocHGlobal((int)buffer.Size),
+                Flags = mapFlags
+            };
+            pMappedDataMap[buffer.Handle] = mappedData;
         }
-        return pPinnedHandle.Value.AddrOfPinnedObject();
+
+        if (mappedData.Data == IntPtr.Zero)
+            mappedData.Data = Marshal.AllocHGlobal((int)buffer.Size);
+
+        if (mapType is not (MapType.Read or MapType.ReadWrite)) 
+            return mappedData.Data;
+        
+        var driverPtr = js_rengine_cmdbuffer_map(Handle, buffer.Handle, (int)mapType, (int)mapFlags);
+        mappedData.DriverData = driverPtr;
+        NativeApis.js_memcpy(driverPtr.ToPointer(), mappedData.Data, (int)buffer.Size);
+        return mappedData.Data;
     }
 
     public unsafe ICommandBuffer Unmap(IBuffer buffer, MapType mapType)
@@ -395,21 +393,19 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        if (pPinnedHandle is null || pMappedData.Length == 0)
+
+        if (!pMappedDataMap.TryGetValue(buffer.Handle, out var mappedData))
             return this;
 
-        // fixed (void* ptr = pMappedData.AsSpan())
-        // {
-        //     js_rengine_cmdbuffer_map(
-        //         Handle,
-        //         buffer.Handle,
-        //         (in))
-        // }
+        if (mappedData.DriverData == IntPtr.Zero)
+            mappedData.DriverData = js_rengine_cmdbuffer_map(Handle, buffer.Handle, (int)mapType, (int)mappedData.Flags);
         
+        if(mapType is MapType.Write or MapType.ReadWrite)
+            NativeApis.js_memcpy(mappedData.Data.ToPointer(), mappedData.DriverData, (int)buffer.Size);
         
-        pPinnedHandle?.Free();
-        pPool.Return(pMappedData);
-        pMappedData = [];
+        js_rengine_cmdbuffer_unmap(Handle, buffer.Handle, (int)mapType);
+        Marshal.FreeHGlobal(mappedData.Data);
+        mappedData.DriverData = mappedData.Data = IntPtr.Zero;
         return this;
     }
 

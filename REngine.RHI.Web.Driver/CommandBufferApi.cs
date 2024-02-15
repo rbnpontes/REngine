@@ -74,4 +74,10 @@ internal partial class CommandBufferImpl
         IntPtr buffer,
         int mapType,
         int mapFlags);
+
+    [JSImport("_rengine_cmdbuffer_unmap", Constants.LibName)]
+    public static partial void js_rengine_cmdbuffer_unmap(
+        IntPtr handle,
+        IntPtr buffer,
+        int mapType);
 }
