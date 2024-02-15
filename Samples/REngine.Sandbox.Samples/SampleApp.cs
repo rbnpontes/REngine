@@ -1,5 +1,7 @@
 #if ANDROID
 using App = REngine.Core.Android.App;
+#elif WEB
+using App = REngine.Core.Web.App;
 #else
 using App = REngine.Core.Desktop.App;
 #endif
@@ -28,7 +30,8 @@ public class SampleApp : App
          base.OnStart(provider);
          var window = MainWindow;
          window.Title = "[REngine] Samples";
-         window.Size = new Size(800, 500);
+         if(!Platform.IsWeb())
+             window.Size = new Size(800, 500);
          
          provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
          pSampleWindow.EngineStart(provider);

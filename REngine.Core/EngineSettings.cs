@@ -11,6 +11,9 @@ namespace REngine.Core
 	{
 #if ANDROID
 		public static readonly int MaxAllowedJobs = 4;
+#elif WEB
+		// TODO: change this value when .NET team implements Multithreading support
+		public static readonly int MaxAllowedJobs = 0;
 #else
 		public static readonly int MaxAllowedJobs = 10;
 #endif

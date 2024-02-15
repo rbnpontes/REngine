@@ -50,20 +50,33 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
 #if RENGINE_VALIDATIONS
         ValidateBufferDesc(desc);
 #endif
-        var descSize = Unsafe.SizeOf<BufferDescDto>();
         var resultSize = Unsafe.SizeOf<ResultNative>();
-        var totalMemory = resultSize + descSize + (int)size;
+        var descSize = Unsafe.SizeOf<BufferDescDto>();
+        var totalMemory = resultSize + descSize;
+        
+        if (data != IntPtr.Zero)
+            totalMemory += (int)size;
 
+        logger.Debug("Total Memory: " + totalMemory);
+        
         var resultPtr = NativeApis.js_malloc(totalMemory);
         var descPtr = resultPtr + resultSize;
         var dataPtr = descPtr + descSize;
         NativeApis.js_memset(resultPtr, 0x0, totalMemory);
 
+        if (data == IntPtr.Zero)
+            dataPtr = IntPtr.Zero;
+        
         var result = new ResultNative();
         var descDto = new BufferDescDto(desc);
         fixed(void* ptr = descDto)
             NativeApis.js_memcpy(ptr, descPtr, descSize);
-        NativeApis.js_memcpy(data.ToPointer(), dataPtr, (int)size);
+        if(data != IntPtr.Zero)
+            NativeApis.js_memcpy(data.ToPointer(), dataPtr, (int)size);
+
+        logger.Debug("js_rengine_device_create_buffer");
+        logger.Debug(Handle, descPtr, size, dataPtr, resultPtr);
+        logger.Debug(desc.ToJson());
         
         js_rengine_device_create_buffer(Handle, descPtr, (int)size, dataPtr, resultPtr);
         fixed(void* ptr = result)

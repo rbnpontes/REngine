@@ -9,6 +9,8 @@ using REngine.Core.Mathematics;
 
 namespace REngine.Core.Threading
 {
+	//TODO: enable this when .NET team implements Multithreading support
+#if !WEB
 	internal class ThreadCoordinator(ILoggerFactory loggerFactory) : IDisposable
 	{
 		private readonly ConcurrentQueue<Action> pActions = new();
@@ -123,4 +125,5 @@ namespace REngine.Core.Threading
 			}
 		}
 	}
+#endif
 }

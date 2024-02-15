@@ -16,8 +16,10 @@ namespace REngine.Core.Threading
         
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
+#if !WEB
         private readonly ThreadCoordinator pCoordinator;
-
+#endif
+        
         private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
         private readonly Action<EpNode> pExecNodeAction;
@@ -32,7 +34,11 @@ namespace REngine.Core.Threading
         private IDictionary<ulong, EpNode> pNodesTable = new Dictionary<ulong, EpNode>();
         private EpNode? pLastNode;
 
+#if WEB
+        public byte JobsCount => 0;
+#else
         public byte JobsCount => (byte)pCoordinator.JobsCount;
+#endif
         
         public ExecutionPipelineImpl(
             EngineEvents engineEvents,
@@ -42,7 +48,9 @@ namespace REngine.Core.Threading
         {
             pNodeRegistry = nodeRegistry;
             pLogger = factory.Build<IExecutionPipeline>();
+#if !WEB       
             pCoordinator = new ThreadCoordinator(factory);
+#endif
             pEngineSettings = engineSettings;
 
             engineEvents.OnBeforeStop += HandleStop;
@@ -63,7 +71,9 @@ namespace REngine.Core.Threading
 
             StopTokenSource.Cancel();
             ClearAllEvents();
+#if !WEB
             pCoordinator.Dispose();
+#endif
             pNodes.Clear();
             pNodesTable.Clear();
 
@@ -95,11 +105,15 @@ namespace REngine.Core.Threading
             {
                 lock (pSyncObj)
                     pExecuteMainThreadCalls.Clear();
+#if !WEB
                 pCoordinator.Dispose();
+#endif
                 return this;
             }
 
+#if !WEB
             pCoordinator.Start(pEngineSettings.JobsThreadCount);
+#endif
 
             // Execute Scheduled Calls
             while (true)
@@ -204,7 +218,7 @@ namespace REngine.Core.Threading
             // If job count is 0, then we must run this action at main thread
             // If current thread is not Main Thread, then we schedule action
             // to execute on main thread.
-            if (pCoordinator.JobsCount == 0)
+            if (JobsCount == 0)
             {
                 if (Thread.CurrentThread.Name == "REngine - Main Thread")
                     action();
@@ -212,13 +226,21 @@ namespace REngine.Core.Threading
                     Invoke(action);
             }
             else
+            {
+#if !WEB
                 pCoordinator.EnqueueAction(action);
+#endif
+            }
 	        return this;
         }
 
         public IExecutionPipeline SetThreadSleep(int threadSleep)
         {
+#if WEB
+            pLogger.Warning($"{nameof(SetThreadSleep)} is not supported on Web Platform.");
+#else
             pCoordinator.SetThreadSleep(threadSleep);
+#endif
             return this;
         }
 

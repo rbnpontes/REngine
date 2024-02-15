@@ -226,7 +226,6 @@ export async function init() {
     const driverCalls = {};
 
     driverCallKeys.forEach(key => driverCalls[key] = module[key]);
-
     const getModule = ()=> module;
     return {
         malloc,
@@ -249,6 +248,6 @@ export async function init() {
         unregister_function,
         get_string,
         alloc_string,
-        ...driverCalls
+        ...driverCalls,
     };
 }
