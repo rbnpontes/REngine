@@ -57,8 +57,6 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         if (data != IntPtr.Zero)
             totalMemory += (int)size;
 
-        logger.Debug("Total Memory: " + totalMemory);
-        
         var resultPtr = NativeApis.js_malloc(totalMemory);
         var descPtr = resultPtr + resultSize;
         var dataPtr = descPtr + descSize;
@@ -73,10 +71,6 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
             NativeApis.js_memcpy(ptr, descPtr, descSize);
         if(data != IntPtr.Zero)
             NativeApis.js_memcpy(data.ToPointer(), dataPtr, (int)size);
-
-        logger.Debug("js_rengine_device_create_buffer");
-        logger.Debug(Handle, descPtr, size, dataPtr, resultPtr);
-        logger.Debug(desc.ToJson());
         
         js_rengine_device_create_buffer(Handle, descPtr, (int)size, dataPtr, resultPtr);
         fixed(void* ptr = result)
