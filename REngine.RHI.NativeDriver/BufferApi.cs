@@ -13,7 +13,6 @@ namespace REngine.RHI.NativeDriver
 		[DllImport(Constants.Lib)]
 		static extern void rengine_buffer_getdesc(IntPtr buffer, ref BufferDescDTO output);
 		[DllImport(Constants.Lib)]
-
 		static extern void rengine_buffer_create_view(IntPtr buffer, ref BufferViewCreateDescDTO createDesc,
 			ref ResultNative result);
 		[DllImport(Constants.Lib)]

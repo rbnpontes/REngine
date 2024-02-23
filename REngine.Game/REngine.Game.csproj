@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
-        <Platforms>x64</Platforms>
+        <Platforms>x64;AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

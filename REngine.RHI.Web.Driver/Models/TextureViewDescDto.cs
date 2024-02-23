@@ -2,17 +2,26 @@ using System.Runtime.InteropServices;
 
 namespace REngine.RHI.Web.Driver.Models;
 
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit)]
 internal unsafe struct TextureViewDescDto
 {
+    [FieldOffset(0)]
     public byte ViewType;
+    [FieldOffset(4)]
     public byte Dimension;
+    [FieldOffset(8)]
     public ushort Format;
+    [FieldOffset(12)]
     public uint MostDetailedMip;
+    [FieldOffset(16)]
     public uint MipLevels;
+    [FieldOffset(20)]
     public uint FirstSlice;
+    [FieldOffset(24)]
     public uint SlicesCount;
+    [FieldOffset(28)]
     public uint AccessFlags;
+    [FieldOffset(32)]
     public byte AllowMipMapGeneration;
     
     public TextureViewDescDto() {}

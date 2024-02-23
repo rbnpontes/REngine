@@ -13,8 +13,21 @@ internal partial class SwapChainImpl : ISwapChain
     private readonly InternalTextureView? pDepthBuffer;
     public bool IsDisposed { get; private set; }
     public SwapChainDesc Desc { get; private set; }
-    public SwapChainSize Size { get; set; }
-    public SwapChainTransform Transform { get; set; }
+    public SwapChainSize Size
+    {
+        get => Desc.Size;
+        set => Resize(value.Width, value.Height, Transform);
+    }
+
+    public SwapChainTransform Transform
+    {
+        get => Desc.Transform;
+        set
+        {
+            var size = Desc.Size;
+            Resize(size.Width, size.Height, value);
+        }
+    }
     public ITextureView ColorBuffer => pColorBuffer;
     public ITextureView? DepthBuffer => pDepthBuffer;
     public uint BufferCount => Desc.BufferCount;

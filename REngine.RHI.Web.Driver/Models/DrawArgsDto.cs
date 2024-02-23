@@ -30,14 +30,20 @@ internal unsafe struct DrawArgsDto
     }
 }
 
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit)]
 internal unsafe struct DrawIndexedArgsDto
 {
+    [FieldOffset(0)]
     public uint NumIndices;
+    [FieldOffset(4)]
     public ValueType IndexType;
+    [FieldOffset(8)]
     public uint NumInstances;
+    [FieldOffset(12)]
     public uint FirstIndexLocation;
+    [FieldOffset(16)]
     public uint BaseVertex;
+    [FieldOffset(20)]
     public uint FirstInstanceLocation;
 
     public DrawIndexedArgsDto()

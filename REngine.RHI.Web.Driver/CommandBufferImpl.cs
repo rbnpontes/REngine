@@ -185,17 +185,25 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ValidateVertexBuffer(buffers);
 #endif
 
+        var buffersPtr = pDriverMem;
+        var offsetsPtr = buffersPtr + sizeof(int) * buffers.Length;
+#if RENGINE_VALIDATIONS
+        var requiredMemSize = (sizeof(int) * buffers.Length) + (offsets.Length * sizeof(int));
+        if (requiredMemSize >= DriverSettings.CommandBufferMemorySize)
+            throw new InvalidOperationException($"You exceeded Command Buffer Memory Usage. Increase Memory Size on {nameof(DriverSettings)}. Required Size={requiredMemSize}, Current Size={DriverSettings.CommandBufferMemorySize}");
+#endif
+        
         for (var i = 0; i < buffers.Length; ++i)
         {
 #if RENGINE_VALIDATIONS
             ValidateGpuObject(buffers[i]);
 #endif
-            NativeApis.js_write_i32(pDriverMem + i, buffers[i].Handle.ToInt32());
-            NativeApis.js_write_i32(pDriverMem + buffers.Length + i, (int)offsets[i]);
+            NativeApis.js_write_i32(buffersPtr + sizeof(int) * i, buffers[i].Handle.ToInt32());
+            NativeApis.js_write_i32(offsetsPtr + sizeof(int) * i, (int)offsets[i]);
         }
         
         js_rengine_cmdbuffer_setvbuffer(
-            Handle, (int)startSlot, buffers.Length, pDriverMem, pDriverMem + buffers.Length,
+            Handle, (int)startSlot, buffers.Length, buffersPtr, offsetsPtr,
             reset ? 0x1 : 0x0, 0x0);
         return this;
     }
@@ -206,9 +214,8 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         ValidateGpuObject(buffer);
 #endif
-        NativeApis.js_write_i32(pDriverMem, buffer.Handle.ToInt32());
         js_rengine_cmdbuffer_setibuffer(
-            Handle, pDriverMem, (int)byteOffset, 0x0);
+            Handle, buffer.Handle, (int)byteOffset, 0x0);
         return this;
     }
 
@@ -243,7 +250,7 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
 #endif
         var drawArgs = new DrawIndexedArgsDto(args);
         fixed(void* argsPtr = drawArgs)
-            NativeApis.js_memcpy(pDriverMem, argsPtr, Unsafe.SizeOf<DrawIndexedArgsDto>());
+            NativeApis.js_memcpy(argsPtr, pDriverMem, Unsafe.SizeOf<DrawIndexedArgsDto>());
         js_rengine_cmdbuffer_drawindexed(Handle, pDriverMem);
         return this;
     }

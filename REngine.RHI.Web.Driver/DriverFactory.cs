@@ -69,14 +69,14 @@ public static partial class DriverFactory
         var canvasElement = DomUtils.QuerySelector(selector);
         if (canvasElement is null)
             throw new NullReferenceException("Canvas Selector is not found or is not a valid selector");
+        
         var autoResize = createInfo.SwapChainDesc.Size is { Width: 0, Height: 0 };
-
         if (autoResize)
         {
             var swapChainSize = DomUtils.GetElementSize(canvasElement);
             createInfo.SwapChainDesc.Size = new SwapChainSize(swapChainSize.ToSize());
         }
-        
+
         var swapChainDesc = new SwapChainDescDto(createInfo.SwapChainDesc);
         var (settingsPtr, messageCallbackPtr) = CreateDriverSettingsPtr(createInfo);
         var (nativeWindowPtr, canvasSelectorPtr) = CreateNativeWindowPtr(selector);

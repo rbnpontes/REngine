@@ -1,10 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <!-- Base Project Configuration -->
     <PropertyGroup>
-        <Platforms>x64</Platforms>
+        <Platforms>x64;AnyCPU</Platforms>
         <PlatformTarget>x64</PlatformTarget>
         <BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
-        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler</Configurations>
+        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
         <DefineConstants>$(DefineConstants);RENGINE_SPRITEBATCH;RENGINE_RENDERGRAPH;RENGINE_VALIDATIONS</DefineConstants>
     </PropertyGroup>
     
@@ -48,6 +48,7 @@
         <DefineConstants>$(DefineConstants);PROFILER</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(IsWeb)'=='1'">
+        <PlatformTarget>AnyCPU</PlatformTarget>
         <DefineConstants>$(DefineConstants);WEB</DefineConstants>
     </PropertyGroup>
     
