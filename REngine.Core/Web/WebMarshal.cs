@@ -46,7 +46,7 @@ public static partial class WebMarshal
             Action action => action.ToJsObject(),
             StringBuilder str => str.ToString().ToJsObject(),
             IJavaScriptContract contract => contract.GetJsObject(),
-            _ => obj
+            _ => obj.ToString().ToJsObject()
         };
 
         return obj;

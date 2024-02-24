@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.IO;
 using REngine.Core.Resources;
+#if !WEB
 using SFML.Audio;
-
+#endif
 namespace REngine.Assets
 {
 #if !WEB

@@ -4,8 +4,10 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if !WEB
 using FreeTypeSharp;
 using FreeTypeSharp.Native;
+#endif
 using REngine.Core.Resources;
 
 namespace REngine.Assets
@@ -104,8 +106,8 @@ namespace REngine.Assets
 				return pCharData[glyphIndex];
 			}
 		}
-#endif
 		private FreeTypeLibrary? pLib;
+#endif
 		private IntPtr pFace = IntPtr.Zero;
 		private Font? pFont;
 		
@@ -124,8 +126,10 @@ namespace REngine.Assets
 
 		protected override void OnDispose()
 		{
+#if !WEB
 			pLib?.Dispose();
 			pLib = null;
+#endif
 			pFace = IntPtr.Zero;
 			pFont = null;
 			GC.SuppressFinalize(this);

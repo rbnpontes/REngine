@@ -17,6 +17,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\REngine.Core\REngine.Core.csproj" />
+	</ItemGroup>
+<!--FIXME: Implement Audio Solution and FreeType on Web-->
+	<ItemGroup Condition="'$(IsWeb)'=='0'">
 	  <ProjectReference Include="..\ThirdParty\FreeTypeSharp\FreeTypeSharp.csproj" />
 	  <ProjectReference Include="..\ThirdParty\SFML.Audio\SFML.Audio.csproj" />
 	</ItemGroup>

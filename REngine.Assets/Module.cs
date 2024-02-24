@@ -13,6 +13,7 @@ namespace REngine.Assets
 	{
 		static AssetsModule()
 		{
+#if !WEB
 			try
 			{
 				NativeLibrary.SetDllImportResolver(typeof(SFML.Audio.Music).Assembly,
@@ -24,6 +25,7 @@ namespace REngine.Assets
 			{
 				// ignored
 			}
+#endif
 		}
 
 		public void Setup(IServiceRegistry registry)

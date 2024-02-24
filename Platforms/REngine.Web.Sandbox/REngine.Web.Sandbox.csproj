@@ -3,18 +3,19 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-<!--        <RunAOTCompilation>true</RunAOTCompilation>-->
+        <RunAOTCompilation>true</RunAOTCompilation>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 <!--        <PublishTrimmed>true</PublishTrimmed>-->
 <!--        <TrimMode>full</TrimMode>-->
 <!--        <WasmStripILAfterAOT>true</WasmStripILAfterAOT>-->
         <WasmNativeDebugSymbols>true</WasmNativeDebugSymbols>
         <WasmDebugLevel>1</WasmDebugLevel>
-        <Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
-        <Platforms>x64;AnyCPU</Platforms>
+        <WasmEmitSymbolMap>true</WasmEmitSymbolMap>
+        <WasmEmitSourceMap>true</WasmEmitSourceMap>
     </PropertyGroup>
     
     <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
     <PropertyGroup>
         <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
         <PlatformTarget>AnyCPU</PlatformTarget>

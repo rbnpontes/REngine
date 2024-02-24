@@ -1,3 +1,6 @@
+using System.Text;
+using REngine.Core.Serialization;
+
 namespace REngine.Core.Web;
 
 internal enum LogType
@@ -18,6 +21,17 @@ public static partial class WebConsole
     {
 #if WEB
         var arr = new JSArray();
+
+        StringBuilder str = new();
+        str.Append($"[{type}]: ");
+        for (var i = 0; i < args.Length; ++i)
+        {
+            str.Append(args[i].ToJson());
+            if(i < args.Length - 1)
+                str.Append(", ");
+        }
+        Console.WriteLine(str);
+            
         foreach (var arg in args)
             arr.Add(arg);
 
