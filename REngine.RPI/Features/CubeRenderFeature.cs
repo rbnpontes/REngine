@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.IO;
 using REngine.Core.Resources;
+using REngine.Core.Threading;
 using REngine.RPI.Resources;
 
 namespace REngine.RPI.Features
@@ -22,30 +23,33 @@ namespace REngine.RPI.Features
 		public Camera? Camera { get; set; }
 	}
 
-	internal class CubeRenderFeature : GraphicsRenderFeature, ICubeRenderFeature
+	internal class CubeRenderFeature(
+		GraphicsSettings settings,
+		IRenderer renderer,
+		IExecutionPipeline executionPipeline) : AsyncGraphicsRenderFeature(renderer, executionPipeline), ICubeRenderFeature
 	{
-		protected GraphicsSettings pSettings;
-		protected GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube Pipeline" };
-		protected BufferDesc pVertexBufferDesc = new BufferDesc { 
+		private GraphicsPipelineDesc pPipelineDesc = new GraphicsPipelineDesc { Name = "Cube Pipeline" };
+
+		private BufferDesc pVertexBufferDesc = new BufferDesc { 
 			Name = "VBuffer",
 			Usage = Usage.Immutable,
 			BindFlags = BindFlags.VertexBuffer,
 		};
-		protected BufferDesc pIndexBufferDesc = new BufferDesc { 
+
+		private BufferDesc pIndexBufferDesc = new BufferDesc { 
 			Name = "IBuffer",
 			Usage = Usage.Immutable,
 			BindFlags = BindFlags.IndexBuffer
 		};
 
-		protected IBuffer? pVertexBuffer;
-		protected IBuffer? pIndexBuffer;
-		protected IBuffer? pObjectCBuffer;
-		protected IBuffer? pCamCBuffer;
-		protected IPipelineState? pPipeline;
-		protected ISwapChain? pSwapChain;
+		private IBuffer? pVertexBuffer;
+		private IBuffer? pIndexBuffer;
+		private IBuffer? pObjectCBuffer;
+		private IBuffer? pCamCBuffer;
+		private IPipelineState? pPipeline;
 
 
-		protected readonly static Vector3[] pVertices = new Vector3[]
+		private static readonly Vector3[] sVertices = new Vector3[]
 		{
 			new Vector3(-1, -1, -1),
 			new Vector3(-1, +1, -1),
@@ -58,7 +62,7 @@ namespace REngine.RPI.Features
 			new Vector3(+1, -1, +1),
 		};
 
-		protected readonly static uint[] pIndices = new uint[]
+		private static readonly uint[] sIndices = new uint[]
 		{
 			2,0,1, 2,3,0,
 			4,6,5, 4,7,6,
@@ -68,7 +72,7 @@ namespace REngine.RPI.Features
 			3,6,7, 3,2,6
 		};
 
-		protected readonly static Vector4[] pColors = new Vector4[]
+		private static readonly Vector4[] sColors = new Vector4[]
 		{
 			new Vector4(1, 0, 0, 1),
 			new Vector4(0, 1, 0, 1),
@@ -80,16 +84,9 @@ namespace REngine.RPI.Features
 			new Vector4(1, 0, 1, 1),
 			new Vector4(0.2f, 0.2f, 0.2f, 0.2f)
 		};
-
-		public override bool IsDirty { get; protected set; } = true;
-
+		
 		public Transform? Transform { get; set; }
 		public Camera? Camera { get; set; }
-
-		public CubeRenderFeature(GraphicsSettings settings) : base()
-		{
-			pSettings = settings;
-		}
 
 		protected override void OnDispose()
 		{
@@ -102,13 +99,7 @@ namespace REngine.RPI.Features
 			base.OnDispose();
 		}
 
-		public override IRenderFeature MarkAsDirty()
-		{
-			IsDirty = true;
-			return this;
-		}
-
-		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
+		protected override async Task OnSetup(RenderFeatureSetupInfo setupInfo)
 		{
 			pVertexBuffer?.Dispose();
 			pIndexBuffer?.Dispose();
@@ -116,16 +107,13 @@ namespace REngine.RPI.Features
 
 			pVertexBuffer = CreateVertexBuffer(setupInfo.Driver.Device);
 			pIndexBuffer = CreateIndexBuffer(setupInfo.Driver.Device);
-			pPipeline = CreatePipeline(
+			pPipeline = await CreatePipeline(
 				setupInfo.PipelineStateManager, 
 				setupInfo.ShaderManager, 
 				setupInfo.BufferManager,
 				setupInfo.AssetManager);
-			pSwapChain = setupInfo.Renderer.SwapChain;
 			pObjectCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Object);
 			pCamCBuffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Camera);
-
-			IsDirty = false;
 		}
 
 		protected override void OnExecute(ICommandBuffer command)
@@ -133,8 +121,8 @@ namespace REngine.RPI.Features
 #if PROFILER
 			using var _ = Profiler.Instance.Begin();
 #endif
-			ITextureView? backbuffer = GetBackBuffer();
-			ITextureView? depthbuffer = GetDepthBuffer();
+			var backbuffer = GetBackBuffer();
+			var depthbuffer = GetDepthBuffer();
 
 			if (Camera is null || Transform is null || backbuffer is null || depthbuffer is null)
 				return;
@@ -148,13 +136,13 @@ namespace REngine.RPI.Features
 
 			command
 				.SetRT(backbuffer, depthbuffer)
-				.SetVertexBuffers(0, new IBuffer[] { pVertexBuffer, pVertexBuffer }, new ulong[] { 0, (ulong)(Marshal.SizeOf<Vector3>() * pVertices.Length)})
+				.SetVertexBuffers(0, new IBuffer[] { pVertexBuffer, pVertexBuffer }, new ulong[] { 0, (ulong)(Marshal.SizeOf<Vector3>() * sVertices.Length)})
 				.SetIndexBuffer(pIndexBuffer)
 				.SetPipeline(pPipeline)
 				.CommitBindings(pPipeline.GetResourceBinding())
 				.Draw(new DrawIndexedArgs
 				{
-					NumIndices = (uint)pIndices.Length
+					NumIndices = (uint)sIndices.Length
 				});
 		}
 
@@ -165,10 +153,9 @@ namespace REngine.RPI.Features
 			command.Unmap(buffer, MapType.Write);
 		}
 
-		protected virtual IShader LoadShader(IShaderManager shaderMgr, ShaderType type, IAssetManager assetManager)
+		protected virtual async Task<IShader> LoadShader(IShaderManager shaderMgr, ShaderType type, IAssetManager assetManager)
 		{
-			string shaderPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Assets/Shaders");
-			ShaderCreateInfo shaderCI = new ShaderCreateInfo
+			var shaderCI = new ShaderCreateInfo
 			{
 				Type = type
 			};
@@ -177,15 +164,19 @@ namespace REngine.RPI.Features
 				case ShaderType.Vertex:
 					{
 						shaderCI.Name = "Cube Vertex Shader";
-						shaderCI.SourceCode = assetManager.GetAsset<ShaderAsset>("Shaders/cube_feat_vs.hlsl").ShaderCode;
+						shaderCI.SourceCode = (await assetManager.GetAsyncAsset<ShaderAsset>("Shaders/cube_feat_vs.hlsl")).ShaderCode;
 					}
 					break;
 				case ShaderType.Pixel:
 					{
 						shaderCI.Name = "Cube Pixel Shader";
-						shaderCI.SourceCode = assetManager.GetAsset<ShaderAsset>("Shaders/cube_feat_ps.hlsl").ShaderCode;
+						shaderCI.SourceCode = (await assetManager.GetAsyncAsset<ShaderAsset>("Shaders/cube_feat_ps.hlsl")).ShaderCode;
 					}
 					break;
+				case ShaderType.Compute:
+				case ShaderType.Geometry:
+				case ShaderType.Hull:
+				case ShaderType.Domain:
 				default:
 					throw new NotImplementedException();
 			}
@@ -193,17 +184,17 @@ namespace REngine.RPI.Features
 			return shaderMgr.GetOrCreate(shaderCI);
 		}
 
-		protected virtual IPipelineState CreatePipeline(
+		protected virtual async Task<IPipelineState> CreatePipeline(
 			IPipelineStateManager pipelineMgr, 
 			IShaderManager shaderMgr, 
 			IBufferManager bufferMgr, 
 			IAssetManager assetManager)
 		{
-			IShader vsShader = LoadShader(shaderMgr, ShaderType.Vertex, assetManager);
-			IShader psShader = LoadShader(shaderMgr, ShaderType.Pixel, assetManager);
+			var vsShader = await LoadShader(shaderMgr, ShaderType.Vertex, assetManager);
+			var psShader = await LoadShader(shaderMgr, ShaderType.Pixel, assetManager);
 
-			pPipelineDesc.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
-			pPipelineDesc.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
+			pPipelineDesc.Output.RenderTargetFormats[0] = settings.DefaultColorFormat;
+			pPipelineDesc.Output.DepthStencilFormat = settings.DefaultDepthFormat;
 			pPipelineDesc.BlendState.BlendMode = BlendMode.Replace;
 			pPipelineDesc.PrimitiveType = PrimitiveType.TriangleList;
 			pPipelineDesc.RasterizerState.CullMode = CullMode.Back;
@@ -251,31 +242,31 @@ namespace REngine.RPI.Features
 	
 		protected virtual IBuffer CreateVertexBuffer(IDevice device)
 		{
-			var verticesSize = Marshal.SizeOf<Vector3>() * pVertices.Length;
-			var colorsSize = Marshal.SizeOf<Vector4>() * pColors.Length;
+			var verticesSize = Marshal.SizeOf<Vector3>() * sVertices.Length;
+			var colorsSize = Marshal.SizeOf<Vector4>() * sColors.Length;
 
-			byte[] buffer = new byte[verticesSize + colorsSize];
+			var buffer = new byte[verticesSize + colorsSize];
 			pVertexBufferDesc.Size = (uint)buffer.Length;
 
-			var handle = GCHandle.Alloc(pVertices, GCHandleType.Pinned);
+			var handle = GCHandle.Alloc(sVertices, GCHandleType.Pinned);
 			Marshal.Copy(handle.AddrOfPinnedObject(), buffer, 0, verticesSize);
 			handle.Free();
 
-			handle = GCHandle.Alloc(pColors, GCHandleType.Pinned);
+			handle = GCHandle.Alloc(sColors, GCHandleType.Pinned);
 			Marshal.Copy(handle.AddrOfPinnedObject(), buffer, verticesSize, colorsSize);
 			handle.Free();
 			
 
 			var bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-			IBuffer result = device.CreateBuffer(pVertexBufferDesc, bufferHandle.AddrOfPinnedObject(), (ulong)buffer.Length);
+			var result = device.CreateBuffer(pVertexBufferDesc, bufferHandle.AddrOfPinnedObject(), (ulong)buffer.Length);
 			bufferHandle.Free();
 
 			return result;
 		}
 		protected virtual IBuffer CreateIndexBuffer(IDevice device)
 		{
-			pIndexBufferDesc.Size = (ulong)(Marshal.SizeOf<uint>() * pIndices.Length);
-			return device.CreateBuffer(pIndexBufferDesc, pIndices);
+			pIndexBufferDesc.Size = (ulong)(Marshal.SizeOf<uint>() * sIndices.Length);
+			return device.CreateBuffer(pIndexBufferDesc, sIndices);
 		}
 	}
 }
