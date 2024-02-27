@@ -202,7 +202,7 @@ namespace REngine.RPI
 			if (pSwapChain != null)
 			{
 				var swapChainSize = pSwapChain.Size;
-					UpdateFixedFrameBuffer();
+				UpdateFixedFrameBuffer();
 
 #if PROFILER
 				using (Profiler.Instance.Begin($"{nameof(IRenderer)}|Set Def. States and Clear RTs"))
