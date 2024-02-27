@@ -99,7 +99,7 @@ namespace REngine.Core.Resources
 		
 		private static void LogAssetNotFound(ILogger<IAssetManager> logger, string assetName)
 		{
-			logger.Error($"Asset '{assetName}' not found.");
+			logger.Warning($"Asset '{assetName}' not found.");
 		}
 
 		protected bool TryFindAsset(ref string assetName, Type assetType, out Asset? asset, out ulong assetHash)
