@@ -87,7 +87,8 @@ namespace REngine.Core
 				}
 #endif
 			}
-
+			/*On browser this isn't necessary, cause of requestAnimationFrame call*/
+#if !WEB 
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
 			{
@@ -98,6 +99,7 @@ namespace REngine.Core
 			{
 				pExecPipeline.SetThreadSleep(0);
 			}
+#endif
 
 			DisposableQueue.Dispose();
 #if PROFILER
