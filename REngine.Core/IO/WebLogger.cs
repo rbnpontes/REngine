@@ -31,10 +31,10 @@ public sealed class WebLoggerFactory : BaseLoggerFactory, ILoggerFactory
                 WebConsole.Log(log, "color: green");
                 break;
             case LogSeverity.Debug:
-                WebConsole.Log(log);
+                WebConsole.Debug(log);
                 break;
             case LogSeverity.Info:
-                WebConsole.Log(log, "color: blue");
+                WebConsole.Log(log);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(severity), severity, null);

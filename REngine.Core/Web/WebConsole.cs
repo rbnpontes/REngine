@@ -5,12 +5,14 @@ namespace REngine.Core.Web;
 
 internal enum LogType
 {
+    Debug,
     Log,
     Warning,
-    Error
+    Error,
 }
 public static partial class WebConsole
 {
+    public static void Debug(params object[] args) => ExecuteLog(LogType.Debug, args);
     public static void Log(params object[] args) => ExecuteLog(LogType.Log, args);
 
     public static void Warn(params object[] args) => ExecuteLog(LogType.Warning, args);
@@ -34,6 +36,9 @@ public static partial class WebConsole
                 break;
             case LogType.Error:
                 js_console_error(arr.GetId());
+                break;
+            case LogType.Debug:
+                js_console_debug(arr.GetId());
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);

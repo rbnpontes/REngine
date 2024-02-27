@@ -1,12 +1,22 @@
+using REngine.Core.Exceptions;
+using REngine.Core.IO;
+
 namespace REngine.Core.Web;
 
 public sealed partial class WebLooper : IDisposable
 {
-    private Action? pCall;
+    private readonly Action<WebLooper> pCallback;
+    private readonly ILogger<WebLooper> pLogger;
+    private readonly Action pDisposeCall;
     private bool pDisposed;
 
-    private WebLooper()
+    private WebLooper(Action<WebLooper> callback, ILogger<WebLooper> logger)
     {
+        pCallback = callback;
+        pLogger = logger;
+#if WEB
+        pDisposeCall = js_make_frame_loop(ExecuteLoop);
+#endif
     }
     
     public void Dispose()
@@ -14,21 +24,27 @@ public sealed partial class WebLooper : IDisposable
         if(pDisposed)
             return;
         pDisposed = true;
-        pCall?.Invoke();
+        pLogger.Debug("Stopping Looper");
+        pDisposeCall.Invoke();
     }
-
-    private void SetDisposeCall(Action action)
+    
+    private void ExecuteLoop()
     {
-        pCall = action;
+        try
+        {
+            pCallback(this);
+        }
+        catch(Exception ex)
+        {
+            pLogger.Error("Uncaught Exception:", ex.GetFullString());
+            Dispose();
+        }
     }
 
-    public static WebLooper Build(Action<WebLooper> callback)
+    public static WebLooper Build(Action<WebLooper> callback, ILoggerFactory loggerFactory)
     {
 #if WEB
-        var looper = new WebLooper();
-        var disposeCall = js_make_frame_loop(() => callback(looper));
-        looper.SetDisposeCall(disposeCall);
-        return looper;
+        return new WebLooper(callback, loggerFactory.Build<WebLooper>());
 #else
         throw new RequiredPlatformException(PlatformType.Web);
 #endif

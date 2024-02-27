@@ -104,7 +104,7 @@ public sealed class WebEngineInstance(IEngineApplication app, IWebStorage storag
         GC.WaitForPendingFinalizers();
         WebMarshal.CollectJsMemory();
         
-        WebLooper.Build(ExecuteFrame);
+        WebLooper.Build(ExecuteFrame, pWebLoggerFactory);
         await taskCompletionSrc.Task;
         Logger.Debug("Exiting");
         App.OnExit(Provider);
