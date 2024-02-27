@@ -15,7 +15,6 @@ public class Program
 {
     public static async Task Main()
     {
-        Console.WriteLine("Hello Worldi");
         var engineInstance = WebEngineInstance.CreateStartup<SampleApp>();
         try
         {
