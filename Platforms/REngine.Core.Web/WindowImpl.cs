@@ -9,6 +9,7 @@ internal partial class WindowImpl : IWindow
 {
     private readonly IDisposable? pResizeEvent;
     private readonly HTMLElement pElement;
+    private readonly bool pUseParentSize;
     public event WindowEvent? OnUpdate;
     public event WindowEvent? OnShow;
     public event WindowEvent? OnClose;
@@ -27,34 +28,33 @@ internal partial class WindowImpl : IWindow
     public string Title { get; set; } = string.Empty;
     public IntPtr Handle => IntPtr.Zero;
 
+    // TODO: cache this call and reduce redundant JS marshal calls
     public Rectangle Bounds
     {
-        get => DomUtils.GetElementBounds(pElement).ToRect();
+        get => DomUtils.GetElementBounds(pUseParentSize ? pElement.Parent : pElement).ToRect();
         set { }
     }
-
+    // TODO: cache this call and reduce redundant JS marshal calls
     public Size Size
     {
-        get => Bounds.Size;
+        get => DomUtils.GetElementSize(pUseParentSize ? pElement.Parent : pElement).ToSize();
         set { }
     }
-
+    // TODO: cache this call and reduce redundant JS marshal calls
     public Point Position
     {
-        get => Bounds.Location;
+        get => Point.Empty;
         set { }
     }
-
     public Size MinSize
     {
-        get => DomUtils.GetElementMinSize(pElement).ToSize();
-        set => DomUtils.SetElementMinSize(pElement, value.ToSizeF());
+        get => DomUtils.GetElementMinSize(pUseParentSize ? pElement.Parent : pElement).ToSize();
+        set => DomUtils.SetElementMinSize(pUseParentSize ? pElement.Parent : pElement, value.ToSizeF());
     }
-
     public Size MaxSize
     {
-        get => DomUtils.GetElementMaxSize(pElement).ToSize();
-        set => DomUtils.SetElementMaxSize(pElement, value.ToSizeF());
+        get => DomUtils.GetElementMaxSize(pUseParentSize ? pElement.Parent : pElement).ToSize();
+        set => DomUtils.SetElementMaxSize(pUseParentSize ? pElement.Parent : pElement, value.ToSizeF());
     }
 
     public bool Focused => false;
@@ -62,13 +62,19 @@ internal partial class WindowImpl : IWindow
     public bool IsMinimized => false;
     public bool IsFullscreen => DomUtils.IsFullScreen();
 
-    public WindowImpl(HTMLElement element)
+    public WindowImpl(HTMLElement element, bool useParentSize = true)
     {
+        pUseParentSize = useParentSize;
         pElement = element;
         element.SetAttribute("tabindex", "1");
-        var parent = element.Parent;
-        if (parent is not null)
-            pResizeEvent = DomUtils.ListenResizeEvent(parent, HandleResize);
+        var target = element;
+        if (useParentSize)
+        {
+            target = element.Parent;
+            DomUtils.SetElementSize(pElement, DomUtils.GetElementSize(element.Parent));
+        }
+        if (target is not null)
+            pResizeEvent = DomUtils.ListenResizeEvent(target, HandleResize);
         
         pDisposables =
         [
@@ -114,7 +120,7 @@ internal partial class WindowImpl : IWindow
 
     public IWindow Fullscreen()
     {
-        DomUtils.RequestFullScreen(pElement);
+        DomUtils.RequestFullScreen(pUseParentSize ? pElement.Parent : pElement);
         return this;
     }
 
@@ -132,7 +138,7 @@ internal partial class WindowImpl : IWindow
 
     private void HandleResize()
     {
-        var size = DomUtils.GetElementSize(pElement.Parent);
+        var size = DomUtils.GetElementSize(pUseParentSize ? pElement.Parent : pElement);
         DomUtils.SetElementSize(pElement, size);
         
         OnResize?.Invoke(this, new WindowResizeEventArgs(size.ToSize(), pElement, IntPtr.Zero));
