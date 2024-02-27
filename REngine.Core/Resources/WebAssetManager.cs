@@ -15,6 +15,8 @@ public sealed class WebAssetManager(
     private Dictionary<string, string> pAssetAddresses = new();
     protected override void OnStart()
     {
+        if(pStarted)
+            return;
         mLogger.Warning($"Invalid Call. Please use '{nameof(OnStartAsync)}' instead");
     }
 
@@ -33,14 +35,14 @@ public sealed class WebAssetManager(
 
         foreach (var item in items)
         {
-            var targetItem = item.Trim();
+            var targetItem = NormalizeAssetName(item.Trim());
             var assetPath = targetItem;
             if(string.IsNullOrEmpty(targetItem))
                 continue;
             if (!(targetItem.StartsWith("http://") || targetItem.StartsWith("https://")))
-                assetPath = $"{baseAssetPath}{item}";
+                assetPath = NormalizeAssetName($"{baseAssetPath}{item}");
             
-            Console.WriteLine($"Asset Item: [{targetItem}] = {assetPath}");
+            mLogger.Debug($"Found Asset: [{targetItem}] = {assetPath}");
             pAssetAddresses[targetItem] = assetPath;
         }
         pStarted = true;
