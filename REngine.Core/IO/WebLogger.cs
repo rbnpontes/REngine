@@ -22,10 +22,10 @@ public sealed class WebLoggerFactory : BaseLoggerFactory, ILoggerFactory
         {
             case LogSeverity.Critical:
             case LogSeverity.Error:
-                WebConsole.Error(log);
+                WebConsole.Error(log, Environment.StackTrace);
                 break;
             case LogSeverity.Warning:
-                WebConsole.Warn(log);
+                WebConsole.Warn(log, Environment.StackTrace);
                 break;
             case LogSeverity.Success:
                 WebConsole.Log(log, "color: green");
