@@ -18,7 +18,7 @@ function make_frame_loop(callback) {
 
     window.requestAnimationFrame(runFrame);
     return () => {
-        stop = false;
+        stop = true;
     };
 }
 
@@ -409,6 +409,10 @@ function console_error(arr_id) {
     console.error.apply(console, _internal_arrayList[arr_id]);
 }
 
+function console_debug(arr_id) {
+    console.debug.apply(console, _internal_arrayList[arr_id]);
+}
+
 /**
  * get the length of sessionStorage
  * @returns {number}
@@ -617,6 +621,7 @@ export function init() {
         console_log,
         console_warn,
         console_error,
+        console_debug,
         session_storage_length,
         session_storage_keys,
         session_storage_set,

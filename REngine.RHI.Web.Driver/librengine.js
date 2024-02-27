@@ -248,6 +248,6 @@ export async function init() {
         unregister_function,
         get_string,
         alloc_string,
-        ...driverCalls,s
+        ...driverCalls,
     };
 }
