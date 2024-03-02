@@ -13,6 +13,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 #if RENGINE_IMGUI && !WEB
 using ImGuiNET;
 #endif
@@ -21,7 +22,7 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace REngine.RPI
 {
-#if RENGINE_IMGUI && !WEB
+#if RENGINE_IMGUI
 	internal class ImGuiSystem : IImGuiSystem, IDisposable
 	{
 		const byte MaxMouseKeys = (byte)MouseKey.XButton2;

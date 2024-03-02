@@ -9,6 +9,8 @@
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
+    <Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
+    
     <ItemGroup>
       <ProjectReference Include="..\..\REngine.Core\REngine.Core.csproj" />
       <ProjectReference Include="..\..\REngine.Game\REngine.Game.csproj" />

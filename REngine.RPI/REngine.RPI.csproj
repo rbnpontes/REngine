@@ -5,7 +5,6 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Configurations>Debug;Release;Debug-Linux;Debug-Profiler;Release-Profiler;Debug-Android;Debug-Android-Profiler;Debug-Web</Configurations>
-		<Platforms>x64;AnyCPU</Platforms>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)ProjectBuildProperties.targets"/>
@@ -19,7 +18,7 @@
 		<ProjectReference Include="..\REngine.RPI.RenderGraph\REngine.RPI.RenderGraph.csproj" />
 	</ItemGroup>
 	
-	<ItemGroup Condition="'$(EnableImGui)'=='0'">
+	<ItemGroup Condition="'$(EnableImGui)'=='1'">
 		<ProjectReference Include="..\ThirdParty\ImGui.NET\ImGui.NET\ImGui.NET.csproj" />
 	</ItemGroup>
 </Project>

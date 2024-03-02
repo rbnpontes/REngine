@@ -1,5 +1,6 @@
 using REngine.Core.DependencyInjection;
 using REngine.Core.IO;
+using REngine.RPI;
 
 namespace REngine.Core.Web;
 
@@ -27,6 +28,18 @@ public abstract class App : IEngineApplication
     public virtual void OnStart(IServiceProvider provider)
     {
         pWindow = provider.GetOrDefault<IWindow>();
+#if RENGINE_IMGUI
+        var renderer = provider.Get<IRenderer>();
+        var imGuiSystem = provider.Get<IImGuiSystem>();
+        
+        imGuiSystem.OnGui += HandleImGui;
+        renderer.AddFeature(imGuiSystem.Feature, 1000);
+#endif
+    }
+
+    private void HandleImGui(object? sender, EventArgs e)
+    {
+        OnGui();
     }
 
     public virtual void OnUpdate(IServiceProvider provider)
