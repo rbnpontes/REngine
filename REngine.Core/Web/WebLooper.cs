@@ -38,6 +38,9 @@ public sealed partial class WebLooper : IDisposable
         {
             pLogger.Error("Uncaught Exception:", ex.GetFullString());
             Dispose();
+#if DEBUG
+            WebFrame.Alert("Uncaught Exception on Looper. See Logs!");
+#endif
         }
     }
 

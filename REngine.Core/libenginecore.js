@@ -583,6 +583,10 @@ function fetch_read_result(result, buffer) {
     buffer.set(result.data, 0);
 }
 
+function _alert(message) {
+    window.alert(message);
+}
+
 export function init() {
     return {
         make_frame_loop,
@@ -641,5 +645,6 @@ export function init() {
         free_internal_memory,
         _fetch,
         fetch_read_result,
+        _alert
     };
 }
