@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using REngine.Core.Exceptions;
 using REngine.Core.IO;
 using REngine.Core.Serialization;
@@ -248,6 +249,7 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
 
     public unsafe ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
     {
+        logger.Debug("CreateTexture:", desc.ToJson());
         var texDescSize = Unsafe.SizeOf<TextureDescDto>();
         var texDataSize = Unsafe.SizeOf<TextureDataDto>();
         var resultSize = Unsafe.SizeOf<ResultNative>();
@@ -255,7 +257,7 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         var textureDatas = subresources as ITextureData[] ?? subresources.ToArray();
         
         var totalMemory = 0;
-        
+        var totalSubResourceData = 0;
         if (desc.Usage is Usage.Immutable or Usage.Default && (desc.BindFlags & BindFlags.RenderTarget) == 0)
         {
             if (TextureUtils.IsTextureArray(desc))
@@ -269,7 +271,7 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
                     var mipSize = TextureUtils.CalculateMipSize(desc, i % (int)desc.MipLevels);
                     var size = mipSize.Y * mipSize.Z * (int)textureDatas[i].Stride;
                     if (textureDatas[i].Data != IntPtr.Zero)
-                        totalMemory += size;
+                        totalSubResourceData += size;
                 }
             }
             else
@@ -283,15 +285,25 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
                     var mipSize = TextureUtils.CalculateMipSize(desc, i);
                     var size = mipSize.Y * mipSize.Z * (int)textureDatas[i].Stride;
                     if (textureDatas[i].Data != IntPtr.Zero)
-                        totalMemory += size;
+                        totalSubResourceData += size;
                 }
             }
         }
 
+        totalMemory += totalSubResourceData;
         totalMemory += texDescSize;
         totalMemory += texDataSize * textureDatas.Length;
         totalMemory += resultSize;
 
+        StringBuilder log = new();
+        log.AppendLine("\nTexture Desc Size: " + texDescSize);
+        log.AppendLine("Texture Data Size: " + texDataSize);
+        log.AppendLine("Total Texture Data: " + (texDataSize * textureDatas.Length));
+        log.AppendLine("Result Size: " + resultSize);
+        log.AppendLine("Total Structs: " + (texDescSize + (texDataSize * textureDatas.Length) + resultSize));
+        log.AppendLine("Total Sub Resources: " + totalSubResourceData);
+        log.AppendLine("Total Required Memory: " + totalMemory);
+        
         // Allocate enough memory on driver side
         // Then copy all data into this memory and creates Texture handle
         var memData = NativeApis.js_malloc(totalMemory);
@@ -300,27 +312,38 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         var resultPtr = memData;
         var texDescPtr = resultPtr + Unsafe.SizeOf<ResultNative>();
         var subResourcesPtr = texDescPtr + Unsafe.SizeOf<TextureDescDto>();
-        var resourcesDataPtr = subResourcesPtr + Unsafe.SizeOf<TextureDataDto>() * textureDatas.Length;
+        var resourcesDataPtr = subResourcesPtr + (Unsafe.SizeOf<TextureDataDto>() * textureDatas.Length);
 
         if (textureDatas.Length == 0)
             subResourcesPtr = resourcesDataPtr = IntPtr.Zero;
+
+        log.AppendLine("------------------------");
+        log.AppendLine("Result Ptr: " + resultPtr);
+        log.AppendLine("Texture Desc Ptr: " + texDescPtr);
+        log.AppendLine("Sub Resources Ptr: " + subResourcesPtr);
+        log.AppendLine("Resources Data Ptr: " + resourcesDataPtr);
         
         var texDto = new TextureDescDto(desc);
         // Copy Desc Data
         fixed(void* ptr = texDto)
             NativeApis.js_memcpy(ptr, texDescPtr, texDescSize);
 
-        var nextResourceStructPtr = subResourcesPtr;
+        var nextSubResourcesPtr = subResourcesPtr;
         var nextResourceDataPtr = resourcesDataPtr;
-        
+
+        logger.Debug(textureDatas.ToJson());
         for (var i = 0; i < textureDatas.Length; ++i)
         {
+            log.AppendLine($"-- textureDatas[{i}]");
+            log.AppendLine($"{nameof(nextSubResourcesPtr)}: {nextSubResourcesPtr}");
+            log.AppendLine($"{nameof(nextResourceDataPtr)}: {nextResourceDataPtr}");
+            
             var mipSize = TextureUtils.CalculateMipSize(desc, i % (int)desc.MipLevels);
             var texData = new TextureDataDto(textureDatas[i], nextResourceDataPtr);
             fixed(void* ptr = texData)
-                NativeApis.js_memcpy(ptr, nextResourceStructPtr, texDataSize);
+                NativeApis.js_memcpy(ptr, nextSubResourcesPtr, texDataSize);
 
-            nextResourceStructPtr += texDataSize;
+            nextSubResourcesPtr += texDataSize;
             if(textureDatas[i].SrcBuffer is not null)
                 continue;
 
@@ -330,11 +353,12 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
             nextResourceDataPtr += size;
         }
         
+        logger.Debug(log);
         var result = new ResultNative();
         js_rengine_device_create_texture(
             Handle,
             texDescPtr,
-            resourcesDataPtr,
+            subResourcesPtr,
             textureDatas.Length,
             resultPtr);
 

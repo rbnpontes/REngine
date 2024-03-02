@@ -12,7 +12,7 @@ public static class TextureUtils
     public static IntVector3 CalculateMipSize(in TextureDesc desc, int mipLevel)
     {
         mipLevel = (int)Math.Clamp(mipLevel, 0, desc.MipLevels);
-        var result = IntVector3.Zero;
+        var result = IntVector3.One;
         switch (desc.Dimension)
         {
             case TextureDimension.Undefined:
