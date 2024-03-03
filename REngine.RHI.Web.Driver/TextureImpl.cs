@@ -43,26 +43,13 @@ internal partial class TextureImpl : NativeObject, ITexture
         if (texView is not null)
             return texView;
 
-        var result = new ResultNative();
-        var sizeOf = Unsafe.SizeOf<ResultNative>();
-        var resultPtr = NativeApis.js_malloc(sizeOf);
+        var texViewPtr = GetDefaultViewPtr(Handle, view);
+        texView = ObjectRegistry.Acquire(texViewPtr) as TextureViewImpl;
+        if (texView is not null) 
+            return texView;
         
-        js_rengine_texture_getdefaultview(Handle, (int)view, resultPtr);
-        fixed(void* dataPtr = result)
-            NativeApis.js_memcpy(resultPtr, dataPtr, sizeOf);
-        NativeApis.js_free(resultPtr);
-
-        if (result.Error != IntPtr.Zero)
-            throw new Exception(NativeApis.js_get_string(result.Error) ?? $"Can´t retrieve default viewType {view}. Texture View is null");
-        
-        ValidateTextureView(view, result.Value);
-        
-        texView = ObjectRegistry.Acquire(result.Value) as TextureViewImpl;
-        if (texView is null)
-        {
-            pTexViews[(byte)view] = texView = new TextureViewImpl(result.Value, Desc.Size);
-            texView.AddRef();
-        }
+        pTexViews[(byte)view] = texView = new TextureViewImpl(texViewPtr, Desc.Size);
+        texView.AddRef();
 
         return texView;
     }
@@ -126,6 +113,24 @@ internal partial class TextureImpl : NativeObject, ITexture
 
         return result;
     }
+
+    public static unsafe nint GetDefaultViewPtr(IntPtr tex, TextureViewType viewType)
+    {
+        var result = new ResultNative();
+        var sizeOf = Unsafe.SizeOf<ResultNative>();
+        var resultPtr = NativeApis.js_malloc(sizeOf);
+        NativeApis.js_memset(resultPtr, 0x0, sizeOf);
+        
+        js_rengine_texture_getdefaultview(tex, (int)viewType, resultPtr);
+        fixed(void* dataPtr = result)
+            NativeApis.js_memcpy(resultPtr, dataPtr, sizeOf);
+        NativeApis.js_free(resultPtr);
+
+        if (result.Error != IntPtr.Zero)
+            throw new Exception(NativeApis.js_get_string(result.Error));
+        ValidateTextureView(viewType, result.Value);
+        return result.Value;
+    }
 }
 
 internal class InternalTexture : ITexture
@@ -158,18 +163,7 @@ internal class InternalTexture : ITexture
     
     public unsafe ITextureView GetDefaultView(TextureViewType view)
     {
-        var result = new ResultNative();
-        var sizeOf = Unsafe.SizeOf<ResultNative>();
-        var resultPtr = NativeApis.js_malloc(sizeOf);
-        
-        TextureImpl.js_rengine_texture_getdefaultview(Handle, (byte)view, resultPtr);
-        fixed(void* dataPtr = result)
-            NativeApis.js_memcpy(resultPtr, dataPtr, sizeOf);
-
-        if (result.Error != IntPtr.Zero)
-            throw new Exception(NativeApis.js_get_string(result.Error) ?? $"Can´t retrieve default view {view}. Texture View is null");
-        
-        TextureImpl.ValidateTextureView(view, result.Value);
-        return new InternalTextureView(result.Value, Desc.Size);
+        var texViewPtr = TextureImpl.GetDefaultViewPtr(Handle, view);
+        return new InternalTextureView(texViewPtr, Desc.Size);
     }
 }
