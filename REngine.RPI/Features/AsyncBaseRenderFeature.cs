@@ -156,7 +156,7 @@ public abstract class AsyncBaseRenderFeature(
     }
 }
 
-public abstract class AsyncGraphicsRenderFeature(IRenderer renderer, IExecutionPipeline executionPipeline) : AsyncBaseRenderFeature(renderer, executionPipeline)
+public abstract class AsyncGraphicsRenderFeature(IRenderer renderer, IExecutionPipeline executionPipeline) : AsyncBaseRenderFeature(renderer, executionPipeline), IGraphicsRenderFeature
 {
     public ITextureView? BackBuffer { get; set; }
     public ITextureView? DepthBuffer { get; set; }
