@@ -12,7 +12,7 @@ internal partial class CommandBufferImpl
         public MapFlags Flags;
     }
     
-    private IntPtr pDriverMem = NativeApis.js_malloc((int)DriverSettings.CommandBufferMemorySize);
+    private readonly IntPtr pDriverMem = NativeApis.js_malloc((int)DriverSettings.CommandBufferMemorySize);
     private Dictionary<IntPtr, MappedData> pMappedDataMap = new();
     
     private float[] pFloatArray = new float[4];

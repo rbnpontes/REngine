@@ -249,7 +249,6 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
 
     public unsafe ITexture CreateTexture(in TextureDesc desc, IEnumerable<ITextureData> subresources)
     {
-        logger.Debug("CreateTexture:", desc.ToJson());
         var texDescSize = Unsafe.SizeOf<TextureDescDto>();
         var texDataSize = Unsafe.SizeOf<TextureDataDto>();
         var resultSize = Unsafe.SizeOf<ResultNative>();
@@ -295,6 +294,8 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         totalMemory += texDataSize * textureDatas.Length;
         totalMemory += resultSize;
 
+        // Define this to Help Debug
+#if ENABLE_TEXTURE_CREATION_MEM_LOG
         StringBuilder log = new();
         log.AppendLine("\nTexture Desc Size: " + texDescSize);
         log.AppendLine("Texture Data Size: " + texDataSize);
@@ -303,7 +304,7 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         log.AppendLine("Total Structs: " + (texDescSize + (texDataSize * textureDatas.Length) + resultSize));
         log.AppendLine("Total Sub Resources: " + totalSubResourceData);
         log.AppendLine("Total Required Memory: " + totalMemory);
-        
+#endif     
         // Allocate enough memory on driver side
         // Then copy all data into this memory and creates Texture handle
         var memData = NativeApis.js_malloc(totalMemory);
@@ -317,11 +318,13 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         if (textureDatas.Length == 0)
             subResourcesPtr = resourcesDataPtr = IntPtr.Zero;
 
+#if ENABLE_TEXTURE_CREATION_MEM_LOG
         log.AppendLine("------------------------");
         log.AppendLine("Result Ptr: " + resultPtr);
         log.AppendLine("Texture Desc Ptr: " + texDescPtr);
         log.AppendLine("Sub Resources Ptr: " + subResourcesPtr);
         log.AppendLine("Resources Data Ptr: " + resourcesDataPtr);
+#endif
         
         var texDto = new TextureDescDto(desc);
         // Copy Desc Data
@@ -334,9 +337,11 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
         logger.Debug(textureDatas.ToJson());
         for (var i = 0; i < textureDatas.Length; ++i)
         {
+#if ENABLE_TEXTURE_CREATION_MEM_LOG
             log.AppendLine($"-- textureDatas[{i}]");
             log.AppendLine($"{nameof(nextSubResourcesPtr)}: {nextSubResourcesPtr}");
             log.AppendLine($"{nameof(nextResourceDataPtr)}: {nextResourceDataPtr}");
+#endif
             
             var mipSize = TextureUtils.CalculateMipSize(desc, i % (int)desc.MipLevels);
             var texData = new TextureDataDto(textureDatas[i], nextResourceDataPtr);
@@ -352,8 +357,11 @@ internal partial class DeviceImpl(IntPtr handle, ILogger<IDevice> logger) : Nati
             NativeApis.js_memcpy(textureDatas[i].Data.ToPointer(), nextResourceDataPtr, size);
             nextResourceDataPtr += size;
         }
-        
+
+#if ENABLE_TEXTURE_CREATION_MEM_LOG
         logger.Debug(log);
+#endif
+        
         var result = new ResultNative();
         js_rengine_device_create_texture(
             Handle,

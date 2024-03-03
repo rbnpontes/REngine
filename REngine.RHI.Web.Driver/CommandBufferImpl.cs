@@ -144,11 +144,13 @@ internal partial class CommandBufferImpl(IntPtr handle) : NativeObject(handle), 
         ValidateGpuObject(buffer);
 #endif
 
-        NativeApis.js_write_i32(pDriverMem, buffer.Handle.ToInt32());
-        NativeApis.js_write_float(pDriverMem + 1, 0.0f);
+        var buffersPtr = pDriverMem;
+        var offsetsPtr = pDriverMem + nint.Size;
+        NativeApis.js_write_i32(buffersPtr, buffer.Handle.ToInt32());
+        NativeApis.js_write_float(offsetsPtr, 0.0f);
         js_rengine_cmdbuffer_setvbuffer(
             Handle, 0, 1, 
-            pDriverMem, pDriverMem + 1, reset ? 0x1 : 0x0,
+            buffersPtr, offsetsPtr, reset ? 0x1 : 0x0,
             0x0);
         return this;
     }
