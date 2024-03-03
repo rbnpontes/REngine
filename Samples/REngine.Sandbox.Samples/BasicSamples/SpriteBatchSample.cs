@@ -44,10 +44,10 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			pColoredDoge?.Dispose();
 		}
 
-		public void Load(IServiceProvider provider)
+		public async Task Load(IServiceProvider provider)
 		{
 			// Load Sprite
-			var spriteTex = assetManager.GetAsset<TextureAsset>("Textures/doge.jpg");
+			var spriteTex = await assetManager.GetAsyncAsset<TextureAsset>("Textures/doge.jpg");
 			// Set Sprite on Spritebatch
 			pSpriteFeature = ActivatorExtended.CreateInstance<SpriteFeature>(provider);
 			renderer.AddFeature(pSpriteFeature);
