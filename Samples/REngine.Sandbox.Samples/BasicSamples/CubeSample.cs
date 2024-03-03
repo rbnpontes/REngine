@@ -37,8 +37,9 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			pEntityManager?.DestroyAll();
 		}
 
-		public void Load(IServiceProvider provider)
+		public async Task Load(IServiceProvider provider)
 		{
+			await Task.Yield();
 			pCubeFeature = provider.Get<BasicFeaturesFactory>().CreateCubeFeature();
 			pRenderer = provider.Get<IRenderer>().AddFeature(pCubeFeature);
 			pEngine = provider.Get<IEngine>();

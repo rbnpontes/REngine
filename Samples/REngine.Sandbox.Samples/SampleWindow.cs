@@ -4,6 +4,7 @@ using REngine.Core;
 using REngine.Core.DependencyInjection;
 using REngine.RPI;
 using System.Reflection;
+using ImGuiNET;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
 using REngine.Sandbox.BaseSample;
@@ -96,7 +97,7 @@ namespace REngine.Sandbox.Samples
 			if (item != null)
 				LoadSample(item);
 
-			//provider.Get<IImGuiSystem>().OnGui += OnGui;
+			provider.Get<IImGuiSystem>().OnGui += OnGui;
 
 			pRenderState = provider.Get<RenderState>();
 			pGameWindow = provider.Get<IWindow>();
@@ -104,16 +105,28 @@ namespace REngine.Sandbox.Samples
 
 		public void EngineUpdate(IServiceProvider provider) 
 		{
+			if (pIsLoadingSample)
+				return;
 			lock (pSync)
 			{
-				if(pSampleReady)
+				if (pSampleReady)
 					pLastSample?.Update(provider);
 				else
 				{
-					pLastSample?.Load(provider);
-					pSampleReady = true;
+					pIsLoadingSample = true;
+					Task.Run(() => HandleLoadSample(pLastSample));
 				}
 			}
+		}
+
+		private bool pIsLoadingSample;
+		private async Task HandleLoadSample(ISample sample)
+		{
+			Monitor.Enter(pSync);
+			await sample.Load(pServiceProvider);
+			pSampleReady = true;
+			Monitor.Exit(pSync);
+			pIsLoadingSample = false;
 		}
 
 		public void EngineStop()
@@ -122,7 +135,6 @@ namespace REngine.Sandbox.Samples
 			pLastSample = null;
 		}
 
-#if !WEB
 		private bool pOpenedWindow = true;
 		private void OnGui(object? sender, EventArgs e)
 		{
@@ -169,6 +181,5 @@ namespace REngine.Sandbox.Samples
 					pSelectedItemIdx = i;
 			}
 		}
-#endif
 	}
 }

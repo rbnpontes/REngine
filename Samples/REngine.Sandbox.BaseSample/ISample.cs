@@ -10,7 +10,7 @@ namespace REngine.Sandbox.BaseSample
 	public interface ISample : IDisposable
 	{
 		public IWindow? Window { get; set; }
-		public void Load(IServiceProvider provider);
+		public Task Load(IServiceProvider provider);
 		public void Update(IServiceProvider provider);
 	}
 }
