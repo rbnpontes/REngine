@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Core.Reflection;
 #if RENGINE_IMGUI && !WEB
 using ImGuiNET;
 #endif
@@ -520,7 +521,8 @@ namespace REngine.RPI
 
 		private ImGuiFeature AllocateFeature()
 		{
-			return new ImGuiFeature(this, pGraphicsSettings);
+			return ActivatorExtended.CreateInstance<ImGuiFeature>(pProvider)
+				?? throw new NullReferenceException();
 		}
 	}
 #endif

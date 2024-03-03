@@ -11,13 +11,19 @@ using System.Text;
 using System.Threading.Tasks;
 using REngine.Core.IO;
 using REngine.Core.Resources;
+using REngine.Core.Threading;
 using REngine.RPI.Resources;
 
 #if RENGINE_IMGUI
 namespace REngine.RPI.Features
 {
-    internal class ImGuiFeature : GraphicsRenderFeature
-	{
+    internal class ImGuiFeature(
+	    ImGuiSystem system,
+	    GraphicsSettings settings,
+	    IRenderer renderer,
+	    IExecutionPipeline executionPipeline)
+	    : AsyncGraphicsRenderFeature(renderer, executionPipeline)
+    {
 		[Flags]
 		public enum DirtyFlags
 		{
@@ -69,9 +75,6 @@ namespace REngine.RPI.Features
 			}
 		};
 
-		private readonly ImGuiSystem pSystem;
-		private readonly GraphicsSettings pSettings;
-
 		private ITexture? pFontTexture;
 		private ITextureView? pFontTextureView;
 		private IPipelineState? pPipeline;
@@ -82,21 +85,8 @@ namespace REngine.RPI.Features
 
 		private IDevice? pDevice;
 
-		private DirtyFlags pDirtyFlags = DirtyFlags.All;
-
 		private uint pVertexBufferCount = 0;
 		private uint pIndexBufferCount = 0;
-
-		public override bool IsDirty { get => pDirtyFlags != DirtyFlags.None; protected set { } }
-
-		public ImGuiFeature(
-			ImGuiSystem system, 
-			GraphicsSettings settings
-		) : base()
-		{
-			pSystem = system;
-			pSettings = settings;
-		}
 
 		protected override void OnDispose()
 		{
@@ -115,45 +105,31 @@ namespace REngine.RPI.Features
 
 			base.OnDispose();
 		}
-		
-		public override IRenderFeature MarkAsDirty()
-		{
-			return MarkAsDirty(DirtyFlags.All);
-		}
-		public IRenderFeature MarkAsDirty(DirtyFlags flags)
-		{
-			pDirtyFlags |= flags;
-			return this;
-		}
 
-		protected override void OnSetup(in RenderFeatureSetupInfo setupInfo)
+		protected override async Task OnSetup(RenderFeatureSetupInfo setupInfo)
 		{
 			var buffer = setupInfo.BufferManager.GetBuffer(BufferGroupType.Frame);
 
-			if(pFontTexture is null || (pDirtyFlags & DirtyFlags.FontTexture) != 0)
+			if(pFontTexture is null)
 			{
 				pFontTexture?.Dispose();
 				
 				var fontTexture = CreateFontTexture(setupInfo.Driver.Device);
 				pFontTexture = fontTexture;
 				pFontTextureView = fontTexture.GetDefaultView(TextureViewType.ShaderResource);
-				
-				pDirtyFlags ^= DirtyFlags.FontTexture;
 			}
 
-			if(pPipeline is null || (pDirtyFlags & DirtyFlags.Pipeline) != 0)
+			if(pPipeline is null)
 			{
 				pResourceBinding?.Dispose();
 				pPipeline?.Dispose();
 
-				var pipeline = CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager, setupInfo.AssetManager);
+				var pipeline = await CreatePipelineState(setupInfo.PipelineStateManager, setupInfo.ShaderManager, setupInfo.AssetManager);
 				pResourceBinding = pipeline.GetResourceBinding();
 				pPipeline = pipeline;
 
 				pResourceBinding.Set(ShaderTypeFlags.Vertex, ConstantBufferNames.Frame, buffer);
 				pResourceBinding.Set(ShaderTypeFlags.Pixel, sFontTexName, pFontTextureView);
-
-				pDirtyFlags ^= DirtyFlags.Pipeline;
 			}
 
 			pDevice = setupInfo.Driver.Device;
@@ -164,20 +140,20 @@ namespace REngine.RPI.Features
 #if PROFILER
 			using var _ = Profiler.Instance.Begin();
 #endif
-			ITextureView? backbuffer = GetBackBuffer();
-			ITextureView? depthbuffer = GetDepthBuffer();
+			var backbuffer = GetBackBuffer();
+			var depthbuffer = GetDepthBuffer();
 
 
 			if (backbuffer is null || depthbuffer is null || pDevice is null)
 				return;
 
-			pSystem.BeginRender();
+			system.BeginRender();
 			var io = ImGuiNET.ImGui.GetIO();
 
 			command.SetRT(backbuffer, depthbuffer);
 
 			RenderDrawData(command, pDevice, io, backbuffer.Size);
-			pSystem.EndRender();
+			system.EndRender();
 		}
 
 		private unsafe void RenderDrawData(ICommandBuffer command, IDevice device, ImGuiNET.ImGuiIOPtr io, in TextureSize texSize)
@@ -191,7 +167,7 @@ namespace REngine.RPI.Features
 
 			drawData.ScaleClipRects(io.DisplayFramebufferScale);
 
-			for (int n =0; n < drawData.CmdListsCount; ++n)
+			for (var n =0; n < drawData.CmdListsCount; ++n)
 			{
 				ImGuiNET.ImDrawListPtr cmdList = drawData.CmdLists[n];
 
@@ -210,7 +186,7 @@ namespace REngine.RPI.Features
 				UpdateMeshBuffers(cmdList, command);
 
 				uint idxBufferOffset = 0;
-				for(int cmdIdx =0; cmdIdx < cmdList.CmdBuffer.Size; ++cmdIdx)
+				for(var cmdIdx =0; cmdIdx < cmdList.CmdBuffer.Size; ++cmdIdx)
 				{
 					ImGuiNET.ImDrawCmdPtr cmd = cmdList.CmdBuffer[cmdIdx];
 
@@ -251,10 +227,10 @@ namespace REngine.RPI.Features
 				.SetBlendFactors(Color.Black);
 		}
 
-		private IPipelineState CreatePipelineState(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr, IAssetManager assetManager)
+		private async Task<IPipelineState> CreatePipelineState(IPipelineStateManager pipelineMgr, IShaderManager shaderMgr, IAssetManager assetManager)
 		{
-			IShader vs = CreateShader(shaderMgr, assetManager, ShaderType.Vertex);
-			IShader ps = CreateShader(shaderMgr, assetManager, ShaderType.Pixel);
+			var vs = await CreateShader(shaderMgr, assetManager, ShaderType.Vertex);
+			var ps = await CreateShader(shaderMgr, assetManager, ShaderType.Pixel);
 
 			GraphicsPipelineDesc ci = new();
 			ci.Name = "ImGui PSO";
@@ -265,8 +241,8 @@ namespace REngine.RPI.Features
 			ci.DepthStencilState.DepthWriteEnabled = false;
 			ci.RasterizerState.ScissorTestEnabled = true;
 
-			ci.Output.RenderTargetFormats[0] = pSettings.DefaultColorFormat;
-			ci.Output.DepthStencilFormat = pSettings.DefaultDepthFormat;
+			ci.Output.RenderTargetFormats[0] = settings.DefaultColorFormat;
+			ci.Output.DepthStencilFormat = settings.DefaultDepthFormat;
 
 			ci.InputLayouts = sLayoutElements;
 			ci.Samplers = sImmutableSamplers;
@@ -279,16 +255,16 @@ namespace REngine.RPI.Features
 			return pipeline;
 		}
 		
-		private IShader CreateShader(IShaderManager shaderMgr, IAssetManager assetManager, ShaderType shaderType)
+		private async Task<IShader> CreateShader(IShaderManager shaderMgr, IAssetManager assetManager, ShaderType shaderType)
 		{
-			ShaderAsset shaderAsset;
+			Task<ShaderAsset> shaderAsset;
 			switch (shaderType)
 			{
 				case ShaderType.Vertex:
-					shaderAsset = assetManager.GetAsset<ShaderAsset>("Shaders/imgui_vs.hlsl");
+					shaderAsset = assetManager.GetAsyncAsset<ShaderAsset>("Shaders/imgui_vs.hlsl");
 					break;
 				case ShaderType.Pixel: 
-					shaderAsset = assetManager.GetAsset<ShaderAsset>("Shaders/imgui_ps.hlsl");
+					shaderAsset = assetManager.GetAsyncAsset<ShaderAsset>("Shaders/imgui_ps.hlsl");
 					break;
 				default:
 					throw new NotSupportedException();
@@ -297,15 +273,15 @@ namespace REngine.RPI.Features
 			return shaderMgr.GetOrCreate(new ShaderCreateInfo
 			{
 				Type = shaderType,
-				SourceCode = shaderAsset.ShaderCode,
+				SourceCode = (await shaderAsset).ShaderCode,
 				Name = $"ImGui Shader ({shaderType})"
 			});
 		}
 
 		private ITexture CreateFontTexture(IDevice device)
 		{
-			var fontSize = pSystem.FontSize;
-			TextureDesc desc = new TextureDesc
+			var fontSize = system.FontSize;
+			var desc = new TextureDesc
 			{
 				Name = "ImGui Font Texture",
 				Dimension = TextureDimension.Tex2D,
@@ -316,7 +292,7 @@ namespace REngine.RPI.Features
 			};
 			return device.CreateTexture(desc, new ITextureData[]
 			{
-				new ByteTextureData(pSystem.FontData, 4 * desc.Size.Width)
+				new ByteTextureData(system.FontData, 4 * desc.Size.Width)
 			});
 		}
 	
@@ -337,11 +313,11 @@ namespace REngine.RPI.Features
 			if(pIBuffer is null || pVBuffer is null) 
 				return;
 
-			IntPtr vertexMemPtr = cmd.Map(pVBuffer, MapType.Write, MapFlags.Discard);
-			IntPtr indexMemPtr = cmd.Map(pIBuffer, MapType.Write, MapFlags.Discard);
+			var vertexMemPtr = cmd.Map(pVBuffer, MapType.Write, MapFlags.Discard);
+			var indexMemPtr = cmd.Map(pIBuffer, MapType.Write, MapFlags.Discard);
 
-			long vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertexSize;
-			long iBufferSize = cmdList.IdxBuffer.Size * sizeof(ushort);
+			var vBufferSize = cmdList.VtxBuffer.Size * (long)sImDrawVertexSize;
+			var iBufferSize = cmdList.IdxBuffer.Size * sizeof(ushort);
 
 			Buffer.MemoryCopy(
 				cmdList.VtxBuffer.Data.ToPointer(), vertexMemPtr.ToPointer(),
