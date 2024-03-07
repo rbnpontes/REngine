@@ -31,7 +31,7 @@ namespace REngine.Core
 		public bool IsMainThread => !pThreadCoordinator.IsJobThread;
 		public virtual bool IsKeyboardVisible => false;
 
-		internal Engine(
+		public Engine(
 			IServiceProvider provider,
 			EngineEvents events,
 			IExecutionPipeline pipeline,
