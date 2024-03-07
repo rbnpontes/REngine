@@ -5,6 +5,7 @@ using REngine.RPI;
 using System.Reflection;
 using REngine.Core.Reflection;
 using REngine.Core.Resources;
+using REngine.Core.Threading;
 using REngine.Sandbox.BaseSample;
 
 namespace REngine.Sandbox.Samples
@@ -59,26 +60,35 @@ namespace REngine.Sandbox.Samples
 				});
 		}
 
-		private void LoadSample(SampleItem item)
+		private async void LoadSample(SampleItem item)
 		{
 			if (item == pLastSampleItem)
 				return;
 			if (pServiceProvider is null)
 				return;
 
+			ISample? currSample;
 			lock (pSync)
 			{
-				pLastSample?.Dispose();
+				currSample = pLastSample;
 				pLastSample = null;
+			}
 
-				if (ActivatorExtended.CreateInstance(pServiceProvider, item.Type) is not ISample sample)
-					throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
+			if (ActivatorExtended.CreateInstance(pServiceProvider, item.Type) is not ISample sample)
+				throw new InvalidCastException("Invalid Sample Type. Sample Type must implement ISample interface");
 
-				sample.Window = pServiceProvider.Get<IWindow>();
+			sample.Window = pServiceProvider.Get<IWindow>();
 				
-				// Force Assets Unload
-				pServiceProvider.Get<IAssetManager>().UnloadAssets();
-				
+			// Force Assets Unload
+			pServiceProvider.Get<IAssetManager>().UnloadAssets();
+
+			await pServiceProvider.Get<IDispatcher>().InvokeAsync(() =>
+			{
+				currSample?.Dispose();
+			});
+
+			lock (pSync)
+			{
 				pLastSampleItem = item;
 				pLastSample = sample;
 
