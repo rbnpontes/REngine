@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Threading;
 
 namespace REngine.Windows
 {
@@ -23,14 +24,19 @@ namespace REngine.Windows
 		private readonly MouseCallback pMouseWheelCallback;
 		private readonly KeyCallback pKeyboardCallback;
 		private readonly CharCallback pInputCallback;
+		private readonly IDispatcher pDispatcher;
 
 		private bool pDisposed = false;
 		private string pTitle;
 
 		public string Title 
 		{ 
-			get => pTitle; 
-			set => Glfw.SetWindowTitle(pWindow, pTitle = value);
+			get => pTitle;
+			set
+			{
+				AssertMainThread();
+				Glfw.SetWindowTitle(pWindow, pTitle = value);
+			}
 		}
 
 		public IntPtr Handle => IntPtr.Zero;
@@ -51,6 +57,7 @@ namespace REngine.Windows
 			}
 			set
 			{
+				AssertMainThread();
 				Glfw.SetWindowPosition(pWindow, value.X, value.Y);
 				Glfw.SetWindowSize(pWindow, value.Width, value.Height);
 			}
@@ -60,7 +67,11 @@ namespace REngine.Windows
 		public Size Size
 		{
 			get => pSize;
-			set => Glfw.SetWindowSize(pWindow, value.Width, value.Height);
+			set
+			{
+				AssertMainThread();
+				Glfw.SetWindowSize(pWindow, value.Width, value.Height);
+			}
 		}
 		public Point Position 
 		{
@@ -69,7 +80,11 @@ namespace REngine.Windows
 				Glfw.GetWindowPosition(pWindow, out int x, out int y);
 				return new Point(x, y);
 			}
-			set => Glfw.SetWindowPosition(pWindow, value.X, value.Y);
+			set
+			{
+				AssertMainThread();
+				Glfw.SetWindowPosition(pWindow, value.X, value.Y);
+			}
 		}
 
 		private Size pMinSize = new Size();
@@ -81,6 +96,7 @@ namespace REngine.Windows
 			set
 			{
 				pMinSize = value;
+				AssertMainThread();
 				Glfw.SetWindowSizeLimits(pWindow, value.Width, value.Height, pMaxSize.Width, pMaxSize.Height);
 			}
 		}
@@ -90,6 +106,7 @@ namespace REngine.Windows
 			set
 			{
 				pMaxSize = value;
+				AssertMainThread();
 				Glfw.SetWindowSizeLimits(pWindow, pMinSize.Width, pMinSize.Height, value.Width, value.Height);
 			}
 		}
@@ -135,8 +152,9 @@ namespace REngine.Windows
 		public event WindowMouseEvent? OnMouseMove;
 		public event WindowMouseWheelEvent? OnMouseWheel;
 
-		public WindowImpl(GLFW.Window window, string title)
+		public WindowImpl(GLFW.Window window, IDispatcher dispatcher, string title)
 		{
+			pDispatcher = dispatcher;
 			pWindow = window;
 			pTitle = title;
 			pDefaultEventArgs = new(window, IntPtr.Zero);
@@ -150,6 +168,8 @@ namespace REngine.Windows
 
 			Glfw.GetWindowSize(pWindow, out var w, out var h);
 			pSize = new Size(w, h);
+			
+            AssertMainThread();
 			Glfw.SetWindowSizeCallback(window, pResizeCallback);
 			Glfw.SetMouseButtonCallback(window, pMouseButtonCallback);
 			Glfw.SetCursorPositionCallback(window, pMouseCallback);
@@ -163,6 +183,7 @@ namespace REngine.Windows
 			if (pDisposed)
 				return;
 
+			AssertMainThread();
 			Close();
 			Glfw.DestroyWindow(pWindow);
 
@@ -172,12 +193,14 @@ namespace REngine.Windows
 
 		public IWindow Close()
 		{
+			AssertMainThread();
 			Glfw.SetWindowShouldClose(pWindow, true);
 			return this;
 		}
 
 		public IWindow Focus()
 		{
+			AssertMainThread();
 			Glfw.FocusWindow(pWindow);
 			return this;
 		}
@@ -229,6 +252,7 @@ namespace REngine.Windows
 			pWindowedBounds = Bounds;
 			var monitor = GetPreferredMonitor();
 
+			AssertMainThread();
 			Glfw.SetWindowMonitor(
 				pWindow, monitor,
 				0, 0,
@@ -245,6 +269,7 @@ namespace REngine.Windows
 			if (!pFullscreen)
 				return this;
 
+			AssertMainThread();
 			Glfw.SetWindowMonitor(
 				pWindow,
 				GLFW.Monitor.None,
@@ -266,6 +291,7 @@ namespace REngine.Windows
 
 		public IWindow Show()
 		{
+			AssertMainThread();
 			Glfw.ShowWindow(pWindow);
 			OnShow?.Invoke(this, pDefaultEventArgs);
 			return this;
@@ -336,6 +362,12 @@ namespace REngine.Windows
 			OnInput?.Invoke(this, 
 				new WindowInputTextEventArgs(char.ConvertFromUtf32((int)codePoint), pWindow, IntPtr.Zero)
 			);
+		}
+
+		private void AssertMainThread()
+		{
+			if (!pDispatcher.IsThreadCaller)
+				throw new InvalidOperationException("Must call this operation on Main Thread");
 		}
 	}
 }

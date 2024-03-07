@@ -4,18 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
 using REngine.Core.IO;
 using REngine.Core.Mathematics;
 
 namespace REngine.Core.Threading
 {
-	internal class ThreadCoordinatorImpl(ILoggerFactory loggerFactory) : IDisposable, IThreadCoordinator
+	internal class ThreadCoordinatorImpl : IDisposable, IThreadCoordinator
 	{
 		private readonly ConcurrentQueue<Action> pActions = new();
 		private readonly CancellationTokenSource pCancellationTokenSource = new();
-		private readonly ILogger<IThreadCoordinator> pLogger = loggerFactory.Build<IThreadCoordinator>();
+		private readonly ILogger<IThreadCoordinator> pLogger;
 		private readonly object pLock = new();
 		private readonly ThreadLocal<bool> pIsJobThread = new();
+		private readonly ExecutionPipelineEvents pEvents;
 
 		private Thread[] pThreads = Array.Empty<Thread>();
 		private int pThreadSleepMs;
@@ -24,6 +26,19 @@ namespace REngine.Core.Threading
 
 		public int JobsCount => pThreads.Length;
 		public bool IsJobThread => pIsJobThread.Value;
+
+		public ThreadCoordinatorImpl(ILoggerFactory loggerFactory, ExecutionPipelineEvents events)
+		{
+			pLogger = loggerFactory.Build<IThreadCoordinator>();
+			pEvents = events;
+			pEvents.OnDispose += HandleExecutionPipelineDispose;
+		}
+
+		private void HandleExecutionPipelineDispose(object? sender, EventArgs e)
+		{
+			pEvents.OnDispose -= HandleExecutionPipelineDispose;
+			Dispose();
+		}
 
 		public void Dispose()
 		{

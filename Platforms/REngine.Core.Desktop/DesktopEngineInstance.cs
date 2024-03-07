@@ -21,7 +21,7 @@ public sealed class DesktopEngineInstance : EngineInstance
     private DesktopEngineInstance(IEngineApplication app) : base(app){}
     protected override async Task<ILoggerFactory> OnGetLoggerFactory()
     {
-        await Task.Yield();
+        await Dispatcher.Yield();
 #if DEBUG
         return new ComposedLoggerFactory([
             new DebugLoggerFactory(),
@@ -62,7 +62,7 @@ public sealed class DesktopEngineInstance : EngineInstance
     }
     protected override async Task OnSetup(IServiceRegistry registry)
     {
-        await Task.Yield();
+        await Dispatcher.Yield();
         registry
             .Add(
                 deps => OnCreateWindow((IWindowManager)deps[0]),
@@ -136,11 +136,12 @@ public sealed class DesktopEngineInstance : EngineInstance
             window.OnResize -= OnMainWindowResize;
         return base.OnStop();
     }
-    protected override async Task OnStart()
+    protected override Task OnStart()
     {
-        await Task.Yield();
         var window = Provider.GetOrDefault<IWindow>();
         window?.Show();
+        // Back to main thread
+        return Dispatcher.Yield();
     }
     protected override async Task OnSetupSettings(IServiceRegistry registry)
     {
@@ -160,6 +161,9 @@ public sealed class DesktopEngineInstance : EngineInstance
             .Add(() => pGraphicsSettings)
             .Add(() => pRenderSettings)
             .Add(() => pDriverSettings);
+
+        // Back to main thread
+        await Dispatcher.Yield();
     }
 
     public static DesktopEngineInstance CreateStartup(Type appType)

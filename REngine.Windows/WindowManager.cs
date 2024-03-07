@@ -19,6 +19,7 @@ namespace REngine.Windows
 		private readonly ILogger<IWindowManager> pLogger;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IEngine pEngine;
+		private readonly IDispatcher pDispatcher;
 
 		private readonly List<WindowImpl> pWindows = new();
 		private bool pDisposed;
@@ -30,14 +31,18 @@ namespace REngine.Windows
 			ILogger<IWindowManager> logger,
 			IExecutionPipeline pipeline,
 			EngineEvents engineEvents,
-			IEngine engine
+			IEngine engine,
+			IDispatcher dispatcher
 		) 
 		{
 			pPipeline = pipeline;
 			pLogger = logger;
 			pEngineEvents = engineEvents;
 			pEngine = engine;
+			pDispatcher = dispatcher;
 
+			AssertMainThreadCall();
+			
 			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
 			Glfw.Init();
 			Glfw.SetErrorCallback(HandleGlfwError);
@@ -51,9 +56,9 @@ namespace REngine.Windows
 		{
 			if (pDisposed)
 				return;
+			AssertMainThreadCall();
 			pWindows.ForEach(x => x.Dispose());
 			pWindows.Clear();
-
 			Glfw.Terminate();
 			pDisposed = true;
 			GC.SuppressFinalize(this);
@@ -84,6 +89,7 @@ namespace REngine.Windows
 			if (pDisposed)
 				return;
 
+			AssertMainThreadCall();
 			Glfw.PollEvents();
 
 			int closedWindows = 0;
@@ -107,6 +113,7 @@ namespace REngine.Windows
 			if (pDisposed)
 				return this;
 
+			AssertMainThreadCall();
 			foreach(var wnd in pWindows)
 				wnd.Close();
 			return this;
@@ -115,11 +122,11 @@ namespace REngine.Windows
 		public IWindow Create(WindowCreationInfo createInfo)
 		{
 			AssertDispose();
-
+			AssertMainThreadCall();
 			if (createInfo.WindowInstance != null)
 				pLogger.Warning("WindowInstance is not used by GLFW windowm manager");
 			var wnd = Glfw.CreateWindow(createInfo.Size.Width, createInfo.Size.Height, createInfo.Title, GLFW.Monitor.None, GLFW.Window.None);		
-			var output = new WindowImpl(wnd, createInfo.Title);
+			var output = new WindowImpl(wnd, pDispatcher, createInfo.Title);
 			output.Show();
 			pWindows.Add(output);
 
@@ -132,6 +139,11 @@ namespace REngine.Windows
 			throw new Exception($"{msg}. Error Code: {code}");
 		}
 
+		private void AssertMainThreadCall()
+		{
+			if (!pDispatcher.IsThreadCaller)
+				throw new InvalidOperationException("This operation must execute on Main Thread");
+		}
 		private void AssertDispose()
 		{
 			if (pDisposed)

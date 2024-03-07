@@ -20,6 +20,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     private ILogger? pLogger;
     private IServiceProvider? pServiceProvider;
 
+    public IDispatcher Dispatcher { get; private set; } = NullDispatcher.Instance;
     public IEngineApplication App => app;
     public IServiceProvider Provider
     {
@@ -85,18 +86,18 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         await OnReady();
 
         Logger.Info("Starting Game Loop");
-        RunGameLoop(engine);
+        await RunGameLoop(engine);
     }
 
-    protected virtual void RunGameLoop(IEngine engine)
+    protected virtual async Task RunGameLoop(IEngine engine)
     {
         while (!engine.IsStopped)
             engine.ExecuteFrame();
         
         Logger.Debug("Exiting");
-        app.OnExit(Provider);
-        OnStop();
-
+        await app.OnExit(Provider);
+        await Dispatcher.Yield();
+        await OnStop();
         Logger.Info("Finished!!!");
     }
     
@@ -108,14 +109,16 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     protected virtual void OnUpdate()
     {
     }
-    public virtual async Task Setup()
+    public virtual async Task Setup(IDispatcher dispatcher)
     {
+        Dispatcher = dispatcher;
+        
         pEngineStartTime.Start();
         pSetupTime.Start();
 
         pLoggerFactory = await OnGetLoggerFactory();
         pLogger = pLoggerFactory.Build(GetType());
-
+        
         NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
         NativeReferences.PreloadLibs();
 
@@ -124,6 +127,9 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         var registry = ServiceRegistryFactory.Build();
         var modules = new List<IModule>();
 
+        // Insert Main Dispatcher on DI
+        registry.Add(() => Dispatcher);
+        
         pLogger.Info("Setup Modules");
         await OnSetupModules(modules);
 
@@ -137,12 +143,16 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         pLogger.Info($"Setup Application '{(app.GetType().FullName ?? app.GetType().Name)}'");
         await app.OnSetup(registry);
 
-        pLogger.Info("Emitting Setup Event");
-        ApplicationLifecyle.ExecuteSetup(registry);
+        // Execute the above steps on MainThread
+        await Dispatcher.InvokeAsync(() =>
+        {
+            pLogger.Info("Emitting Setup Event");
+            ApplicationLifecyle.ExecuteSetup(registry);
 
-        pLogger.Info("Building Service Provider");
-        pServiceProvider = registry.Build();
-        pLogger.Success("Service Provider is Ready!");
+            pLogger.Info("Building Service Provider");
+            pServiceProvider = registry.Build();
+            pLogger.Success("Service Provider is Ready!");
+        });      
 
         var assetManager = pServiceProvider.Get<IAssetManager>();
 
@@ -155,49 +165,52 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         pLogger.Info("Setup is Finished!");
     }
 
-    protected virtual async Task OnSetup(IServiceRegistry registry) => await Task.Yield();
-    protected virtual Task OnSetupModules(List<IModule> modules)
+    protected virtual Task OnSetup(IServiceRegistry registry) => Dispatcher.Yield();
+    protected virtual async Task OnSetupModules(List<IModule> modules)
     {
         modules.Add(new CoreModule());
-        return app.OnSetupModules(modules);
+        await app.OnSetupModules(modules);
+        await Dispatcher.Yield();
     }
     protected virtual async Task OnSetupSettings(IServiceRegistry registry)
     {
-        var engineSettings = LoadSettings<EngineSettings>(EngineSettings.EngineSettingsPath);
-        var assetManagerSettings = LoadSettings<AssetManagerSettings>(EngineSettings.AssetManagerSettingsPath);
+        var engineSettingsTask = LoadSettings<EngineSettings>(EngineSettings.EngineSettingsPath);
+        var assetManagerSettingsTask = LoadSettings<AssetManagerSettings>(EngineSettings.AssetManagerSettingsPath);
 
-        await Task.WhenAll(engineSettings, assetManagerSettings);
+        await Task.WhenAll(engineSettingsTask, assetManagerSettingsTask);
         await Task.WhenAll(
-            OnSetupEngineSettings(engineSettings.Result),
-            OnSetupAssetManagerSettings(assetManagerSettings.Result)
+            OnSetupEngineSettings(engineSettingsTask.Result),
+            OnSetupAssetManagerSettings(assetManagerSettingsTask.Result)
         );
         
-        registry.Add(() => engineSettings);
-        registry.Add(() => assetManagerSettings);
+        registry.Add(() => engineSettingsTask.Result);
+        registry.Add(() => assetManagerSettingsTask.Result);
+
+        await Dispatcher.Yield();
     }
 
-    protected virtual async Task OnSetupEngineSettings(EngineSettings engineSettings)
+    protected virtual Task OnSetupEngineSettings(EngineSettings engineSettings)
     {
-        await Task.Yield();
         var processorCount = Math.Min(Environment.ProcessorCount, EngineSettings.MaxAllowedJobs);
         if (engineSettings.JobsThreadCount == -1)
             engineSettings.JobsThreadCount = processorCount;
         engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, processorCount);
+        return Dispatcher.Yield();
     }
 
-    protected virtual async Task OnSetupAssetManagerSettings(AssetManagerSettings settings) => await Task.Yield();
+    protected virtual async Task OnSetupAssetManagerSettings(AssetManagerSettings settings) => await Dispatcher.Yield();
 
     public async Task Start()
     {
         ApplicationLifecyle.ExecuteStart(Provider);
         await OnStart();
         await app.OnStart(Provider);
+        await Dispatcher.Yield();
     }
 
     private bool pHasCallStop;
     public virtual async Task Stop()
     {
-        await Task.Yield();
         if (pHasCallStop)
         {
             Logger.Warning("Stop has been already called. Skipping!!!");
@@ -205,17 +218,19 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         }
 
         pHasCallStop = true;
+        // TODO: do i really need to do this ?
         Provider
             .Get<IExecutionPipeline>()
             .Invoke(() =>
             {
                 Provider.Get<IEngine>().Stop();
             });
+        await Dispatcher.Yield();
     }
 
-    protected virtual async Task OnStart() => await Task.Yield();
+    protected virtual async Task OnStart() => await Dispatcher.Yield();
 
-    protected virtual Task OnStop()
+    protected virtual async Task OnStop()
     {
 #if PROFILER
         Profiler.Instance.Dispose();
@@ -223,7 +238,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         NativeReferences.UnloadLibs();
 
         Logger.Info("Writing Settings Before Exit");
-        return OnWriteSettings();
+        await OnWriteSettings();
+        
+        // Stop Dispatcher Loop
+        Dispatcher.Dispose();
     }
 
     protected virtual async Task OnWriteSettings()
@@ -238,6 +256,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
             tasks.Add(WriteSettings(EngineSettings.AssetManagerSettingsPath, assetSettings));
         
         await Task.WhenAll(tasks);
+        await Dispatcher.Yield();
     }
 
     protected virtual async Task WriteSettings<T>(string path, T data)
@@ -257,5 +276,5 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         return json.FromJson<T>() ?? ActivatorExtended.CreateInstance<T>([]);
     }
 
-    protected virtual async Task OnReady() => await Task.Yield();
+    protected virtual async Task OnReady() => await Dispatcher.Yield();
 }

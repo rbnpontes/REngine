@@ -11,10 +11,10 @@ namespace REngine.Sandbox
 		///  The main entry point for the application.
 		/// </summary>
 		[STAThread]
-		static async Task Main()
+		static void Main()
 		{
 #if DESKTOP
-			await EngineApplication.Run(DesktopEngineInstance.CreateStartup<SampleApp>());
+			EngineApplication.Run(DesktopEngineInstance.CreateStartup<SampleApp>());
 #else
 			Console.WriteLine("Unsupported Platform. Build this Project with Linux or Windows Configuration");
 #endif

@@ -15,7 +15,7 @@ namespace REngine.Core
 		private readonly IExecutionPipeline pExecPipeline;
 		private readonly EngineSettings pEngineSettings;
 		private readonly IServiceProvider pServiceProvider;
-		private readonly IThreadCoordinator pThreadCoordinator;
+		private readonly IDispatcher pDispatcher;
 
 		private readonly Timer pTimer = new();
 		private IWindow? pMainWindow;
@@ -28,7 +28,7 @@ namespace REngine.Core
 		public double ElapsedTime => pTimer.Elapsed;
 
 		public bool IsStopped => pStopped;
-		public bool IsMainThread => !pThreadCoordinator.IsJobThread;
+		public bool IsMainThread => !pDispatcher.IsThreadCaller;
 		public virtual bool IsKeyboardVisible => false;
 
 		public Engine(
@@ -37,7 +37,7 @@ namespace REngine.Core
 			IExecutionPipeline pipeline,
 			EngineSettings settings,
 			ILoggerFactory loggerFactory,
-			IThreadCoordinator threadCoordinator) 
+			IDispatcher dispatcher) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
@@ -45,13 +45,13 @@ namespace REngine.Core
 			pExecPipeline = pipeline;
 			pEngineSettings = settings;
 			pServiceProvider = provider;
-			pThreadCoordinator = threadCoordinator;
+			pDispatcher = dispatcher;
 			Logger = loggerFactory.Build<IEngine>();
 		}
 
 		public async Task Start()
 		{
-			await Task.Yield();
+			await pDispatcher.Yield();
 			// Try get main window
 			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
 
@@ -107,7 +107,7 @@ namespace REngine.Core
 
 		public async Task Stop()
 		{
-			await Task.Yield();
+			await pDispatcher.Yield();
 			if (pStopped)
 				return;
 
