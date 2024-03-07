@@ -156,11 +156,13 @@ namespace REngine.RPI
 			return this;
 		}
 
-		public IRenderer RemoveFeature(IRenderFeature feature)
+		public IRenderer RemoveFeature(IRenderFeature feature, bool dispose = true)
 		{
 			if (IsDisposed)
 				return this;
 			pFeatureCollection.RemoveFeature(feature);
+			if(dispose)
+				DisposableQueue.Enqueue(feature);
 			return this;
 		}
 

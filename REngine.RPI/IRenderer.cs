@@ -32,7 +32,7 @@ namespace REngine.RPI
 		/// <param name="features"></param>
 		/// <returns></returns>
 		public IRenderer AddFeature(IEnumerable<IRenderFeature> features, int zindex = -1);
-		public IRenderer RemoveFeature(IRenderFeature feature);
+		public IRenderer RemoveFeature(IRenderFeature feature, bool dispose = true);
 		/// <summary>
 		/// Check for dirty render features and run compile
 		/// </summary>
