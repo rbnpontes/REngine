@@ -238,12 +238,12 @@ namespace REngine.RHI.NativeDriver
             }
         }
 #if RENGINE_VALIDATIONS
-        private static void ValidateGpuObject(INativeObject texView)
+        private static void ValidateGpuObject(INativeObject gpuObj)
         {
-            if (texView.IsDisposed)
-                throw new ObjectDisposedException($"{nameof(ITextureView)} is Disposed");
-            if (texView.Handle == IntPtr.Zero)
-                throw new NullReferenceException($"{nameof(ITextureView)} Handle is null");
+            if (gpuObj.IsDisposed)
+                throw new ObjectDisposedException($"{(gpuObj.GetType().FullName ?? gpuObj.GetType().Name)} is Disposed");
+            if (gpuObj.Handle == IntPtr.Zero)
+                throw new NullReferenceException($"{(gpuObj.GetType().FullName ?? gpuObj.GetType().Name)} Handle is null");
         }
 #endif
 
