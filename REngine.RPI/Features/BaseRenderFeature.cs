@@ -86,12 +86,13 @@ namespace REngine.RPI.Features
 					return this;
 
 				pCurrentState = RenderFeatureState.Setup;
-				OnSetup(execInfo);
-				pCurrentState = RenderFeatureState.Compile;
 			}
-
+			
+			OnSetup(execInfo);
+			
 			lock (pSync)
 			{
+				pCurrentState = RenderFeatureState.Compile;
 				if (HandleDispose())
 					return this;
 			}
@@ -109,13 +110,13 @@ namespace REngine.RPI.Features
 					return this;
 
 				AssertState(RenderFeatureState.Compile);
-
-				OnCompile(command);
-				pCurrentState = RenderFeatureState.Execute;
             }
+
+			OnCompile(command);
 
 			lock (pSync)
 			{
+				pCurrentState = RenderFeatureState.Execute;
 				if (HandleDispose())
 					return this;
 			}
@@ -136,12 +137,13 @@ namespace REngine.RPI.Features
 				if(pCurrentState == RenderFeatureState.None)
 					pCurrentState = RenderFeatureState.Execute;
 				AssertState(RenderFeatureState.Execute);
-				OnExecute(command);
-				pCurrentState = RenderFeatureState.None;
 			}
-
+			
+			OnExecute(command);
+			
 			lock (pSync)
 			{
+				pCurrentState = RenderFeatureState.None;
 				if (HandleDispose())
 					return this;
 			}
