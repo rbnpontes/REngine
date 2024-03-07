@@ -15,28 +15,29 @@ namespace REngine.Core
 		private readonly IExecutionPipeline pExecPipeline;
 		private readonly EngineSettings pEngineSettings;
 		private readonly IServiceProvider pServiceProvider;
+		private readonly IThreadCoordinator pThreadCoordinator;
 
 		private readonly Timer pTimer = new();
 		private IWindow? pMainWindow;
 
 		private bool pStopped;
-		private ulong pMainThreadId;
 
 		protected ILogger<IEngine> Logger { get; private set; }
 		
-		public double DeltaTime { get => pTimer.DeltaTime; }
-		public double ElapsedTime { get => pTimer.Elapsed; }
+		public double DeltaTime => pTimer.DeltaTime;
+		public double ElapsedTime => pTimer.Elapsed;
 
-		public bool IsStopped { get => pStopped; }
-		public bool IsMainThread => pMainThreadId == Hash.Digest(Thread.CurrentThread.Name);
+		public bool IsStopped => pStopped;
+		public bool IsMainThread => !pThreadCoordinator.IsJobThread;
 		public virtual bool IsKeyboardVisible => false;
 
-		public Engine(
+		internal Engine(
 			IServiceProvider provider,
 			EngineEvents events,
 			IExecutionPipeline pipeline,
 			EngineSettings settings,
-			ILoggerFactory loggerFactory) 
+			ILoggerFactory loggerFactory,
+			IThreadCoordinator threadCoordinator) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
@@ -44,20 +45,17 @@ namespace REngine.Core
 			pExecPipeline = pipeline;
 			pEngineSettings = settings;
 			pServiceProvider = provider;
+			pThreadCoordinator = threadCoordinator;
 			Logger = loggerFactory.Build<IEngine>();
 		}
 
-		public IEngine Start()
+		public async Task Start()
 		{
-			var threadName = "REngine - Main Thread";
-			Thread.CurrentThread.Name = threadName;
-			pMainThreadId = Hash.Digest(threadName);
-			
+			await Task.Yield();
 			// Try get main window
 			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
 
 			pStopwatch.Restart();
-			return this;
 		}
 
 		public IEngine ExecuteFrame()
@@ -107,16 +105,16 @@ namespace REngine.Core
 			return this;
 		}
 
-		public IEngine Stop()
+		public async Task Stop()
 		{
+			await Task.Yield();
 			if (pStopped)
-				return this;
+				return;
 
 			pStopped = true;
 			ApplicationLifecyle.ExecuteExit();
 			while(DisposableQueue.HasPendingItems)
 				DisposableQueue.Dispose();
-			return this;
 		}
 
 		public virtual IEngine ShowKeyboard()

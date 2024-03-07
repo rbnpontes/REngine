@@ -7,16 +7,17 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
 
 namespace REngine.Core.Threading
 {
     internal class ExecutionPipelineImpl : IExecutionPipeline, IDisposable
     {
-        private static readonly LinkedList<Action> EmptyScheduledCalls = new();
-        
+        // TODO: get rid of sync obj and use ConcurrentQueue instead
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
-        private readonly ThreadCoordinator pCoordinator;
+        private readonly IThreadCoordinator pCoordinator;
+        private readonly ExecutionPipelineEvents pEvents;
 
         private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
@@ -38,12 +39,15 @@ namespace REngine.Core.Threading
             EngineEvents engineEvents,
             ILoggerFactory factory,
             ExecutionPipelineNodeRegistry nodeRegistry,
-            EngineSettings engineSettings)
+            EngineSettings engineSettings,
+            IThreadCoordinator threadCoordinator,
+            ExecutionPipelineEvents execEvents)
         {
             pNodeRegistry = nodeRegistry;
             pLogger = factory.Build<IExecutionPipeline>();
-            pCoordinator = new ThreadCoordinator(factory);
+            pCoordinator = threadCoordinator;
             pEngineSettings = engineSettings;
+            pEvents = execEvents;
 
             engineEvents.OnBeforeStop += HandleStop;
 
@@ -63,16 +67,18 @@ namespace REngine.Core.Threading
 
             StopTokenSource.Cancel();
             ClearAllEvents();
-            pCoordinator.Dispose();
+            
             pNodes.Clear();
             pNodesTable.Clear();
 
+            pEvents.ExecuteDispose(this);
             pDisposed = true;
         }
 
         public IExecutionPipeline Load(Stream stream)
         {
             pLogger.Info("Loading Execution Pipeline Settings");
+            pEvents.ExecuteLoad(this);
             EPResolver resolver = new(pNodeRegistry, this);
             resolver.Load(stream);
 
@@ -83,6 +89,7 @@ namespace REngine.Core.Threading
             // Clear registry to free memory
             pNodeRegistry.ClearRegistry();
 #endif
+            pEvents.ExecuteLoaded(this);
             return this;
         }
         
@@ -95,7 +102,6 @@ namespace REngine.Core.Threading
             {
                 lock (pSyncObj)
                     pExecuteMainThreadCalls.Clear();
-                pCoordinator.Dispose();
                 return this;
             }
 

@@ -9,12 +9,13 @@ using REngine.Core.Mathematics;
 
 namespace REngine.Core.Threading
 {
-	internal class ThreadCoordinator(ILoggerFactory loggerFactory) : IDisposable
+	internal class ThreadCoordinatorImpl : IDisposable, IThreadCoordinator
 	{
 		private readonly ConcurrentQueue<Action> pActions = new();
 		private readonly CancellationTokenSource pCancellationTokenSource = new();
-		private readonly ILogger<ThreadCoordinator> pLogger = loggerFactory.Build<ThreadCoordinator>();
+		private readonly ILogger<IThreadCoordinator> pLogger;
 		private readonly object pLock = new();
+		private readonly ThreadLocal<bool> pIsJobThread = new();
 
 		private Thread[] pThreads = Array.Empty<Thread>();
 		private int pThreadSleepMs;
@@ -22,6 +23,13 @@ namespace REngine.Core.Threading
 		private bool pDisposed;
 
 		public int JobsCount => pThreads.Length;
+		public bool IsJobThread => pIsJobThread.Value;
+
+		internal ThreadCoordinatorImpl(ILoggerFactory loggerFactory)
+		{
+			pLogger = loggerFactory.Build<IThreadCoordinator>();
+		}
+		
 		public void Dispose()
 		{
 			if (pDisposed)
@@ -80,6 +88,7 @@ namespace REngine.Core.Threading
 
 		private void ThreadExecution()
 		{
+			pIsJobThread.Value = true;
 			while (true)
 			{
 				bool started;
@@ -90,7 +99,7 @@ namespace REngine.Core.Threading
 			}
 
 			var token = pCancellationTokenSource.Token;
-			var threadName = Thread.CurrentThread.Name ?? nameof(ThreadCoordinator);
+			var threadName = Thread.CurrentThread.Name ?? nameof(ThreadCoordinatorImpl);
 			while (!token.IsCancellationRequested)
 			{
 #if PROFILER
