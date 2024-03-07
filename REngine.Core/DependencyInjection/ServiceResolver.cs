@@ -36,12 +36,14 @@ namespace REngine.Core.DependencyInjection
 			if (ctors.TryGetValue(dependency, out var depCtor))
 				return ResolveRegistered(instances, depCtor);
 
-			throw new ServiceResolverException($"Dependency {dependency.Name} has not yet registered.");
+			throw new ServiceResolverException(GetExceptionMessage($"Dependency {dependency.Name} has not yet registered.", pResolvingTypes));
 		}
 		private object ResolveRegistered(Dictionary<Type, object> instances, ServiceConstructor ctor)
 		{
+			pResolvingTypes.Push($"[{(ctor.InterfaceType.FullName ?? ctor.InterfaceType.Name)}] => {(ctor.TargetType.FullName ?? ctor.TargetType.Name)}");
+			
 			if (ctor.ActivationCall == null)
-				throw new NullReferenceException("ActivationCall is null.");
+				throw new NullReferenceException(GetExceptionMessage("ActivationCall is null.", pResolvingTypes));
 
 			if (instances.TryGetValue(ctor.InterfaceType, out var obj))
 				return obj;
@@ -67,6 +69,8 @@ namespace REngine.Core.DependencyInjection
 			instances[ctor.InterfaceType] = obj;
 			if(ctor.TargetType != ctor.InterfaceType)
 				instances[ctor.TargetType] = obj;
+
+			pResolvingTypes.Pop();
 			return obj;
 		}
 
@@ -89,7 +93,6 @@ namespace REngine.Core.DependencyInjection
 
 		//	return result;
 		//}
-
 		private ConstructorInfo FindSuitableConstructor(Dictionary<Type, object> instances, ConstructorInfo[] ctors1)
 		{
 			var ctor = ctors1.Where(ctor =>
@@ -107,8 +110,22 @@ namespace REngine.Core.DependencyInjection
 			}).FirstOrDefault();
 
 			if (ctor is null)
-				throw new ServiceResolverException("Not found suitable constructor.");
+				throw new ServiceResolverException(GetExceptionMessage("Not found suitable constructor.", pResolvingTypes));
 			return ctor;
+		}
+
+		private static string GetExceptionMessage(string baseMessage, Stack<string> resolveStack)
+		{
+			StringBuilder builder = new();
+			builder.AppendLine(baseMessage);
+			builder.AppendLine("Resolve Types Stack:");
+			foreach (var stackItem in resolveStack)
+			{
+				builder.Append('\t');
+				builder.AppendLine(stackItem);
+			}
+
+			return builder.ToString();
 		}
 	}
 }
