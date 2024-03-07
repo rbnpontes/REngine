@@ -15,19 +15,33 @@ namespace REngine.Core
 {
 	public interface IEngineApplication
 	{
-		public void OnSetLogger(ILogger logger);
-		public void OnSetupModules(List<IModule> modules);
-		public void OnSetup(IServiceRegistry registry);
-		public void OnStart(IServiceProvider provider);
+		public Task OnSetLogger(ILogger logger);
+		public Task OnSetupModules(List<IModule> modules);
+		public Task OnSetup(IServiceRegistry registry);
+		public Task OnStart(IServiceProvider provider);
 		public void OnUpdate(IServiceProvider provider);
-		public void OnExit(IServiceProvider provider);
+		public Task OnExit(IServiceProvider provider);
 	}
 
 	public interface IEngineStartup
 	{
-		public IEngineStartup Setup();
-		public IEngineStartup Start();
-		public IEngineStartup Run();
-		public IEngineStartup Stop();
+		public Task Setup();
+		public Task Start();
+		public Task Run();
+		public Task Stop();
+	}
+
+	/**
+	 * A Helper Class used to Engine Startup
+	 * in correctly order
+	 */
+	public static class EngineApplication
+	{
+		public static async Task Run(IEngineStartup startup)
+		{
+			await startup.Setup();
+			await startup.Start();
+			await startup.Run();
+		}
 	}
 }
