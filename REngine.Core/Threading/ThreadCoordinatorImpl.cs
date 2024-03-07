@@ -9,11 +9,11 @@ using REngine.Core.Mathematics;
 
 namespace REngine.Core.Threading
 {
-	internal class ThreadCoordinatorImpl : IDisposable, IThreadCoordinator
+	internal class ThreadCoordinatorImpl(ILoggerFactory loggerFactory) : IDisposable, IThreadCoordinator
 	{
 		private readonly ConcurrentQueue<Action> pActions = new();
 		private readonly CancellationTokenSource pCancellationTokenSource = new();
-		private readonly ILogger<IThreadCoordinator> pLogger;
+		private readonly ILogger<IThreadCoordinator> pLogger = loggerFactory.Build<IThreadCoordinator>();
 		private readonly object pLock = new();
 		private readonly ThreadLocal<bool> pIsJobThread = new();
 
@@ -25,11 +25,6 @@ namespace REngine.Core.Threading
 		public int JobsCount => pThreads.Length;
 		public bool IsJobThread => pIsJobThread.Value;
 
-		internal ThreadCoordinatorImpl(ILoggerFactory loggerFactory)
-		{
-			pLogger = loggerFactory.Build<IThreadCoordinator>();
-		}
-		
 		public void Dispose()
 		{
 			if (pDisposed)

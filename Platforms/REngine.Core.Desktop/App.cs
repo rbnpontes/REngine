@@ -11,21 +11,19 @@ public abstract class App : IEngineApplication
     
     public ILogger Logger => pLogger ?? throw new NullReferenceException();
     public IWindow MainWindow => pWindow ?? throw new NullReferenceException();
-    public virtual void OnSetLogger(ILogger logger)
+    public virtual async Task OnSetLogger(ILogger logger)
     {
+        await Task.Yield();
         pLogger = logger;
     }
 
-    public virtual void OnSetupModules(List<IModule> modules)
-    {
-    }
+    public virtual async Task OnSetupModules(List<IModule> modules) => await Task.Yield();
 
-    public virtual void OnSetup(IServiceRegistry registry)
-    {
-    }
+    public virtual async Task OnSetup(IServiceRegistry registry) => await Task.Yield();
 
-    public virtual void OnStart(IServiceProvider provider)
+    public virtual async Task OnStart(IServiceProvider provider)
     {
+        await Task.Yield();
         pWindow = provider.GetOrDefault<IWindow>();
 #if RENGINE_IMGUI
         var renderer = provider.Get<IRenderer>();
@@ -45,8 +43,9 @@ public abstract class App : IEngineApplication
     {
     }
 
-    public virtual void OnExit(IServiceProvider provider)
+    public virtual async Task OnExit(IServiceProvider provider)
     {
+        await Task.Yield();
 #if RENGINE_IMGUI
         var imGuiSystem = provider.Get<IImGuiSystem>();
         imGuiSystem.OnGui -= HandleImGui;

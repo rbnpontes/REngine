@@ -19,8 +19,9 @@ public sealed class DesktopEngineInstance : EngineInstance
     private readonly DriverSettings pDriverSettings = new();
 
     private DesktopEngineInstance(IEngineApplication app) : base(app){}
-    protected override ILoggerFactory OnGetLoggerFactory()
+    protected override async Task<ILoggerFactory> OnGetLoggerFactory()
     {
+        await Task.Yield();
 #if DEBUG
         return new ComposedLoggerFactory([
             new DebugLoggerFactory(),
@@ -30,14 +31,16 @@ public sealed class DesktopEngineInstance : EngineInstance
         return new FileLoggerFactory(EngineSettings.LoggerPath);
 #endif
     }
-    protected override void OnWriteSettings()
+    protected override Task OnWriteSettings()
     {
-        base.OnWriteSettings();
-        WriteSettings(EngineSettings.GraphicsSettingsPath, pGraphicsSettings);
-        WriteSettings(EngineSettings.RenderSettingsPath, pRenderSettings);
-        WriteSettings(EngineSettings.DriverSettingsPath, pDriverSettings);
+        return Task.WhenAll(
+            base.OnWriteSettings(),
+            WriteSettings(EngineSettings.GraphicsSettingsPath, pGraphicsSettings),
+            WriteSettings(EngineSettings.RenderSettingsPath, pRenderSettings),
+            WriteSettings(EngineSettings.DriverSettingsPath, pDriverSettings)
+        );
     }
-    protected override void OnSetupModules(List<IModule> modules)
+    protected override Task OnSetupModules(List<IModule> modules)
     {
         modules.AddRange([
             new WindowsModule(),
@@ -46,7 +49,7 @@ public sealed class DesktopEngineInstance : EngineInstance
             new RPIModule(),
             new GameModule()
         ]);
-        base.OnSetupModules(modules);
+        return base.OnSetupModules(modules);
     }
 
     private IWindow OnCreateWindow(IWindowManager windowManager)
@@ -57,8 +60,9 @@ public sealed class DesktopEngineInstance : EngineInstance
             Size = new Size(512, 512)
         });
     }
-    protected override void OnSetup(IServiceRegistry registry)
+    protected override async Task OnSetup(IServiceRegistry registry)
     {
+        await Task.Yield();
         registry
             .Add(
                 deps => OnCreateWindow((IWindowManager)deps[0]),
@@ -124,25 +128,33 @@ public sealed class DesktopEngineInstance : EngineInstance
                 throw new ArgumentOutOfRangeException();
         }
     }
-    protected override void OnStop()
+    protected override Task OnStop()
     {
         DriverFactory.OnDriverMessage -= OnDriverMessage;
         var window = Provider.GetOrDefault<IWindow>();
         if(window is not null)
             window.OnResize -= OnMainWindowResize;
-        base.OnStop();
+        return base.OnStop();
     }
-    protected override void OnStart()
+    protected override async Task OnStart()
     {
+        await Task.Yield();
         var window = Provider.GetOrDefault<IWindow>();
         window?.Show();
     }
-    protected override void OnSetupSettings(IServiceRegistry registry)
+    protected override async Task OnSetupSettings(IServiceRegistry registry)
     {
-        base.OnSetupSettings(registry);
-        pGraphicsSettings.Merge(LoadSettings<GraphicsSettings>(EngineSettings.GraphicsSettingsPath));
-        pRenderSettings.Merge(LoadSettings<RenderSettings>(EngineSettings.RenderSettingsPath));
-        pDriverSettings.Merge(LoadSettings<DriverSettings>(EngineSettings.DriverSettingsPath));
+        await base.OnSetupSettings(registry);
+
+        var graphicsSettingsTask = LoadSettings<GraphicsSettings>(EngineSettings.GraphicsSettingsPath);
+        var renderSettingsTask = LoadSettings<RenderSettings>(EngineSettings.RenderSettingsPath);
+        var driverSettingsTask = LoadSettings<DriverSettings>(EngineSettings.DriverSettingsPath);
+
+        await Task.WhenAll(graphicsSettingsTask, renderSettingsTask, driverSettingsTask);
+
+        pGraphicsSettings.Merge(graphicsSettingsTask.Result);
+        pRenderSettings.Merge(renderSettingsTask.Result);
+        pDriverSettings.Merge(driverSettingsTask.Result);
         
         registry
             .Add(() => pGraphicsSettings)

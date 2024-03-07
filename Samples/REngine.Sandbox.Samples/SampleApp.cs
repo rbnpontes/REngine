@@ -13,7 +13,7 @@ namespace REngine.Sandbox.Samples;
 public class SampleApp : App
 {
     private readonly SampleWindow pSampleWindow = new();
-     public override void OnStart(IServiceProvider provider)
+     public override Task OnStart(IServiceProvider provider)
      {
          // Ref all external libraries
          // this will make visible to Reflection
@@ -22,13 +22,13 @@ public class SampleApp : App
             typeof(PongGameSample)
          ];
          
-         base.OnStart(provider);
          var window = MainWindow;
          window.Title = "[REngine] Samples";
          window.Size = new Size(800, 500);
          
          provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
          pSampleWindow.EngineStart(provider);
+         return base.OnStart(provider);
      }
 
      private void OnBeforeStop(object? sender, EventArgs e)

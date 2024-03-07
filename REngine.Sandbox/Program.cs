@@ -1,4 +1,5 @@
 #if DESKTOP
+using REngine.Core;
 using REngine.Core.Desktop;
 using REngine.Sandbox.Samples;
 #endif
@@ -10,14 +11,10 @@ namespace REngine.Sandbox
 		///  The main entry point for the application.
 		/// </summary>
 		[STAThread]
-		static void Main()
+		static async Task Main()
 		{
 #if DESKTOP
-			DesktopEngineInstance
-				.CreateStartup<SampleApp>()
-				.Setup()
-				.Start()
-				.Run();
+			await EngineApplication.Run(DesktopEngineInstance.CreateStartup<SampleApp>());
 #else
 			Console.WriteLine("Unsupported Platform. Build this Project with Linux or Windows Configuration");
 #endif

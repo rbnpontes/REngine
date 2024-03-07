@@ -14,6 +14,12 @@ namespace REngine.Core.DependencyInjection
 	
 	internal class ServiceResolver(Dictionary<Type, ServiceConstructor> ctors)
 	{
+		// this object is only for debugging purposes
+		// is really difficult to understand why some dependencies
+		// fail to resolve, so this object stores
+		// each types that is going to be resolved
+		// when type is resolved, then type is popped of from stack
+		private readonly Stack<string> pResolvingTypes = new();
 		public void Resolve(Dictionary<Type, object> instances)
 		{
 			foreach(var pair in ctors)
