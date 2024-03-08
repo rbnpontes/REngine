@@ -136,12 +136,12 @@ public sealed class DesktopEngineInstance : EngineInstance
             window.OnResize -= OnMainWindowResize;
         return base.OnStop();
     }
-    protected override Task OnStart()
+    protected override async Task OnStart()
     {
         var window = Provider.GetOrDefault<IWindow>();
         window?.Show();
         // Back to main thread
-        return Dispatcher.Yield();
+        await Dispatcher.Yield();
     }
     protected override async Task OnSetupSettings(IServiceRegistry registry)
     {

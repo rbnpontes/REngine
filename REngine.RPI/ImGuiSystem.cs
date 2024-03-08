@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using REngine.Core.Reflection;
 using REngine.Core.Resources;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
@@ -508,6 +509,7 @@ namespace REngine.RPI
 			pMutex.ReleaseMutex();
 		}
 
+		public IGraphicsRenderFeature CreateRenderFeature() => AllocateFeature();
 		private ImGuiFeature GetFeature()
 		{
 			if (pFeature is null || pFeature.IsDisposed)
@@ -517,7 +519,7 @@ namespace REngine.RPI
 
 		private ImGuiFeature AllocateFeature()
 		{
-			return new ImGuiFeature(this, pGraphicsSettings);
+			return ActivatorExtended.CreateInstance<ImGuiFeature>(pProvider) ?? throw new NullReferenceException("Error has occurred while is creating render feature");
 		}
 	}
 #endif

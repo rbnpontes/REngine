@@ -92,7 +92,10 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     protected virtual async Task RunGameLoop(IEngine engine)
     {
         while (!engine.IsStopped)
+        {
             engine.ExecuteFrame();
+            await Dispatcher.Yield();
+        }
         
         Logger.Debug("Exiting");
         await app.OnExit(Provider);
@@ -165,7 +168,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         pLogger.Info("Setup is Finished!");
     }
 
-    protected virtual Task OnSetup(IServiceRegistry registry) => Dispatcher.Yield();
+    protected virtual async Task OnSetup(IServiceRegistry registry) => await Dispatcher.Yield();
     protected virtual async Task OnSetupModules(List<IModule> modules)
     {
         modules.Add(new CoreModule());
@@ -189,13 +192,13 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         await Dispatcher.Yield();
     }
 
-    protected virtual Task OnSetupEngineSettings(EngineSettings engineSettings)
+    protected virtual async Task OnSetupEngineSettings(EngineSettings engineSettings)
     {
         var processorCount = Math.Min(Environment.ProcessorCount, EngineSettings.MaxAllowedJobs);
         if (engineSettings.JobsThreadCount == -1)
             engineSettings.JobsThreadCount = processorCount;
         engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, processorCount);
-        return Dispatcher.Yield();
+        await Dispatcher.Yield();
     }
 
     protected virtual async Task OnSetupAssetManagerSettings(AssetManagerSettings settings) => await Dispatcher.Yield();

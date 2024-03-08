@@ -37,7 +37,6 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		public void Dispose()
 		{
 			renderer?.RemoveFeature(pSpriteFeature);
-			pSpriteFeature?.Dispose();
 			pSpriteEffect?.Dispose();
 			
 			pFlickeredDoge?.Dispose();

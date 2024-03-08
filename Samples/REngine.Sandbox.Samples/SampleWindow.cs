@@ -82,7 +82,8 @@ namespace REngine.Sandbox.Samples
 			// Force Assets Unload
 			pServiceProvider.Get<IAssetManager>().UnloadAssets();
 
-			await pServiceProvider.Get<IDispatcher>().InvokeAsync(() =>
+			var dispatcher = pServiceProvider.Get<IDispatcher>();
+			await dispatcher.InvokeAsync(() =>
 			{
 				currSample?.Dispose();
 			});

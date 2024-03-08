@@ -20,6 +20,8 @@ namespace REngine.RPI
 		/// </summary>
 		/// <param name="scale"></param>
 		public void ScaleUi(float scale);
+
+		public IGraphicsRenderFeature CreateRenderFeature();
 	}
 }
 #endif
