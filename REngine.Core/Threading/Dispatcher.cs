@@ -1,18 +1,63 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using REngine.Core.IO;
 
 namespace REngine.Core.Threading;
 
 public class DefaultDispatcher : IDispatcher
 {
-    private readonly ConcurrentQueue<Action> pDispatchActions = new();
+    private class DispatcherAwaiter : IDispatcherAwaiter
+    {
+        private Action? pContinuation;
+        public Action? AuxiliarAction { get; set; }
+        public bool IsCompleted { get; private set; }
+
+        private void ExecuteContinuation()
+        {
+            AuxiliarAction?.Invoke();
+            pContinuation?.Invoke();
+            IsCompleted = true;
+        }
+        public bool Execute()
+        {
+            if (pContinuation is null)
+                return false;
+            ExecuteContinuation();
+            return true;
+        }
+        public void OnCompleted(Action continuation)
+        {
+            pContinuation = continuation;
+        }
+
+        public void GetResult() {}
+        public void Reset()
+        {
+            IsCompleted = false;
+            pContinuation = null;
+        }
+    }
+    private class DispatcherTask : IDispatcherTask
+    {
+        public readonly DispatcherAwaiter Awaiter = new();
+        public IDispatcherAwaiter GetAwaiter() => Awaiter;
+    }
+    
+    private readonly Queue<DispatcherTask>[] pTasksContainer = new[]
+    {
+        new Queue<DispatcherTask>(),
+        new Queue<DispatcherTask>()
+    };
     private readonly ILogger<IDispatcher>? pLogger;
     private readonly object pSync = new();
+    private readonly object pExecutionSync = new();
     private readonly int pThreadId;
     
     private bool pDisposed;
     private bool pIsRunning;
 
+    private int pExecutionContainerIdx;
+    
     public bool IsThreadCaller => pThreadId == Environment.CurrentManagedThreadId;
     private DefaultDispatcher(ILogger<IDispatcher>? logger)
     {
@@ -25,10 +70,36 @@ public class DefaultDispatcher : IDispatcher
         if (pDisposed)
             return;
         pLogger?.Debug("Disposing Dispatcher");
-        lock(pSync)
+        lock (pSync)
             pDisposed = true;
-        pDispatchActions.Clear();
+        
+        // Execute incoming tasks
+        foreach (var _ in pTasksContainer)
+            ExecuteQueue();
         GC.SuppressFinalize(this);
+    }
+
+    private void ExecuteQueue()
+    {
+        int idx;
+        lock (pSync)
+            idx = pExecutionContainerIdx;
+
+        lock (pExecutionSync)
+        {
+            while (pTasksContainer[idx].TryDequeue(out var task))
+            {
+                // If task is not ready, schedule to next iteration
+                if(!task.Awaiter.Execute())
+                    EnqueueTask(task);
+            }
+        }
+
+        lock (pSync)
+        {
+            ++idx;
+            pExecutionContainerIdx = idx % pTasksContainer.Length;
+        }
     }
 
     public void Run()
@@ -37,27 +108,28 @@ public class DefaultDispatcher : IDispatcher
             return;
         if (pThreadId != Environment.CurrentManagedThreadId)
             throw new InvalidOperationException("You must run dispatcher on the same thread of the creation");
+        
         pIsRunning = true;
-        var stop = false;
-        while (!stop)
+        while (true)
         {
             lock (pSync)
-                stop = pDisposed;
-            while (pDispatchActions.TryDequeue(out var action))
             {
-                if (stop)
+                if(pDisposed)
                     break;
-                
-                action();
-                
-                lock (pSync)
-                    stop = pDisposed;
             }
+            
+            ExecuteQueue();
         }
 
         pLogger?.Info("Dispatcher is Stopped. Exiting!");
     }
 
+    private void EnqueueTask(DispatcherTask task)
+    {
+        lock (pSync)
+            pTasksContainer[(pExecutionContainerIdx + 1) % pTasksContainer.Length].Enqueue(task);
+    }
+    
     public void Invoke(Action action)
     {
         lock (pSync)
@@ -66,30 +138,38 @@ public class DefaultDispatcher : IDispatcher
                 return;
         }
 
-        // if invoke is called on the same thread of dispatcher.
-        // then executes instead of scheduling
-        if (pThreadId == Environment.CurrentManagedThreadId)
-            action();
-        else
-            pDispatchActions.Enqueue(action);
+        DispatcherTask task = new();
+        task.GetAwaiter().OnCompleted(action);
+        
+        EnqueueTask(task);
     }
 
-    public Task InvokeAsync(Action action)
+    public IDispatcherTask InvokeAsync(Action action)
     {
-        TaskCompletionSource completionSource = new();
-        Invoke(()=>
+        DispatcherTask task = new()
         {
-            action();
-            completionSource.SetResult();
-        });
-        return completionSource.Task;
+            Awaiter =
+            {
+                AuxiliarAction = action
+            }
+        };
+        EnqueueTask(task);
+        return task;
     }
-    public Task Yield()
+    public IDispatcherTask Yield()
     {
-        TaskCompletionSource completionSource = new();
-        Invoke(()=> completionSource.SetResult());
-        return completionSource.Task;
+        DispatcherTask task = new();
+        EnqueueTask(task);
+        return task;
     }
+    
+    public void OnCompleted(Action continuation)
+    {
+        Invoke(continuation);    
+    }
+
+    public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
+    
     /// <summary>
     /// Build a DefaultDispatcher
     /// The dispatcher will be linked by the thread caller
@@ -104,6 +184,23 @@ public class DefaultDispatcher : IDispatcher
 
 public class NullDispatcher : IDispatcher
 {
+    private struct NullAwaiter : IDispatcherAwaiter
+    {
+        public void OnCompleted(Action continuation)
+        {
+            continuation();
+        }
+
+        public bool IsCompleted => true;
+        public void GetResult()
+        {
+        }
+    }
+    private readonly struct NullTask() : IDispatcherTask
+    {
+        private readonly NullAwaiter pAwaiter = new();
+        public IDispatcherAwaiter GetAwaiter() => pAwaiter;
+    }
     private NullDispatcher() {}
     public bool IsThreadCaller => true;
     
@@ -120,19 +217,15 @@ public class NullDispatcher : IDispatcher
         action();
     }
 
-    public Task InvokeAsync(Action action)
+    public IDispatcherTask InvokeAsync(Action action)
     {
-        TaskCompletionSource<bool> src = new(false);
         action();
-        src.SetResult(true);
-        return src.Task;
+        return new NullTask();
     }
 
-    public Task Yield()
+    public IDispatcherTask Yield()
     {
-        TaskCompletionSource<bool> src = new(false);
-        src.SetResult(true);
-        return src.Task;
+        return new NullTask();
     }
 
     public static readonly NullDispatcher Instance = new();
