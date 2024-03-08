@@ -194,10 +194,11 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
     protected virtual async Task OnSetupEngineSettings(EngineSettings engineSettings)
     {
-        var processorCount = Math.Min(Environment.ProcessorCount, EngineSettings.MaxAllowedJobs);
+        var processorCount = Environment.ProcessorCount;
+        var maxAllowedProcessors = (int)Math.Max(processorCount * EngineSettings.MaxAllowedCoreRatio, 0);
         if (engineSettings.JobsThreadCount == -1)
-            engineSettings.JobsThreadCount = processorCount;
-        engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, processorCount);
+            engineSettings.JobsThreadCount = maxAllowedProcessors;
+        engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, maxAllowedProcessors);
         await Dispatcher.Yield();
     }
 

@@ -10,9 +10,11 @@ namespace REngine.Core
 	public class EngineSettings : IMergeable<EngineSettings>
 	{
 #if ANDROID
-		public static readonly int MaxAllowedJobs = 4;
+		// On Android, max allowed is 30% of the available cores
+		public static readonly float MaxAllowedCoreRatio = 0.3f;
 #else
-		public static readonly int MaxAllowedJobs = 10;
+		// On desktop, max allowed is 80% of the available cores
+		public static readonly float MaxAllowedCoreRatio = 0.6f;
 #endif
 		public static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine");
 		public static string LoggerPath => Path.Combine(AppDataPath, "rengine.log");
