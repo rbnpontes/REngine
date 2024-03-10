@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.IO;
 using REngine.Core.Mathematics;
 using REngine.Core.Reflection;
 using REngine.Core.Threading;
@@ -12,86 +14,125 @@ namespace REngine.Core.Logic
 	public interface IGameState
 	{
 		public string Name { get; }
-		public void OnStart();
+		public Task OnStart();
 		public void OnUpdate();
-		public void OnExit();
+		public Task OnExit();
 	}
-	public sealed class GameStateManager : IDisposable
+	public sealed class GameStateManager
 	{
+		private enum StateTransactionStep
+		{
+			Idle = 0,
+			Transact,
+			Busy
+		}
 		private class StateTransaction
 		{
 			public IGameState? From { get; set; }
 			public IGameState? To { get; set; }
-
-			public bool NeedsTransaction => !(From == null && To == null);
+			public StateTransactionStep Step { get; set; } = StateTransactionStep.Idle;
 		}
 
-		private readonly object pSync = new();
 		private readonly IServiceProvider pServiceProvider;
 		private readonly Dictionary<ulong, IGameState> pGameStates = new();
-		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecutionPipeline;
 		private readonly StateTransaction pStateTransaction = new();
-
+		private readonly ConcurrentQueue<Action> pStateTransitionQueue = new();
+		private readonly ILogger<GameStateManager> pLogger;
+		
 		private IGameState? pState;
 		private bool pDisposed;
+		
 		public GameStateManager(
 			IServiceProvider serviceProvider,
 			IExecutionPipeline executionPipeline,
-			EngineEvents engineEvents)
+			EngineEvents engineEvents,
+			ILoggerFactory factory)
 		{
-			pEngineEvents = engineEvents;
 			pServiceProvider = serviceProvider;
 			pExecutionPipeline = executionPipeline;
-			engineEvents.OnBeforeStop += HandleEngineStop;
-			engineEvents.OnStart += HandleEngineStart;
+			pLogger = factory.Build<GameStateManager>();
+			
+			engineEvents.OnBeforeStop.Once(HandleEngineStop);
+			engineEvents.OnStart.Once(HandleEngineStart);
 		}
 
-		public void Dispose()
+		private async Task AsyncDispose()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if(pDisposed) 
 				return;
 
-			pState?.OnExit();
+			if(pState != null)
+				await pState.OnExit();
 			pGameStates.Clear();
 
 			pDisposed = true;
 
 		}
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
-			pEngineEvents.OnBeforeStop -= HandleEngineStop;
-			Dispose();
+			await AsyncDispose();
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pExecutionPipeline.AddEvent(DefaultEvents.UpdateBeginId, ExecuteBeginUpdate);
+			await EngineGlobals.MainDispatcher.Yield();
 			pExecutionPipeline.AddEvent(DefaultEvents.UpdateId, ExecuteUpdateAction);
-		}
-
-		private void ExecuteBeginUpdate(IExecutionPipeline executionPipeline)
-		{
-			lock (pSync)
-			{
-				if (!pStateTransaction.NeedsTransaction)
-					return;
-
-				pStateTransaction.From?.OnExit();
-				pStateTransaction.To?.OnStart();
-				pState = pStateTransaction.To;
-
-				pStateTransaction.From = pStateTransaction.To = null;
-			}
 		}
 
 		private void ExecuteUpdateAction(IExecutionPipeline executionPipeline)
 		{
-			lock(pSync)
-				pState?.OnUpdate();
+			var step = pStateTransaction.Step;
+			switch (step)
+			{
+				case StateTransactionStep.Idle:
+					RunIdleStep();
+					break;
+				case StateTransactionStep.Transact:
+					RunTransactStep();
+					break;
+				case StateTransactionStep.Busy:
+				default:
+					// Do nothing. Just wait to step change
+					break;
+			}
+
+			return;
+
+			void RunIdleStep()
+			{
+				if (!pStateTransitionQueue.TryDequeue(out var action))
+					return;
+				action();
+				pLogger.Info(
+					$"Start Transition: From => {pStateTransaction.From?.Name ?? "No Game State"} To => {pStateTransaction.To?.Name ?? "No Game State"}");
+			}
+
+			async void RunTransactStep()
+			{
+				pStateTransaction.Step = StateTransactionStep.Busy;
+
+				if (pStateTransaction.From is not null)
+				{
+					pLogger.Info($"Exiting '{pStateTransaction.From.Name}'");
+					await pStateTransaction.From.OnExit();
+				}
+
+				if (pStateTransaction.To is not null)
+				{
+					pLogger.Info($"Starting '{pStateTransaction.To.Name}'");
+					await pStateTransaction.To.OnStart();
+				}
+
+				pState = pStateTransaction.To;
+				pStateTransaction.From = pStateTransaction.To = null;
+				pStateTransaction.Step = StateTransactionStep.Idle;
+
+				pLogger.Info("Finish Transition");
+			}
 		}
-
-
+		
 		public GameStateManager RegisterState<T>() where T : IGameState
 		{
 			IGameState? state = ActivatorExtended.CreateInstance<T>(pServiceProvider);
@@ -117,33 +158,46 @@ namespace REngine.Core.Logic
 
 		public GameStateManager SetState(ulong stateId)
 		{
-			lock (pSync)
+			pStateTransitionQueue.Enqueue(() =>
 			{
 				pStateTransaction.From = pState;
 				pStateTransaction.To = pGameStates[stateId];
-			}
+				pStateTransaction.Step = StateTransactionStep.Transact;
+			});
 			return this;
 		}
 
 		public GameStateManager Restart()
 		{
-			IGameState? state;
-			lock (pSync)
-				state = pState;
+			pStateTransitionQueue.Enqueue(() =>
+			{
+				if (pState is null)
+					return;
 
-			if (state is null)
-				return this;
-			SetState(state.Name);
+				SetState(pState.Name);
+			});
 			return this;
 		}
 		public GameStateManager Stop()
 		{
-			lock (pSync)
+			pStateTransitionQueue.Enqueue(() =>
 			{
-				pState?.OnExit();
-				pState = null;
-			}
+				pStateTransaction.From = pState;
+				pStateTransaction.To = null;
+				pStateTransaction.Step = StateTransactionStep.Transact;
+			});
 
+			return this;
+		}
+
+		/// <summary>
+		/// State Transitions is recorded on a Queue
+		/// This queue is executed at Update Loop
+		/// Clearing this queue is clearing any other requested state transitions.
+		/// </summary>
+		public GameStateManager ClearQueue()
+		{
+			pStateTransitionQueue.Clear();
 			return this;
 		}
 	}
