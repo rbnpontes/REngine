@@ -17,7 +17,6 @@ namespace REngine.Core.IO
 		private readonly byte[] pPressKeys = new byte[(int)InputKey.OemClear + 1];
 		private readonly byte[] pMouseKeys = new byte[(int)MouseKey.XButton2 + 1];
 		private readonly IServiceProvider pProvider;
-		private readonly EngineEvents pEngineEvents;
 		private readonly IExecutionPipeline pExecution;
 		private readonly LinkedList<Action> pDisposeWndEvents = new();
 
@@ -49,22 +48,18 @@ namespace REngine.Core.IO
 			IExecutionPipeline execution
 		)
 		{
-			pEngineEvents = engineEvents;
 			pProvider = provider;
 			pExecution = execution;
 
-			engineEvents.OnStart += HandleEngineStart;
-			engineEvents.OnBeforeStop += HandleEngineStop;
+			engineEvents.OnStart.Once(HandleEngineStart);
+			engineEvents.OnBeforeStop.Once(HandleEngineStop);
 		}
 
 		public void Dispose()
 		{
 			if (pDisposed)
 				return;
-
-			pEngineEvents.OnStart -= HandleEngineStart;
-			pEngineEvents.OnBeforeStop -= HandleEngineStop;
-
+			
 			var disposeWndEventsNode = pDisposeWndEvents.First;
 			while(disposeWndEventsNode != null)
 			{
@@ -78,13 +73,16 @@ namespace REngine.Core.IO
 			GC.SuppressFinalize(this);
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
+			
 			IWindow? wnd = pProvider.GetOrDefault<IWindow>();
 			// Bind Main Window
 			if (wnd != null)
