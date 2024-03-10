@@ -71,7 +71,6 @@ public abstract class BaseEventEmitter<TListener> : IEventEmitter
 
 public sealed class EventEmitter : BaseEventEmitter<Action<object>>
 {
-    private readonly Queue<Action<object>> pOnceListeners = new();
     public void Invoke(object sender)
     {
         while (mOnceListeners.TryDequeue(out var evtCall))
@@ -85,11 +84,6 @@ public sealed class EventEmitter : BaseEventEmitter<Action<object>>
         }
     }
     
-    public override void Once(Action<object> listener)
-    {
-        pOnceListeners.Enqueue(listener);
-    }
-
     public static EventEmitter operator +(EventEmitter emitter, Action<object> evtCall)
     {
         emitter.On(evtCall);
