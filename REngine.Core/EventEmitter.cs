@@ -125,27 +125,17 @@ public sealed class EventEmitter<T> : BaseEventEmitter<Action<object, T>>
 
 public sealed class AsyncEventEmitter : BaseEventEmitter<Func<object, Task>>
 {
-    private readonly Queue<Task> pWaitQueue = new();
     public async Task Invoke(object sender)
     {
         while (mOnceListeners.TryDequeue(out var action))
-            pWaitQueue.Enqueue(action(sender));
+            await action(sender);
         
         var idx = 0;
         while (idx < mListeners.Count)
         {
-            pWaitQueue.Enqueue(mListeners[idx](sender));
+            await mListeners[idx](sender);
             ++idx;
         }
-
-        // Wait Loaded Tasks
-        while (pWaitQueue.TryDequeue(out var task))
-            await task;
-    }
-
-    protected override void OnDispose()
-    {
-        pWaitQueue.Clear();
     }
 
     public static AsyncEventEmitter operator +(AsyncEventEmitter emitter, Func<object, Task> evtCall)
@@ -162,27 +152,17 @@ public sealed class AsyncEventEmitter : BaseEventEmitter<Func<object, Task>>
 
 public sealed class AsyncEventEmitter<T> : BaseEventEmitter<Func<object, T, Task>>
 {
-    private readonly Queue<Task> pWaitQueue = new();
     public async Task Invoke(object sender, T eventArg)
     {
         while(mOnceListeners.TryDequeue(out var action))
-            pWaitQueue.Enqueue(action(sender, eventArg));
+            await action(sender, eventArg);
         
         var idx = 0;
         while (idx < mListeners.Count)
         {
-            pWaitQueue.Enqueue(mListeners[idx](sender, eventArg));
+            await mListeners[idx](sender, eventArg);
             ++idx;
         }
-
-        // Wait Loaded Tasks
-        while (pWaitQueue.TryDequeue(out var task))
-            await task;
-    }
-
-    protected override void OnDispose()
-    {
-        pWaitQueue.Clear();
     }
     
     public static AsyncEventEmitter<T> operator +(AsyncEventEmitter<T> emitter, Func<object, T, Task> evtCall)

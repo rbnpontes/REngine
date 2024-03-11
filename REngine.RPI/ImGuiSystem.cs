@@ -21,7 +21,7 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 namespace REngine.RPI
 {
 #if RENGINE_IMGUI
-	internal class ImGuiSystem : IImGuiSystem, IDisposable
+	internal class ImGuiSystem : IImGuiSystem
 	{
 		const byte MaxMouseKeys = (byte)MouseKey.XButton2;
 		
@@ -252,12 +252,13 @@ namespace REngine.RPI
 			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		public void Dispose()
+		private async Task Dispose()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if (pDisposed)
 				return;
 
-			SaveImGuiSettings();
+			var task = SaveImGuiSettings();
 
 			pInput.OnInput -= HandleInput;
 			pInput.OnKeyDown -= HandleKeyDown;
@@ -267,6 +268,7 @@ namespace REngine.RPI
 
 			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
 
+			await task;
 			if(pImGuiCtx != IntPtr.Zero)
 				ImGuiNET.ImGui.DestroyContext(pImGuiCtx);
 			pImGuiCtx = IntPtr.Zero;
@@ -277,8 +279,7 @@ namespace REngine.RPI
 
 		private async Task HandleEngineStop(object sender)
 		{
-			await EngineGlobals.MainDispatcher.Yield();
-			Dispose();
+			await Dispose();
 		}
 
 		private async Task HandleEngineStart(object sender)
@@ -368,13 +369,13 @@ namespace REngine.RPI
 			ImGuiNET.ImGui.LoadIniSettingsFromMemory(buffer);
 		}
 
-		private void SaveImGuiSettings()
+		private async Task SaveImGuiSettings()
 		{
 			pLogger.Info("Saving ImGui Settings");
-			using FileStream stream = new(EngineSettings.ImGuiSettingsPath, FileMode.OpenOrCreate, FileAccess.Write);
-			using TextWriter writer = new StreamWriter(stream);
+			await using FileStream stream = new(EngineSettings.ImGuiSettingsPath, FileMode.OpenOrCreate, FileAccess.Write);
+			await using TextWriter writer = new StreamWriter(stream);
 			var settings = ImGuiNET.ImGui.SaveIniSettingsToMemory();
-			writer.Write(settings);
+			await writer.WriteAsync(settings);
 		}
 
 		private void HandleInput(object? sender, InputTextEventArgs e)
