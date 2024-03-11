@@ -34,13 +34,19 @@ public class DefaultDispatcher : IDispatcher
         public void Reset()
         {
             IsCompleted = false;
-            pContinuation = null;
+            pContinuation = AuxiliarAction = null;
         }
     }
-    private class DispatcherTask : IDispatcherTask
+    private class DispatcherTask() : IDispatcherTask
     {
         public readonly DispatcherAwaiter Awaiter = new();
+        public bool IsCompleted => Awaiter.IsCompleted;
         public IDispatcherAwaiter GetAwaiter() => Awaiter;
+
+        public void Reset()
+        {
+            Awaiter.Reset();
+        }
     }
     
     private readonly Queue<DispatcherTask>[] pTasksContainer = new[]
@@ -48,6 +54,8 @@ public class DefaultDispatcher : IDispatcher
         new Queue<DispatcherTask>(),
         new Queue<DispatcherTask>()
     };
+
+    private readonly ConcurrentQueue<DispatcherTask> pAvailableTasks = new();
     private readonly ILogger<IDispatcher>? pLogger;
     private readonly object pSync = new();
     private readonly object pExecutionSync = new();
@@ -92,6 +100,12 @@ public class DefaultDispatcher : IDispatcher
                 // If task is not ready, schedule to next iteration
                 if(!task.Awaiter.Execute())
                     EnqueueTask(task);
+                
+                if (!task.IsCompleted) 
+                    continue;
+                // reset and add completed task to be reused later
+                task.Reset();
+                pAvailableTasks.Enqueue(task);
             }
         }
 
@@ -129,6 +143,13 @@ public class DefaultDispatcher : IDispatcher
         lock (pSync)
             pTasksContainer[(pExecutionContainerIdx + 1) % pTasksContainer.Length].Enqueue(task);
     }
+
+    private DispatcherTask AcquireTask()
+    {
+        if (pAvailableTasks.TryDequeue(out var task))
+            return task;
+        return new DispatcherTask();
+    }
     
     public void Invoke(Action action)
     {
@@ -138,7 +159,7 @@ public class DefaultDispatcher : IDispatcher
                 return;
         }
 
-        DispatcherTask task = new();
+        var task = AcquireTask();
         task.GetAwaiter().OnCompleted(action);
         
         EnqueueTask(task);
@@ -146,29 +167,17 @@ public class DefaultDispatcher : IDispatcher
 
     public IDispatcherTask InvokeAsync(Action action)
     {
-        DispatcherTask task = new()
-        {
-            Awaiter =
-            {
-                AuxiliarAction = action
-            }
-        };
+        var task = AcquireTask();
+        task.Awaiter.AuxiliarAction = action;
         EnqueueTask(task);
         return task;
     }
     public IDispatcherTask Yield()
     {
-        DispatcherTask task = new();
+        var task = AcquireTask();
         EnqueueTask(task);
         return task;
     }
-    
-    public void OnCompleted(Action continuation)
-    {
-        Invoke(continuation);    
-    }
-
-    public void UnsafeOnCompleted(Action continuation) => OnCompleted(continuation);
     
     /// <summary>
     /// Build a DefaultDispatcher
