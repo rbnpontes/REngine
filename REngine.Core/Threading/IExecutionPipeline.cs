@@ -31,7 +31,7 @@ namespace REngine.Core.Threading
         public IExecutionPipeline ClearEvents(ulong eventHashCode);
 
         /// <summary>
-        /// Execute call into Begining of Execute call
+        /// Execute call into Beginning of Execute call
         /// In other words, this invoke will be scheduled to
         /// Thread that is called Execute, in our case
         /// Main Thread.
