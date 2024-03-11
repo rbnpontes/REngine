@@ -9,28 +9,16 @@ namespace REngine.Core.Events
 {
 	public static class ApplicationLifecyle
 	{
-		public static event EventHandler<IServiceRegistry>? OnSetup;
-		public static event EventHandler<IServiceProvider>? OnStart;
-		public static event EventHandler? OnRun;
-		public static event EventHandler? OnExit;
-		public static void ExecuteSetup(IServiceRegistry registry)
-		{
-			OnSetup?.Invoke(null, registry);
-		}
+		public static readonly AsyncEventEmitter OnSetup = new();
+		public static readonly AsyncEventEmitter OnStart = new();
+		public static readonly EventEmitter OnRun = new();
+		public static readonly AsyncEventEmitter OnExit = new();
+		public static Task ExecuteSetup(IServiceRegistry registry) => OnSetup.Invoke(registry);
 
-		public static void ExecuteStart(IServiceProvider provider)
-		{
-			OnStart?.Invoke(null, provider);
-		}
+		public static Task ExecuteStart(IServiceProvider provider) => OnStart.Invoke(provider);
 
-		public static void ExecuteRun()
-		{
-			OnRun?.Invoke(null, EventArgs.Empty);
-		}
+		public static void ExecuteRun(IEngineStartup engineStartup) => OnRun.Invoke(engineStartup);
 
-		public static void ExecuteExit()
-		{
-			OnExit?.Invoke(null, EventArgs.Empty);
-		}
+		public static Task ExecuteExit(IEngine engine) => OnExit.Invoke(engine);
 	}
 }

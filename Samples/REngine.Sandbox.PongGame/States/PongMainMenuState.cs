@@ -24,8 +24,9 @@ namespace REngine.Sandbox.PongGame.States
 	{
 		public string Name => nameof(PongMainMenuState);
 
-		public void OnStart()
+		public async Task OnStart()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if (PongVariables.BackgroundAudio != null)
 			{
 				PongVariables.BackgroundAudio.Volume = PongVariables.AudioVolume;
@@ -46,8 +47,9 @@ namespace REngine.Sandbox.PongGame.States
 		{
 		}
 
-		public void OnExit()
+		public async Task OnExit()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			entityMgr.DestroyAll();
 		}
 

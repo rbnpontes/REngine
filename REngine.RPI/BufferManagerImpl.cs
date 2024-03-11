@@ -41,18 +41,18 @@ namespace REngine.RPI
 			pBufferMgrEvents = bufferMgrEvents;
 			pRpiEvents = rpiEvents;
 
-			rendererEvents.OnReady += HandleRendererReady;
-			rendererEvents.OnDisposed += HandleRendererDisposed;
+			rendererEvents.OnReady.Once(HandleRendererReady);
+			rendererEvents.OnDisposed.Once(HandleRendererDisposed);
 			rpiEvents.OnUpdateSettings += HandleUpdateSettings;
 		}
 
-		private void HandleRendererReady(object? sender, EventArgs e)
+		private async Task HandleRendererReady(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if (sender is not IRenderer renderer)
 				return;
 
 			pLogger.Profile("Start Time");
-			pRendererEvents.OnReady -= HandleRendererReady;
 
 			pDriver = renderer.Driver;
 
@@ -65,9 +65,9 @@ namespace REngine.RPI
 			pLogger.EndProfile("Start Time");
 		}
 
-		private void HandleRendererDisposed(object? sender, EventArgs e)
+		private async Task HandleRendererDisposed(object sender)
 		{
-			pRendererEvents.OnDisposed -= HandleRendererDisposed;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 

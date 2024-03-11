@@ -48,14 +48,9 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     {
         var engine = Provider.Get<IEngine>();
         var events = Provider.Get<EngineEvents>();
-        events.OnUpdate += HandleUpdate;
+        events.OnUpdate.On(HandleUpdate);
 
-        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-        {
-            if (e.ExceptionObject is Exception exception)
-                Logger.Error(exception.Message);
-            Logger.Error(e.ExceptionObject.ToString());
-        };
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
         Logger.Debug("Starting");
         Logger.Info("OS Version: " + Environment.OSVersion);
@@ -73,7 +68,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
         Logger.Info("Setup Final Touches");
 
-        ApplicationLifecyle.ExecuteRun();
+        ApplicationLifecyle.ExecuteRun(this);
 
         pEngineStartTime.Stop();
 
@@ -103,8 +98,14 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         await OnStop();
         Logger.Info("Finished!!!");
     }
-    
-    private void HandleUpdate(object? sender, UpdateEventArgs args)
+
+    private void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+            Logger.Error(exception.Message);
+        Logger.Error(e.ExceptionObject.ToString());
+    }
+    private void HandleUpdate(object sender, UpdateEventArgs updateEventArgs)
     {
         OnUpdate();
         app.OnUpdate(Provider);
@@ -115,12 +116,15 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     public virtual async Task Setup(IDispatcher dispatcher)
     {
         Dispatcher = dispatcher;
+        EngineGlobals.MainDispatcher = dispatcher;
         
         pEngineStartTime.Start();
         pSetupTime.Start();
 
         pLoggerFactory = await OnGetLoggerFactory();
         pLogger = pLoggerFactory.Build(GetType());
+
+        EngineGlobals.LoggerFactory = pLoggerFactory;
         
         NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
         NativeReferences.PreloadLibs();
@@ -146,14 +150,15 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         pLogger.Info($"Setup Application '{(app.GetType().FullName ?? app.GetType().Name)}'");
         await app.OnSetup(registry);
 
+        pLogger.Info("Emitting Setup Event");
+        await ApplicationLifecyle.ExecuteSetup(registry);
+        
         // Execute the above steps on MainThread
         await Dispatcher.InvokeAsync(() =>
         {
-            pLogger.Info("Emitting Setup Event");
-            ApplicationLifecyle.ExecuteSetup(registry);
-
             pLogger.Info("Building Service Provider");
             pServiceProvider = registry.Build();
+            EngineGlobals.ServiceProvider = pServiceProvider;
             pLogger.Success("Service Provider is Ready!");
         });      
 
@@ -206,7 +211,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
 
     public async Task Start()
     {
-        ApplicationLifecyle.ExecuteStart(Provider);
+        await ApplicationLifecyle.ExecuteStart(Provider);
         await OnStart();
         await app.OnStart(Provider);
         await Dispatcher.Yield();

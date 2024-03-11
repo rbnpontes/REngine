@@ -67,16 +67,15 @@ public sealed class TextSystem : BehaviorSystem<TextData>, IDisposable
         pFontSystem = fontSystem;
         pSpriteBatch = spriteBatch;
         
-        engineEvents.OnStart += OnEngineStart;
-        engineEvents.OnBeforeStop += OnEngineStop;
+        engineEvents.OnStart.Once(OnEngineStart);
+        engineEvents.OnBeforeStop.Once(OnEngineStop);
     }
 
-    private void OnEngineStop(object? sender, EventArgs e)
+    private async Task OnEngineStop(object sender)
     {
-        pEngineEvents.OnBeforeStop -= OnEngineStop;
         Dispose();
     }
-    private void OnEngineStart(object? sender, EventArgs e)
+    private async Task OnEngineStart(object sender)
     {
         pExecutionPipeline
             .AddEvent(SpriteSystemEvents.EndUpdate, OnEndUpdate);

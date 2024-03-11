@@ -112,7 +112,9 @@ namespace REngine.Core
 				return;
 
 			pStopped = true;
-			ApplicationLifecyle.ExecuteExit();
+			await ApplicationLifecyle.ExecuteExit(this);
+			await pDispatcher.Yield();
+			
 			while(DisposableQueue.HasPendingItems)
 				DisposableQueue.Dispose();
 		}

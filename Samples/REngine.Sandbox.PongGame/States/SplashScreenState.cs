@@ -42,8 +42,9 @@ namespace REngine.Sandbox.PongGame.States
 		private Asset? pAudioAsset;
 		private IAudio? pAudio;
 
-		public void OnStart()
+		public async Task OnStart()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			//mainWindow.Fullscreen();
 			var sprite = assetManager.GetAsset<TextureAsset>("Textures/EngineLogo-Sdf.png");
 			var audioAsset = assetManager.GetAsset<StreamedAudioAsset>("Sounds/doge_bonk.ogg");
@@ -105,8 +106,9 @@ namespace REngine.Sandbox.PongGame.States
 			renderState.DefaultClearColor = Color.White;
 		}
 
-		public void OnExit()
+		public async Task OnExit()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			pEnableCrt.Value = new Ref<bool>(true);
 			pStopwatch.Stop();
 			renderState.DefaultClearColor = pDefaultClearColor;

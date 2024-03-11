@@ -45,19 +45,19 @@ internal sealed class FontSystem : IFontSystem, IDisposable
         pEngineEvents = engineEvents;
         pExecutionPipeline = executionPipeline;
         
-        pipelineEvents.OnDisposed += HandlePipelineStateDispose;
-        engineEvents.OnStart += HandleEngineStart;
+        pipelineEvents.OnDisposed.Once(HandlePipelineStateDispose);
+        engineEvents.OnStart.Once(HandleEngineStart);
     }
 
-    private void HandleEngineStart(object? sender, EventArgs e)
+    private async Task HandleEngineStart(object sender)
     {
-        pEngineEvents.OnStart -= HandleEngineStart;
+        await EngineGlobals.MainDispatcher.Yield();
         pExecutionPipeline.AddEvent(DefaultEvents.RenderBeginId, OnRenderBegin);
     }
 
-    private void HandlePipelineStateDispose(object? sender, EventArgs e)
+    private async Task HandlePipelineStateDispose(object sender)
     {
-        pPipelineStateEvents.OnDisposed -= HandlePipelineStateDispose;
+        await EngineGlobals.MainDispatcher.Yield();
         Dispose();
     }
 

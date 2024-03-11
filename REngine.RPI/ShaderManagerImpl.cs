@@ -15,10 +15,7 @@ namespace REngine.RPI
 	internal class ShaderManagerImpl : IShaderManager, IDisposable
 	{
 		private readonly IServiceProvider pProvider;
-
-		private readonly RendererEvents pRendererEvents;
 		private readonly ShaderManagerEvents pShaderManagerEvents;
-		private readonly PipelineStateManagerEvents pPipelineStateManagerEvents;
 
 		private readonly ILogger<IShaderManager> pLogger;
 
@@ -37,13 +34,11 @@ namespace REngine.RPI
 		)
 		{
 			pProvider = provider;
-			pRendererEvents = rendererEvents;
 			pShaderManagerEvents = shaderMgrEvents;
 			pLogger = loggerFactory.Build<IShaderManager>();
-			pPipelineStateManagerEvents = pipelineStateEvents;
 
-			pRendererEvents.OnBeforeReady += HandleRendererReady;
-			pPipelineStateManagerEvents.OnDisposed += HandlePipelineStateDisposed;
+			rendererEvents.OnBeforeReady.Once(HandleRendererReady);
+			pipelineStateEvents.OnDisposed.Once(HandlePipelineStateDisposed);
 		}
 
 		public void Dispose()
@@ -62,16 +57,16 @@ namespace REngine.RPI
 			pShaderManagerEvents.ExecuteDisposed(this);
 		}
 		
-		private void HandlePipelineStateDisposed(object? sender, EventArgs e)
+		private async Task HandlePipelineStateDisposed(object sender)
 		{
-			pPipelineStateManagerEvents.OnDisposed -= HandlePipelineStateDisposed;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
-		private void HandleRendererReady(object? sender, EventArgs e)
+		private async Task HandleRendererReady(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			pLogger.Profile("Start Time");
-			pRendererEvents.OnBeforeReady -= HandleRendererReady;
 			pDevice = pProvider.Get<IGraphicsDriver>().Device;
 
 			LoadCache();

@@ -197,8 +197,6 @@ namespace REngine.RPI
 		private readonly ILogger<IImGuiSystem> pLogger;
 		private readonly IExecutionPipelineVar pUpdateRateVar;
 		private readonly RPIEvents pRpiEvents;
-		private readonly IAssetManager pAssetManager;
-		private readonly IEngine pEngine;
 
 		private readonly object pSync = new();
 		private readonly Mutex pMutex = new();
@@ -241,14 +239,12 @@ namespace REngine.RPI
 			pLogger = factory.Build<IImGuiSystem>();
 			pRpiEvents = rpiEvents;
 			pProvider = provider;
-			pAssetManager = assetManager;
-			pEngine = engine;
 
 			pUpdateRateVar = executionPipeline.GetOrCreateVar(DefaultVars.ImGuiUpdateRate);
 			pUpdateRateVar.Value = renderSettings.ImGuiUpdateRate;
 
-			engineEvents.OnStart += HandleEngineStart;
-			engineEvents.OnStop += HandleEngineStop;
+			engineEvents.OnStart.Once(HandleEngineStart);
+			engineEvents.OnStop.Once(HandleEngineStop);
 			input.OnInput += HandleInput;
 			input.OnKeyDown += HandleKeyDown;
 			input.OnKeyUp += HandleKeyUp;
@@ -262,9 +258,6 @@ namespace REngine.RPI
 				return;
 
 			SaveImGuiSettings();
-
-			pEngineEvents.OnStart -= HandleEngineStart;
-			pEngineEvents.OnStop -= HandleEngineStop;
 
 			pInput.OnInput -= HandleInput;
 			pInput.OnKeyDown -= HandleKeyDown;
@@ -282,12 +275,20 @@ namespace REngine.RPI
 			GC.SuppressFinalize(this);
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
-		private unsafe void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
+		{
+			await EngineGlobals.MainDispatcher.Yield();
+			InitImGui();
+			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
+		}
+
+		private unsafe void InitImGui()
 		{
 			pImGuiCtx = ImGuiNET.ImGui.CreateContext();	
 			ImGuiNET.ImGui.SetCurrentContext(pImGuiCtx);
@@ -323,8 +324,6 @@ namespace REngine.RPI
 			}
             
 			AllocateFontBuffer();
-
-			pExecutionPipeline.AddEvent(DefaultEvents.ImGuiDrawId, (_) => HandleDraw());
 		}
 
 		private void HandleUpdateSettings(object? sender, EventArgs e)

@@ -51,8 +51,8 @@ namespace REngine.RPI
 
 			//engineEvents.OnStart += HandleEngineStart;
 			//engineEvents.OnStop += HandleEngineStop;
-			shaderMgrEvents.OnReady += HandleShaderManagerReady;
-			rendererEvents.OnDisposed += HandleRendererDisposed;
+			shaderMgrEvents.OnReady.Once(HandleShaderManagerReady);
+			rendererEvents.OnDisposed.Once(HandleRendererDisposed);
 		}
 
 		public void Dispose()
@@ -82,10 +82,10 @@ namespace REngine.RPI
 			pPipelineStateEvents.ExecuteDisposed(this);
 		}
 
-		private void HandleShaderManagerReady(object? sender, EventArgs e)
+		private async Task HandleShaderManagerReady(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			pLogger.Profile("Start Time");
-			pShaderMgrEvents.OnReady -= HandleShaderManagerReady;
 
 			var driver = pServiceProvider.Get<IGraphicsDriver>();
 			pDevice = driver.Device;
@@ -96,12 +96,12 @@ namespace REngine.RPI
 			pLogger.Info("Pipeline State Manager is Initialized");
 
 			pLogger.EndProfile("Start Time");
-			pPipelineStateEvents.ExecuteReady(this);
+			await pPipelineStateEvents.ExecuteReady(this);
 		}
 
-		private void HandleRendererDisposed(object? sender, EventArgs e)
+		private async Task HandleRendererDisposed(object sender)
 		{
-			pRendererEvents.OnDisposed -= HandleRendererDisposed;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 

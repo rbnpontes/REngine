@@ -33,12 +33,13 @@ public class SampleApp : App
              window.Size = new Size(800, 500);
          });
          
-         provider.Get<EngineEvents>().OnBeforeStop += OnBeforeStop;
+         provider.Get<EngineEvents>().OnBeforeStop.Once(OnBeforeStop);
          pSampleWindow.EngineStart(provider);
      }
 
-     private void OnBeforeStop(object? sender, EventArgs e)
+     private async Task OnBeforeStop(object sender)
      {
+         await EngineGlobals.MainDispatcher.Yield();
          pSampleWindow.EngineStop();
      }
 

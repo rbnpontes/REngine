@@ -41,8 +41,9 @@ namespace REngine.Sandbox.PongGame.States
 		public string Name => nameof(LoadPongState);
 
 
-		public void OnStart()
+		public async Task OnStart()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			pDefaultClearColor = renderState.DefaultClearColor;
 
 			pLoadQueue.Enqueue(()=> PongVariables.BackgroundAudio = LoadAudio("silent_wood_by_purrplecat.ogg"));
@@ -118,8 +119,9 @@ namespace REngine.Sandbox.PongGame.States
 			pBarTransform.Scale = new Vector2(progress * LoadingWidth, LoadingHeight);
 		}
 
-		public void OnExit()
+		public async Task OnExit()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			renderState.DefaultClearColor = pDefaultClearColor;
 			entityManager.DestroyAll();
 		}

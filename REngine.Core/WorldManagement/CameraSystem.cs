@@ -59,7 +59,6 @@ namespace REngine.Core.WorldManagement
 	{
 		private readonly object pSync = new();
 		private readonly IExecutionPipeline pPipeline;
-		private readonly EngineEvents pEngineEvents;
 		private readonly IServiceProvider pServiceProvider;
 		private readonly TransformSystem pTransformSystem;
 		private readonly ILogger<CameraSystem> pLogger;
@@ -76,17 +75,15 @@ namespace REngine.Core.WorldManagement
 		{ 
 			pPipeline = pipeline;
 			pServiceProvider = serviceProvider;
-			pEngineEvents = engineEvents;
 			pTransformSystem = transformSystem;
 			pLogger = loggerFactory.Build<CameraSystem>();
 
-			engineEvents.OnStart += HandleEngineStart;
+			engineEvents.OnStart.Once(HandleEngineStart);
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
-
+			await EngineGlobals.MainDispatcher.Yield();
 			pMainWindow = pServiceProvider.Get<IWindow>();
 
 			if(pMainWindow != null)
@@ -124,7 +121,7 @@ namespace REngine.Core.WorldManagement
 
 				if (camera.AutoAspectRatio && pMainWindow != null)
 				{
-					float aspectRatio = pMainWindow.Bounds.Width / (float)pMainWindow.Bounds.Height;
+					var aspectRatio = pMainWindow.Bounds.Width / (float)pMainWindow.Bounds.Height;
 					if(aspectRatio != camera.AspectRatio)
 						camera.DirtyProj = true;
 					camera.AspectRatio = aspectRatio;

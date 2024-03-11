@@ -47,9 +47,9 @@ namespace REngine.Windows
 			Glfw.Init();
 			Glfw.SetErrorCallback(HandleGlfwError);
 
-			pEngineEvents.OnBeforeStart += HandleBeforeStart;
-			pEngineEvents.OnStart += HandleEngineStart;
-			pEngineEvents.OnStop += HandleEngineStop;
+			pEngineEvents.OnBeforeStart.Once(HandleBeforeStart);
+			pEngineEvents.OnStart.Once(HandleEngineStart);
+			pEngineEvents.OnStop.Once(HandleEngineStop);
 		}
 
 		public void Dispose()
@@ -64,23 +64,22 @@ namespace REngine.Windows
 			GC.SuppressFinalize(this);
 		}
 
-		private void HandleBeforeStart(object? sender, EventArgs e)
+		private async Task HandleBeforeStart(object sender)
 		{
-			pEngineEvents.OnBeforeStart -= HandleBeforeStart;
-
+			await EngineGlobals.MainDispatcher.Yield();
 			var monitor = Glfw.Monitors.FirstOrDefault();
 			VideoScale = new Vector2(monitor.ContentScale.X, monitor.ContentScale.Y);
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
+			await EngineGlobals.MainDispatcher.Yield();
 			pPipeline.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update());
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 

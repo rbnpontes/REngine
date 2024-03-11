@@ -49,13 +49,14 @@ namespace REngine.Core.Threading
             pEngineSettings = engineSettings;
             pEvents = execEvents;
 
-            engineEvents.OnBeforeStop += HandleStop;
+            engineEvents.OnBeforeStop.Once(HandleStop);
 
             pExecNodeAction = ExecuteNode;
         }
 
-        private void HandleStop(object? sender, EventArgs e)
+        private async Task HandleStop(object sender)
         {
+            await EngineGlobals.MainDispatcher.Yield();
             pLogger.Info("Stopping");
             Dispose();
         }
@@ -149,6 +150,7 @@ namespace REngine.Core.Threading
             return AddEvent(Hash.Digest(eventName), callback);
         }
 
+        // FIXME: AddEvent is only work after load layout first
         public IExecutionPipeline AddEvent(ulong eventHashCode, Action<IExecutionPipeline> callback)
         {
             if(eventHashCode == pLastNode?.Id)

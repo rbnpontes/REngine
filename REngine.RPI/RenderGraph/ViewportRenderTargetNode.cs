@@ -43,7 +43,6 @@ namespace REngine.RPI.RenderGraph
 			if (!pHasFinishSetup || pLastSwapChain is null || pRendererEvents is null)
 				return;
 
-			pRendererEvents.OnChangeSwapChain -= HandleChangeSwapChain;
 			pLastSwapChain.OnResize -= HandleSwapChainResize;
 		}
 
@@ -86,7 +85,7 @@ namespace REngine.RPI.RenderGraph
 				return;
 
 			swapChain.OnResize += HandleSwapChainResize;
-			pRendererEvents.OnChangeSwapChain += HandleChangeSwapChain;
+			pRendererEvents.OnChangeSwapChain.Once(HandleChangeSwapChain);
 			pLastSwapChain = swapChain;
 
 			pHasFinishSetup = true;
@@ -94,10 +93,9 @@ namespace REngine.RPI.RenderGraph
 
 		private void HandleChangeSwapChain(object? sender,  ISwapChain? e)
 		{
-			if (pRendererEvents is null || pLastSwapChain is null || mServiceProvider is null)
+			if (pRendererEvents is null || pLastSwapChain is null || mServiceProvider is null || IsDisposed)
 				return;
 
-			pRendererEvents.OnChangeSwapChain -= HandleChangeSwapChain;
 			pLastSwapChain.OnResize -= HandleSwapChainResize;
 
 			pHasFinishSetup = false;
@@ -107,7 +105,7 @@ namespace REngine.RPI.RenderGraph
 
 		private void HandleSwapChainResize(object? sender, SwapChainResizeEventArgs e)
 		{
-			if (mServiceProvider is null)
+			if (mServiceProvider is null || IsDisposed)
 				return;
 
 			mResource?.Value?.Dispose();
