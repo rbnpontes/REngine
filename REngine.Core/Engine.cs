@@ -54,6 +54,7 @@ namespace REngine.Core
 			await pDispatcher.Yield();
 			// Try get main window
 			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
+			pServiceProvider.Get<IExecutionPipeline>().AddEvent(DefaultEvents.GCCollect, CollectGC);
 
 			pStopwatch.Restart();
 		}
@@ -74,18 +75,6 @@ namespace REngine.Core
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
 			
-			if (pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
-			{
-#if PROFILER
-				using (Profiler.Instance.Begin(nameof(GC)))
-				{
-#endif
-#if PROFILER
-					GC.Collect();
-				}
-#endif
-			}
-
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
 			{
@@ -134,6 +123,14 @@ namespace REngine.Core
 		protected void PrintUnsupportedFeature(string featureName)
 		{
 			Logger.Warning($"{featureName} is not supported on this platform");
+		}
+
+		private void CollectGC(IExecutionPipeline _)
+		{
+#if PROFILER
+			using (Profiler.Instance.Begin(nameof(GC)))
+#endif
+			GC.Collect();
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using REngine.Core.Mathematics;
 using REngine.Core.Threading.Nodes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace REngine.Core.Threading
         private readonly Action<EpNode> pExecNodeAction;
         private readonly Queue<Action> pExecuteMainThreadCalls = new();
         private readonly EngineSettings pEngineSettings;
+        private readonly ConcurrentQueue<Action> pEvents2Register = new();
         
         public readonly CancellationTokenSource StopTokenSource = new ();
 
@@ -91,6 +93,10 @@ namespace REngine.Core.Threading
             pNodeRegistry.ClearRegistry();
 #endif
             pEvents.ExecuteLoaded(this);
+
+            // Execute Events that has not been registered
+            while (pEvents2Register.TryDequeue(out var action))
+                action();
             return this;
         }
         
@@ -133,7 +139,7 @@ namespace REngine.Core.Threading
             return this;
         }
 
-        private void ExecuteNode(EpNode node)
+        private static void ExecuteNode(EpNode node)
         {
             node.Execute();
         }
@@ -142,6 +148,7 @@ namespace REngine.Core.Threading
         {
             foreach(var node in pNodesTable)
                 node.Value.ClearEvents();
+            pEvents2Register.Clear();
             return this;
         }
 
@@ -150,7 +157,6 @@ namespace REngine.Core.Threading
             return AddEvent(Hash.Digest(eventName), callback);
         }
 
-        // FIXME: AddEvent is only work after load layout first
         public IExecutionPipeline AddEvent(ulong eventHashCode, Action<IExecutionPipeline> callback)
         {
             if(eventHashCode == pLastNode?.Id)
@@ -160,7 +166,13 @@ namespace REngine.Core.Threading
             }
 
             pNodesTable.TryGetValue(eventHashCode, out pLastNode);
-            pLastNode?.AddEvent(callback);
+            if(pLastNode is not null)
+                pLastNode.AddEvent(callback);
+            else
+            {
+                // Sometimes, event is not found
+                pEvents2Register.Enqueue(()=> AddEvent(eventHashCode, callback));
+            }
             return this;
         }
 
@@ -229,8 +241,7 @@ namespace REngine.Core.Threading
             pCoordinator.SetThreadSleep(threadSleep);
             return this;
         }
-
-
+        
 		public IExecutionPipelineVar GetOrCreateVar(string name)
         {
             return HandleCreateVar(Hash.Digest(name), name);

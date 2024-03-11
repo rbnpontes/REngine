@@ -11,6 +11,8 @@ namespace REngine.Core.Threading
 		public const string FrameId = "@engine/frame";
 
 		public const string ProcessInput = "@engine/input/process";
+		// GC Collect Event
+		public const string GCCollect = "@engine/gc";
 		// Update Events
 		public const string UpdateBeginId = "@engine/update_begin";
 		public const string UpdateId = "@engine/update";
