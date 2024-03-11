@@ -146,9 +146,7 @@ public class DefaultDispatcher : IDispatcher
 
     private DispatcherTask AcquireTask()
     {
-        if (pAvailableTasks.TryDequeue(out var task))
-            return task;
-        return new DispatcherTask();
+        return pAvailableTasks.TryDequeue(out var task) ? task : new DispatcherTask();
     }
     
     public void Invoke(Action action)
