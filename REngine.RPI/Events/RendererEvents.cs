@@ -3,64 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core;
 using REngine.RHI;
 
 namespace REngine.RPI.Events
 {
 	public sealed class RendererEvents
 	{
-		public event EventHandler? OnBeforeReady;
-		public event EventHandler? OnReady;
-		public event EventHandler? OnBeginCompile;
-		public event EventHandler? OnEndCompile;
-		public event EventHandler? OnBeginRender;
-		public event EventHandler? OnEndRender;
-		public event EventHandler? OnDispose;
-		public event EventHandler? OnDisposed;
-		public event EventHandler<ISwapChain>? OnChangeSwapChain;
+		public readonly AsyncEventEmitter OnBeforeReady = new();
+		public readonly AsyncEventEmitter OnReady = new();
+		public readonly AsyncEventEmitter OnBeginCompile = new();
+		public readonly AsyncEventEmitter OnEndCompile = new();
+		public readonly EventEmitter OnBeginRender = new();
+		public readonly EventEmitter OnEndRender = new();
+		public readonly AsyncEventEmitter OnDispose = new();
+		public readonly AsyncEventEmitter OnDisposed = new();
+		public readonly EventEmitter<ISwapChain> OnChangeSwapChain = new();
 
-		internal void ExecuteBeforeReady(IRenderer renderer)
-		{
-			OnBeforeReady?.Invoke(renderer, EventArgs.Empty);
-		}
-		internal void ExecuteReady(IRenderer renderer)
-		{
-			OnReady?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal Task ExecuteBeforeReady(IRenderer renderer) => OnBeforeReady.Invoke(renderer);
+		internal Task ExecuteReady(IRenderer renderer) => OnReady.Invoke(renderer);
 
-		internal void ExecuteBeginCompile(IRenderer renderer)
-		{
-			OnBeginCompile?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal Task ExecuteBeginCompile(IRenderer renderer) => OnBeginCompile.Invoke(renderer);
 
-		internal void ExecuteEndCompile(IRenderer renderer)
-		{
-			OnEndCompile?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal Task ExecuteEndCompile(IRenderer renderer) => OnEndCompile.Invoke(renderer);
 
-		internal void ExecuteBeginRender(IRenderer renderer)
-		{
-			OnBeginRender?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal void ExecuteBeginRender(IRenderer renderer) => OnBeginRender.Invoke(renderer);
 
-		internal void ExecuteEndRender(IRenderer renderer)
-		{
-			OnEndRender?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal void ExecuteEndRender(IRenderer renderer) => OnEndRender.Invoke(renderer);
 
-		internal void ExecuteDispose(IRenderer renderer)
-		{
-			OnDispose?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal Task ExecuteDispose(IRenderer renderer) => OnDispose.Invoke(renderer);
 
-		internal void ExecuteDisposed(IRenderer renderer)
-		{
-			OnDisposed?.Invoke(renderer, EventArgs.Empty);
-		}
+		internal Task ExecuteDisposed(IRenderer renderer) => OnDisposed.Invoke(renderer);
 
-		internal void ExecuteChangeSwapChain(IRenderer renderer, ISwapChain swapChain)
-		{
-			OnChangeSwapChain?.Invoke(renderer, swapChain);
-		}
+		internal void ExecuteChangeSwapChain(IRenderer renderer, ISwapChain swapChain) => OnChangeSwapChain.Invoke(renderer, swapChain);
 	}
 }

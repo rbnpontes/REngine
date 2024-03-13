@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <pipeline>
     <step id="@engine/frame">
+        <step id="@engine/gc"/>
         <!-- Message Loop must be executed at Main Thread-->
         <step id="@wndmgr/update"/>
         <task id="@engine/gameloop" end="@engine/frame">

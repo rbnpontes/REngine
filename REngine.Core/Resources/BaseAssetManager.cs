@@ -13,7 +13,6 @@ namespace REngine.Core.Resources
 { 
 	public abstract class BaseAssetManager : IAssetManager, IDisposable
 	{
-		private readonly EngineEvents pEngineEvents;
 		protected readonly IServiceProvider mServiceProvider;
 		protected readonly Dictionary<ulong, Asset> mLoadedAssets = new();
 		protected readonly ILogger<IAssetManager> mLogger;
@@ -26,22 +25,21 @@ namespace REngine.Core.Resources
 		{
 			mServiceProvider = serviceProvider;
 			mLogger = loggerFactory.Build<IAssetManager>();
-			pEngineEvents = engineEvents;
-			pEngineEvents.OnStop +=	HandleEngineStop;
-			pEngineEvents.OnStart += HandleEngineStart;
+			engineEvents.OnStop.Once(HandleEngineStop);
+			engineEvents.OnStart.Once(HandleEngineStart);
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
+			await EngineGlobals.MainDispatcher.Yield();
 			mLogger.Profile("Start Time");
 			OnStart();
 			mLogger.EndProfile("Start Time");
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 

@@ -29,14 +29,13 @@ public abstract class BehaviorSystem<T> : BaseSystem<T>, IDisposable where T : s
         mEngineEvents = engineEvents;
         pEventFlags = eventFlags;
         
-        engineEvents.OnStart += HandleEngineStart;
-        engineEvents.OnBeforeStop += OnEngineStop;
+        engineEvents.OnStart.Once(HandleEngineStart);
+        engineEvents.OnBeforeStop.Once(OnEngineStop);
     }
 
-    private void HandleEngineStart(object? sender, EventArgs e)
+    private async Task HandleEngineStart(object sender)
     {
-        mEngineEvents.OnStart -= HandleEngineStart;
-        
+        await EngineGlobals.MainDispatcher.Yield();
         if((pEventFlags & BehaviorSystemEventFlags.BeginUpdate) != 0)
             mExecutionPipeline.AddEvent(DefaultEvents.UpdateBeginId, HandleUpdateBegin);
         if ((pEventFlags & BehaviorSystemEventFlags.Update) != 0)
@@ -46,9 +45,9 @@ public abstract class BehaviorSystem<T> : BaseSystem<T>, IDisposable where T : s
         OnEngineStart();
     }
 
-    private void OnEngineStop(object? sender, EventArgs e)
+    private async Task OnEngineStop(object sender)
     {
-        mEngineEvents.OnBeforeStop -= OnEngineStop;
+        await EngineGlobals.MainDispatcher.Yield();
         Dispose();
     }
 

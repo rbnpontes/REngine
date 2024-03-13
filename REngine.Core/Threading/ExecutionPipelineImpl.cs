@@ -2,27 +2,30 @@
 using REngine.Core.Mathematics;
 using REngine.Core.Threading.Nodes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using REngine.Core.Events;
 
 namespace REngine.Core.Threading
 {
     internal class ExecutionPipelineImpl : IExecutionPipeline, IDisposable
     {
-        private static readonly LinkedList<Action> EmptyScheduledCalls = new();
-        
+        // TODO: get rid of sync obj and use ConcurrentQueue instead
         private readonly object pSyncObj = new();
         private readonly ILogger<IExecutionPipeline> pLogger;
-        private readonly ThreadCoordinator pCoordinator;
+        private readonly IThreadCoordinator pCoordinator;
+        private readonly ExecutionPipelineEvents pEvents;
 
         private readonly Dictionary<ulong, ExecutionPipelineVarImpl> pVars = new();
         private readonly ExecutionPipelineNodeRegistry pNodeRegistry;
         private readonly Action<EpNode> pExecNodeAction;
         private readonly Queue<Action> pExecuteMainThreadCalls = new();
         private readonly EngineSettings pEngineSettings;
+        private readonly ConcurrentQueue<Action> pEvents2Register = new();
         
         public readonly CancellationTokenSource StopTokenSource = new ();
 
@@ -38,20 +41,24 @@ namespace REngine.Core.Threading
             EngineEvents engineEvents,
             ILoggerFactory factory,
             ExecutionPipelineNodeRegistry nodeRegistry,
-            EngineSettings engineSettings)
+            EngineSettings engineSettings,
+            IThreadCoordinator threadCoordinator,
+            ExecutionPipelineEvents execEvents)
         {
             pNodeRegistry = nodeRegistry;
             pLogger = factory.Build<IExecutionPipeline>();
-            pCoordinator = new ThreadCoordinator(factory);
+            pCoordinator = threadCoordinator;
             pEngineSettings = engineSettings;
+            pEvents = execEvents;
 
-            engineEvents.OnBeforeStop += HandleStop;
+            engineEvents.OnBeforeStop.Once(HandleStop);
 
             pExecNodeAction = ExecuteNode;
         }
 
-        private void HandleStop(object? sender, EventArgs e)
+        private async Task HandleStop(object sender)
         {
+            await EngineGlobals.MainDispatcher.Yield();
             pLogger.Info("Stopping");
             Dispose();
         }
@@ -63,16 +70,18 @@ namespace REngine.Core.Threading
 
             StopTokenSource.Cancel();
             ClearAllEvents();
-            pCoordinator.Dispose();
+            
             pNodes.Clear();
             pNodesTable.Clear();
 
+            pEvents.ExecuteDispose(this);
             pDisposed = true;
         }
 
         public IExecutionPipeline Load(Stream stream)
         {
             pLogger.Info("Loading Execution Pipeline Settings");
+            pEvents.ExecuteLoad(this);
             EPResolver resolver = new(pNodeRegistry, this);
             resolver.Load(stream);
 
@@ -83,6 +92,11 @@ namespace REngine.Core.Threading
             // Clear registry to free memory
             pNodeRegistry.ClearRegistry();
 #endif
+            pEvents.ExecuteLoaded(this);
+
+            // Execute Events that has not been registered
+            while (pEvents2Register.TryDequeue(out var action))
+                action();
             return this;
         }
         
@@ -95,7 +109,6 @@ namespace REngine.Core.Threading
             {
                 lock (pSyncObj)
                     pExecuteMainThreadCalls.Clear();
-                pCoordinator.Dispose();
                 return this;
             }
 
@@ -126,7 +139,7 @@ namespace REngine.Core.Threading
             return this;
         }
 
-        private void ExecuteNode(EpNode node)
+        private static void ExecuteNode(EpNode node)
         {
             node.Execute();
         }
@@ -135,6 +148,7 @@ namespace REngine.Core.Threading
         {
             foreach(var node in pNodesTable)
                 node.Value.ClearEvents();
+            pEvents2Register.Clear();
             return this;
         }
 
@@ -152,7 +166,13 @@ namespace REngine.Core.Threading
             }
 
             pNodesTable.TryGetValue(eventHashCode, out pLastNode);
-            pLastNode?.AddEvent(callback);
+            if(pLastNode is not null)
+                pLastNode.AddEvent(callback);
+            else
+            {
+                // Sometimes, event is not found
+                pEvents2Register.Enqueue(()=> AddEvent(eventHashCode, callback));
+            }
             return this;
         }
 
@@ -221,8 +241,7 @@ namespace REngine.Core.Threading
             pCoordinator.SetThreadSleep(threadSleep);
             return this;
         }
-
-
+        
 		public IExecutionPipelineVar GetOrCreateVar(string name)
         {
             return HandleCreateVar(Hash.Digest(name), name);

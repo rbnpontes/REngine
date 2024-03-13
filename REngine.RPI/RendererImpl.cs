@@ -106,15 +106,16 @@ namespace REngine.RPI
 
 			pNeedsPrepareVar = pipeline.GetOrCreateVar(DefaultVars.RenderNeedsPrepare);
 
-			events.OnStart += HandleEngineStart;
-			events.OnBeforeStop += HandleEngineStop;
+			events.OnStart.Once(HandleEngineStart);
+			events.OnBeforeStop.Once(HandleEngineStop);
 
 			pCompileAction = ExecCompile;
 			pRenderAction = ExecRender;
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
@@ -132,8 +133,8 @@ namespace REngine.RPI
 			pFeatureCollection.Dispose();
 			SwapChain?.Dispose();
 			
-			pEngineEvents.OnStart -= HandleEngineStart;
-			pEngineEvents.OnBeforeStop -= HandleEngineStop;
+			pEngineEvents.OnStart.Once(HandleEngineStart);
+			pEngineEvents.OnBeforeStop.Once(HandleEngineStop);
 
 			pRenderEvents.ExecuteDisposed(this);
 			
@@ -156,11 +157,13 @@ namespace REngine.RPI
 			return this;
 		}
 
-		public IRenderer RemoveFeature(IRenderFeature feature)
+		public IRenderer RemoveFeature(IRenderFeature feature, bool dispose = true)
 		{
 			if (IsDisposed)
 				return this;
 			pFeatureCollection.RemoveFeature(feature);
+			if(dispose)
+				DisposableQueue.Enqueue(feature);
 			return this;
 		}
 
@@ -336,8 +339,9 @@ namespace REngine.RPI
 			pSwapChain?.Present(pRenderState.Vsync);
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			pLogger.Profile("Start Time");
 			pDriver = pProvider.GetOrDefault<IGraphicsDriver>();
 			var swapChain = pProvider.GetOrDefault<ISwapChain>();

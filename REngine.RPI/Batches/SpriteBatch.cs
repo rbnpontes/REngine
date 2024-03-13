@@ -81,7 +81,7 @@ public sealed class SpriteBatch(
             shaderResourceBinding = pShaderResourceBinding;
         }
 
-        if (!enabled || pPipelineState is null || pShaderResourceBinding is null)
+        if (!enabled || pPipelineState is null || pShaderResourceBinding is null || pShaderResourceBinding.IsDisposed || pPipelineState.IsDisposed)
             return;
 
         var command = batchRenderInfo.CommandBuffer;

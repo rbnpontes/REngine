@@ -43,8 +43,9 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		public void Dispose()
 		{
 			renderer.RemoveFeature(pFeature);
-			pFeature.Dispose();
-
+			// Force Objects Disposal
+			DisposableQueue.Dispose();
+			
 			entityMgr.DestroyAll();
 
 			imGuiSys.OnGui -= OnGui;
@@ -67,8 +68,8 @@ namespace REngine.Sandbox.Samples.BasicSamples
 			var rootEntry = renderGraph.Load("postprocess-rendergraph.xml");
 
 			pFeature = new RenderGraphFeature(renderGraph, rootEntry);
+			
 			renderer.AddFeature(pFeature);
-
 			renderer.RemoveFeature(imGuiSys.Feature);
 
 			imGuiSys.OnGui += OnGui;

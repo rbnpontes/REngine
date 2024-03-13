@@ -21,9 +21,9 @@ namespace REngine.Core
 		/// Test if this thread you are calling is Main Thread
 		/// </summary>
 		public bool IsMainThread { get; }
-		public IEngine Start();
+		public Task Start();
 		public IEngine ExecuteFrame();
-		public IEngine Stop();
+		public Task Stop();
 		/// <summary>
 		/// Android and iOS Only
 		/// </summary>

@@ -24,8 +24,9 @@ namespace REngine.Sandbox.PongGame.States
 		private PongGameOverMenu? pGameOverMenu;
 		public string Name => nameof(PongGameOverState);
 
-		public void OnStart()
+		public async Task OnStart()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if (PongVariables.BackgroundAudio != null)
 			{
 				PongVariables.BackgroundAudio.Offset = TimeSpan.Zero;
@@ -70,8 +71,9 @@ namespace REngine.Sandbox.PongGame.States
 			PongVariables.BackgroundAudio.Pitch = (float)(Math.Cos(pTime) + 1.0)*0.5f;
 		}
 
-		public void OnExit()
+		public async Task OnExit()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			entityManager.DestroyAll();
 		}
 	}

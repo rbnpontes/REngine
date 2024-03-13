@@ -27,8 +27,7 @@ namespace REngine.RPI.Features
 		private IRenderer? pRenderer;
 
 		private RenderFeatureState pCurrentState = RenderFeatureState.None;
-		private bool pMustDispose = false;
-		private bool pDisposed = false;
+		private bool pDisposed;
 
 		public abstract bool IsDirty { get; protected set; }
 
@@ -36,115 +35,67 @@ namespace REngine.RPI.Features
 		{
 			get
 			{
-				bool disposed = false;
+				bool disposed;
 				lock (pSync)
-					disposed = pDisposed || pMustDispose;
+					disposed = pDisposed;
 				return disposed;
 			}
 		}
 		
 		public void Dispose()
 		{
+			if (IsDisposed)
+				return;
 			lock(pSync)
 			{
-				if (pCurrentState == RenderFeatureState.None)
-					OnDispose();
-				else
-					pMustDispose = true;
+				if (pCurrentState != RenderFeatureState.None)
+					throw new InvalidOperationException("Can´t dispose Render Feature that is on execution. You must remove from Renderer first before dispose");
 			}
-
+			
+			OnDispose();
 			GC.SuppressFinalize(this);
 		}
-
-		private bool HandleDispose()
-		{
-			if(pMustDispose)
-			{
-				OnDispose();
-				return true;
-			}
-			return false;
-		}
-		private bool IsDisposing()
-		{
-			bool disposed = false;
-			lock (pSync)
-				disposed = pDisposed;
-			return disposed;
-		}
-
+		
 		public IRenderFeature Setup(in RenderFeatureSetupInfo execInfo)
 		{
-			if (IsDisposing())
+			if (IsDisposed)
 				return this;
-
-			pRenderer = execInfo.Renderer;
-
+			
 			lock (pSync)
-			{
-				if(HandleDispose())
-					return this;
-
 				pCurrentState = RenderFeatureState.Setup;
-				OnSetup(execInfo);
-				pCurrentState = RenderFeatureState.Compile;
-			}
+			pRenderer = execInfo.Renderer;
+			OnSetup(execInfo);
 
 			lock (pSync)
-			{
-				if (HandleDispose())
-					return this;
-			}
+				pCurrentState = RenderFeatureState.None;
 			return this;
 		}
 
 		public virtual IRenderFeature Compile(ICommandBuffer command)
 		{
-			if (IsDisposing())
+			if (IsDisposed)
 				return this;
+			lock (pSync)
+				pCurrentState = RenderFeatureState.Compile;
+			OnCompile(command);
 
 			lock (pSync)
-			{
-				if (HandleDispose())
-					return this;
-
-				AssertState(RenderFeatureState.Compile);
-
-				OnCompile(command);
-				pCurrentState = RenderFeatureState.Execute;
-            }
-
-			lock (pSync)
-			{
-				if (HandleDispose())
-					return this;
-			}
-
+				pCurrentState = RenderFeatureState.None;
 			return this;
 		}
 
 		public virtual IRenderFeature Execute(ICommandBuffer command)
 		{
-			if (IsDisposing())
+			if (IsDisposed)
 				return this;
+			
+			lock (pSync)
+				pCurrentState = RenderFeatureState.Execute;
+			
+			OnExecute(command);
 
 			lock (pSync)
-			{
-				if (HandleDispose())
-					return this;
-
-				if(pCurrentState == RenderFeatureState.None)
-					pCurrentState = RenderFeatureState.Execute;
-				AssertState(RenderFeatureState.Execute);
-				OnExecute(command);
 				pCurrentState = RenderFeatureState.None;
-			}
-
-			lock (pSync)
-			{
-				if (HandleDispose())
-					return this;
-			}
 			return this;
 		}
 

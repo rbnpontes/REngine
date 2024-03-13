@@ -6,21 +6,21 @@ namespace REngine.RPI;
 
 public sealed class BatchSystem : IDisposable
 {
-    private readonly object pSync = new object();
+    private readonly object pSync = new();
     private readonly EngineEvents pEngineEvents;
-    private readonly Dictionary<ulong, BatchGroup> pBatchGroups = new Dictionary<ulong, BatchGroup>();
+    private readonly Dictionary<ulong, BatchGroup> pBatchGroups = new();
     
     private bool pDisposed;
 
     public BatchSystem(EngineEvents engineEvents)
     {
         pEngineEvents = engineEvents;
-        engineEvents.OnBeforeStop +=HandleEngineStop;
+        engineEvents.OnBeforeStop.Once(HandleEngineStop);
     }
 
-    private void HandleEngineStop(object? sender, EventArgs e)
+    private async Task HandleEngineStop(object sender)
     {
-        pEngineEvents.OnBeforeStop -= HandleEngineStop;
+        await EngineGlobals.MainDispatcher.Yield();
         Dispose();
     }
 

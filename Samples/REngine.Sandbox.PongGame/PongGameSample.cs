@@ -32,8 +32,10 @@ namespace REngine.Sandbox.PongGame
 			PongVariables.Reset();
 
 			renderer.RemoveFeature(pFeature);
-			pFeature.Dispose();
-
+			
+			// Force Objects Disposal
+			DisposableQueue.Dispose();
+			
 			renderer.AddFeature(imGuiSystem.Feature, 100);
 		}
 

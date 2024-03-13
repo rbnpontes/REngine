@@ -19,6 +19,7 @@ namespace REngine.Windows
 		private readonly ILogger<IWindowManager> pLogger;
 		private readonly EngineEvents pEngineEvents;
 		private readonly IEngine pEngine;
+		private readonly IDispatcher pDispatcher;
 
 		private readonly List<WindowImpl> pWindows = new();
 		private bool pDisposed;
@@ -30,52 +31,55 @@ namespace REngine.Windows
 			ILogger<IWindowManager> logger,
 			IExecutionPipeline pipeline,
 			EngineEvents engineEvents,
-			IEngine engine
+			IEngine engine,
+			IDispatcher dispatcher
 		) 
 		{
 			pPipeline = pipeline;
 			pLogger = logger;
 			pEngineEvents = engineEvents;
 			pEngine = engine;
+			pDispatcher = dispatcher;
 
+			AssertMainThreadCall();
+			
 			Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
 			Glfw.Init();
 			Glfw.SetErrorCallback(HandleGlfwError);
 
-			pEngineEvents.OnBeforeStart += HandleBeforeStart;
-			pEngineEvents.OnStart += HandleEngineStart;
-			pEngineEvents.OnStop += HandleEngineStop;
+			pEngineEvents.OnBeforeStart.Once(HandleBeforeStart);
+			pEngineEvents.OnStart.Once(HandleEngineStart);
+			pEngineEvents.OnStop.Once(HandleEngineStop);
 		}
 
 		public void Dispose()
 		{
 			if (pDisposed)
 				return;
+			AssertMainThreadCall();
 			pWindows.ForEach(x => x.Dispose());
 			pWindows.Clear();
-
 			Glfw.Terminate();
 			pDisposed = true;
 			GC.SuppressFinalize(this);
 		}
 
-		private void HandleBeforeStart(object? sender, EventArgs e)
+		private async Task HandleBeforeStart(object sender)
 		{
-			pEngineEvents.OnBeforeStart -= HandleBeforeStart;
-
+			await EngineGlobals.MainDispatcher.Yield();
 			var monitor = Glfw.Monitors.FirstOrDefault();
 			VideoScale = new Vector2(monitor.ContentScale.X, monitor.ContentScale.Y);
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
+			await EngineGlobals.MainDispatcher.Yield();
 			pPipeline.AddEvent(DefaultEvents.WindowsUpdateId, (_) => Update());
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
@@ -84,6 +88,7 @@ namespace REngine.Windows
 			if (pDisposed)
 				return;
 
+			AssertMainThreadCall();
 			Glfw.PollEvents();
 
 			int closedWindows = 0;
@@ -107,6 +112,7 @@ namespace REngine.Windows
 			if (pDisposed)
 				return this;
 
+			AssertMainThreadCall();
 			foreach(var wnd in pWindows)
 				wnd.Close();
 			return this;
@@ -115,11 +121,11 @@ namespace REngine.Windows
 		public IWindow Create(WindowCreationInfo createInfo)
 		{
 			AssertDispose();
-
+			AssertMainThreadCall();
 			if (createInfo.WindowInstance != null)
 				pLogger.Warning("WindowInstance is not used by GLFW windowm manager");
 			var wnd = Glfw.CreateWindow(createInfo.Size.Width, createInfo.Size.Height, createInfo.Title, GLFW.Monitor.None, GLFW.Window.None);		
-			var output = new WindowImpl(wnd, createInfo.Title);
+			var output = new WindowImpl(wnd, pDispatcher, createInfo.Title);
 			output.Show();
 			pWindows.Add(output);
 
@@ -132,6 +138,11 @@ namespace REngine.Windows
 			throw new Exception($"{msg}. Error Code: {code}");
 		}
 
+		private void AssertMainThreadCall()
+		{
+			if (!pDispatcher.IsThreadCaller)
+				throw new InvalidOperationException("This operation must execute on Main Thread");
+		}
 		private void AssertDispose()
 		{
 			if (pDisposed)

@@ -45,7 +45,6 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		public void Dispose()
 		{
 			renderer.RemoveFeature(pSpriteFeature);
-			pSpriteFeature?.Dispose();
 			entityManager.DestroyAll();
 			//spriteBatch.OnDraw -= OnDraw;
 			imGuiSystem.OnGui -= OnGui;

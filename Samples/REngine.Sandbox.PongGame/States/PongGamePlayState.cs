@@ -51,8 +51,9 @@ namespace REngine.Sandbox.PongGame.States
 
 		public string Name => nameof(PongGamePlayState);
 
-		public void OnStart()
+		public async Task OnStart()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			SetInitialState();
 
 			var font = assetManager.GetAsset<FontAsset>(PongVariables.DefaultFont);
@@ -193,8 +194,9 @@ namespace REngine.Sandbox.PongGame.States
 #endif
 		}
 
-		public void OnExit()
+		public async Task OnExit()
 		{
+			await EngineGlobals.MainDispatcher.Yield();
 			if (PongVariables.BackgroundAudio != null)
 				PongVariables.BackgroundAudio.Pitch = 1;
 #if DEBUG

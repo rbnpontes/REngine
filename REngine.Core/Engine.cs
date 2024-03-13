@@ -15,20 +15,20 @@ namespace REngine.Core
 		private readonly IExecutionPipeline pExecPipeline;
 		private readonly EngineSettings pEngineSettings;
 		private readonly IServiceProvider pServiceProvider;
+		private readonly IDispatcher pDispatcher;
 
 		private readonly Timer pTimer = new();
 		private IWindow? pMainWindow;
 
 		private bool pStopped;
-		private ulong pMainThreadId;
 
 		protected ILogger<IEngine> Logger { get; private set; }
 		
-		public double DeltaTime { get => pTimer.DeltaTime; }
-		public double ElapsedTime { get => pTimer.Elapsed; }
+		public double DeltaTime => pTimer.DeltaTime;
+		public double ElapsedTime => pTimer.Elapsed;
 
-		public bool IsStopped { get => pStopped; }
-		public bool IsMainThread => pMainThreadId == Hash.Digest(Thread.CurrentThread.Name);
+		public bool IsStopped => pStopped;
+		public bool IsMainThread => !pDispatcher.IsThreadCaller;
 		public virtual bool IsKeyboardVisible => false;
 
 		public Engine(
@@ -36,7 +36,8 @@ namespace REngine.Core
 			EngineEvents events,
 			IExecutionPipeline pipeline,
 			EngineSettings settings,
-			ILoggerFactory loggerFactory) 
+			ILoggerFactory loggerFactory,
+			IDispatcher dispatcher) 
 		{
 			pEvents	= events;
 			pUpdateEvtArgs = new UpdateEventArgs(provider, this, 0, 0);
@@ -44,20 +45,18 @@ namespace REngine.Core
 			pExecPipeline = pipeline;
 			pEngineSettings = settings;
 			pServiceProvider = provider;
+			pDispatcher = dispatcher;
 			Logger = loggerFactory.Build<IEngine>();
 		}
 
-		public IEngine Start()
+		public async Task Start()
 		{
-			var threadName = "REngine - Main Thread";
-			Thread.CurrentThread.Name = threadName;
-			pMainThreadId = Hash.Digest(threadName);
-			
+			await pDispatcher.Yield();
 			// Try get main window
 			pMainWindow = pServiceProvider.GetOrDefault<IWindow>();
+			pServiceProvider.Get<IExecutionPipeline>().AddEvent(DefaultEvents.GCCollect, CollectGC);
 
 			pStopwatch.Restart();
-			return this;
 		}
 
 		public IEngine ExecuteFrame()
@@ -76,18 +75,6 @@ namespace REngine.Core
 			pEvents.ExecuteUpdate(pUpdateEvtArgs);
 			pExecPipeline.Execute();
 			
-			if (pTimer.DeltaTime <= pEngineSettings.GcCollectThreshold)
-			{
-#if PROFILER
-				using (Profiler.Instance.Begin(nameof(GC)))
-				{
-#endif
-#if PROFILER
-					GC.Collect();
-				}
-#endif
-			}
-
 			// If window is minimized, we don't want burn unnecessary CPU
 			if (pMainWindow is { IsMinimized: true })
 			{
@@ -107,16 +94,18 @@ namespace REngine.Core
 			return this;
 		}
 
-		public IEngine Stop()
+		public async Task Stop()
 		{
+			await pDispatcher.Yield();
 			if (pStopped)
-				return this;
+				return;
 
 			pStopped = true;
-			ApplicationLifecyle.ExecuteExit();
+			await ApplicationLifecyle.ExecuteExit(this);
+			await pDispatcher.Yield();
+			
 			while(DisposableQueue.HasPendingItems)
 				DisposableQueue.Dispose();
-			return this;
 		}
 
 		public virtual IEngine ShowKeyboard()
@@ -134,6 +123,14 @@ namespace REngine.Core
 		protected void PrintUnsupportedFeature(string featureName)
 		{
 			Logger.Warning($"{featureName} is not supported on this platform");
+		}
+
+		private void CollectGC(IExecutionPipeline _)
+		{
+#if PROFILER
+			using (Profiler.Instance.Begin(nameof(GC)))
+#endif
+			GC.Collect();
 		}
 	}
 }

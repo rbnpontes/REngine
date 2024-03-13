@@ -34,7 +34,6 @@ namespace REngine.Sandbox.Samples.BasicSamples
 		{
 			pRenderer?.RemoveFeature(pCubeFeature);
 
-			pCubeFeature?.Dispose();
 			pEntityManager?.DestroyAll();
 		}
 

@@ -85,8 +85,8 @@ namespace REngine.RPI
 			pEngineEvents = engineEvents;
 			pLogger = loggerFactory.Build<IRenderTargetManager>();
 
-			engineEvents.OnStart += HandleEngineStart;
-			engineEvents.OnStop += HandleEngineStop;
+			engineEvents.OnStart.Once(HandleEngineStart);
+			engineEvents.OnStop.Once(HandleEngineStop);
 		}
 
 		public void Dispose()
@@ -106,15 +106,15 @@ namespace REngine.RPI
 			pDisposed = true;
 		}
 
-		private void HandleEngineStop(object? sender, EventArgs e)
+		private async Task HandleEngineStop(object sender)
 		{
-			pEngineEvents.OnStop -= HandleEngineStop;
+			await EngineGlobals.MainDispatcher.Yield();
 			Dispose();
 		}
 
-		private void HandleEngineStart(object? sender, EventArgs e)
+		private async Task HandleEngineStart(object sender)
 		{
-			pEngineEvents.OnStart -= HandleEngineStart;
+			await EngineGlobals.MainDispatcher.Yield();
 			pLogger.Debug("Initializing");
 			pDevice = pServiceProvider.Get<IGraphicsDriver>().Device;
 			pDummyTexture = AllocateDummyTexture();

@@ -41,13 +41,13 @@ namespace REngine.Core
 				.Add<IInput, InputImpl>()
 				.Add<IEngine, Engine>()
 				.Add<EngineEvents>()
-				.Add<IExecutionPipeline, ExecutionPipelineImpl>()
-				.Add<ExecutionPipelineNodeRegistry>()
 				.Add<ComponentSerializerFactory>()
 				.Add<TransformSystem>()
 				.Add<Transform2DSystem>()
 				.Add<CameraSystem>()
 				.Add<GameStateManager>();
+			
+			ThreadingModule.Setup(registry);
 		}
 	}
 }

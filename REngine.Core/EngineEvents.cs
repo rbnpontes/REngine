@@ -8,52 +8,43 @@ using REngine.Core.Events;
 
 namespace REngine.Core
 {
-	public class UpdateEventArgs : EventArgs
+	public class UpdateEventArgs(IServiceProvider provider, IEngine engine, double deltaTime, double elapsed)
 	{
-		public double DeltaTime { get; set; }
-		public double Elapsed { get; set; }
-		public IServiceProvider Provider { get; private set; }
-		public IEngine Engine { get; private set; }
-
-		public UpdateEventArgs(IServiceProvider provider, IEngine engine, double deltaTime, double elapsed)
-		{
-			Provider = provider;
-			Engine = engine;
-			DeltaTime = deltaTime;
-			Elapsed = elapsed;
-		}
+		public double DeltaTime { get; set; } = deltaTime;
+		public double Elapsed { get; set; } = elapsed;
+		public IServiceProvider Provider { get; private set; } = provider;
+		public IEngine Engine { get; private set; } = engine;
 	}
 
 	public sealed class EngineEvents
 	{
-		public event EventHandler? OnBeforeStart;
-		public event EventHandler? OnStart;
-		public event EventHandler<UpdateEventArgs>? OnUpdate;
-		public event EventHandler? OnBeforeStop;
-		public event EventHandler? OnStop;
+		public readonly AsyncEventEmitter OnBeforeStart = new();
+		public readonly AsyncEventEmitter OnStart = new();
+		public readonly EventEmitter<UpdateEventArgs> OnUpdate = new();
+		public readonly AsyncEventEmitter OnBeforeStop = new();
+		public readonly AsyncEventEmitter OnStop = new();
 
 		public EngineEvents()
 		{
-			ApplicationLifecyle.OnStart += HandleAppStart;
-			ApplicationLifecyle.OnExit += HandleAppExit;
+			ApplicationLifecyle.OnStart.Once(HandleAppStart);
+			ApplicationLifecyle.OnExit.Once(HandleAppExit);
 		}
 
-		private void HandleAppExit(object? sender, EventArgs e)
+		private async Task HandleAppExit(object sender)
 		{
-			OnBeforeStop?.Invoke(this, EventArgs.Empty);
-			OnStop?.Invoke(this, EventArgs.Empty);
+			await OnBeforeStop.Invoke(sender);
+			await OnStop.Invoke(sender);
 		}
 
-		private void HandleAppStart(object? sender, IServiceProvider e)
+		private async Task HandleAppStart(object sender)
 		{
-			OnBeforeStart?.Invoke(this, EventArgs.Empty);
-			OnStart?.Invoke(this, EventArgs.Empty);
+			await OnBeforeStart.Invoke(sender);
+			await OnStart.Invoke(sender);
 		}
-
 
 		public EngineEvents ExecuteUpdate(UpdateEventArgs args)
 		{
-			OnUpdate?.Invoke(this, args);
+			OnUpdate.Invoke(this, args);
 			return this;
 		}
 	}

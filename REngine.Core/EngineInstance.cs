@@ -20,6 +20,7 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     private ILogger? pLogger;
     private IServiceProvider? pServiceProvider;
 
+    public IDispatcher Dispatcher { get; private set; } = NullDispatcher.Instance;
     public IEngineApplication App => app;
     public IServiceProvider Provider
     {
@@ -41,20 +42,15 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         }
     }
 
-    protected abstract ILoggerFactory OnGetLoggerFactory();
+    protected abstract Task<ILoggerFactory> OnGetLoggerFactory();
 
-    public virtual IEngineStartup Run()
+    public virtual async Task Run()
     {
         var engine = Provider.Get<IEngine>();
         var events = Provider.Get<EngineEvents>();
-        events.OnUpdate += HandleUpdate;
+        events.OnUpdate.On(HandleUpdate);
 
-        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-        {
-            if (e.ExceptionObject is Exception exception)
-                Logger.Error(exception.Message);
-            Logger.Error(e.ExceptionObject.ToString());
-        };
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
         Logger.Debug("Starting");
         Logger.Info("OS Version: " + Environment.OSVersion);
@@ -67,12 +63,12 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         Logger.Info("Log Path: " + EngineSettings.LoggerPath);
 
         pStartTime.Start();
-        engine.Start();
+        await engine.Start();
         pStartTime.Stop();
 
-        Logger.Debug("Starting Game Loop");
+        Logger.Info("Setup Final Touches");
 
-        ApplicationLifecyle.ExecuteRun();
+        ApplicationLifecyle.ExecuteRun(this);
 
         pEngineStartTime.Stop();
 
@@ -81,26 +77,35 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
             .Info($"Setup Time: {pSetupTime.Elapsed}")
             .Info($"Start Time: {pStartTime.Elapsed}")
             .Info($"Total Time: {pEngineStartTime.Elapsed}");
+        
+        await OnReady();
 
-        OnReady();
-
-        RunGameLoop(engine);
-        return this;
+        Logger.Info("Starting Game Loop");
+        await RunGameLoop(engine);
     }
 
-    protected virtual void RunGameLoop(IEngine engine)
+    protected virtual async Task RunGameLoop(IEngine engine)
     {
         while (!engine.IsStopped)
+        {
             engine.ExecuteFrame();
+            await Dispatcher.Yield();
+        }
         
         Logger.Debug("Exiting");
-        app.OnExit(Provider);
-        OnStop();
-
+        await app.OnExit(Provider);
+        await Dispatcher.Yield();
+        await OnStop();
         Logger.Info("Finished!!!");
     }
-    
-    private void HandleUpdate(object? sender, UpdateEventArgs args)
+
+    private void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+            Logger.Error(exception.Message);
+        Logger.Error(e.ExceptionObject.ToString());
+    }
+    private void HandleUpdate(object sender, UpdateEventArgs updateEventArgs)
     {
         OnUpdate();
         app.OnUpdate(Provider);
@@ -108,103 +113,133 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
     protected virtual void OnUpdate()
     {
     }
-    public virtual IEngineStartup Setup()
+    public virtual async Task Setup(IDispatcher dispatcher)
     {
+        Dispatcher = dispatcher;
+        EngineGlobals.MainDispatcher = dispatcher;
+        
         pEngineStartTime.Start();
         pSetupTime.Start();
 
-        pLoggerFactory = OnGetLoggerFactory();
+        pLoggerFactory = await OnGetLoggerFactory();
         pLogger = pLoggerFactory.Build(GetType());
 
+        EngineGlobals.LoggerFactory = pLoggerFactory;
+        
         NativeReferences.Logger = pLoggerFactory.Build(typeof(NativeReferences));
         NativeReferences.PreloadLibs();
 
-        app.OnSetLogger(pLoggerFactory.Build(app.GetType()));
+        await app.OnSetLogger(pLoggerFactory.Build(app.GetType()));
 
         var registry = ServiceRegistryFactory.Build();
         var modules = new List<IModule>();
 
-        OnSetupModules(modules);
+        // Insert Main Dispatcher on DI
+        registry.Add(() => Dispatcher);
+        
+        pLogger.Info("Setup Modules");
+        await OnSetupModules(modules);
 
         modules.ForEach(x => x.Setup(registry));
 
-        OnSetupSettings(registry);
-        OnSetup(registry);
-        app.OnSetup(registry);
-        ApplicationLifecyle.ExecuteSetup(registry);
+        pLogger.Info("Setup Settings");
+        await OnSetupSettings(registry);
 
-        pServiceProvider = registry.Build();
+        pLogger.Info("Setup System");
+        await OnSetup(registry);
+        pLogger.Info($"Setup Application '{(app.GetType().FullName ?? app.GetType().Name)}'");
+        await app.OnSetup(registry);
+
+        pLogger.Info("Emitting Setup Event");
+        await ApplicationLifecyle.ExecuteSetup(registry);
+        
+        // Execute the above steps on MainThread
+        await Dispatcher.InvokeAsync(() =>
+        {
+            pLogger.Info("Building Service Provider");
+            pServiceProvider = registry.Build();
+            EngineGlobals.ServiceProvider = pServiceProvider;
+            pLogger.Success("Service Provider is Ready!");
+        });      
 
         var assetManager = pServiceProvider.Get<IAssetManager>();
+
+        pLogger.Info("Loading Default Execution Pipeline Layout");
         pServiceProvider.Get<IExecutionPipeline>().Load(
             assetManager.GetStream("default_execution_pipeline.xml")
         );
 
         pSetupTime.Stop();
-        return this;
+        pLogger.Info("Setup is Finished!");
     }
-    protected virtual void OnSetup(IServiceRegistry registry)
-    {
-    }
-    protected virtual void OnSetupModules(List<IModule> modules)
+
+    protected virtual async Task OnSetup(IServiceRegistry registry) => await Dispatcher.Yield();
+    protected virtual async Task OnSetupModules(List<IModule> modules)
     {
         modules.Add(new CoreModule());
-        app.OnSetupModules(modules);
+        await app.OnSetupModules(modules);
+        await Dispatcher.Yield();
     }
-    protected virtual void OnSetupSettings(IServiceRegistry registry)
+    protected virtual async Task OnSetupSettings(IServiceRegistry registry)
     {
-        var engineSettings = LoadSettings<EngineSettings>(EngineSettings.EngineSettingsPath);
-        var assetManagerSettings = LoadSettings<AssetManagerSettings>(EngineSettings.AssetManagerSettingsPath);
+        var engineSettingsTask = LoadSettings<EngineSettings>(EngineSettings.EngineSettingsPath);
+        var assetManagerSettingsTask = LoadSettings<AssetManagerSettings>(EngineSettings.AssetManagerSettingsPath);
+
+        await Task.WhenAll(engineSettingsTask, assetManagerSettingsTask);
+        await Task.WhenAll(
+            OnSetupEngineSettings(engineSettingsTask.Result),
+            OnSetupAssetManagerSettings(assetManagerSettingsTask.Result)
+        );
         
-        OnSetupEngineSettings(engineSettings);
-        OnSetupAssetManagerSettings(assetManagerSettings);
-        registry.Add(() => engineSettings);
-        registry.Add(() => assetManagerSettings);
+        registry.Add(() => engineSettingsTask.Result);
+        registry.Add(() => assetManagerSettingsTask.Result);
+
+        await Dispatcher.Yield();
     }
 
-    protected virtual void OnSetupEngineSettings(EngineSettings engineSettings)
+    protected virtual async Task OnSetupEngineSettings(EngineSettings engineSettings)
     {
-        var processorCount = Math.Min(Environment.ProcessorCount, EngineSettings.MaxAllowedJobs);
+        var processorCount = Environment.ProcessorCount;
+        var maxAllowedProcessors = (int)Math.Max(processorCount * EngineSettings.MaxAllowedCoreRatio, 0);
         if (engineSettings.JobsThreadCount == -1)
-            engineSettings.JobsThreadCount = processorCount;
-        engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, processorCount);
+            engineSettings.JobsThreadCount = maxAllowedProcessors;
+        engineSettings.JobsThreadCount = Math.Clamp(engineSettings.JobsThreadCount, 0, maxAllowedProcessors);
+        await Dispatcher.Yield();
     }
 
-    protected virtual void OnSetupAssetManagerSettings(AssetManagerSettings settings)
-    {
-    }
+    protected virtual async Task OnSetupAssetManagerSettings(AssetManagerSettings settings) => await Dispatcher.Yield();
 
-    public IEngineStartup Start()
+    public async Task Start()
     {
-        ApplicationLifecyle.ExecuteStart(Provider);
-        OnStart();
-        app.OnStart(Provider);
-        return this;
+        await ApplicationLifecyle.ExecuteStart(Provider);
+        await OnStart();
+        await app.OnStart(Provider);
+        await Dispatcher.Yield();
     }
 
     private bool pHasCallStop;
-    public IEngineStartup Stop()
+    public virtual async Task Stop()
     {
         if (pHasCallStop)
         {
             Logger.Warning("Stop has been already called. Skipping!!!");
-            return this;
+            return;
         }
 
         pHasCallStop = true;
-        
+        // TODO: do i really need to do this ?
         Provider
             .Get<IExecutionPipeline>()
             .Invoke(() =>
             {
                 Provider.Get<IEngine>().Stop();
             });
-        return this;
+        await Dispatcher.Yield();
     }
-    
-    protected virtual void OnStart(){}
 
-    protected virtual void OnStop()
+    protected virtual async Task OnStart() => await Dispatcher.Yield();
+
+    protected virtual async Task OnStop()
     {
 #if PROFILER
         Profiler.Instance.Dispose();
@@ -212,38 +247,43 @@ public abstract class EngineInstance(IEngineApplication app) : IEngineStartup
         NativeReferences.UnloadLibs();
 
         Logger.Info("Writing Settings Before Exit");
-        OnWriteSettings();
+        await OnWriteSettings();
+        
+        // Stop Dispatcher Loop
+        Dispatcher.Dispose();
     }
 
-    protected virtual void OnWriteSettings()
+    protected virtual async Task OnWriteSettings()
     {
         var engineSettings = Provider.GetOrDefault<EngineSettings>();
         var assetSettings = Provider.GetOrDefault<AssetManagerSettings>();
-        
+
+        var tasks = new List<Task>();
         if(engineSettings != null)
-            WriteSettings(EngineSettings.EngineSettingsPath, engineSettings);
+            tasks.Add(WriteSettings(EngineSettings.EngineSettingsPath, engineSettings));
         if(assetSettings != null)
-            WriteSettings(EngineSettings.AssetManagerSettingsPath, assetSettings);
+            tasks.Add(WriteSettings(EngineSettings.AssetManagerSettingsPath, assetSettings));
+        
+        await Task.WhenAll(tasks);
+        await Dispatcher.Yield();
     }
 
-    protected static void WriteSettings<T>(string path, T data)
+    protected virtual async Task WriteSettings<T>(string path, T data)
     {
         if(File.Exists(path))
             File.Delete(path);
-        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
-        using var writer = new StreamWriter(stream);
-        writer.Write(data.ToJson());
+        await using var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+        await using var writer = new StreamWriter(stream);
+        await writer.WriteAsync(data.ToJson());
     }
 
-    protected static T LoadSettings<T>(string path)
+    protected virtual async Task<T> LoadSettings<T>(string path)
     {
-        using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read);
+        await using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read);
         using var reader = new StreamReader(stream);
-        var json = reader.ReadToEnd();
+        var json = await reader.ReadToEndAsync();
         return json.FromJson<T>() ?? ActivatorExtended.CreateInstance<T>([]);
     }
-    
-    protected virtual void OnReady()
-    {
-    }
+
+    protected virtual async Task OnReady() => await Dispatcher.Yield();
 }

@@ -10,9 +10,11 @@ namespace REngine.Core
 	public class EngineSettings : IMergeable<EngineSettings>
 	{
 #if ANDROID
-		public static readonly int MaxAllowedJobs = 4;
+		// On Android, max allowed is 30% of the available cores
+		public static readonly float MaxAllowedCoreRatio = 0.3f;
 #else
-		public static readonly int MaxAllowedJobs = 10;
+		// On desktop, max allowed is 80% of the available cores
+		public static readonly float MaxAllowedCoreRatio = 0.6f;
 #endif
 		public static string AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "REngine");
 		public static string LoggerPath => Path.Combine(AppDataPath, "rengine.log");
@@ -46,13 +48,7 @@ namespace REngine.Core
 		/// The new entity pool length will be 'NewEntityPool = new Entity[Math.Round(InitialEntityCount * EntityExpansionRate)];'
 		/// </summary>
 		public float EntityExpansionRate { get; set; } = 1.25f;
-
-		/// <summary>
-		/// If engine runs fasts as can and have time left
-		/// Then GC will be collected
-		/// </summary>
-		public double GcCollectThreshold { get; set; } = 0.008f;
-
+		
 		/// <summary>
 		/// How much time main thread will sleep if app goes to Idle(minimized) ?
 		/// </summary>
@@ -64,8 +60,6 @@ namespace REngine.Core
 		{
 			InitialEntityCount = value.InitialEntityCount;
 			EntityExpansionRate = value.EntityExpansionRate;
-
-			GcCollectThreshold = value.GcCollectThreshold;
 
 			IdleWaitTimeMs = value.IdleWaitTimeMs;
 
