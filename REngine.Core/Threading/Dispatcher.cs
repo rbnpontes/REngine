@@ -48,7 +48,7 @@ public class DefaultDispatcher : IDispatcher
             Awaiter.Reset();
         }
     }
-    
+
     private readonly Queue<DispatcherTask>[] pTasksContainer = new[]
     {
         new Queue<DispatcherTask>(),
@@ -58,7 +58,6 @@ public class DefaultDispatcher : IDispatcher
     private readonly ConcurrentQueue<DispatcherTask> pAvailableTasks = new();
     private readonly ILogger<IDispatcher>? pLogger;
     private readonly object pSync = new();
-    private readonly object pExecutionSync = new();
     private readonly int pThreadId;
     
     private bool pDisposed;
@@ -93,22 +92,31 @@ public class DefaultDispatcher : IDispatcher
         lock (pSync)
             idx = pExecutionContainerIdx;
 
-        lock (pExecutionSync)
+        var numOfTasks = pTasksContainer[idx].Count;
+        while (pTasksContainer[idx].TryDequeue(out var task))
         {
-            while (pTasksContainer[idx].TryDequeue(out var task))
-            {
-                // If task is not ready, schedule to next iteration
-                if(!task.Awaiter.Execute())
-                    EnqueueTask(task);
-                
-                if (!task.IsCompleted) 
-                    continue;
-                // reset and add completed task to be reused later
-                task.Reset();
-                pAvailableTasks.Enqueue(task);
-            }
+            // If task is not ready, schedule to next iteration
+            if(!task.Awaiter.Execute())
+                EnqueueTask(task);
+            
+            if (!task.IsCompleted) 
+                continue;
+            // reset and add completed task to be reused later
+            task.Reset();
+            pAvailableTasks.Enqueue(task);
         }
 
+        // If at end of execution of tasks results in a count of
+        // available tasks greater than executed tasks.
+        // then we need to pop the difference between these
+        // and let GC to free this objects to us.
+        var diff = pAvailableTasks.Count - numOfTasks;
+        for (var i = 0; i < diff; ++i)
+        {
+            if (!pAvailableTasks.TryDequeue(out var _))
+                break;
+        }
+        
         lock (pSync)
         {
             ++idx;
