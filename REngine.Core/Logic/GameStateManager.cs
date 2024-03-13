@@ -103,7 +103,10 @@ namespace REngine.Core.Logic
 			void RunIdleStep()
 			{
 				if (!pStateTransitionQueue.TryDequeue(out var action))
+				{
+					pState?.OnUpdate();
 					return;
+				}
 				action();
 				pLogger.Info(
 					$"Start Transition: From => {pStateTransaction.From?.Name ?? "No Game State"} To => {pStateTransaction.To?.Name ?? "No Game State"}");
