@@ -22,8 +22,7 @@ target_compile_features(EASTL PUBLIC cxx_std_14)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Header Files" FILES ${EASTL_HEADERS})
 
 if (MSVC)
-    set(EASTL_NATVIS_DIR "doc")
-    set(EASTL_NATVIS_FILE "${EASTL_NATVIS_DIR}/EASTL.natvis")
+    set(EASTL_NATVIS_FILE "EASTL.natvis")
     target_sources(EASTL INTERFACE
         $<INSTALL_INTERFACE:${EASTL_NATVIS_FILE}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${EASTL_NATVIS_FILE}>
@@ -72,7 +71,3 @@ endif()
 #-------------------------------------------------------------------------------------------
 install(TARGETS EASTL DESTINATION lib)
 install(DIRECTORY include/EASTL DESTINATION include)
-
-if (MSVC)
-    install(FILES ${EASTL_NATVIS_FILE} DESTINATION ${EASTL_NATVIS_DIR})
-endif()

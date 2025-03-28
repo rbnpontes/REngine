@@ -1,0 +1,19 @@
+include(FetchContent)
+FetchContent_Declare(
+  SDL
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  GIT_TAG        f6864924f76e1a0b4abaefc76ae2ed22b1a8916e # release-3.2.8
+)
+FetchContent_MakeAvailable(SDL)
+
+set (SDL_RENDER         FALSE CACHE BOOL "" FORCE)
+set (SDL_RENDER_D3D     FALSE CACHE BOOL "" FORCE)
+set (SDL_RENDER_D3D11   FALSE CACHE BOOL "" FORCE)
+set (SDL_RENDER_D3D12   FALSE CACHE BOOL "" FORCE)
+set (SDL_RENDER_GPU     FALSE CACHE BOOL "" FORCE)
+set (SDL_RENDER_METAL   FALSE CACHE BOOL "" FORCE)
+set (SDL_OPENGL         FALSE CACHE BOOL "" FORCE)
+set (SDL_OPENGLES       FALSE CACHE BOOL "" FORCE)
+set (SDL_SHARED         FALSE CACHE BOOL "" FORCE)
+set (SDL_TEST_LIBRARY   FALSE CACHE BOOL "" FORCE)
+set (SDL_STATIC         TRUE  CACHE BOOL "" FORCE)

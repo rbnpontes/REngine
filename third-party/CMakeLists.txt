@@ -1,1 +1,4 @@
 add_subdirectory(EASTL)
+add_subdirectory(SDL)
+add_subdirectory(fmt)
+add_subdirectory(DiligentCore)
