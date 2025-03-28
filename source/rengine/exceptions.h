@@ -10,8 +10,17 @@
 	}
 
 namespace rengine {
+	class R_EXPORT not_implemented_exception : public std::exception {
+	public:
+		not_implemented_exception() : std::exception("Not implemented"){}
+	};
+
 	namespace core {
 		ENGINE_DEFINE_EXCEPTION(alloc_exception);
 		ENGINE_DEFINE_EXCEPTION(window_exception);
+	}
+
+	namespace graphics {
+		ENGINE_DEFINE_EXCEPTION(graphics_exception);
 	}
 }

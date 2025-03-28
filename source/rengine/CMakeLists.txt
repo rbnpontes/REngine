@@ -37,11 +37,28 @@ set (PRIVATE_LIBS
     EASTL
     EABase
 )
+set (PRIVATE_DEFINITIONS 
+    -DENGINE_LIB
+    -DFEATURE_BACKEND_OPENGL
+)
+set (PUBLIC_DEFINITIONS -DENGINE_NAME="REngine")
+
+if(NOT EMSCRIPTEN)
+    list(APPEND PRIVATE_DEFINITIONS -DFEATURE_BACKEND_VULKAN)
+endif()
+
+if(EMSCRIPTEN)
+    list (APPEND PUBLIC_DEFINITIONS -DPLATFORM_WEB)
+elseif(LINUX)
+    list (APPEND PUBLIC_DEFINITIONS -DPLATFORM_LINUX)
+endif()
+
 
 if(NOT DILIGENT_NO_WEBGPU)
     list (APPEND PRIVATE_LIBS
         Diligent-GraphicsEngineWebGPU-static
     )
+    list(APPEND PRIVATE_DEFINITIONS -DFEATURE_BACKEND_WEBGPU)
 endif()
 
 if(WIN32)
@@ -49,10 +66,17 @@ if(WIN32)
         Diligent-GraphicsEngineD3D11-static
         Diligent-GraphicsEngineD3D12-static
     )
+    list (APPEND PRIVATE_DEFINITIONS
+        -DFEATURE_BACKEND_D3D11
+        -DFEATURE_BACKEND_D3D12
+    )
+    list (APPEND PUBLIC_DEFINITIONS
+        -DPLATFORM_WINDOWS
+    )
 endif()
 
 target_link_libraries(rengine PRIVATE ${PRIVATE_LIBS})
-target_compile_options(rengine PRIVATE -DENGINE_LIB)
+target_compile_options(rengine PRIVATE ${PRIVATE_DEFINITIONS})
 target_include_directories(rengine PUBLIC ${ENGINE_SOURCE_DIR})
 
 # Diligent required call

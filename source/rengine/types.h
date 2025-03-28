@@ -1,4 +1,6 @@
 #pragma once
+#include "./defines.h"
+
 #include <stdint.h>
 
 namespace rengine {
@@ -30,6 +32,7 @@ namespace rengine {
     
     namespace core {
         typedef u32 window_t;
+        static u32 no_window = MAX_U32_VALUE;
     }
 
     namespace graphics {
@@ -54,5 +57,14 @@ namespace rengine {
         struct animatedModel_t;
         struct camera_t;
         struct light_t;
+
+        enum class backend : byte {
+            d3d11 = 0,
+            d3d12,
+            vulkan,
+            webgpu,
+            opengl,
+            max_backend
+        };
     }
 }

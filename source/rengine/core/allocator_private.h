@@ -1,14 +1,26 @@
 #pragma once
-#include <rengine/api.h>
-#include <rengine/types.h>
-#include <rengine/core/allocator.h>
-PRIVATE_HEADER
+#include "../types.h"
+#include "./allocator.h"
 
 namespace rengine {
 	namespace core {
+		template<size_t N>
+		struct AllocatorIdentifier {
+			constexpr AllocatorIdentifier(const char(&src)[N]) {
+				for (size_t i = 0; i < N; ++i)
+					str[i] = src[i];
+			}
+
+			c_str c_str() const {
+				return str;
+			}
+
+			char str[N];
+		};
+
 		class EngineStlAllocator {
 		public:
-			EngineStlAllocator(c_str name = "rengine") : name_(name) {}
+			explicit EngineStlAllocator(c_str name = "rengine") : name_(name) {}
 			EngineStlAllocator(const EngineStlAllocator& x) {
 				name_ = x.name_;
 			}
@@ -37,7 +49,17 @@ namespace rengine {
 		private:
 			c_str name_;
 		};
+
+		template<AllocatorIdentifier identifier>
+		class EngineAllocator : public EngineStlAllocator {
+		public:
+			EngineAllocator() : EngineStlAllocator(identifier.c_str()){}
+		};
+
+		//EngineStlAllocator* g_default_stl_allocator_ptr = &g_default_stl_allocator;
+
+		/*EngineStlAllocator* get_default_allocator() {
+			return &g_default_stl_allocator;
+		}*/
 	}
 }
-
-#define EASTLAllocatorType EngineStlAllocator

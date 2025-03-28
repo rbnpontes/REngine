@@ -1,4 +1,5 @@
 #pragma once
+#include "../base_private.h"
 #include "./window.h"
 
 #include <SDL3/SDL.h>
@@ -9,8 +10,8 @@
 namespace rengine {
 	namespace core {
 		struct window_data_t {
-			SDL_Window* owner;
-			Diligent::ISwapChain* swap_chain;
+			SDL_Window*				owner;
+			Diligent::ISwapChain*	swap_chain;
 			window_t                id;
 		};
 
