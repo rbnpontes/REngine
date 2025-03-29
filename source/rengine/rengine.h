@@ -3,7 +3,8 @@
 #include <rengine/exceptions.h>
 #include <rengine/core/core.h>
 #include <rengine/graphics/graphics.h>
-#include <rengine/math/math-types.h>
+#include <rengine/math/math.h>
+#include <rengine/io/io.h>
 
 namespace rengine {
 	typedef void (*__engine_update_call)();
@@ -11,6 +12,7 @@ namespace rengine {
 
 	struct engine_init_desc {
 		core::window_t		window_id	{ core::no_window };
+		u8					adapter_id	{ MAX_U8_VALUE };
 		graphics::backend	backend		{ GRAPHICS_BACKEND_DEFAULT };
 	};
 

@@ -2,6 +2,8 @@
 #define ALLOC_DEFAULT_LIMIT 128 * 1000000 // default size is 128mb
 //#define HIGH_DEFINITION_PRECISION // enable high precision math types
 #define MAX_ALLOWED_WINDOWS 4
+
+#define MAX_U8_VALUE 0xFF
 #define MAX_U32_VALUE 0xFFFFFFFF
 
 #ifdef PLATFORM_WINDOWS

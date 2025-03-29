@@ -15,6 +15,7 @@ namespace rengine {
 		not_implemented_exception() : std::exception("Not implemented"){}
 	};
 
+	ENGINE_DEFINE_EXCEPTION(null_exception);
 	namespace core {
 		ENGINE_DEFINE_EXCEPTION(alloc_exception);
 		ENGINE_DEFINE_EXCEPTION(window_exception);

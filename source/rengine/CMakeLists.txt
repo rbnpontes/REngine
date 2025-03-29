@@ -76,7 +76,9 @@ if(WIN32)
 endif()
 
 target_link_libraries(rengine PRIVATE ${PRIVATE_LIBS})
-target_compile_options(rengine PRIVATE ${PRIVATE_DEFINITIONS})
+target_compile_options(rengine 
+    PRIVATE ${PRIVATE_DEFINITIONS}
+    PUBLIC ${PUBLIC_DEFINITIONS})
 target_include_directories(rengine PUBLIC ${ENGINE_SOURCE_DIR})
 
 # Diligent required call

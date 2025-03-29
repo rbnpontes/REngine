@@ -12,6 +12,7 @@ namespace rengine {
 		core::window__init();
 		graphics::init({
 			desc.window_id,
+			desc.adapter_id,
 			desc.backend,
 		});
 	}
