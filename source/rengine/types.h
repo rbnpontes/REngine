@@ -17,15 +17,16 @@ namespace rengine {
     typedef const char* c_str;
     typedef unsigned char byte;
     typedef unsigned short entity;
+    typedef void* ptr;
 
     #ifdef HIGH_DEFINITION_PRECISION
-        typedef int int_t;
-        typedef unsigned int uint_t;
-        typedef float number_t;
-    #else
         typedef long long int_t;
         typedef unsigned long long uint_t;
         typedef double number_t;
+    #else
+        typedef int int_t;
+        typedef unsigned int uint_t;
+        typedef float number_t;
     #endif
 
     #define null nullptr

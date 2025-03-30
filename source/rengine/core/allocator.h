@@ -27,6 +27,18 @@ namespace rengine {
             T* ptr = (T*)alloc(sizeof(T));
             return new(ptr) T(std::forward<Args>(args)...);
         }
+
+        template <typename T>
+        inline T* alloc_array_alloc(size_t count) {
+            T* ptr = (T*)alloc(sizeof(T) * count);
+            return ptr;
+        }
+
+        template <typename T>
+        inline T* alloc_array_realloc(T* array, size_t count) {
+            T* ptr = (T*)alloc_realloc(array, sizeof(T) * count);
+            return ptr;
+        }
     }
 }
 

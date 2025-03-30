@@ -12,7 +12,8 @@ void game_loop() {
 
 int main(unsigned int argc, char** argv) {
     rengine::init();
-    const auto wnd = rengine::core::window_create("REngine", 400, 500);
+    const auto wnd = rengine::core::window_create("REngine", 500, 400);
+    rengine::use_window(wnd);
     rengine::run(game_loop);
     rengine::destroy();
     return 0;

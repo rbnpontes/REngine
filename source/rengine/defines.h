@@ -16,6 +16,8 @@
 	#error "Invalid Platform Definition"
 #endif
 
+#define RENDERER_DEFAULT_CLEAR_COLOR { 0.354f, 0.354f, 0.354f, 1.0f }
+
 #if MAX_ALLOWED_WINDOWS < 1
 	#error "MAX_ALLOWED_WINDOWS must be greater than 0"
 #endif

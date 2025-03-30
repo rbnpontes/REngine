@@ -13,7 +13,7 @@ namespace rengine{
             size_t usage;
         };
         
-        static alloc_data g_data = {
+        extern alloc_data g_data = {
             malloc,
             free,
             realloc,

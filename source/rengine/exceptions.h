@@ -16,6 +16,7 @@ namespace rengine {
 	};
 
 	ENGINE_DEFINE_EXCEPTION(null_exception);
+	ENGINE_DEFINE_EXCEPTION(engine_exception);
 	namespace core {
 		ENGINE_DEFINE_EXCEPTION(alloc_exception);
 		ENGINE_DEFINE_EXCEPTION(window_exception);

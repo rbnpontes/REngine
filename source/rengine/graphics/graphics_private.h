@@ -6,12 +6,13 @@
 #include <RenderDevice.h>
 #include <GraphicsTypes.h>
 
-PRIVATE_HEADER
+#define GRAPHICS_VERSION Diligent::Version { 11, 0 }
+
 namespace rengine {
 	namespace graphics {
 		struct graphics_state {
 			Diligent::IEngineFactory* factory;
-			Diligent::IDeviceContext* contexts;
+			Diligent::IDeviceContext** contexts;
 			Diligent::IRenderDevice* device;
 			u32 num_contexts;
 			backend backend;
@@ -23,20 +24,15 @@ namespace rengine {
 			backend backend;
 		};
 
-		graphics_state* get_state();
+		extern graphics_state g_state;
+
 		void assert_backend(backend value);
+		void assert_initialization();
 
 		void init(const graphics_init_desc& desc);
+		void deinit();
 
-		void init_d3d11(const graphics_init_desc& desc);
-		void init_d3d12(const graphics_init_desc& desc);
-		void init_vk(const graphics_init_desc& desc);
-		void init_webgpu(const graphics_init_desc& desc);
-		void init_opengl(const graphics_init_desc& desc);
-
-		void setup_engine_create_info(const graphics_init_desc& desc, Diligent::EngineCreateInfo& create_info);
-		u32 choose_best_adapter();
-
-		u32 choose_adapter_with_best_memory(const vector<Diligent::GraphicsAdapterInfo>& adapters);
+		void begin();
+		void end();
 	}
 }

@@ -5,6 +5,7 @@
 #include <rengine/graphics/graphics.h>
 #include <rengine/math/math.h>
 #include <rengine/io/io.h>
+#include <rengine/events/events.h>
 
 namespace rengine {
 	typedef void (*__engine_update_call)();
@@ -21,4 +22,9 @@ namespace rengine {
 	R_EXPORT bool update();
 	R_EXPORT void run(engine_update_callback callback);
 	R_EXPORT void destroy();
+	R_EXPORT number_t get_delta_time();
+	R_EXPORT void use_window(const core::window_t& window_id);
+
+	R_EXPORT void begin();
+	R_EXPORT void end();
 }

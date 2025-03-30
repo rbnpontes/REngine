@@ -174,6 +174,13 @@ namespace eastl
 		// user needs to override the implementation of the allocator class.
 		void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line);
 		void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line);
+        namespace rengine
+        {
+	        namespace core
+	        {
+		        __declspec(dllexport) void alloc_free(void* ptr);
+			}
+		}
 	#endif
 
 	namespace eastl
@@ -291,7 +298,8 @@ namespace eastl
 					delete[](char*)pOriginalAllocation;
 				}
 			#else
-				delete[](char*)p;
+				rengine::core::alloc_free(p);
+				//delete[](char*)p;
 			#endif
 		}
 
