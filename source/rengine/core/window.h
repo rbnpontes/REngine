@@ -21,5 +21,7 @@ namespace rengine {
         R_EXPORT void window_set_position(window_t window, ivec2_t position);
         R_EXPORT window_desc_t window_get_desc(window_t window);
         R_EXPORT void window_poll_events();
+        R_EXPORT u8 window_count();
+        R_EXPORT bool window_is_destroyed(window_t window);
     }
 }

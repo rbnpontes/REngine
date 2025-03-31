@@ -8,6 +8,10 @@
 namespace rengine {
 	engine_state g_engine_state = {};
 
+	void engine__noop()
+	{
+	}
+
 	void engine__begin() {
 		if (g_engine_state.begin)
 			return;
@@ -33,6 +37,23 @@ namespace rengine {
 		EVENT_EMIT(engine, end_update)();
 	}
 
+	void engine__stop()
+	{
+		if (g_engine_state.stop) {
+			io::logger_warn(strings::logs::g_engine_tag, strings::logs::g_engine_already_stopped);
+			return;
+		}
+
+		bool can_stop = true;
+		EVENT_EMIT(engine, before_stop)(&can_stop);
+
+		if (!can_stop)
+			return;
+
+		EVENT_EMIT(engine, stop)();
+		g_engine_state.stop = true;
+	}
+
 	void engine__begin_timer() {
 		auto& time = g_engine_state.time;
 
@@ -45,10 +66,5 @@ namespace rengine {
 		auto& time = g_engine_state.time;
 		auto delta = time.curr_elapsed - time.last_elapsed;
 		time.curr_delta = (number_t)delta.count();
-	}
-
-	void engine__set_window(core::window_t id)
-	{
-		g_engine_state.curr_wnd = id;
 	}
 }

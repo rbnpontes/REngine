@@ -13,9 +13,14 @@ namespace rengine {
 			ptr 					swap_chain;
 			window_t                id;
 		};
+		struct window_state {
+			u32 next_id;
+			u8 count;
+		};
 
-		extern u32 g_next_id;
+		extern window_state g_window_state;
 		extern eastl::array<window_data, MAX_ALLOWED_WINDOWS> g_windows;
+		static c_str g_window_id_prop_key = "rengine.window_id";
 
 		u8 window__decode_id(const window_t& id);
 		window_t window__encode_id(const u8& slot_idx);
@@ -26,5 +31,8 @@ namespace rengine {
 		void window__deinit();
 		u8 window__get_free_slot_idx();
 		window_t window__alloc(u8& slot_idx);
+		window_t window__idx_to_id(const window_t& idx);
+
+		void window__handle_sdl_event(const window_t& id, SDL_Event& evt);
 	}
 }

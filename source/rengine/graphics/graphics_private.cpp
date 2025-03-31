@@ -5,6 +5,7 @@
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
+#include "../core/window_private.h"
 
 #include "../defines.h"
 #include "../exceptions.h"
@@ -94,12 +95,24 @@ namespace rengine {
 		void begin() {
 			renderer__reset_state();
 
-			const auto window_id = g_engine_state.curr_wnd;
-			if (window_id == core::no_window)
-				return;
+			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+				const auto window_id = core::window__idx_to_id(i);
+				if (core::window_is_destroyed(window_id))
+					continue;
+				allocate_swapchain(window_id);
+			}
 
-			allocate_swapchain(window_id);
-			renderer_set_window(window_id);
+			// perform clear on swapchains
+			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+				const auto window_id = core::window__idx_to_id(i);
+				if (core::window_is_destroyed(window_id))
+					continue;
+				if (!core::window__has_swapchain(window_id))
+					continue;
+
+				renderer_set_window(window_id);
+				renderer_clear({});
+			}
 		}
 
 		void end() {
@@ -109,12 +122,7 @@ namespace rengine {
 			if (g_renderer_state.dirty_flags != 0)
 				renderer_flush();
 
-			const auto window_id = g_engine_state.curr_wnd;
-			const auto swap_chain = core::window__get_swapchain(window_id);
-			if (!swap_chain)
-				return;
-
-			swap_chain->Present();
+			core::window__present_swapchains();
 		}
 
 		void allocate_swapchain(const core::window_t& window_id)

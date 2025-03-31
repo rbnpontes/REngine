@@ -8,27 +8,22 @@ namespace rengine {
         enum class renderer_dirty_flags : u32 {
             none            = 0,
             render_targets  = 1 << 0,
-            clear_color     = 1 << 1,
-            clear_depth     = 1 << 2,
-            clear_stencil   = 1 << 3,
-            vertex_buffer   = 1 << 4,
-            index_buffer    = 1 << 5,
+            vertex_buffer   = 1 << 1,
+            index_buffer    = 1 << 2,
         };
 
         struct renderer_state {
-            Diligent::ITextureView* render_target[DILIGENT_MAX_RENDER_TARGETS]{};
+            Diligent::ITextureView* render_targets[DILIGENT_MAX_RENDER_TARGETS]{};
             Diligent::ITextureView* depth_stencil{ null };
-            u8 clear_rt_index{ 0 };
-            float clear_color[4] RENDERER_DEFAULT_CLEAR_COLOR;
-            float clear_depth_value{ 0 };
-            u8 clear_stencil_value{ 0 };
+            u32 dirty_flags { (u32)renderer_dirty_flags::none };
             u8 num_render_targets{ 0 };
-            u32 dirty_flags{ (u32)renderer_dirty_flags::clear_color | (u32)renderer_dirty_flags::clear_depth | (u32)renderer_dirty_flags::clear_stencil };
         };
 
         extern renderer_state g_renderer_state;
 
         void renderer__reset_state();
+        void renderer__set_render_targets();
         void renderer__submit_render_state();
+        void renderer__assert_render_target_idx(u8 idx);
     }
 }

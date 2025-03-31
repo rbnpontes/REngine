@@ -1,5 +1,6 @@
 #include "./window_private.h"
 #include "./window_graphics_private.h"
+#include "../events/window_events.h"
 
 #include "../defines.h"
 #include "../exceptions.h"
@@ -14,9 +15,12 @@ namespace rengine {
         {
             u8 wnd_idx;
             auto wnd_id = window__alloc(wnd_idx);
-            auto sdl_wnd = SDL_CreateWindow(title, width, height, 0);
+            auto sdl_wnd = SDL_CreateWindow(title, width, height, SDL_WINDOW_RESIZABLE);
+            const auto window_props = SDL_GetWindowProperties(sdl_wnd);
+            SDL_SetNumberProperty(window_props, g_window_id_prop_key, wnd_id);
 
             g_windows[wnd_idx].owner = sdl_wnd;
+            ++g_window_state.count;
             return wnd_id;
         }
         
@@ -34,12 +38,14 @@ namespace rengine {
         void window_destroy(window_t id)
         {
             const auto idx = window__assert_id(id);
-            const auto& wnd = g_windows[idx];
+            auto& wnd = g_windows[idx];
 
             if (wnd.swap_chain != null)
                 window__release_swapchain(id);
             SDL_DestroyWindow(wnd.owner);
-            g_windows[idx] = {};
+            wnd.owner = null;
+            wnd.swap_chain = null;
+            --g_window_state.count;
         }
 
         void window_set_title(window_t id, c_str title)
@@ -75,21 +81,43 @@ namespace rengine {
             };
         }
 
+        u8 window_count() {
+            return g_window_state.count;
+        }
+
+        bool window_is_destroyed(window_t window)
+        {
+            u8 id = window__decode_id(window);
+            const auto& data = g_windows[id];
+            if (data.id != id)
+                return true;
+
+            return data.owner == null;
+        }
+
         void window_poll_events()
         {
             SDL_Event evt;
-            while (SDL_PollEvent(&evt) != 0) {
-                if (evt.type != SDL_EVENT_QUIT)
-                    continue;
+            events::window_event_args args = {};
 
-                window_t id = window__find_id_from_sdl_wnd(
+            while (SDL_PollEvent(&evt) != 0) {
+                const auto& id = window__find_id_from_sdl_wnd(
                     SDL_GetWindowFromEvent(&evt)
                 );
 
-                if (id == -1)
+                if (id == no_window)
                     continue;
 
-                window_destroy(id);
+                args.skip = false;
+                args.sdl_event = &evt;
+                args.window_id = id;
+
+                EVENT_EMIT(window, event)(args);
+
+                if (args.skip)
+                    continue;
+
+                window__handle_sdl_event(id, evt);
             }
         }
     }

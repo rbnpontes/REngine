@@ -34,11 +34,34 @@ namespace rengine {
 			return static_cast<Diligent::ISwapChain*>(data.swap_chain);
 		}
 
+		void window__resize_swapchain(const window_t& window_id)
+		{
+			const auto& data = window__get_data(window_id);
+			i32 w, h;
+			SDL_GetWindowSize(data.owner, &w, &h);
+
+			if (w == 0 || h == 0)
+				return;
+
+			const auto swapchain = static_cast<Diligent::ISwapChain*>(data.swap_chain);
+			swapchain->Resize(w, h);
+		}
+
 		void window__release_swapchain(const window_t& window_id)
 		{
 			auto& data = window__get_data(window_id);
 			static_cast<Diligent::ISwapChain*>(data.swap_chain)->Release();
 			data.swap_chain = null;
+		}
+
+		void window__present_swapchains()
+		{
+			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+				const auto& data = g_windows[i];
+				if (!data.swap_chain)
+					continue;
+				static_cast<Diligent::ISwapChain*>(data.swap_chain)->Present();
+			}
 		}
 	}
 }

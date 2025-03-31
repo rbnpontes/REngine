@@ -1,5 +1,7 @@
 #pragma once
 #include "./base_private.h"
+#include "./rengine.h"
+
 #include <chrono>
 
 namespace rengine {
@@ -13,18 +15,19 @@ namespace rengine {
 	};
 
 	struct engine_state {
-		core::window_t curr_wnd;
+		engine_update_callback callback;
 		engine_time time;
 		bool begin;
+		bool stop;
 	};
 
 	extern engine_state g_engine_state;
 
+	void engine__noop();
 	void engine__begin();
 	void engine__end();
+	void engine__stop();
 
 	void engine__begin_timer();
 	void engine__end_timer();
-
-	void engine__set_window(core::window_t id);
 }

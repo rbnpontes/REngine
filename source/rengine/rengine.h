@@ -19,11 +19,11 @@ namespace rengine {
 
 	R_EXPORT void init();
 	R_EXPORT void init_ex(const engine_init_desc& desc);
-	R_EXPORT bool update();
+	R_EXPORT void update();
 	R_EXPORT void run(engine_update_callback callback);
+	R_EXPORT void stop();
 	R_EXPORT void destroy();
 	R_EXPORT number_t get_delta_time();
-	R_EXPORT void use_window(const core::window_t& window_id);
 
 	R_EXPORT void begin();
 	R_EXPORT void end();

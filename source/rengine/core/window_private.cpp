@@ -1,10 +1,13 @@
 #include "./window_private.h"
+#include "./window_graphics_private.h"
+
+#include "../events/events.h"
 #include "../exceptions.h"
 #include "../strings.h"
 
 namespace rengine {
 	namespace core {
-        u32 g_next_id = 0;
+        window_state g_window_state = {};
         eastl::array<window_data, MAX_ALLOWED_WINDOWS> g_windows = {};
 
         u8 window__decode_id(const window_t& id) {
@@ -12,7 +15,7 @@ namespace rengine {
         }
 
         window_t window__encode_id(const u8& slot_idx) {
-            return (g_next_id * MAX_ALLOWED_WINDOWS) + slot_idx;
+            return (g_window_state.next_id * MAX_ALLOWED_WINDOWS) + slot_idx;
         }
 
         u8 window__assert_id(const window_t& id) {
@@ -31,13 +34,14 @@ namespace rengine {
         }
 
         window_t window__find_id_from_sdl_wnd(void* sdl_wnd) {
-            for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
-                const auto& wnd = g_windows[i];
-                if (wnd.owner == sdl_wnd)
-                    return wnd.id;
-            }
+            if (!sdl_wnd)
+                return core::no_window;
 
-            return -1;
+            const auto wnd_prop = SDL_GetWindowProperties(static_cast<SDL_Window*>(sdl_wnd));
+            const auto window_id = (window_t)SDL_GetNumberProperty(wnd_prop, 
+                g_window_id_prop_key, 
+                core::no_window);
+            return window_id;
         }
 
         void window__init() {
@@ -75,9 +79,34 @@ namespace rengine {
                 null,
                 id
             };
-            ++g_next_id;
+            ++g_window_state.next_id;
 
             return id;
+        }
+
+        window_t window__idx_to_id(const window_t& idx)
+        {
+            return g_windows[idx].id;
+        }
+
+        void window__handle_sdl_event(const window_t& id, SDL_Event& evt)
+        {
+            SDL_Window* sdl_wnd = SDL_GetWindowFromEvent(&evt);
+            switch (evt.type)
+            {
+            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+            {
+                EVENT_EMIT(window, quit)(id, sdl_wnd);
+                window_destroy(id);
+            }
+                break;
+            case SDL_EVENT_WINDOW_RESIZED:
+            {
+                EVENT_EMIT(window, resize)(id, sdl_wnd);
+                window__resize_swapchain(id);
+            }
+                break;
+            }
         }
 	}
 }

@@ -22,5 +22,19 @@ namespace rengine {
 				event();
 			EVENT_EMIT_END()
 		}
+
+		EVENT_BODY_DEFINE(engine, before_stop, engine_before_stop_event_fn)(bool* can_stop)
+		{
+			EVENT_EMIT_BEGIN(engine, before_stop)
+				event(can_stop);
+			EVENT_EMIT_END()
+		}
+
+		EVENT_BODY_DEFINE(engine, stop, engine_default_event_fn)()
+		{
+			EVENT_EMIT_BEGIN(engine, stop)
+				event();
+			EVENT_EMIT_END()
+		}
 	}
 }

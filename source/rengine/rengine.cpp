@@ -11,6 +11,7 @@ namespace rengine {
 	}
 
 	void init_ex(const engine_init_desc& desc) {
+		g_engine_state.callback = engine__noop;
 		io::logger__init();
 		core::window__init();
 		graphics::init({
@@ -18,9 +19,6 @@ namespace rengine {
 			desc.adapter_id,
 			desc.backend,
 		});
-
-		if (desc.window_id != core::no_window)
-			use_window(desc.window_id);
 	}
 
 	void destroy() {
@@ -31,23 +29,25 @@ namespace rengine {
 		return g_engine_state.time.curr_delta;
 	}
 
-	void use_window(const core::window_t& window_id)
-	{
+	void update() {
+		if (g_engine_state.stop)
+			return;
 
-	}
-
-	bool update() {
 		core::window_poll_events();
-		return true;
+		begin();
+		g_engine_state.callback();
+		end();
 	}
 
 	void run(engine_update_callback callback) {
-		while (update())
-		{
-			begin();
-			callback();
-			end();
-		}
+		g_engine_state.callback = callback;
+		while (!g_engine_state.stop)
+			update();
+	}
+
+	void stop()
+	{
+		engine__stop();
 	}
 
 	void begin() {

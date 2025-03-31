@@ -1,6 +1,11 @@
 #include "./renderer_private.h"
 #include "./graphics_private.h"
 
+#include "../exceptions.h"
+#include "../strings.h"
+
+#include <fmt/format.h>
+
 namespace rengine {
 	namespace graphics {
 		renderer_state g_renderer_state = {};
@@ -8,39 +13,45 @@ namespace rengine {
 		void renderer__reset_state() {
 			g_renderer_state = {};
 		}
+
+		void renderer__set_render_targets()
+		{
+			const auto ctx = g_graphics_state.contexts[0];
+
+			if ((g_renderer_state.dirty_flags & (u32)renderer_dirty_flags::render_targets) == 0)
+				return;
+			g_renderer_state.dirty_flags &= (u32)renderer_dirty_flags::render_targets;
+
+			ctx->SetRenderTargets(g_renderer_state.num_render_targets,
+				g_renderer_state.render_targets,
+				g_renderer_state.depth_stencil,
+				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+		}
+
 		void renderer__submit_render_state()
 		{
 			const auto ctx = g_graphics_state.contexts[0];
 			if (g_renderer_state.dirty_flags == (u32)renderer_dirty_flags::none)
 				return;
 
-			if ((g_renderer_state.dirty_flags & (u32)renderer_dirty_flags::render_targets) != 0) {
-				ctx->SetRenderTargets(g_renderer_state.num_render_targets,
-					g_renderer_state.render_target,
-					g_renderer_state.depth_stencil,
-					Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			}
+			renderer__set_render_targets();
+		}
 
-			if ((g_renderer_state.dirty_flags & (u32)renderer_dirty_flags::clear_color) != 0) {
-				ctx->ClearRenderTarget(g_renderer_state.render_target[0],
-					g_renderer_state.clear_color,
-					Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			}
+		void renderer__assert_render_target_idx(u8 idx)
+		{
+			if (idx >= DILIGENT_MAX_RENDER_TARGETS)
+				throw graphics_exception(
+					fmt::format(strings::exceptions::g_renderer_rt_idx_grt_than_max, DILIGENT_MAX_RENDER_TARGETS).c_str()
+				);
 
-			if ((g_renderer_state.dirty_flags & (u32)renderer_dirty_flags::clear_depth) != 0) {
-				const auto clear_stencil = (g_renderer_state.dirty_flags & (u32)renderer_dirty_flags::clear_stencil) != 0;
-				auto flags = Diligent::CLEAR_DEPTH_FLAG_NONE;
-				if (clear_stencil)
-					flags |= Diligent::CLEAR_STENCIL_FLAG;
+			if (idx < g_graphics_state.num_contexts)
+				return;
 
-				ctx->ClearDepthStencil(g_renderer_state.depth_stencil,
-					flags,
-					g_renderer_state.clear_depth_value,
-					g_renderer_state.clear_stencil_value,
-					Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			}
-
-			g_renderer_state.dirty_flags = (u32)renderer_dirty_flags::none;
+			throw graphics_exception(
+				fmt::format(strings::exceptions::g_renderer_rt_idx_grt_than_set, 
+					idx, 
+					g_renderer_state.num_render_targets).c_str()
+			);
 		}
 	}
 }
