@@ -10,7 +10,7 @@ namespace rengine {
 		}
 		void renderer__submit_render_state()
 		{
-			const auto ctx = g_state.contexts[0];
+			const auto ctx = g_graphics_state.contexts[0];
 			if (g_renderer_state.dirty_flags == (u32)renderer_dirty_flags::none)
 				return;
 

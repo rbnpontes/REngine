@@ -10,9 +10,13 @@ namespace rengine {
 			const auto& data = core::window__get_data(window_id);
 			const auto swap_chain = (Diligent::ISwapChain*)data.swap_chain;
 
+			if (!swap_chain)
+				return;
+
 			g_renderer_state.render_target[0] = swap_chain->GetCurrentBackBufferRTV();
 			g_renderer_state.depth_stencil = swap_chain->GetDepthBufferDSV();
 			g_renderer_state.num_render_targets = 1;
+			g_renderer_state.dirty_flags |= (u32)renderer_dirty_flags::render_targets;
 		}
 
 		void renderer_set_clear_color(const clear_color_desc& desc)

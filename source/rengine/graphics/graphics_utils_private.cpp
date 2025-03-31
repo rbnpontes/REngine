@@ -92,10 +92,11 @@ namespace rengine {
 				
 				const auto log_call_idx = (i8)severity;
 				const auto& log_call = log_calls[log_call_idx];
+
 				const auto msg = fmt::format(strings::logs::g_graphics_diligent_dbg_fmt,
-					message,
-					function,
-					file,
+					message ? message : strings::g_empty,
+					function ? message : strings::g_empty,
+					file ? message : strings::g_empty,
 					line);
 				log_call(
 					strings::logs::g_diligent_tag,

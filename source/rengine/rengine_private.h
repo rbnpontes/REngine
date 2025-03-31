@@ -1,6 +1,5 @@
 #pragma once
 #include "./base_private.h"
-
 #include <chrono>
 
 namespace rengine {
@@ -19,11 +18,13 @@ namespace rengine {
 		bool begin;
 	};
 
-	static engine_state g_engine_state = {};
+	extern engine_state g_engine_state;
 
 	void engine__begin();
 	void engine__end();
 
 	void engine__begin_timer();
 	void engine__end_timer();
+
+	void engine__set_window(core::window_t id);
 }

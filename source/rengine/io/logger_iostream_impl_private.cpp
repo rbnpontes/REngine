@@ -35,11 +35,11 @@ namespace rengine {
 				time->tm_hour,
 				time->tm_min,
 				time->tm_sec,
-				
+
 				g_log_type_entries[(u8)type],
 				tag,
 				msg
-			);
+			) << std::endl;
 		}
 	}
 }

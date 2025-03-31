@@ -6,6 +6,8 @@
 
 
 namespace rengine {
+	engine_state g_engine_state = {};
+
 	void engine__begin() {
 		if (g_engine_state.begin)
 			return;
@@ -43,5 +45,10 @@ namespace rengine {
 		auto& time = g_engine_state.time;
 		auto delta = time.curr_elapsed - time.last_elapsed;
 		time.curr_delta = (number_t)delta.count();
+	}
+
+	void engine__set_window(core::window_t id)
+	{
+		g_engine_state.curr_wnd = id;
 	}
 }

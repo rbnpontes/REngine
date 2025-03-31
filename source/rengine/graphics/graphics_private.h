@@ -24,7 +24,7 @@ namespace rengine {
 			backend backend;
 		};
 
-		extern graphics_state g_state;
+		extern graphics_state g_graphics_state;
 
 		void assert_backend(backend value);
 		void assert_initialization();
@@ -34,5 +34,7 @@ namespace rengine {
 
 		void begin();
 		void end();
+
+		void allocate_swapchain(const core::window_t& window_id);
 	}
 }
