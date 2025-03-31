@@ -14,9 +14,10 @@ namespace rengine {
             bool    clear_stencil{ false };
         };
 
-        void renderer_set_window(core::window_t window_id);
-        void renderer_set_clear_color(const clear_color_desc& desc);
-        void renderer_set_clear_depth(const clear_depth_desc& desc);
-        void draw();
+        R_EXPORT void renderer_set_window(core::window_t window_id);
+        R_EXPORT void renderer_set_clear_color(const clear_color_desc& desc);
+        R_EXPORT void renderer_set_clear_depth(const clear_depth_desc& desc);
+        R_EXPORT void renderer_flush();
+        R_EXPORT void renderer_draw();
     }
 }

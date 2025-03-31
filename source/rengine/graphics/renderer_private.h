@@ -23,8 +23,7 @@ namespace rengine {
             float clear_depth_value{ 0 };
             u8 clear_stencil_value{ 0 };
             u8 num_render_targets{ 0 };
-
-            u32 dirty_flags{ (u32)renderer_dirty_flags::none };
+            u32 dirty_flags{ (u32)renderer_dirty_flags::clear_color | (u32)renderer_dirty_flags::clear_depth | (u32)renderer_dirty_flags::clear_stencil };
         };
 
         extern renderer_state g_renderer_state;

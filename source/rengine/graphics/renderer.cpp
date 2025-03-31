@@ -42,7 +42,12 @@ namespace rengine {
 				g_renderer_state.dirty_flags |= (u32)renderer_dirty_flags::clear_stencil;
 		}
 
-		void draw() {
+		void renderer_flush()
+		{
+			renderer__submit_render_state();
+		}
+
+		void renderer_draw() {
 			renderer__submit_render_state();
 
 			//const auto ctx = get_state()->contexts;

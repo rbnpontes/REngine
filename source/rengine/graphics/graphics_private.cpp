@@ -103,6 +103,12 @@ namespace rengine {
 		}
 
 		void end() {
+			// if no draw command has been submitted but
+			// renderer has pending commands, we must
+			// flush these commands before present
+			if (g_renderer_state.dirty_flags != 0)
+				renderer_flush();
+
 			const auto window_id = g_engine_state.curr_wnd;
 			const auto swap_chain = core::window__get_swapchain(window_id);
 			if (!swap_chain)
