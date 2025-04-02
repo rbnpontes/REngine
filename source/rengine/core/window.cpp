@@ -54,13 +54,13 @@ namespace rengine {
             SDL_SetWindowTitle(wnd.owner, title);
         }
 
-        void window_set_size(window_t id, ivec2_t size)
+        void window_set_size(window_t id, ivec2 size)
         {
             const auto& wnd = window__get_data(id);
             SDL_SetWindowSize(wnd.owner, size.x, size.y);
         }
 
-        void window_set_position(window_t id, ivec2_t position)
+        void window_set_position(window_t id, ivec2 position)
         {
             const auto& wnd = window__get_data(id);
             SDL_SetWindowPosition(wnd.owner, position.x, position.y);
