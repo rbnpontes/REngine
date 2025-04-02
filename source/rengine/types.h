@@ -38,27 +38,48 @@ namespace rengine {
 
     namespace graphics {
         // buffer objects
-        struct vertex_buffer_t;
-        struct index_buffer_t;
-        struct constant_buffer_t;
-        struct instancing_buffer_t;
+        typedef u16 vertex_buffer_t;
+        typedef u16 index_buffer_t;
+        typedef u8 constant_buffer_t;
+        typedef u8 instancing_buffer_t;
         // texture objects
-        struct texture_2d_t;
-        struct texture_3d_t;
-        struct texture_cube_t;
-        struct texture_array_t;
-        struct render_target_t;
+        typedef u8 texture_2d_t;
+        typedef u8 texture_3d_t;
+        typedef u8 texture_cube_t;
+        typedef u8 texture_array_t;
+        typedef u8 render_target_t;
+        typedef u16 pipeline_state_t;
+        typedef u16 srb_t;
         // shader objects
-        struct shader_t;
-        struct shader_program_t;
+        typedef u32 shader_t;
+        typedef u32 shader_program_t;
         // render objects
-        struct material_t;
-        struct mesh_t;
-        struct model_t;
-        struct animatedModel_t;
-        struct camera_t;
-        struct light_t;
+        typedef u16 material_t;
+        typedef u16 mesh_t;
+        typedef u16 model_t;
+        typedef u8 animated_model_t;
+        typedef u8 camera_t;
+        typedef LIGHT_ENTITY_SIZE light_t;
 
+        static u16 no_vertex_buffer       = MAX_U16_VALUE;
+        static u16 no_index_buffer        = MAX_U16_VALUE;
+        static u8 no_constant_buffer      = MAX_U8_VALUE;
+        static u8 no_instancing_buffer    = MAX_U8_VALUE;
+        static u8 no_texture_2d           = MAX_U8_VALUE;
+        static u8 no_texture_3d           = MAX_U8_VALUE;
+        static u8 no_texture_cube         = MAX_U8_VALUE;
+        static u8 no_texture_array        = MAX_U8_VALUE;
+        static u8 no_render_target        = MAX_U8_VALUE;
+        static u16 no_pipeline_state      = MAX_U16_VALUE;
+        static u16 no_srb_state           = MAX_U16_VALUE;
+        static u32 no_shader              = MAX_U32_VALUE;
+        static u32 no_shader_program      = MAX_U32_VALUE;
+        static u16 no_material            = MAX_U16_VALUE;
+        static u16 no_mesh                = MAX_U16_VALUE;
+        static u16 no_model               = MAX_U16_VALUE;
+        static u8 no_animated_model       = MAX_U8_VALUE;
+        static u8 no_camera               = MAX_U8_VALUE;
+        static LIGHT_ENTITY_SIZE no_light = -1;
         enum class backend : byte {
             d3d11 = 0,
             d3d12,

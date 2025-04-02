@@ -3,7 +3,10 @@
 //#define HIGH_DEFINITION_PRECISION // enable high precision math types
 #define MAX_ALLOWED_WINDOWS 4
 
+#define LIGHT_ENTITY_SIZE u16
+
 #define MAX_U8_VALUE 0xFF
+#define MAX_U16_VALUE 0xFFFF
 #define MAX_U32_VALUE 0xFFFFFFFF
 
 #ifdef PLATFORM_WINDOWS
