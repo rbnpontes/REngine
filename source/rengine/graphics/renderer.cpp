@@ -56,6 +56,51 @@ namespace rengine {
 				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 		}
 
+		void renderer_set_vbuffer(const vertex_buffer_t& buffer, u64 offset)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_vbuffers(const vertex_buffer_t* buffers, u8 num_buffers, u64* offsets)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_ibuffer(const index_buffer_t& buffer)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_render_target(const render_target_t& rt_id, const render_target_t& depth_stencil)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_texture_2d(const u8& tex_slot, const texture_2d_t& tex_id)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_texture_3d(const u8& tex_slot, const texture_3d_t& tex_id)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_texture_cube(const u8& tex_slot, const texture_cube_t& tex_id)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_texture_array(const u8& tex_slot, const texture_array_t& tex_id)
+		{
+			throw not_implemented_exception();
+		}
+
+		void renderer_set_material(const material_t& material_id)
+		{
+			throw not_implemented_exception();
+		}
+
 		void renderer_flush()
 		{
 			renderer__submit_render_state();
