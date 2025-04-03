@@ -16,12 +16,6 @@ namespace rengine {
             static const base_vec2<T> up;
             static const base_vec2<T> down;
         };
-        template<typename T> const base_vec2<T> base_vec2<T>::zero  = base_vec2<T>((T)+0, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::one   = base_vec2<T>((T)+1, (T)+1);
-        template<typename T> const base_vec2<T> base_vec2<T>::left  = base_vec2<T>((T)-1, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::right = base_vec2<T>((T)+1, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::up    = base_vec2<T>((T)+0, (T)+1);
-        template<typename T> const base_vec2<T> base_vec2<T>::down  = base_vec2<T>((T)+0, (T)-1);
 
         typedef base_vec2<number_t> vec2;
         typedef base_vec2<int_t> ivec2;
@@ -43,14 +37,6 @@ namespace rengine {
             static const base_vec3<T> forward;
             static const base_vec3<T> backward;
         };
-        template<typename T> const base_vec3<T> base_vec3<T>::zero      = base_vec3<T>((T)+0, (T)+0, (T)+0);
-        template<typename T> const base_vec3<T> base_vec3<T>::one       = base_vec3<T>((T)+1, (T)+1, (T)+1);
-        template<typename T> const base_vec3<T> base_vec3<T>::left      = base_vec3<T>((T)-1, (T)+0, (T)+0);
-        template<typename T> const base_vec3<T> base_vec3<T>::right     = base_vec3<T>((T)+1, (T)+0, (T)+0);
-        template<typename T> const base_vec3<T> base_vec3<T>::up        = base_vec3<T>((T)+0, (T)+1, (T)+0);
-        template<typename T> const base_vec3<T> base_vec3<T>::down      = base_vec3<T>((T)+0, (T)-1, (T)+0);
-        template<typename T> const base_vec3<T> base_vec3<T>::forward   = base_vec3<T>((T)+0, (T)+0, (T)+1);
-        template<typename T> const base_vec3<T> base_vec3<T>::backward  = base_vec3<T>((T)+0, (T)+0, (T)-1);
 
         typedef base_vec3<number_t> vec3;
         typedef base_vec3<int_t> ivec3;
@@ -81,13 +67,20 @@ namespace rengine {
             static const color blue;
             static const color transparent;
         };
-        const color color::black = color();
-        const color color::white = color(1., 1., 1.);
-        const color color::red = color(1., 0., 0.);
-        const color color::green = color(0., 1., 0.);
-        const color color::blue = color(0., 0., 1.);
-        const color color::transparent = color(0., 0., 0., 0.);
 
+        struct byte_color {
+            u8 r, g, b, a;
+
+            constexpr byte_color(): r(0), g(0), b(0), a(255){}
+            constexpr byte_color(u8 r_, u8 g_, u8 b_, u8 a_ = 255): r(r_), g(g_), b(b_), a(a_){}
+
+            static const byte_color black;
+            static const byte_color white;
+            static const byte_color red;
+            static const byte_color green;
+            static const byte_color blue;
+            static const byte_color transparent;
+        };
 
         template<typename T>
         struct base_rect {
