@@ -47,7 +47,8 @@ namespace rengine {
             constexpr static c_str g_graphics_fail_to_create_g_objects = "Failed to create graphics objects";
             constexpr static c_str g_graphics_fail_to_create_swapchain = "Failed to create SwapChain";
             
-            constexpr static c_str g_shader_mgr_fail_to_create_shader = "Failed to create Shader object";
+            constexpr static c_str g_shader_mgr_fail_to_create_shader = "Failed to create shader object";
+            constexpr static c_str g_pipeline_state_mgr_fail_to_create_gpipeline = "Failed to create graphics pipeline object";
 
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
