@@ -13,6 +13,11 @@ namespace rengine {
             "unknow"
         };
 
+        namespace graphics {
+            constexpr static c_str g_vertex_buffer_name = "rengine::dynamic_vertex";
+            constexpr static c_str g_index_buffer_name = "rengine::dynamic_index";
+        }
+
         namespace logs {
             constexpr static c_str g_engine_tag = "rengine";
             constexpr static c_str g_graphics_tag = "graphics";
@@ -42,9 +47,14 @@ namespace rengine {
             constexpr static c_str g_graphics_fail_to_create_g_objects = "Failed to create graphics objects";
             constexpr static c_str g_graphics_fail_to_create_swapchain = "Failed to create SwapChain";
             
+            constexpr static c_str g_shader_mgr_fail_to_create_shader = "Failed to create Shader object";
+
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
             constexpr static c_str g_renderer_clear_depth_without_set = "Can´t clear Depth Stencil. You must assign depth stencil first";
+        
+            constexpr static c_str g_models_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
+            constexpr static c_str g_models_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";
         }
     }
 }
