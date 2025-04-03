@@ -34,6 +34,7 @@ namespace rengine {
     namespace core {
         typedef u32 window_t;
         static u32 no_window = MAX_U32_VALUE;
+        typedef u32 hash_t;
     }
 
     namespace graphics {
@@ -80,6 +81,7 @@ namespace rengine {
         static u8 no_animated_model       = MAX_U8_VALUE;
         static u8 no_camera               = MAX_U8_VALUE;
         static LIGHT_ENTITY_SIZE no_light = -1;
+
         enum class backend : byte {
             d3d11 = 0,
             d3d12,
@@ -87,6 +89,36 @@ namespace rengine {
             webgpu,
             opengl,
             max_backend
+        };
+
+        enum class primitive_topology : u8 {
+            triangle_list = 0,
+            triangle_strip,
+            point_list,
+            line_list,
+            line_strip
+        };
+
+        enum class cull_mode : u8 {
+            none = 0,
+            counter_clock_wise,
+            clock_wise
+        };
+
+        enum class vertex_elements : u32 {
+            none = 0,
+            position = 1 << 0,
+            normal = 1 << 1,
+            color = 1 << 2,
+            texcoord = 1 << 3,
+            tangent = 1 << 4,
+            instancing = 1 << 5
+        };
+
+        // TODO: add more types
+        enum class shader_type : u8 {
+            vertex = 0,
+            pixel,
         };
     }
 }

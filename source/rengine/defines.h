@@ -1,7 +1,13 @@
 #pragma once
-#define ALLOC_DEFAULT_LIMIT 128 * 1000000 // default size is 128mb
+#define CORE_ALLOC_DEFAULT_LIMIT 128 * 1000000 // default size is 128mb
 //#define HIGH_DEFINITION_PRECISION // enable high precision math types
-#define MAX_ALLOWED_WINDOWS 4
+#define CORE_WINDOWS_MAX_ALLOWED 4
+#define CORE_DEFAULT_HASH_SEED 0xFABDDFE
+#define CORE_HASH_PRIME 4094394974U
+
+#define GRAPHICS_MAX_RENDER_TARGETS 4
+#define MODELS_DEFAULT_VBUFFER_SIZE 1024 * sizeof(rengine::graphics::vertex_uv)
+#define MODELS_DEFAULT_IBUFFER_SIZE 1024 * sizeof(u32)
 
 #define LIGHT_ENTITY_SIZE u16
 
@@ -21,9 +27,9 @@
 
 #define RENDERER_DEFAULT_CLEAR_COLOR { 0.354f, 0.354f, 0.354f, 1.0f }
 
-#if MAX_ALLOWED_WINDOWS < 1
+#if CORE_WINDOWS_MAX_ALLOWED < 1
 	#error "MAX_ALLOWED_WINDOWS must be greater than 0"
 #endif
-#if MAX_ALLOWED_WINDOWS > 254
+#if CORE_WINDOWS_MAX_ALLOWED > 254
 	#error "MAX_ALLOWED_WINDOWS must be less than 254"
 #endif
