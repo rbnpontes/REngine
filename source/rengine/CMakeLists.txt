@@ -36,6 +36,7 @@ set (PRIVATE_LIBS
     SDL3::SDL3-static
     EASTL
     EABase
+    xxHash
 )
 set (PRIVATE_DEFINITIONS 
     -DENGINE_LIB
