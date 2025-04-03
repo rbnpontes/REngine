@@ -24,10 +24,7 @@ namespace rengine {
 
 		ptr shader_mgr_get_internal_handle(const shader_t& shader_id)
 		{
-			const auto it = g_shader_tbl.find_as(shader_id);
-			if (it == g_shader_tbl.end())
-				return null;
-			return it->second;
+			return shader_mgr__get_handle(shader_id);
 		}
 
 		core::hash_t shader_mgr_hash_desc(const shader_create_desc& desc)

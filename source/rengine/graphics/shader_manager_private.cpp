@@ -26,5 +26,13 @@ namespace rengine {
 				shader->AddRef();
 			return shader;
 		}
+
+		Diligent::IShader* shader_mgr__get_handle(const shader_t& shader_id)
+		{
+			const auto it = g_shader_tbl.find_as(shader_id);
+			if (it == g_shader_tbl.end())
+				return null;
+			return it->second;
+		}
 	}
 }
