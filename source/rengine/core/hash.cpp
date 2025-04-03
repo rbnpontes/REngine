@@ -6,10 +6,14 @@
 namespace rengine {
 	namespace core {
 		hash_t hash(c_str str) {
+			if (!str)
+				return 0x0;
 			return XXH32(str, strlen(str), CORE_DEFAULT_HASH_SEED);
 		}
 
 		hash_t hash(ptr _ptr) {
+			if (!_ptr)
+				return 0x0;
 			return XXH32(_ptr, sizeof(ptr), CORE_DEFAULT_HASH_SEED);
 		}
 
