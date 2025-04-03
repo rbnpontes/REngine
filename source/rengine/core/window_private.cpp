@@ -8,14 +8,14 @@
 namespace rengine {
 	namespace core {
         window_state g_window_state = {};
-        eastl::array<window_data, MAX_ALLOWED_WINDOWS> g_windows = {};
+        eastl::array<window_data, CORE_WINDOWS_MAX_ALLOWED> g_windows = {};
 
         u8 window__decode_id(const window_t& id) {
-            return static_cast<u8>(id % MAX_ALLOWED_WINDOWS);
+            return static_cast<u8>(id % CORE_WINDOWS_MAX_ALLOWED);
         }
 
         window_t window__encode_id(const u8& slot_idx) {
-            return (g_window_state.next_id * MAX_ALLOWED_WINDOWS) + slot_idx;
+            return (g_window_state.next_id * CORE_WINDOWS_MAX_ALLOWED) + slot_idx;
         }
 
         u8 window__assert_id(const window_t& id) {
@@ -49,7 +49,7 @@ namespace rengine {
         }
 
         void window__deinit() {
-            for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+            for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
                 const auto wnd = g_windows[i];
                 if (!wnd.owner)
                     continue;
@@ -61,7 +61,7 @@ namespace rengine {
         }
 
         u8 window__get_free_slot_idx() {
-            for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+            for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
                 if (!g_windows[i].owner)
                     return i;
             }

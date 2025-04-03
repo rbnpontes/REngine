@@ -19,7 +19,7 @@ namespace rengine {
 		};
 
 		extern window_state g_window_state;
-		extern eastl::array<window_data, MAX_ALLOWED_WINDOWS> g_windows;
+		extern eastl::array<window_data, CORE_WINDOWS_MAX_ALLOWED> g_windows;
 		static c_str g_window_id_prop_key = "rengine.window_id";
 
 		u8 window__decode_id(const window_t& id);

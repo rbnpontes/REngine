@@ -17,7 +17,7 @@ namespace rengine{
             malloc,
             free,
             realloc,
-            ALLOC_DEFAULT_LIMIT,
+            CORE_ALLOC_DEFAULT_LIMIT,
             0
         };
 

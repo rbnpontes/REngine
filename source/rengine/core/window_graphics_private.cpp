@@ -56,7 +56,7 @@ namespace rengine {
 
 		void window__present_swapchains()
 		{
-			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+			for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
 				const auto& data = g_windows[i];
 				if (!data.swap_chain)
 					continue;
