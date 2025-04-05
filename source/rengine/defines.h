@@ -5,7 +5,13 @@
 #define CORE_DEFAULT_HASH_SEED 0xFABDDFE
 #define CORE_HASH_PRIME 4094394974U
 
+#define IO_MAX_LOG_OBJECTS 0xFF
+
 #define GRAPHICS_MAX_RENDER_TARGETS 4
+#define GRAPHICS_MAX_ALLOC_VBUFFERS 0xFF
+#define GRAPHICS_MAX_ALLOC_IBUFFERS 0xFF
+#define GRAPHICS_MAX_ALLOC_CBUFFERS 8
+
 #define MODELS_DEFAULT_VBUFFER_SIZE 1024 * sizeof(rengine::graphics::vertex_uv)
 #define MODELS_DEFAULT_IBUFFER_SIZE 1024 * sizeof(u32)
 
@@ -32,4 +38,15 @@
 #endif
 #if CORE_WINDOWS_MAX_ALLOWED > 254
 	#error "MAX_ALLOWED_WINDOWS must be less than 254"
+#endif
+
+#if GRAPHICS_MAX_ALLOC_VBUFFERS > 0xFF
+	#error "GRAPHICS_MAX_ALLOC_VBUFFERS must be less than 255, or you can increase vertex buffer size to u32"
+#endif
+#if GRAPHICS_MAX_ALLOC_IBUFFERS > 0xFF
+	#error "GRAPHICS_MAX_ALLOC_IBUFFERS must be less than 255, or you can increase index buffer size to u32"
+#endif
+#if GRAPHICS_MAX_ALLOC_CBUFFERS > 0xFF
+	#error "GRAPHICS_MAX_ALLOC_CBUFFERS must be less than 255, or you can increase constant buffer size to u32"
+	#error "Do you really need more than 255 allocated constant buffers ?"
 #endif

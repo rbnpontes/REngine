@@ -22,7 +22,11 @@ namespace rengine {
 	}
 
 	void destroy() {
+		EVENT_EMIT(engine, destroy)();
+
+		graphics::deinit();
 		core::window__deinit();
+		io::logger__deinit();
 	}
 
 	number_t get_delta_time() {

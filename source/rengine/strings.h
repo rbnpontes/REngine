@@ -12,6 +12,11 @@ namespace rengine {
             "opengl",
             "unknow"
         };
+        constexpr static c_str g_buffer_names[] = {
+            "vertex buffer",
+            "index buffer",
+            "constant buffer"
+        };
 
         namespace graphics {
             constexpr static c_str g_vertex_buffer_name = "rengine::dynamic_vertex";
@@ -22,6 +27,7 @@ namespace rengine {
             constexpr static c_str g_engine_tag = "rengine";
             constexpr static c_str g_graphics_tag = "graphics";
             constexpr static c_str g_diligent_tag = "diligent";
+            constexpr static c_str g_buffer_mgr_tag = "buffer_mgr";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -31,6 +37,14 @@ namespace rengine {
             constexpr static c_str g_graphics_no_suitable_device_found = "No suitable device found, using first available.";
             constexpr static c_str g_graphics_swapchain_has_been_created = "SwapChain has been created for window {0}";
             constexpr static c_str g_graphics_diligent_dbg_fmt = "{0} | Function: {1} | File: {2} | Line: {3}";
+
+            constexpr static c_str g_buffer_mgr_cbuffer_must_be_dyn = "Constant buffer must be dynamic. Forcing to dynamic!";
+            constexpr static c_str g_buffer_mgr_cant_update_non_dyn = "Failed to update buffer. Is not possible to update a non-dynamic buffer, "
+                "engine will skip this operation! Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
+            constexpr static c_str g_buffer_mgr_update_data_size_is_greater_than_buffer = "Upload data size ({0}) is greater than Buffer '{2}' size ({3}). "
+                "Engine will copy partial data to GPU, next time try to increate buffer size! "
+                "Upload Size = {0}, Buffer Id = {1} Buffer Name = {2}, Buffer Size = {3}, Buffer Type = {4}";
+            constexpr static c_str g_buffer_mgr_free_invalid_buffer = "Can´t free an invalid buffer. Buffer Id = {0}";
         }
 
         namespace exceptions {
@@ -38,6 +52,8 @@ namespace rengine {
 
             constexpr static c_str g_window_invalid_id = "Invalid window id";
             constexpr static c_str g_window_reached_max_created_windows = "Reached max of created windows";
+
+			constexpr static c_str g_logger_reached_max_log_objects = "Reached max of created log objects.";
 
             constexpr static c_str g_graphics_unsupported_backend = "Unsupported graphics backend {0} on this platform";
             constexpr static c_str g_graphics_not_initialized = "Graphics is not initialized";
@@ -49,6 +65,15 @@ namespace rengine {
             
             constexpr static c_str g_shader_mgr_fail_to_create_shader = "Failed to create shader object";
             constexpr static c_str g_pipeline_state_mgr_fail_to_create_gpipeline = "Failed to create graphics pipeline object";
+
+            constexpr static c_str g_buffer_mgr_requires_initial_data = "Non dynamic buffers requires an initial data";
+            constexpr static c_str g_buffer_mgr_fail_to_create_buffer = "Failed to create {0}";
+            constexpr static c_str g_buffer_mgr_reach_limit = "Failed to create {0}. Reached limit of {1} buffers";
+            constexpr static c_str g_buffer_mgr_invalid_id = "Invalid buffer id";
+            constexpr static c_str g_buffer_mgr_failed_to_update_buffer = "Failed to update buffer. Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
+            constexpr static c_str g_buffer_mgr_cant_realloc_non_dyn = "Failed to realloc buffer. Is not possible to realloc a non-dynamic buffer, "
+                "You must free this buffer ({0}) and create again with different size! "
+                "Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
 
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
