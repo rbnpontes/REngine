@@ -199,6 +199,7 @@ namespace rengine {
 			if (mapped_data == null)
 				throw graphics_exception(
 					fmt::format(strings::exceptions::g_buffer_mgr_failed_to_update_buffer,
+						buffer_id,
 						desc.Name,
 						strings::g_buffer_names[(u8)type]).c_str()
 				);
