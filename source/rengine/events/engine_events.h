@@ -14,5 +14,6 @@ namespace rengine {
 		ENGINE_EVENT_DEFINE(engine, end_update, engine_default_event_fn)();
 		ENGINE_EVENT_DEFINE(engine, before_stop, engine_before_stop_event_fn)(bool* can_stop);
 		ENGINE_EVENT_DEFINE(engine, stop, engine_default_event_fn)();
+		ENGINE_EVENT_DEFINE(engine, destroy, engine_default_event_fn)();
 	}
 }

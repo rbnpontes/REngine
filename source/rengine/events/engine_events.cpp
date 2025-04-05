@@ -36,5 +36,12 @@ namespace rengine {
 				event();
 			EVENT_EMIT_END()
 		}
+
+		EVENT_BODY_DEFINE(engine, destroy, engine_default_event_fn)()
+		{
+			EVENT_EMIT_BEGIN(engine, destroy)
+				event();
+			EVENT_EMIT_END()
+		}
 	}
 }
