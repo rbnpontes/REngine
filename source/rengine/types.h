@@ -41,8 +41,8 @@ namespace rengine {
         // buffer objects
         typedef u16 vertex_buffer_t;
         typedef u16 index_buffer_t;
-        typedef u8 constant_buffer_t;
-        typedef u8 instancing_buffer_t;
+        typedef u16 constant_buffer_t;
+        typedef u16 instancing_buffer_t;
         // texture objects
         typedef u8 texture_2d_t;
         typedef u8 texture_3d_t;

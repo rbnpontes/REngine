@@ -2,6 +2,8 @@
 #include "./diligent_private.h"
 #include "./renderer_private.h"
 #include "./renderer.h"
+#include "./models_private.h"
+#include "./buffer_manager_private.h"
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
@@ -78,11 +80,17 @@ namespace rengine {
 
 			init_calls[(u8)g_graphics_state.backend](desc);
 			assert_diligent_objects();
+
+			buffer_mgr__init();
+			models__init();
 		}
 
 		void deinit()
 		{
 			assert_initialization();
+
+			models__deinit();
+			buffer_mgr__deinit();
 
 			for(u32 i = 0; i < g_graphics_state.num_contexts; ++i)
 				g_graphics_state.contexts[i]->Release();
@@ -95,7 +103,7 @@ namespace rengine {
 		void begin() {
 			renderer__reset_state();
 
-			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+			for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
 				const auto window_id = core::window__idx_to_id(i);
 				if (core::window_is_destroyed(window_id))
 					continue;
@@ -103,7 +111,7 @@ namespace rengine {
 			}
 
 			// perform clear on swapchains
-			for (u8 i = 0; i < MAX_ALLOWED_WINDOWS; ++i) {
+			for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
 				const auto window_id = core::window__idx_to_id(i);
 				if (core::window_is_destroyed(window_id))
 					continue;

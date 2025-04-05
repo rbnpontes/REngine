@@ -22,6 +22,10 @@ namespace rengine {
 		ENGINE_DEFINE_EXCEPTION(window_exception);
 	}
 
+	namespace io {
+		ENGINE_DEFINE_EXCEPTION(logger_exception);
+	}
+
 	namespace graphics {
 		ENGINE_DEFINE_EXCEPTION(graphics_exception);
 	}
