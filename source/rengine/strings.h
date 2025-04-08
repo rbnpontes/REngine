@@ -19,8 +19,64 @@ namespace rengine {
         };
 
         namespace graphics {
-            constexpr static c_str g_vertex_buffer_name = "rengine::dynamic_vertex";
-            constexpr static c_str g_index_buffer_name = "rengine::dynamic_index";
+            constexpr static c_str g_models_vbuffer_name = "rengine::models::vbuffer";
+            constexpr static c_str g_models_ibuffer_name = "rengine::models::ibuffer";
+			constexpr static c_str g_models_pipeline_name = "rengine::models::gpipeline";
+			constexpr static c_str g_models_vshader_name = "rengine::models::vshader";
+			constexpr static c_str g_models_pshader_name = "rengine::models::pshader";
+
+            constexpr static c_str g_viewport_rt_name = "rengine::viewport";
+
+            namespace shaders {
+                constexpr static c_str g_model_nouv_vertex = R"(
+                    struct vs_input {
+                        float3 position : ATTRIB0;
+                        float4 color    : ATTRIB3;
+                    };
+   
+                    struct vs_output {
+                        float4 position : SV_Position;
+                        float4 color    : COLOR0;
+                    };
+
+                    vs_output main(in vs_input input) {
+                        vs_output output = (vs_output)0;
+                        output.position = float4(input.position, 1.0f);
+                        output.color = input.color;
+                        return output;
+                    }   
+                )";
+                constexpr static c_str g_model_uv_vertex = R"(
+                    struct vs_input {
+                        float3 position : ATTRIB0;
+                        float4 color    : ATTRIB3;
+                        float2 uv       : ATTRIB4;
+                    };
+   
+                    struct vs_output {
+                        float4 position : SV_Position;
+                        float2 uv       : TEXCOORD0;
+                        float4 color    : COLOR0;
+                    };
+                    vs_output main(in vs_input input) {
+                        vs_output output = (vs_output)0;
+                        output.position = float4(input.position, 1.0f);
+                        output.uv = input.uv;
+                        output.color = input.color;
+                        return output;
+                    }
+                )";
+
+				constexpr static c_str g_model_nouv_pixel = R"(
+                    struct ps_input {
+                        float4 position : SV_Position;
+                        float4 color    : COLOR0;
+                    };
+                    float4 main(in ps_input input) : SV_Target {
+                        return input.color;
+                    }
+                )";
+            }
         }
 
         namespace logs {
@@ -28,6 +84,7 @@ namespace rengine {
             constexpr static c_str g_graphics_tag = "graphics";
             constexpr static c_str g_diligent_tag = "diligent";
             constexpr static c_str g_buffer_mgr_tag = "buffer_mgr";
+            constexpr static c_str g_renderer_tag = "renderer";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -45,6 +102,11 @@ namespace rengine {
                 "Engine will copy partial data to GPU, next time try to increate buffer size! "
                 "Upload Size = {0}, Buffer Id = {1} Buffer Name = {2}, Buffer Size = {3}, Buffer Type = {4}";
             constexpr static c_str g_buffer_mgr_free_invalid_buffer = "Can´t free an invalid buffer. Buffer Id = {0}";
+        
+            constexpr static c_str g_rt_mgr_cant_destroy_invalid_id = "Can't destroy render target from invalid id. Id = {0}";
+
+            constexpr static c_str g_renderer_cant_clear_unset_depthbuffer = "Can't clear depth buffer that has not been set.";
+            constexpr static c_str g_renderer_isnt_allowed_to_set_rt_grt_than_max = "Number of render targets ({0}) is greater than max allowed ({1})";
         }
 
         namespace exceptions {
@@ -74,6 +136,12 @@ namespace rengine {
             constexpr static c_str g_buffer_mgr_cant_realloc_non_dyn = "Failed to realloc buffer. Is not possible to realloc a non-dynamic buffer, "
                 "You must free this buffer ({0}) and create again with different size! "
                 "Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
+
+			constexpr static c_str g_rt_mgr_reach_limit = "Failed to create render target. Reached limit of {0} render targets";
+            constexpr static c_str g_rt_mgr_failed_to_create = "Failed to create render target";
+			constexpr static c_str g_rt_mgr_failed_to_create_depthbuffer = "Failed to create depth buffer";
+            constexpr static c_str g_rt_mgr_invalid_id = "Invalid Render Target Id ({0})";
+            constexpr static c_str g_rt_mgr_cant_external = "Is not possible to resize external render target. Id = {0}";
 
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
