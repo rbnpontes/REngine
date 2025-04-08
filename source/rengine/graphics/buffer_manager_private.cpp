@@ -139,7 +139,7 @@ namespace rengine {
 			const auto ctx = g_graphics_state.contexts[0];
 			auto& buffer_entry = buffer_entries[(u8)type][idx];
 			const auto handle = buffer_entry.handler;
-			const auto& desc = handle->GetDesc();
+			const auto desc = handle->GetDesc();
 
 			if (desc.Usage != Diligent::USAGE_DYNAMIC)
 				throw graphics_exception(
@@ -156,7 +156,7 @@ namespace rengine {
 				new_size,
 				null,
 				true
-				});
+			});
 		}
 
 		void buffer_mgr__update(const buffer_type& type, u16 buffer_id, ptr data, u32 size)
@@ -250,6 +250,12 @@ namespace rengine {
 
 		bool buffer_mgr__is_valid(const buffer_type& type, u16 buffer_id)
 		{
+			const u16 invalid_ids[] = {
+				no_vertex_buffer,
+				no_index_buffer,
+				no_constant_buffer,
+			};
+
 			const buffer_entry* buffer_entries[] = {
 			   g_buffer_mgr_state.vertex_buffers.data(),
 			   g_buffer_mgr_state.index_buffers.data(),
@@ -260,10 +266,11 @@ namespace rengine {
 				GRAPHICS_MAX_ALLOC_IBUFFERS,
 				GRAPHICS_MAX_ALLOC_CBUFFERS
 			};
+			const auto type_idx = (u8)type;
+			if (invalid_ids[buffer_id] == buffer_id)
+				return false;
 
 			const auto& idx = buffer_mgr__decode_id(buffer_id);
-			const auto type_idx = (u8)type;
-
 			if (idx >= buffer_sizes[type_idx])
 				return false;
 
@@ -396,32 +403,18 @@ namespace rengine {
 		}
 		
 		u8 buffer_mgr__assert_id(const buffer_type& type, u16 id) {
-			const auto idx = buffer_mgr__decode_id(id);
-			const buffer_entry* buffers[] = {
-				g_buffer_mgr_state.vertex_buffers.data(),
-				g_buffer_mgr_state.index_buffers.data(),
-				g_buffer_mgr_state.constant_buffers.data()
-			};
+			if (buffer_mgr__is_valid(type, id))
+				return buffer_mgr__decode_id(id);
+
 			const u32 buffer_sizes[] = {
 				GRAPHICS_MAX_ALLOC_VBUFFERS,
 				GRAPHICS_MAX_ALLOC_IBUFFERS,
 				GRAPHICS_MAX_ALLOC_CBUFFERS
 			};
-			const auto buffer_type_idx = (u8)type;
-			if (idx >= buffer_sizes[buffer_type_idx])
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_buffer_mgr_invalid_id,
-						buffer_sizes[buffer_type_idx]).c_str()
-				);
-
-			const auto& buffer_entry = buffers[buffer_type_idx][idx];
-			if (buffer_entry.id != id)
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_buffer_mgr_invalid_id,
-						buffer_sizes[buffer_type_idx]).c_str()
-				);
-
-			return idx;
+			throw graphics_exception(
+				fmt::format(strings::exceptions::g_buffer_mgr_invalid_id,
+					buffer_sizes[(u8)type]).c_str()
+			);
 		}
 	}
 }
