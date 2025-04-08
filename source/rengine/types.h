@@ -55,6 +55,7 @@ namespace rengine {
         typedef u32 shader_t;
         typedef u32 shader_program_t;
         // render objects
+		typedef u16 render_command_t;
         typedef u16 material_t;
         typedef u16 mesh_t;
         typedef u16 model_t;
@@ -64,7 +65,7 @@ namespace rengine {
 
         static u16 no_vertex_buffer       = MAX_U16_VALUE;
         static u16 no_index_buffer        = MAX_U16_VALUE;
-        static u8 no_constant_buffer      = MAX_U8_VALUE;
+        static u16 no_constant_buffer     = MAX_U8_VALUE;
         static u8 no_instancing_buffer    = MAX_U8_VALUE;
         static u8 no_texture_2d           = MAX_U8_VALUE;
         static u8 no_texture_3d           = MAX_U8_VALUE;
@@ -75,6 +76,7 @@ namespace rengine {
         static u16 no_srb_state           = MAX_U16_VALUE;
         static u32 no_shader              = MAX_U32_VALUE;
         static u32 no_shader_program      = MAX_U32_VALUE;
+		static u16 no_render_command      = MAX_U16_VALUE;
         static u16 no_material            = MAX_U16_VALUE;
         static u16 no_mesh                = MAX_U16_VALUE;
         static u16 no_model               = MAX_U16_VALUE;
