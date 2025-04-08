@@ -48,7 +48,8 @@ namespace rengine {
 				position_element.InputIndex = 0;
 				position_element.NumComponents = 3;
 				position_element.ValueType = VT_FLOAT32;
-				position_element.RelativeOffset = sizeof(float) * 4;
+				//position_element.RelativeOffset = sizeof(float) * 3;
+				position_element.IsNormalized = false;
 
 				elements.push_back(position_element);
 			}
@@ -58,7 +59,7 @@ namespace rengine {
 				normal_element.InputIndex = 1;
 				normal_element.NumComponents = 3;
 				normal_element.ValueType = VT_FLOAT32;
-				normal_element.RelativeOffset = sizeof(float) * 4;
+				normal_element.RelativeOffset = sizeof(float) * 3;
 
 				elements.push_back(normal_element);
 			}
@@ -76,9 +77,10 @@ namespace rengine {
 			if ((flags & (u32)vertex_elements::color) != 0) {
 				LayoutElement color_element = {};
 				color_element.InputIndex = 3;
-				color_element.NumComponents = 4;
-				color_element.ValueType = VT_UINT8;
-				color_element.RelativeOffset = sizeof(byte) * 4;
+				color_element.NumComponents = 1;
+				color_element.ValueType = VT_UINT32;
+				color_element.IsNormalized = false;
+				//color_element.RelativeOffset = sizeof(u32);
 
 				elements.push_back(color_element);
 			}
@@ -95,6 +97,17 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::instancing) != 0)
 				throw not_implemented_exception();
+		}
+
+		void pipeline_state_mgr__get_internal_handle(const pipeline_state_t& id, Diligent::IPipelineState** output)
+		{
+			if (!output)
+				return;
+
+			const auto& it = g_cached_pipelines.find_as(id);
+			if (it == g_cached_pipelines.end())
+				return;
+			*output = it->second;
 		}
 	}
 }

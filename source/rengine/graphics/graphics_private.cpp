@@ -116,7 +116,11 @@ namespace rengine {
 
 			prepare_swapchain_window(window);
 			prepare_viewport_rt(window);
-			renderer_clear({});
+
+			clear_desc desc = {};
+			desc.depth = 1.0f;
+			desc.clear_depth = true;
+			renderer_clear(desc);
 		}
 
 		void end() {
@@ -135,8 +139,9 @@ namespace rengine {
 			if (!swapchain)
 				return;
 
+			const auto& cmd = g_renderer_state.default_cmd;
 			// if no render targets has been bound, do skip and finish rendering
-			if (g_renderer_state.num_render_targets == 0) {
+			if (cmd.num_render_targets == 0) {
 				swapchain->Present();
 				return;
 			}
@@ -144,7 +149,7 @@ namespace rengine {
 			// if render target has been bound, we must
 			// copy render target pixels to swapchain backbuffer
 			// and do present. this step resolves MSAA
-			auto src_rt_id = g_renderer_state.render_targets[0];
+			auto src_rt_id = cmd.render_targets[0];
 			ptr src_backbuffer = null;
 			render_target_mgr_get_handlers(src_rt_id, &src_backbuffer, null);
 
@@ -186,8 +191,7 @@ namespace rengine {
 				});
 			}
 
-			renderer_set_render_target(viewport_rt);
-			renderer_set_depthbuffer(viewport_rt);
+			renderer_set_render_target(viewport_rt, viewport_rt);
 			renderer_set_viewport({ {0, 0}, { wnd_size.x, wnd_size.y } });
 		}
 

@@ -17,7 +17,9 @@ namespace rengine {
 			return;
 
 		g_engine_state.begin = true;
-		
+		if (core::window_is_destroyed(g_engine_state.window_id))
+			g_engine_state.window_id = core::no_window;
+
 		EVENT_EMIT(engine, begin_update)();
 
 		engine__begin_timer();

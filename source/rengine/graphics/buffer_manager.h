@@ -32,9 +32,9 @@ namespace rengine {
 		R_EXPORT void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size);
 		R_EXPORT void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size);
 
-		R_EXPORT void buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size);
-		R_EXPORT void buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size);
-		R_EXPORT void buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size);
+		R_EXPORT u16 buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size);
+		R_EXPORT u16 buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size);
+		R_EXPORT u16 buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size);
 
 		R_EXPORT void buffer_mgr_vbuffer_free(const vertex_buffer_t& id);
         R_EXPORT void buffer_mgr_ibuffer_free(const index_buffer_t& id);

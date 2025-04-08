@@ -1,6 +1,7 @@
 #pragma once
 #include <rengine/types.h>
 #include <rengine/api.h>
+#include <rengine/core/hash.h>
 
 namespace rengine {
     namespace math {
@@ -28,6 +29,10 @@ namespace rengine {
                 return x <= target.x || y <= target.y;
             }
 
+            u32 to_hash() const {
+                return core::hash_combine(x, y);
+            }
+
             static const base_vec2<T> zero;
             static const base_vec2<T> one;
             static const base_vec2<T> left;
@@ -46,6 +51,10 @@ namespace rengine {
 
             constexpr base_vec3(): x((T)0), y((T)0), z((T)0) {}
             constexpr base_vec3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+
+            u32 to_hash() const {
+                return core::hash_combine(core::hash_combine(x, y), z);
+            }
 
             static const base_vec3<T> zero;
             static const base_vec3<T> one;
@@ -111,6 +120,11 @@ namespace rengine {
             bool equal(const base_rect& target) const {
                 return position.equal(target.position) && size.equal(target.size);
             }
+
+            u32 to_hash() const {
+                return core::hash_combine(position.to_hash(), size.to_hash());
+            }
+
             static const base_rect<T> zero;
         };
         typedef base_rect<vec2> rect;

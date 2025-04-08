@@ -27,4 +27,6 @@ namespace rengine {
 	using map = eastl::map<Key, Value>;
 	template<typename Key, typename Value>
 	using hash_map = eastl::hash_map<Key, Value>;
+	template<typename T>
+	using shared_ptr = eastl::shared_ptr<T>;
 }

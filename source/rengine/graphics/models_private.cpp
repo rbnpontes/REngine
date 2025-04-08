@@ -17,6 +17,7 @@ namespace rengine {
 		{
 			models__require_vbuffer_size(MODELS_DEFAULT_VBUFFER_SIZE);
 			models__require_ibuffer_size(MODELS_DEFAULT_IBUFFER_SIZE);
+			models__prewarm_pipelines();
 		}
 
 		void models__deinit() {
@@ -35,6 +36,7 @@ namespace rengine {
 		{
 			auto& state = g_models_state;
 			try {
+				buffer_size += MODELS_DEFAULT_VBUFFER_SIZE;
 				if (state.vertex_buffer == no_vertex_buffer)
 					state.vertex_buffer = buffer_mgr_vbuffer_create({
 						strings::graphics::g_models_vbuffer_name,
@@ -42,8 +44,10 @@ namespace rengine {
 						null,
 						true
 					});
-				else
-					buffer_mgr_vbuffer_realloc(state.vertex_buffer, buffer_size);
+				else if(buffer_size > state.vertex_buffer_size)
+					state.vertex_buffer = buffer_mgr_vbuffer_realloc(state.vertex_buffer, buffer_size);
+
+				state.vertex_buffer_size = buffer_size;
 			}
 			catch(const graphics_exception& exception) {
 				throw graphics_exception(
@@ -56,6 +60,7 @@ namespace rengine {
 		{
 			auto& state = g_models_state;
 			try {
+				buffer_size += MODELS_DEFAULT_IBUFFER_SIZE;
 				if (state.index_buffer == no_index_buffer)
 					state.index_buffer = buffer_mgr_ibuffer_create({
 						strings::graphics::g_models_ibuffer_name,
@@ -63,8 +68,10 @@ namespace rengine {
 						null,
 						true
 						});
-				else
-					buffer_mgr_ibuffer_realloc(state.index_buffer, buffer_size);
+				else if (buffer_size > state.index_buffer_size)
+					state.index_buffer = buffer_mgr_ibuffer_realloc(state.index_buffer, buffer_size);
+
+				state.index_buffer_size = buffer_size;
 			}
 			catch (const graphics_exception& exception) {
 				throw graphics_exception(
@@ -107,6 +114,35 @@ namespace rengine {
 				create_desc.wireframe = true;
 				pipeline_state_mgr_create_graphics(create_desc);
 			}
+
+			g_models_state.triangle_vs_shader = vertex;
+			g_models_state.triangle_ps_shader = pixel;
+		}
+
+		void models__upload_buffers()
+		{
+			if(g_models_state.triangles.size() > 0)
+			buffer_mgr_vbuffer_update(g_models_state.vertex_buffer,
+				g_models_state.triangles.data(),
+				g_models_state.triangles.size() * sizeof(triangle));
+		}
+
+		void models__submit_draw_calls()
+		{
+			if (g_models_state.num_triangles > 0)
+				models__draw_triangles();
+		}
+		void models__draw_triangles()
+		{
+			renderer_set_vbuffer(g_models_state.vertex_buffer, 0);
+			renderer_set_topology(primitive_topology::triangle_strip);
+			renderer_set_depth_enabled(true);
+			renderer_set_wireframe(false);
+			renderer_set_cull_mode(cull_mode::clock_wise);
+			renderer_set_vertex_shader(g_models_state.triangle_vs_shader);
+			renderer_set_pixel_shader(g_models_state.triangle_ps_shader);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
+			renderer_draw({ g_models_state.num_triangles * 3 });
 		}
 	}
 }

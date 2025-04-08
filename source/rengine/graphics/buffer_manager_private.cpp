@@ -128,7 +128,7 @@ namespace rengine {
 			--buffer_counts[(u8)type];
 		}
 
-		void buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size)
+		u16 buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size)
 		{
 			const auto& idx = buffer_mgr__assert_id(type, buffer_id);
 			buffer_entry* buffer_entries[] = {
@@ -140,6 +140,7 @@ namespace rengine {
 			auto& buffer_entry = buffer_entries[(u8)type][idx];
 			const auto handle = buffer_entry.handler;
 			const auto desc = handle->GetDesc();
+			u8* magic = reinterpret_cast<u8*>(&g_buffer_mgr_state.magic_nums);
 
 			if (desc.Usage != Diligent::USAGE_DYNAMIC)
 				throw graphics_exception(
@@ -151,12 +152,15 @@ namespace rengine {
 
 			handle->Release();
 
+			buffer_entry.id = buffer_mgr__encode_id(idx, ++magic[idx]);
 			buffer_entry.handler = buffer_mgr__create(type, {
 				desc.Name,
 				new_size,
 				null,
 				true
 			});
+
+			return buffer_entry.id;
 		}
 
 		void buffer_mgr__update(const buffer_type& type, u16 buffer_id, ptr data, u32 size)
@@ -267,7 +271,7 @@ namespace rengine {
 				GRAPHICS_MAX_ALLOC_CBUFFERS
 			};
 			const auto type_idx = (u8)type;
-			if (invalid_ids[buffer_id] == buffer_id)
+			if (invalid_ids[type_idx] == buffer_id)
 				return false;
 
 			const auto& idx = buffer_mgr__decode_id(buffer_id);
@@ -278,9 +282,13 @@ namespace rengine {
 			return entry.handler != null && entry.id == buffer_id;
 		}
 
-		ptr buffer_mgr__get_handle(const buffer_type& type, u16 buffer_id)
+		void buffer_mgr__get_handle(const buffer_type& type, u16 buffer_id, Diligent::IBuffer** output)
 		{
-			return ptr();
+			if (!output)
+				return;
+
+			const auto entry = buffer_mgr__get_entry(type, buffer_id);
+			*output = entry->handler;
 		}
 
 		u32 buffer_mgr__get_count(const buffer_type& type)
@@ -415,6 +423,22 @@ namespace rengine {
 				fmt::format(strings::exceptions::g_buffer_mgr_invalid_id,
 					buffer_sizes[(u8)type]).c_str()
 			);
+		}
+
+		buffer_entry* buffer_mgr__get_entry(const buffer_type& type, u16 id)
+		{
+			buffer_entry* buffer_entries[] = {
+			   g_buffer_mgr_state.vertex_buffers.data(),
+			   g_buffer_mgr_state.index_buffers.data(),
+			   g_buffer_mgr_state.constant_buffers.data()
+			};
+			const u32 buffer_sizes[] = {
+				GRAPHICS_MAX_ALLOC_VBUFFERS,
+				GRAPHICS_MAX_ALLOC_IBUFFERS,
+				GRAPHICS_MAX_ALLOC_CBUFFERS
+			};
+			const auto& idx = buffer_mgr__assert_id(type, id);
+			return &buffer_entries[(u8)type][idx];
 		}
 	}
 }

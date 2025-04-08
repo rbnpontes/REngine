@@ -46,19 +46,19 @@ namespace rengine {
 			buffer_mgr__update(buffer_type::constant_buffer, id, data, size);
         }
 
-        void buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size)
+        u16 buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size)
         {
-			buffer_mgr__realloc(buffer_type::vertex_buffer, buffer_id, new_size);
+			return buffer_mgr__realloc(buffer_type::vertex_buffer, buffer_id, new_size);
         }
 
-        void buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size)
+        u16 buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size)
         {
-			buffer_mgr__realloc(buffer_type::index_buffer, id, new_size);
+			return buffer_mgr__realloc(buffer_type::index_buffer, id, new_size);
         }
 
-        void buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size)
+        u16 buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size)
         {
-			buffer_mgr__realloc(buffer_type::constant_buffer, id, new_size);
+			return buffer_mgr__realloc(buffer_type::constant_buffer, id, new_size);
         }
 
         void buffer_mgr_vbuffer_free(const vertex_buffer_t& id)
@@ -93,17 +93,23 @@ namespace rengine {
 
         ptr buffer_mgr_get_vbuffer_handle(const vertex_buffer_t& id)
         {
-			return buffer_mgr__get_handle(buffer_type::vertex_buffer, id);
+            Diligent::IBuffer* buffer;
+			buffer_mgr__get_handle(buffer_type::vertex_buffer, id, &buffer);
+            return buffer;
         }
 
         ptr buffer_mgr_get_ibuffer_handle(const index_buffer_t& id)
         {
-			return buffer_mgr__get_handle(buffer_type::index_buffer, id);
+            Diligent::IBuffer* buffer;
+			buffer_mgr__get_handle(buffer_type::index_buffer, id, &buffer);
+            return buffer;
         }
 
         ptr buffer_mgr_get_cbuffer_handle(const constant_buffer_t& id)
         {
-			return buffer_mgr__get_handle(buffer_type::constant_buffer, id);
+            Diligent::IBuffer* buffer;
+			buffer_mgr__get_handle(buffer_type::constant_buffer, id, &buffer);
+            return buffer;
         }
 
         u32 buffer_mgr_get_vbuffers_count()

@@ -20,7 +20,7 @@ namespace rengine {
 			ci.ByteCodeSize = desc.bytecode_length;
 			ci.EntryPoint = "main";
 
-			IShader* shader;
+			IShader* shader = null;
 			device->CreateShader(ci, &shader, null);
 			if (shader)
 				shader->AddRef();

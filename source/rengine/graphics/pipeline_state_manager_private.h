@@ -16,8 +16,8 @@ namespace rengine {
 		};
 		static constexpr Diligent::CULL_MODE g_cull_mode_tbl[] = {
 			Diligent::CULL_MODE_NONE,
+			Diligent::CULL_MODE_FRONT,
 			Diligent::CULL_MODE_BACK,
-			Diligent::CULL_MODE_FRONT
 		};
 
 		extern hash_map<pipeline_state_t, Diligent::IPipelineState*> g_cached_pipelines;
@@ -25,5 +25,6 @@ namespace rengine {
 
 		Diligent::IPipelineState* pipeline_state_mgr__create_graphics(const graphics_pipeline_state_create& create_info);
 		void pipeline_state_mgr__build_input_layout(u32 flags, vector<Diligent::LayoutElement>& elements);
+		void pipeline_state_mgr__get_internal_handle(const pipeline_state_t& id, Diligent::IPipelineState** output);
 	}
 }

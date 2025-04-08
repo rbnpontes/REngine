@@ -50,11 +50,11 @@ namespace rengine {
         
         u16 buffer_mgr__try_create(const buffer_type& type, const buffer_create_desc& desc);
 		void buffer_mgr__free(const buffer_type& type, u16 buffer_id);
-        void buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size);
+        u16 buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size);
 		void buffer_mgr__update(const buffer_type& type, u16 buffer_id, ptr data, u32 size);
         Diligent::IBuffer* buffer_mgr__create(const buffer_type& type, const buffer_create_desc& desc);
 		bool buffer_mgr__is_valid(const buffer_type& type, u16 buffer_id);
-		ptr buffer_mgr__get_handle(const buffer_type& type, u16 buffer_id);
+        void buffer_mgr__get_handle(const buffer_type& type, u16 buffer_id, Diligent::IBuffer** output);
 		u32 buffer_mgr__get_count(const buffer_type& type);
         u32 buffer_mgr__get_total_count();
 		void buffer_mgr__clear_cache(const buffer_type& type);
@@ -64,5 +64,6 @@ namespace rengine {
         bool buffer_mgr__find_dynamic_buffer(const buffer_entry* buffers, u32 buffers_count, u32 expected_size, u8* output_idx);
         u8 buffer_mgr__find_empty_entry(const buffer_entry* buffers, u32 buffers_count);
         u8 buffer_mgr__assert_id(const buffer_type& type, u16 id);
+        buffer_entry* buffer_mgr__get_entry(const buffer_type& type, u16 id);
     }
 }

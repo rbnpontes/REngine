@@ -2,17 +2,22 @@
 #include "./models_private.h"
 
 #include "../exceptions.h"
+#include "../core/vector_utils_private.h"
 
 namespace rengine {
 	namespace graphics {
 		void renderer_begin_draw()
 		{
-			throw not_implemented_exception();
+			auto& state = g_models_state;
+			state.num_triangles = state.num_lines = state.num_vertices = state.num_indices = 0;
+			state.current_vertex_color = math::byte_color::white;
+			state.offsets.fill(0);
 		}
 		
 		void renderer_end_draw()
 		{
-			throw not_implemented_exception();
+			models__upload_buffers();
+			models__submit_draw_calls();
 		}
 		
 		void renderer_set_vertex_color(const math::byte_color& color)
@@ -35,14 +40,20 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void renderer_add_triangle(const triangle& triangle)
+		void renderer_add_triangle(const triangle& value)
 		{
-			throw not_implemented_exception();
+			core::vector_utils_insert_item<triangle>(g_models_state.triangles, value, &g_models_state.num_triangles);
 		}
 
 		void renderer_add_triangle(const math::vec3& a, const math::vec3& b, const math::vec3& c)
 		{
-			throw not_implemented_exception();
+			triangle value = {};
+			value.a.point = a;
+			value.b.point = b;
+			value.c.point = c;
+			value.a.color = value.b.color = value.c.color = g_models_state.current_vertex_color;
+
+			renderer_add_triangle(value);
 		}
 
 		void renderer_add_quad(const quad& quad)

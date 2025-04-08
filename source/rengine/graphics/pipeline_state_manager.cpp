@@ -39,10 +39,9 @@ namespace rengine {
 
         ptr pipeline_state_mgr_get_internal_handle(pipeline_state_t id)
         {
-            const auto& it = g_cached_pipelines.find_as(id);
-            if (it == g_cached_pipelines.end())
-                return null;
-            return it->second;
+            Diligent::IPipelineState* pipeline;
+            pipeline_state_mgr__get_internal_handle(id, &pipeline);
+            return pipeline;
         }
 
         u32 pipeline_state_mgr_get_cache_count()

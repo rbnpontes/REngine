@@ -26,12 +26,13 @@ namespace rengine {
 			constexpr static c_str g_models_pshader_name = "rengine::models::pshader";
 
             constexpr static c_str g_viewport_rt_name = "rengine::viewport";
+            constexpr static c_str g_default_cmd_name = "rengine::render_command";
 
             namespace shaders {
                 constexpr static c_str g_model_nouv_vertex = R"(
                     struct vs_input {
                         float3 position : ATTRIB0;
-                        float4 color    : ATTRIB3;
+                        uint color      : ATTRIB3;
                     };
    
                     struct vs_output {
@@ -42,7 +43,15 @@ namespace rengine {
                     vs_output main(in vs_input input) {
                         vs_output output = (vs_output)0;
                         output.position = float4(input.position, 1.0f);
-                        output.color = input.color;
+
+                        float4 color = float4(
+                            (float)((input.color >> 0) & 0xFF),
+                            (float)((input.color >> 8) & 0xFF),
+                            (float)((input.color >> 16) & 0xFF),
+                            (float)((input.color >> 24) & 0xFF)
+                        );
+                        color /= float4(255.0f, 255.0f, 255.0f, 255.0f);
+                        output.color = color;
                         return output;
                     }   
                 )";
@@ -107,6 +116,8 @@ namespace rengine {
 
             constexpr static c_str g_renderer_cant_clear_unset_depthbuffer = "Can't clear depth buffer that has not been set.";
             constexpr static c_str g_renderer_isnt_allowed_to_set_rt_grt_than_max = "Number of render targets ({0}) is greater than max allowed ({1})";
+            constexpr static c_str g_renderer_isnt_allowed_to_set_buffer_grt_than_max = "Number of vertex buffer ({0}) is greater than max allowed ({1})";
+            constexpr static c_str g_renderer_not_found_command = "Not found command from given id {0}";
         }
 
         namespace exceptions {
@@ -146,6 +157,7 @@ namespace rengine {
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
             constexpr static c_str g_renderer_clear_depth_without_set = "Can´t clear Depth Stencil. You must assign depth stencil first";
+            constexpr static c_str g_renderer_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
         
             constexpr static c_str g_models_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
             constexpr static c_str g_models_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";

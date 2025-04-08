@@ -53,3 +53,7 @@
 	#error "GRAPHICS_MAX_ALLOC_CBUFFERS must be less than 255, or you can increase constant buffer size to u32"
 	#error "Do you really need more than 255 allocated constant buffers ?"
 #endif
+
+#if _DEBUG
+#define ENGINE_DEBUG 1
+#endif

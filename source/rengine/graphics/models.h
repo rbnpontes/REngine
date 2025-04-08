@@ -51,7 +51,7 @@ namespace rengine {
         R_EXPORT void renderer_add_point(const vertex& vertex);
 		R_EXPORT void renderer_add_line(const line& line);
 		R_EXPORT void renderer_add_line(const math::vec3& a, const math::vec3& b);
-		R_EXPORT void renderer_add_triangle(const triangle& triangle);
+		R_EXPORT void renderer_add_triangle(const triangle& value);
 		R_EXPORT void renderer_add_triangle(const math::vec3& a, const math::vec3& b, const math::vec3& c);
 		R_EXPORT void renderer_add_quad(const quad& quad);
 		R_EXPORT void renderer_add_quad(const math::vec3& center, const math::vec2& size);

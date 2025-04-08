@@ -9,13 +9,13 @@ void game_loop() {
         return;
     }
 
-    /*rengine::graphics::renderer_begin_draw();
+    rengine::graphics::renderer_begin_draw();
         rengine::graphics::renderer_add_triangle({
             { rengine::math::vec3(-0.5f, -0.5f, 0.), rengine::math::byte_color::red },
             { rengine::math::vec3(+0.0f, +0.5f, 0.), rengine::math::byte_color::green },
             { rengine::math::vec3(+0.5f, -0.5f, 0.), rengine::math::byte_color::blue },
         });
-    rengine::graphics::renderer_end_draw();*/
+    rengine::graphics::renderer_end_draw();
 }
 
 int main(unsigned int argc, char** argv) {   
