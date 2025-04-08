@@ -1,9 +1,11 @@
+#include "./graphics.h"
 #include "./graphics_private.h"
 #include "./diligent_private.h"
 #include "./renderer_private.h"
 #include "./renderer.h"
 #include "./models_private.h"
 #include "./buffer_manager_private.h"
+#include "./render_target_manager_private.h"
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
@@ -82,14 +84,19 @@ namespace rengine {
 			assert_diligent_objects();
 
 			buffer_mgr__init();
+			render_target_mgr__init();
 			models__init();
+
+			renderer__init();
 		}
 
 		void deinit()
 		{
 			assert_initialization();
 
+			renderer__deinit();
 			models__deinit();
+			render_target_mgr__deinit();
 			buffer_mgr__deinit();
 
 			for(u32 i = 0; i < g_graphics_state.num_contexts; ++i)
@@ -102,25 +109,14 @@ namespace rengine {
 
 		void begin() {
 			renderer__reset_state();
+			
+			const auto& window = g_engine_state.window_id;
+			if (window == core::no_window)
+				return;
 
-			for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
-				const auto window_id = core::window__idx_to_id(i);
-				if (core::window_is_destroyed(window_id))
-					continue;
-				allocate_swapchain(window_id);
-			}
-
-			// perform clear on swapchains
-			for (u8 i = 0; i < CORE_WINDOWS_MAX_ALLOWED; ++i) {
-				const auto window_id = core::window__idx_to_id(i);
-				if (core::window_is_destroyed(window_id))
-					continue;
-				if (!core::window__has_swapchain(window_id))
-					continue;
-
-				renderer_set_window(window_id);
-				renderer_clear({});
-			}
+			prepare_swapchain_window(window);
+			prepare_viewport_rt(window);
+			renderer_clear({});
 		}
 
 		void end() {
@@ -130,7 +126,33 @@ namespace rengine {
 			if (g_renderer_state.dirty_flags != 0)
 				renderer_flush();
 
-			core::window__present_swapchains();
+			// skip if no window has been set
+			if (g_engine_state.window_id == core::no_window)
+				return;
+
+			// if swapchain has not been created, skip then
+			auto swapchain = core::window__get_swapchain(g_engine_state.window_id);
+			if (!swapchain)
+				return;
+
+			// if no render targets has been bound, do skip and finish rendering
+			if (g_renderer_state.num_render_targets == 0) {
+				swapchain->Present();
+				return;
+			}
+
+			// if render target has been bound, we must
+			// copy render target pixels to swapchain backbuffer
+			// and do present. this step resolves MSAA
+			auto src_rt_id = g_renderer_state.render_targets[0];
+			ptr src_backbuffer = null;
+			render_target_mgr_get_handlers(src_rt_id, &src_backbuffer, null);
+
+			blit_render_targets((Diligent::ITexture*)src_backbuffer, 
+				swapchain->GetCurrentBackBufferRTV()->GetTexture(), 
+				false);
+
+			swapchain->Present();
 		}
 
 		void allocate_swapchain(const core::window_t& window_id)
@@ -152,6 +174,69 @@ namespace rengine {
 				throw graphics_exception(strings::exceptions::g_graphics_fail_to_create_swapchain);
 
 			core::window__put_swapchain(window_id, swapchain);
+		}
+
+		void prepare_viewport_rt(const core::window_t& window_id)
+		{
+			const auto& wnd_size = core::window_get_size(window_id);
+			auto viewport_rt = render_target_mgr_find_from_size(wnd_size);
+			if (viewport_rt == no_render_target) {
+				viewport_rt = render_target_mgr_create({
+					{ strings::graphics::g_viewport_rt_name, wnd_size, get_default_backbuffer_format(), get_default_depthbuffer_format() },
+				});
+			}
+
+			renderer_set_render_target(viewport_rt);
+			renderer_set_depthbuffer(viewport_rt);
+			renderer_set_viewport({ {0, 0}, { wnd_size.x, wnd_size.y } });
+		}
+
+		void prepare_swapchain_window(const core::window_t& window_id)
+		{
+			auto swapchain = core::window__get_swapchain(window_id);
+			if (swapchain)
+				return;
+
+			allocate_swapchain(window_id);
+		}
+
+		void blit_render_targets(Diligent::ITexture* src, Diligent::ITexture* dst, bool msaa)
+		{
+			using namespace Diligent;
+
+			const auto ctx = g_graphics_state.contexts[0];
+
+			if (msaa)
+				throw not_implemented_exception();
+
+			CopyTextureAttribs cpy_attribs = {};
+			cpy_attribs.pSrcTexture = src;
+			cpy_attribs.pDstTexture = dst;
+			cpy_attribs.SrcTextureTransitionMode =
+				cpy_attribs.DstTextureTransitionMode =
+				RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+
+			ctx->CopyTexture(cpy_attribs);
+		}
+
+		u32 get_msaa_sample_count()
+		{
+			// TODO: add MSAA support
+			throw not_implemented_exception();
+		}
+
+		u16 get_default_backbuffer_format()
+		{
+			// TODO: add support for other formats
+			// Ex: Apple devices uses BGRA8_UNORM 
+			return Diligent::TEX_FORMAT_RGBA8_UNORM;
+		}
+
+		u16 get_default_depthbuffer_format()
+		{
+			// TODO: add support for other formats
+			// Ex: Apple devices uses D24_UNORM_S8_UINT if i'm not wrong
+			return Diligent::TEX_FORMAT_D16_UNORM;
 		}
 	}
 }

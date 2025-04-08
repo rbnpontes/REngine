@@ -1,5 +1,6 @@
 #pragma once
 #include "../base_private.h"
+#include "../math/math-types.h"
 
 #include <EngineFactory.h>
 #include <DeviceContext.h>
@@ -15,6 +16,7 @@ namespace rengine {
 			Diligent::IDeviceContext** contexts;
 			Diligent::IRenderDevice* device;
 			u32 num_contexts;
+			render_target_t viewport_rt;
 			backend backend;
 		};
 
@@ -36,5 +38,8 @@ namespace rengine {
 		void end();
 
 		void allocate_swapchain(const core::window_t& window_id);
+		void prepare_viewport_rt(const core::window_t& window_id);
+		void prepare_swapchain_window(const core::window_t& window_id);
+		void blit_render_targets(Diligent::ITexture* src, Diligent::ITexture* dst, bool msaa);
 	}
 }
