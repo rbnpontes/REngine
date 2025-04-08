@@ -1,6 +1,7 @@
 #include "./diligent_private.h"
 #include "./graphics_private.h"
 #include "./graphics_utils_private.h"
+#include "./graphics.h"
 
 #include "../exceptions.h"
 #include "../core/allocator.h"
@@ -98,8 +99,8 @@ namespace rengine {
 
 			desc.Width = window_desc.bounds.size.x;
 			desc.Height = window_desc.bounds.size.y;
-			desc.ColorBufferFormat = Diligent::TEX_FORMAT_RGBA8_UNORM;
-			desc.DepthBufferFormat = Diligent::TEX_FORMAT_D16_UNORM;
+			desc.ColorBufferFormat = (Diligent::TEXTURE_FORMAT)get_default_backbuffer_format();
+			desc.DepthBufferFormat = Diligent::TEX_FORMAT_UNKNOWN;
 
 			core::window__fill_native_window(window_id, native_window);
 
