@@ -12,6 +12,9 @@ namespace rengine {
 
 	void init_ex(const engine_init_desc& desc) {
 		g_engine_state.callback = engine__noop;
+		if (desc.window_id != core::no_window)
+			use_window(desc.window_id);
+
 		io::logger__init();
 		core::window__init();
 		graphics::init({
@@ -31,6 +34,16 @@ namespace rengine {
 
 	number_t get_delta_time() {
 		return g_engine_state.time.curr_delta;
+	}
+
+	void use_window(const core::window_t& window_id)
+	{
+		g_engine_state.window_id = window_id;
+	}
+
+	const core::window_t& get_window()
+	{
+		return g_engine_state.window_id;
 	}
 
 	void update() {

@@ -17,6 +17,7 @@ namespace rengine {
 	struct engine_state {
 		engine_update_callback callback;
 		engine_time time;
+		core::window_t window_id{ core::no_window };
 		bool begin;
 		bool stop;
 	};
