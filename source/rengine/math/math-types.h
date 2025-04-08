@@ -1,5 +1,6 @@
 #pragma once
 #include <rengine/types.h>
+#include <rengine/api.h>
 
 namespace rengine {
     namespace math {
@@ -8,6 +9,24 @@ namespace rengine {
             T x, y;
             constexpr base_vec2(): x((T)0), y((T)0) {}
             constexpr base_vec2(T x_, T y_): x(x_), y(y_) {}
+
+            bool equal(const base_vec2& target) const {
+                return x == target.x && y == target.y;
+            }
+
+            bool greater_than(const base_vec2& target) const {
+                return x > target.x || y > target.y;
+            }
+            bool greater_equal_than(const base_vec2& target) const {
+                return x >= target.x || y >= target.y;
+            }
+
+            bool less_than(const base_vec2& target) const {
+                return x < target.x || y < target.y;
+            }
+            bool less_equal_than(const base_vec2& target) const {
+                return x <= target.x || y <= target.y;
+            }
 
             static const base_vec2<T> zero;
             static const base_vec2<T> one;
@@ -68,7 +87,7 @@ namespace rengine {
             static const color transparent;
         };
 
-        struct byte_color {
+        struct R_EXPORT byte_color {
             u8 r, g, b, a;
 
             constexpr byte_color(): r(0), g(0), b(0), a(255){}
@@ -85,6 +104,14 @@ namespace rengine {
         template<typename T>
         struct base_rect {
             T position, size;
+
+            constexpr base_rect(): position(T::zero), size(T::zero){}
+            constexpr base_rect(T pos, T _size): position(pos), size(_size){}
+
+            bool equal(const base_rect& target) const {
+                return position.equal(target.position) && size.equal(target.size);
+            }
+            static const base_rect<T> zero;
         };
         typedef base_rect<vec2> rect;
         typedef base_rect<ivec2> irect;

@@ -39,5 +39,11 @@ namespace rengine {
         const byte_color byte_color::green = byte_color(0, 255, 0);
         const byte_color byte_color::blue = byte_color(0, 0, 255);
         const byte_color byte_color::transparent = byte_color(0, 0, 0, 0);
+
+        template <typename T> const base_rect<T> base_rect<T>::zero = base_rect<T>(T::zero, T::zero);
+        
+        template struct base_rect<vec2>;
+        template struct base_rect<ivec2>;
+        template struct base_rect<uvec2>;
 	}
 }
