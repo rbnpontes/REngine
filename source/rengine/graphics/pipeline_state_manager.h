@@ -24,6 +24,6 @@ namespace rengine {
 		R_EXPORT core::hash_t pipeline_state_mgr_graphics_hash_desc(const graphics_pipeline_state_create& create_info);
 		R_EXPORT ptr pipeline_state_mgr_get_internal_handle(pipeline_state_t id);
 		R_EXPORT u32 pipeline_state_mgr_get_cache_count();
-		R_EXPORT u32 pipeline_state_mgr_clear_cache();
+		R_EXPORT void pipeline_state_mgr_clear_cache();
 	}
 }

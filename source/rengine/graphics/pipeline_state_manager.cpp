@@ -50,7 +50,7 @@ namespace rengine {
             return g_cached_pipelines_count;
         }
 
-        u32 pipeline_state_mgr_clear_cache()
+        void pipeline_state_mgr_clear_cache()
         {
             for (const auto& it : g_cached_pipelines)
                 it.second->Release();
