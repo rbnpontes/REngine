@@ -11,6 +11,10 @@ namespace rengine{
 
             size_t limit;
             size_t usage;
+
+            size_t num_alloc;
+            size_t num_realloc;
+            size_t num_free;
         };
         
         extern alloc_data g_data = {
@@ -29,10 +33,10 @@ namespace rengine{
 
         void* alloc(size_t size) {
             alloc__assert_limit(size);
-
             g_data.usage += size;
-            size += sizeof(size_t);
-            void* ptr = g_data.malloc(size);
+            ++g_data.num_alloc;
+
+            void* ptr = g_data.malloc(size + sizeof(size_t));
             *(size_t*)ptr = size;
             return (char*)ptr + sizeof(size_t);
         }
@@ -44,8 +48,9 @@ namespace rengine{
             ptr = (char*)ptr - sizeof(size_t);
             size_t size = *(size_t*)ptr;
 
-            g_data.free(ptr);
             g_data.usage -= size;
+            g_data.free(ptr);
+            ++g_data.num_free;
         }
 
         void* alloc_realloc(void* ptr, size_t size) {
@@ -56,7 +61,8 @@ namespace rengine{
             ptr = (char*)ptr - sizeof(size_t);
             size_t old_size = *(size_t*)ptr;
             g_data.usage -= old_size;
-            
+            ++g_data.num_realloc;
+
             ptr = g_data.realloc(ptr, size);
             g_data.usage += size;
             return (char*)ptr + sizeof(size_t);
