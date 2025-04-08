@@ -8,6 +8,7 @@
 #include <SDL3/SDL.h>
 #include <EASTL/array.h>
 #include <EASTL/shared_ptr.h>
+#include "window.h"
 
 namespace rengine {
     namespace core {
@@ -24,18 +25,18 @@ namespace rengine {
             return wnd_id;
         }
         
-        void window_show(window_t id) {
+        void window_show(const window_t& id) {
             const auto& wnd = window__get_data(id);
             SDL_ShowWindow(wnd.owner);
         }
         
-        void window_hide(window_t id)
+        void window_hide(const window_t& id)
         {
             const auto& wnd = window__get_data(id);
             SDL_HideWindow(wnd.owner);
         }
 
-        void window_destroy(window_t id)
+        void window_destroy(const window_t& id)
         {
             const auto idx = window__assert_id(id);
             auto& wnd = g_windows[idx];
@@ -48,25 +49,25 @@ namespace rengine {
             --g_window_state.count;
         }
 
-        void window_set_title(window_t id, c_str title)
+        void window_set_title(const window_t& id, c_str title)
         {
             const auto& wnd = window__get_data(id);
             SDL_SetWindowTitle(wnd.owner, title);
         }
 
-        void window_set_size(window_t id, ivec2 size)
+        void window_set_size(const window_t& id, ivec2 size)
         {
             const auto& wnd = window__get_data(id);
             SDL_SetWindowSize(wnd.owner, size.x, size.y);
         }
 
-        void window_set_position(window_t id, ivec2 position)
+        void window_set_position(const window_t& id, ivec2 position)
         {
             const auto& wnd = window__get_data(id);
             SDL_SetWindowPosition(wnd.owner, position.x, position.y);
         }
 
-        window_desc_t window_get_desc(window_t id)
+        window_desc_t window_get_desc(const window_t& id)
         {
             const auto& wnd = window__get_data(id);
             int x, y, w, h;
@@ -81,11 +82,20 @@ namespace rengine {
             };
         }
 
+        math::uvec2 window_get_size(const window_t& id)
+        {
+            const auto& wnd = window__get_data(id);
+            int w, h;
+            SDL_GetWindowSize(wnd.owner, &w, &h);
+
+            return math::uvec2(w, h);
+        }
+
         u8 window_count() {
             return g_window_state.count;
         }
 
-        bool window_is_destroyed(window_t window)
+        bool window_is_destroyed(const window_t& window)
         {
             u8 id = window__decode_id(window);
             const auto& data = g_windows[id];
