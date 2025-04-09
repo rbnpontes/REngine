@@ -23,11 +23,11 @@ namespace rengine {
 		}
 
 		render_target_t render_target_mgr__encode_id(u8 idx, u8 magic) {
-			return ((u16)idx << 16) | (u16)magic;
+			return idx << 8u | magic;
 		}
 		
 		u8 render_target_mgr__decode_id(u16 value) {
-			return value >> 16;
+			return value >> 8u;
 		}
 
 		render_target_t render_target_mgr__create(const render_target_create_info& create_desc) {
@@ -84,7 +84,7 @@ namespace rengine {
 			--g_rt_mgr_state.count;
 		}
 
-		void render_target_mgr__resize(const render_target_t& id, const math::uvec2& size)
+		render_target_t render_target_mgr__resize(const render_target_t& id, const math::uvec2& size)
 		{
 			const auto& idx = render_target_mgr__assert_id(id);
 			auto& entry = g_rt_mgr_state.render_targets[idx];
@@ -111,6 +111,8 @@ namespace rengine {
 
 			entry.backbuffer = backbuffer;
 			entry.depthbuffer = depthbuffer;
+			entry.id = render_target_mgr__encode_id(idx, ++g_rt_mgr_state.magic);
+			return entry.id;
 		}
 
 		void render_target_mgr__get_desc(const render_target_t& id, render_target_desc* output_desc)
@@ -143,7 +145,7 @@ namespace rengine {
 		void render_target_mgr__get_internal_handles(const render_target_t& id, Diligent::ITexture** backbuffer, Diligent::ITexture** depthbuffer)
 		{
 			const auto& idx = render_target_mgr__assert_id(id);
-			const auto& entry = g_rt_mgr_state.render_targets[id];
+			const auto& entry = g_rt_mgr_state.render_targets[idx];
 
 			if(backbuffer)
 				*backbuffer = entry.backbuffer;

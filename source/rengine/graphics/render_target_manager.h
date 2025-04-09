@@ -31,7 +31,7 @@ namespace rengine {
 
 		R_EXPORT render_target_t render_target_mgr_create(const render_target_create_info& create_desc);
 		R_EXPORT void render_target_mgr_destroy(const render_target_t& id);
-		R_EXPORT void render_target_mgr_resize(const render_target_t& id, const math::uvec2& size);
+		R_EXPORT render_target_t render_target_mgr_resize(const render_target_t& id, const math::uvec2& size);
 		R_EXPORT void render_target_mgr_get_size(const render_target_t& id, math::uvec2* size);
 		R_EXPORT void render_target_mgr_get_desc(const render_target_t& id, render_target_desc* output_desc);
 		R_EXPORT render_target_type render_target_mgr_get_type(const render_target_t& id);

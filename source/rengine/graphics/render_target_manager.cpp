@@ -11,9 +11,9 @@ namespace rengine {
 			render_target_mgr__destroy(id);
 		}
 
-		void render_target_mgr_resize(const render_target_t& id, const math::uvec2& size)
+		render_target_t render_target_mgr_resize(const render_target_t& id, const math::uvec2& size)
 		{
-			render_target_mgr__resize(id, size);
+			return render_target_mgr__resize(id, size);
 		}
 		
 		void render_target_mgr_get_size(const render_target_t& id, math::uvec2* size) {
