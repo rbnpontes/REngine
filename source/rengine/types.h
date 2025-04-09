@@ -44,11 +44,11 @@ namespace rengine {
         typedef u16 constant_buffer_t;
         typedef u16 instancing_buffer_t;
         // texture objects
-        typedef u8 texture_2d_t;
-        typedef u8 texture_3d_t;
-        typedef u8 texture_cube_t;
-        typedef u8 texture_array_t;
-        typedef u8 render_target_t;
+        typedef u16 texture_2d_t;
+        typedef u16 texture_3d_t;
+        typedef u16 texture_cube_t;
+        typedef u16 texture_array_t;
+        typedef u16 render_target_t;
         typedef u16 pipeline_state_t;
         typedef u16 srb_t;
         // shader objects

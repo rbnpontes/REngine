@@ -23,7 +23,7 @@ namespace rengine {
 		{
 		}
 
-		void renderer__reset_state() {
+		void renderer__reset_state(bool reset_ctx_state) {
 			auto& cmd = g_renderer_state.default_cmd;
 			cmd.name = strings::graphics::g_default_cmd_name;
 			cmd.id = 0;
@@ -39,6 +39,9 @@ namespace rengine {
 			cmd.vertex_offsets.fill(0);
 			cmd.index_buffer = no_index_buffer;
 			cmd.pipeline_state = no_pipeline_state;
+
+			if (reset_ctx_state)
+				g_renderer_state.context_state = {};
 		}
 
 		void renderer__set_render_targets()
@@ -73,7 +76,7 @@ namespace rengine {
 				depth_stencil = depthbuffer->GetDefaultView(Diligent::TEXTURE_VIEW_DEPTH_STENCIL);
 			}
 
-			ctx->SetRenderTargets(g_rt_mgr_state.count,
+			ctx->SetRenderTargets(cmd.num_render_targets,
 				render_targets,
 				depth_stencil,
 				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);

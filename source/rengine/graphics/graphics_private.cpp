@@ -108,7 +108,7 @@ namespace rengine {
 		}
 
 		void begin() {
-			renderer__reset_state();
+			renderer__reset_state(true);
 			
 			const auto& window = g_engine_state.window_id;
 			if (window == core::no_window)

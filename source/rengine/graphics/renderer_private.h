@@ -74,7 +74,7 @@ namespace rengine {
 
         void renderer__init();
         void renderer__deinit();
-        void renderer__reset_state();
+        void renderer__reset_state(bool reset_ctx_state = false);
         void renderer__set_render_targets();
         void renderer__set_vbuffers();
         void renderer__set_ibuffer();

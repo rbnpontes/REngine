@@ -45,12 +45,12 @@ namespace rengine {
 
 		u16 buffer_mgr__encode_id(u8 idx, u8 magic)
 		{
-			return ((u16)idx << 16) | (u16)idx;
+			return (idx << 8u) | idx;
 		}
 
 		u8 buffer_mgr__decode_id(u16 value)
 		{
-			return value >> 16;
+			return value >> 8u;
 		}
 
 		u16 buffer_mgr__try_create(const buffer_type& type, const buffer_create_desc& desc)
