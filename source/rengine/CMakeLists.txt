@@ -32,12 +32,14 @@ set (PRIVATE_LIBS
     Diligent-Common
     Diligent-GraphicsEngineOpenGL-static
     Diligent-GraphicsEngineVk-static
-    fmt::fmt
     SDL3::SDL3-static
     EASTL
     EABase
     xxHash
 )
+set (PUBLIC_LIBS
+    fmt::fmt)
+
 set (PRIVATE_DEFINITIONS 
     -DENGINE_LIB
     -DFEATURE_BACKEND_OPENGL
@@ -76,7 +78,9 @@ if(WIN32)
     )
 endif()
 
-target_link_libraries(rengine PRIVATE ${PRIVATE_LIBS})
+target_link_libraries(rengine 
+    PRIVATE ${PRIVATE_LIBS}
+    PUBLIC ${PUBLIC_LIBS})
 target_compile_options(rengine 
     PRIVATE ${PRIVATE_DEFINITIONS}
     PUBLIC ${PUBLIC_DEFINITIONS})
