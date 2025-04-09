@@ -18,6 +18,8 @@ namespace rengine {
             "constant buffer"
         };
 
+        constexpr static c_str g_pool_id = "pool";
+
         namespace graphics {
             constexpr static c_str g_models_vbuffer_name = "rengine::models::vbuffer";
             constexpr static c_str g_models_ibuffer_name = "rengine::models::ibuffer";
@@ -125,6 +127,9 @@ namespace rengine {
 
             constexpr static c_str g_window_invalid_id = "Invalid window id";
             constexpr static c_str g_window_reached_max_created_windows = "Reached max of created windows";
+
+            constexpr static c_str g_pool_is_full = "Cannot insert more items. The pool has reached its maximum capacity of {0}";
+            constexpr static c_str g_pool_invalid_id = "Cannot retrieve item: ID {0} is invalid.";
 
 			constexpr static c_str g_logger_reached_max_log_objects = "Reached max of created log objects.";
 

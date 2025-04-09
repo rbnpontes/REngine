@@ -20,6 +20,7 @@ namespace rengine {
 	namespace core {
 		ENGINE_DEFINE_EXCEPTION(alloc_exception);
 		ENGINE_DEFINE_EXCEPTION(window_exception);
+		ENGINE_DEFINE_EXCEPTION(pool_exception);
 	}
 
 	namespace io {
