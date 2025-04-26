@@ -122,20 +122,36 @@ namespace rengine {
 
 		void drawing__upload_buffers()
 		{
-			if (g_drawing_state.triangles.size() > 0)
-				buffer_mgr_vbuffer_update(g_drawing_state.vertex_buffer,
-					g_drawing_state.triangles.data(),
-					g_drawing_state.triangles.size() * sizeof(triangle));
+			auto& state = g_drawing_state;
+			u64 cpy_size = 0;
+			ptr data = buffer_mgr_vbuffer_map(state.vertex_buffer, buffer_map_type::write);
+
+			if (state.num_triangles > 0) {
+				cpy_size = state.num_triangles * sizeof(triangle);
+				memcpy(data, state.triangles.data(), cpy_size);
+				data = static_cast<u8*>(data) + cpy_size;
+			}
+
+			if (state.num_lines > 0) {
+				cpy_size = state.num_lines * sizeof(line_t);
+				memcpy(data, state.lines.data(), cpy_size);
+				data = static_cast<u8*>(data) + cpy_size;
+			}
+
+			buffer_mgr_vbuffer_unmap(state.vertex_buffer);
 		}
 
 		void drawing__submit_draw_calls()
 		{
 			if (g_drawing_state.num_triangles > 0)
 				drawing__draw_triangles();
+			if (g_drawing_state.num_lines > 0)
+				drawing__draw_lines();
 		}
 
 		void drawing__draw_triangles()
 		{
+			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
 			renderer_set_topology(primitive_topology::triangle_strip);
 			renderer_set_depth_enabled(true);
@@ -144,7 +160,21 @@ namespace rengine {
 			renderer_set_vertex_shader(g_drawing_state.triangle_vs_shader);
 			renderer_set_pixel_shader(g_drawing_state.triangle_ps_shader);
 			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
-			renderer_draw({ g_drawing_state.num_triangles * 3 });
+			renderer_draw({ state.num_triangles * 3 });
+		}
+
+		void drawing__draw_lines()
+		{
+			const auto& state = g_drawing_state;
+			renderer_set_vbuffer(state.vertex_buffer, state.num_triangles * sizeof(triangle));
+			renderer_set_topology(primitive_topology::line_strip);
+			renderer_set_depth_enabled(true);
+			renderer_set_wireframe(false);
+			renderer_set_cull_mode(cull_mode::clock_wise);
+			renderer_set_vertex_shader(g_drawing_state.triangle_vs_shader);
+			renderer_set_pixel_shader(g_drawing_state.triangle_ps_shader);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
+			renderer_draw({ g_drawing_state.num_lines * 2 });
 		}
 	}
 }

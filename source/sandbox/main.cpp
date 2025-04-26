@@ -9,12 +9,19 @@ void game_loop() {
         return;
     }
 
+    const auto a = rengine::math::vec3(-.5, -.5, 0.);
+	const auto b = rengine::math::vec3(+0., +.5, 0.);
+	const auto c = rengine::math::vec3(+.5, -.5, 0.);
+
     rengine::graphics::renderer_begin_draw();
         rengine::graphics::renderer_add_triangle({
             { rengine::math::vec3(-0.5f, -0.5f, 0.), rengine::math::byte_color::red },
             { rengine::math::vec3(+0.0f, +0.5f, 0.), rengine::math::byte_color::green },
             { rengine::math::vec3(+0.5f, -0.5f, 0.), rengine::math::byte_color::blue },
         });
+        rengine::graphics::renderer_add_line(a, b);
+        rengine::graphics::renderer_add_line(b, c);
+        rengine::graphics::renderer_add_line(c, a);
     rengine::graphics::renderer_end_draw();
 }
 

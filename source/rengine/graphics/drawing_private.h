@@ -12,7 +12,7 @@ namespace rengine {
 		{
 			vector<vertex> points;
 			vector<triangle> triangles;
-			vector<line> lines;
+			vector<line_t> lines;
 			vector<vertex_uv> geometry_vertices;
 			vector<u32> geometry_indices;
 

@@ -13,7 +13,7 @@ namespace rengine {
             math::vec2 uv;
         };
 
-        struct line {
+        struct line_t {
             vertex a;
             vertex b;
         };
@@ -49,7 +49,7 @@ namespace rengine {
         R_EXPORT void renderer_end_draw();
         R_EXPORT void renderer_set_vertex_color(const math::byte_color& color);
         R_EXPORT void renderer_add_point(const vertex& vertex);
-        R_EXPORT void renderer_add_line(const line& line);
+        R_EXPORT void renderer_add_line(const line_t& line);
         R_EXPORT void renderer_add_line(const math::vec3& a, const math::vec3& b);
         R_EXPORT void renderer_add_triangle(const triangle& value);
         R_EXPORT void renderer_add_triangle(const math::vec3& a, const math::vec3& b, const math::vec3& c);

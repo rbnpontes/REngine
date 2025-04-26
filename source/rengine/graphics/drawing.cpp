@@ -22,7 +22,7 @@ namespace rengine {
 
 		void renderer_set_vertex_color(const math::byte_color& color)
 		{
-			throw not_implemented_exception();
+			g_drawing_state.current_vertex_color = color;
 		}
 
 		void renderer_add_point(const vertex& vertex)
@@ -30,14 +30,15 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void renderer_add_line(const line& line)
+		void renderer_add_line(const line_t& line)
 		{
-			throw not_implemented_exception();
+			core::vector_utils_insert_item<line_t>(g_drawing_state.lines, line, &g_drawing_state.num_lines);
 		}
 
 		void renderer_add_line(const math::vec3& a, const math::vec3& b)
 		{
-			throw not_implemented_exception();
+			line_t line = { { a, g_drawing_state.current_vertex_color }, { b, g_drawing_state.current_vertex_color } };
+			renderer_add_line(line);
 		}
 
 		void renderer_add_triangle(const triangle& value)
