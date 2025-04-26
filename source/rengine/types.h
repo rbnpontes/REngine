@@ -31,6 +31,8 @@ namespace rengine {
 
     #define null nullptr
     
+    typedef void(*action_t)();
+
     namespace core {
         typedef u32 window_t;
         static u32 no_window = MAX_U32_VALUE;
@@ -121,6 +123,7 @@ namespace rengine {
         enum class shader_type : u8 {
             vertex = 0,
             pixel,
+            max,
         };
     }
 }

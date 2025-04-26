@@ -21,11 +21,11 @@ namespace rengine {
         constexpr static c_str g_pool_id = "pool";
 
         namespace graphics {
-            constexpr static c_str g_models_vbuffer_name = "rengine::models::vbuffer";
-            constexpr static c_str g_models_ibuffer_name = "rengine::models::ibuffer";
-			constexpr static c_str g_models_pipeline_name = "rengine::models::gpipeline";
-			constexpr static c_str g_models_vshader_name = "rengine::models::vshader";
-			constexpr static c_str g_models_pshader_name = "rengine::models::pshader";
+            constexpr static c_str g_drawing_vbuffer_name = "rengine::models::vbuffer";
+            constexpr static c_str g_drawing_ibuffer_name = "rengine::models::ibuffer";
+			constexpr static c_str g_drawing_pipeline_name = "rengine::models::gpipeline";
+			constexpr static c_str g_drawing_vshader_name = "rengine::models::vshader";
+			constexpr static c_str g_drawing_pshader_name = "rengine::models::pshader";
 
             constexpr static c_str g_viewport_rt_name = "rengine::viewport";
             constexpr static c_str g_default_cmd_name = "rengine::render_command";
@@ -96,6 +96,7 @@ namespace rengine {
             constexpr static c_str g_diligent_tag = "diligent";
             constexpr static c_str g_buffer_mgr_tag = "buffer_mgr";
             constexpr static c_str g_renderer_tag = "renderer";
+            constexpr static c_str g_render_cmd_tag = "render_command";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -117,9 +118,10 @@ namespace rengine {
             constexpr static c_str g_rt_mgr_cant_destroy_invalid_id = "Can't destroy render target from invalid id. Id = {0}";
 
             constexpr static c_str g_renderer_cant_clear_unset_depthbuffer = "Can't clear depth buffer that has not been set.";
-            constexpr static c_str g_renderer_isnt_allowed_to_set_rt_grt_than_max = "Number of render targets ({0}) is greater than max allowed ({1})";
-            constexpr static c_str g_renderer_isnt_allowed_to_set_buffer_grt_than_max = "Number of vertex buffer ({0}) is greater than max allowed ({1})";
-            constexpr static c_str g_renderer_not_found_command = "Not found command from given id {0}";
+
+            constexpr static c_str g_render_isnt_allowed_to_set_rt_grt_than_max = "Number of render targets ({0}) is greater than max allowed ({1})";
+            constexpr static c_str g_render_cmd_isnt_allowed_to_set_buffer_grt_than_max = "Number of vertex buffer ({0}) is greater than max allowed ({1})";
+            constexpr static c_str g_render_cmd_not_found_command = "Not found command from given id {0}";
         }
 
         namespace exceptions {
@@ -130,7 +132,7 @@ namespace rengine {
 
             constexpr static c_str g_pool_is_full = "Cannot insert more items. The pool has reached its maximum capacity of {0}";
             constexpr static c_str g_pool_invalid_id = "Cannot retrieve item: ID {0} is invalid.";
-
+            constexpr static c_str g_pool_out_of_range = "Index out of range. IDX {0}";
 			constexpr static c_str g_logger_reached_max_log_objects = "Reached max of created log objects.";
 
             constexpr static c_str g_graphics_unsupported_backend = "Unsupported graphics backend {0} on this platform";
@@ -162,10 +164,12 @@ namespace rengine {
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
             constexpr static c_str g_renderer_clear_depth_without_set = "Can´t clear Depth Stencil. You must assign depth stencil first";
-            constexpr static c_str g_renderer_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
         
             constexpr static c_str g_models_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
             constexpr static c_str g_models_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";
+
+            constexpr static c_str g_render_cmd_call_begin_first = "Must call render_command_begin or render_command_begin_update first";
+            constexpr static c_str g_render_cmd_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
         }
     }
 }

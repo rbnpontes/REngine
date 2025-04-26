@@ -15,8 +15,8 @@
 #define GRAPHICS_MAX_ALLOC_CBUFFERS 8
 #define GRAPHICS_MAX_ALLOC_RENDER_TARGETS 16
 
-#define MODELS_DEFAULT_VBUFFER_SIZE 1024 * sizeof(rengine::graphics::vertex_uv)
-#define MODELS_DEFAULT_IBUFFER_SIZE 1024 * sizeof(u32)
+#define DRAWING_DEFAULT_VBUFFER_SIZE 1024 * sizeof(rengine::graphics::vertex_uv)
+#define DRAWING_DEFAULT_IBUFFER_SIZE 1024 * sizeof(u32)
 
 #define LIGHT_ENTITY_SIZE u16
 

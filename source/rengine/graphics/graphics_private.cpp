@@ -4,8 +4,10 @@
 #include "./renderer_private.h"
 #include "./renderer.h"
 #include "./models_private.h"
+#include "./drawing_private.h"
 #include "./buffer_manager_private.h"
 #include "./render_target_manager_private.h"
+#include "./render_command_private.h"
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
@@ -69,25 +71,29 @@ namespace rengine {
 
 		void init(const graphics_init_desc& desc)
 		{
-			init_call_fn init_calls[] = {
+			init_call_fn init_graphics_calls[] = {
 				init_d3d11,
 				init_d3d12,
 				init_vk,
 				init_webgpu,
 				init_opengl
 			};
+			action_t init_calls[] = {
+				buffer_mgr__init,
+				render_target_mgr__init,
+				renderer__init,
+				render_command__init,
+				drawing__init,
+			};
 
 			assert_backend(desc.backend);
 			g_graphics_state.backend = desc.backend;
 
-			init_calls[(u8)g_graphics_state.backend](desc);
+			init_graphics_calls[(u8)g_graphics_state.backend](desc);
 			assert_diligent_objects();
 
-			buffer_mgr__init();
-			render_target_mgr__init();
-			models__init();
-
-			renderer__init();
+			for (auto i = 0; i < _countof(init_calls); ++i)
+				init_calls[i]();
 		}
 
 		void deinit()
@@ -95,7 +101,7 @@ namespace rengine {
 			assert_initialization();
 
 			renderer__deinit();
-			models__deinit();
+			//models__deinit();
 			render_target_mgr__deinit();
 			buffer_mgr__deinit();
 

@@ -19,7 +19,7 @@ namespace rengine {
 		void render_target_mgr__deinit()
 		{
 			render_target_mgr__clear_cache();
-			g_rt_mgr_state.magic = 0;
+			//g_rt_mgr_state.magic = 0;
 		}
 
 		render_target_t render_target_mgr__encode_id(u8 idx, u8 magic) {
@@ -35,72 +35,43 @@ namespace rengine {
 				throw not_implemented_exception();
 
 			auto& state = g_rt_mgr_state;
-			if (state.count == GRAPHICS_MAX_ALLOC_RENDER_TARGETS)
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_rt_mgr_reach_limit, GRAPHICS_MAX_ALLOC_RENDER_TARGETS).c_str()
-				);
-
-			const auto& idx = render_target_mgr__find_free_id();
-			if (idx == MAX_U8_VALUE)
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_rt_mgr_reach_limit, GRAPHICS_MAX_ALLOC_RENDER_TARGETS).c_str()
-				);
 
 			const auto device = g_graphics_state.device;
-			auto& entry = state.render_targets[idx];
-			entry.id = render_target_mgr__encode_id(idx, state.magic++);
+			render_target_entry entry;
 			entry.desc = create_desc.desc;
 			entry.type = create_desc.type;
 
-			Diligent::ITexture* backbuffer = null;
-			Diligent::ITexture* depthbuffer = null;
-			render_target_mgr__alloc_textures(create_desc, &backbuffer, &depthbuffer);
-
-			entry.backbuffer = backbuffer;
-			entry.depthbuffer = depthbuffer;
-			++g_rt_mgr_state.count;
-			return entry.id;
+			render_target_mgr__alloc_textures(create_desc, &entry.backbuffer, &entry.depthbuffer);
+			return g_rt_mgr_state.render_targets.push_back(entry);
 		}
 
 		void render_target_mgr__destroy(const render_target_t& id)
 		{
-			const auto log = g_rt_mgr_state.log;
-			if (!render_target_mgr__is_valid(id)) {
-				log->error(
-					fmt::format(strings::logs::g_rt_mgr_cant_destroy_invalid_id, id).c_str()
-				);
-				return;
-			}
+			auto& entry = g_rt_mgr_state.render_targets[id];
 
-			const auto& idx = render_target_mgr__decode_id(id);
-			auto& entry = g_rt_mgr_state.render_targets[idx];
-
-			entry.backbuffer->Release();
-			if (entry.depthbuffer)
-				entry.depthbuffer->Release();
-
-			entry.backbuffer = entry.depthbuffer = null;
-			entry.id = 0;
-			--g_rt_mgr_state.count;
+			entry.value.backbuffer->Release();
+			if (entry.value.depthbuffer)
+				entry.value.depthbuffer->Release();
+			g_rt_mgr_state.render_targets.erase(id);
 		}
 
 		render_target_t render_target_mgr__resize(const render_target_t& id, const math::uvec2& size)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
-			auto& entry = g_rt_mgr_state.render_targets[idx];
-			if (entry.type == render_target_type::external)
+			//const auto& idx = render_target_mgr__assert_id(id);
+			auto& entry = g_rt_mgr_state.render_targets[id];
+			if (entry.value.type == render_target_type::external)
 				throw graphics_exception(
 					fmt::format(strings::exceptions::g_rt_mgr_cant_external, id).c_str()
 				);
 
-			auto desc = entry.backbuffer->GetDesc();
-			entry.backbuffer->Release();
-			if (entry.depthbuffer)
-				entry.depthbuffer->Release();
+			auto desc = entry.value.backbuffer->GetDesc();
+			entry.value.backbuffer->Release();
+			if (entry.value.depthbuffer)
+				entry.value.depthbuffer->Release();
 
 			render_target_create_info ci = {
-				entry.desc,
-				entry.type,
+				entry.value.desc,
+				entry.value.type,
 				null
 			};
 			ci.desc.size = size;
@@ -109,57 +80,55 @@ namespace rengine {
 			Diligent::ITexture* depthbuffer = null;
 			render_target_mgr__alloc_textures(ci, &backbuffer, &depthbuffer);
 
-			entry.backbuffer = backbuffer;
-			entry.depthbuffer = depthbuffer;
-			entry.id = render_target_mgr__encode_id(idx, ++g_rt_mgr_state.magic);
-			return entry.id;
+			render_target_entry resized_rt_entry = { 
+				entry.value.type,
+				entry.value.desc, 
+				backbuffer,
+				depthbuffer
+			};
+			return g_rt_mgr_state.render_targets.replace(id, resized_rt_entry);
 		}
 
 		void render_target_mgr__get_desc(const render_target_t& id, render_target_desc* output_desc)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
-			const auto& entry = g_rt_mgr_state.render_targets[idx];
-			*output_desc = entry.desc;
+			const auto& entry = g_rt_mgr_state.render_targets[id];
+			*output_desc = entry.value.desc;
 		}
 
 		void render_target_mgr__get_size(const render_target_t& id, math::uvec2* size)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
-			const auto& entry = g_rt_mgr_state.render_targets[idx];
-			*size = entry.desc.size;
+			const auto& entry = g_rt_mgr_state.render_targets[id];
+			*size = entry.value.desc.size;
 		}
 
 		render_target_type render_target_mgr__get_type(const render_target_t& id)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
-			return g_rt_mgr_state.render_targets[idx].type;
+			return g_rt_mgr_state.render_targets[id].value.type;
 		}
 
 		bool render_target_mgr__has_depthbuffer(const render_target_t& id)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
 			const auto& entry = g_rt_mgr_state.render_targets[id];
-			return entry.depthbuffer != null;
+			return entry.value.depthbuffer != null;
 		}
 
 		void render_target_mgr__get_internal_handles(const render_target_t& id, Diligent::ITexture** backbuffer, Diligent::ITexture** depthbuffer)
 		{
-			const auto& idx = render_target_mgr__assert_id(id);
-			const auto& entry = g_rt_mgr_state.render_targets[idx];
+			const auto& entry = g_rt_mgr_state.render_targets[id];
 
 			if(backbuffer)
-				*backbuffer = entry.backbuffer;
+				*backbuffer = entry.value.backbuffer;
 			if(depthbuffer)
-				*depthbuffer = entry.depthbuffer;
+				*depthbuffer = entry.value.depthbuffer;
 		}
 
 		render_target_t render_target_mgr__find_suitable_from_size(const math::uvec2& size)
 		{
 			for (const auto& entry : g_rt_mgr_state.render_targets) {
-				if (!entry.backbuffer)
+				if (!entry.value.backbuffer)
 					continue;
 
-				const auto& rt_size = entry.desc.size;
+				const auto& rt_size = entry.value.desc.size;
 				if (rt_size.greater_equal_than(size))
 					return entry.id;
 			}
@@ -217,59 +186,28 @@ namespace rengine {
 			(*depthbuffer)->AddRef();
 		}
 
-		u8 render_target_mgr__find_free_id() {
-			const auto& render_targets = g_rt_mgr_state.render_targets;
-			for (u8 i = 0; i < GRAPHICS_MAX_RENDER_TARGETS; ++i) {
-				const auto& entry = render_targets[i];
-				if (entry.backbuffer == null && entry.depthbuffer == null)
-					return i;
-			}
-
-			return MAX_U8_VALUE;
-		}
-
-		u8 render_target_mgr__assert_id(const render_target_t& id)
-		{
-			const auto& state = g_rt_mgr_state;
-			const auto& idx = render_target_mgr__decode_id(id);
-			if(!render_target_mgr__is_valid(id))
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_rt_mgr_invalid_id, id).c_str()
-				);
-
-			return idx;
-		}
-
 		bool render_target_mgr__is_valid(const render_target_t& id)
 		{
 			const auto& state = g_rt_mgr_state;
-			const auto& idx = render_target_mgr__decode_id(id);
-			if (idx >= GRAPHICS_MAX_ALLOC_RENDER_TARGETS)
-				return false;
-			
-			const auto& entry = g_rt_mgr_state.render_targets[idx];
-			return entry.id == id && entry.backbuffer;
+			return state.render_targets.is_valid(id);
 		}
 
 		void render_target_mgr__clear_cache()
 		{
 			for (auto& entry : g_rt_mgr_state.render_targets) {
-				entry.id = 0;
-				if (entry.backbuffer) {
-					entry.backbuffer->Release();
-					entry.backbuffer = null;
-				}
+				if (entry.value.backbuffer)
+					entry.value.backbuffer->Release();
 
-				if (entry.depthbuffer) {
-					entry.depthbuffer->Release();
-					entry.depthbuffer = null;
-				}
+				if (entry.value.depthbuffer)
+					entry.value.depthbuffer->Release();
 			}
+
+			g_rt_mgr_state.render_targets.clear();
 		}
 
 		u8 render_target_mgr__get_count()
 		{
-			return g_rt_mgr_state.count;
+			return g_rt_mgr_state.render_targets.count();
 		}
 
 		void render_target_mgr__get_available_rts(u8* count, render_target_t* output_ids)
@@ -277,21 +215,16 @@ namespace rengine {
 			if (!count)
 				return;
 
-			*count = g_rt_mgr_state.count;
+			*count = g_rt_mgr_state.render_targets.count();
 
 			if (!output_ids)
 				return;
 
 			u8 idx = 0;
 			for (const auto& entry : g_rt_mgr_state.render_targets) {
-				if (!entry.backbuffer)
-					continue;
-
 				output_ids[idx] = entry.id;
 				++idx;
 			}
-
-			g_rt_mgr_state.count = 0;
 		}
 	}
 }

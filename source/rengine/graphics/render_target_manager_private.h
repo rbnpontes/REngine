@@ -2,6 +2,7 @@
 #include "../base_private.h"
 #include "./render_target_manager.h"
 
+#include "../core/pool.h"
 #include "../io/logger.h"
 
 #include <SwapChain.h>
@@ -10,7 +11,6 @@
 namespace rengine {
 	namespace graphics {
 		struct render_target_entry {
-			u16 id{ 0 };
 			render_target_type type{ render_target_type::normal };
 			render_target_desc desc{};
 			Diligent::ITexture* backbuffer{ null };
@@ -19,9 +19,9 @@ namespace rengine {
 
 		struct render_target_mgr_state {
 			io::ILog* log;
-			array<render_target_entry, GRAPHICS_MAX_ALLOC_RENDER_TARGETS> render_targets;
-			u8 count{ 0 };
-			u8 magic{ 0 };
+			core::array_pool<render_target_entry, GRAPHICS_MAX_ALLOC_RENDER_TARGETS> render_targets;
+			/*u8 count{ 0 };
+			u8 magic{ 0 };*/
 		};
 
 		extern render_target_mgr_state g_rt_mgr_state;
@@ -44,8 +44,6 @@ namespace rengine {
 
 
 		void render_target_mgr__alloc_textures(const render_target_create_info& create_info, Diligent::ITexture** backbuffer, Diligent::ITexture** depthbuffer);
-		u8 render_target_mgr__find_free_id();
-		u8 render_target_mgr__assert_id(const render_target_t& id);
 		bool render_target_mgr__is_valid(const render_target_t& id);
 
 		void render_target_mgr__clear_cache();

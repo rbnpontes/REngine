@@ -31,7 +31,7 @@ namespace rengine {
 
 		R_EXPORT void renderer_set_vbuffer(const vertex_buffer_t& buffer, u64 offset = 0);
 		R_EXPORT void renderer_set_vbuffers(const vertex_buffer_t* buffers, u8 num_buffers, u64* offsets);
-		R_EXPORT void renderer_set_ibuffer(const index_buffer_t& buffer);
+		R_EXPORT void renderer_set_ibuffer(const index_buffer_t& buffer, u64 offset = 0);
 		R_EXPORT void renderer_set_render_target(const render_target_t& rt_id, const render_target_t& depth_id = no_render_target);
 		R_EXPORT void renderer_set_render_targets(const render_target_t* render_targets, const u8& num_rts, const render_target_t& depth_id = no_render_target);
 		R_EXPORT void renderer_set_texture_2d(const u8& tex_slot, const texture_2d_t& tex_id);
