@@ -10,6 +10,13 @@ namespace rengine {
             constant_buffer
         };
 
+        enum class buffer_map_type {
+			none = 0,
+			read,
+			write,
+			read_write
+		};;
+
         struct buffer_create_desc {
             c_str name{ null };
             u32 size{ 0 };
@@ -28,9 +35,16 @@ namespace rengine {
         index_buffer_t buffer_mgr_ibuffer_create(const buffer_create_desc& desc);
         constant_buffer_t buffer_mgr_cbuffer_create(const buffer_create_desc& desc);
 
-		R_EXPORT void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size);
-		R_EXPORT void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size);
-		R_EXPORT void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size);
+		R_EXPORT void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size, u32 offset = 0);
+		R_EXPORT void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size, u32 offset = 0);
+		R_EXPORT void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size, u32 offset = 0);
+
+		R_EXPORT ptr buffer_mgr_vbuffer_map(const vertex_buffer_t& id, const buffer_map_type& type);
+        R_EXPORT ptr buffer_mgr_ibuffer_map(const index_buffer_t& id, const buffer_map_type& type);
+		R_EXPORT ptr buffer_mgr_cbuffer_map(const constant_buffer_t& id, const buffer_map_type& type);
+		R_EXPORT void buffer_mgr_vbuffer_unmap(const vertex_buffer_t& id);
+		R_EXPORT void buffer_mgr_ibuffer_unmap(const index_buffer_t& id);
+		R_EXPORT void buffer_mgr_cbuffer_unmap(const constant_buffer_t& id);
 
 		R_EXPORT u16 buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size);
 		R_EXPORT u16 buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size);

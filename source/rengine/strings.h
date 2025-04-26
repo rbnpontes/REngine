@@ -114,7 +114,8 @@ namespace rengine {
                 "Engine will copy partial data to GPU, next time try to increate buffer size! "
                 "Upload Size = {0}, Buffer Id = {1} Buffer Name = {2}, Buffer Size = {3}, Buffer Type = {4}";
             constexpr static c_str g_buffer_mgr_free_invalid_buffer = "Can´t free an invalid buffer. Buffer Id = {0}";
-        
+			constexpr static c_str g_buffer_mgr_cant_unmap = "Can´t unmap buffer. Buffer is not mapped. Buffer Id = {0}, Buffer Type = {1}";
+
             constexpr static c_str g_rt_mgr_cant_destroy_invalid_id = "Can't destroy render target from invalid id. Id = {0}";
 
             constexpr static c_str g_renderer_cant_clear_unset_depthbuffer = "Can't clear depth buffer that has not been set.";

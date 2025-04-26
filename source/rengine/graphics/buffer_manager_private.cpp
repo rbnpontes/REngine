@@ -18,29 +18,26 @@ namespace rengine {
 		void buffer_mgr__deinit()
 		{
 			auto& state = g_buffer_mgr_state;
-			buffer_entry* buffers[] = {
-				state.vertex_buffers.data(),
-				state.index_buffers.data(),
-				state.constant_buffers.data()
-			};
-			u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
 
-			for (u8 i = 0; i < _countof(buffers); ++i) {
-				auto entries = buffers[i];
-				const auto& size = buffer_sizes[i];
-				for (u32 i = 0; i < size; ++i) {
-					const auto& entry = entries[i];
-					if (!entry.handler)
-						continue;
-					entry.handler->Release();
-				}
-			}
+			for(const auto& buffer : state.vertex_buffers)
+				buffer_mgr__free_buffer(buffer.value);
+			for (const auto& buffer : state.index_buffers)
+				buffer_mgr__free_buffer(buffer.value);
+			for (const auto& buffer : state.constant_buffers)
+				buffer_mgr__free_buffer(buffer.value);
 
+			state.vertex_buffers.clear();
+			state.index_buffers.clear();
+			state.constant_buffers.clear();
 			g_buffer_mgr_state = {};
+		}
+
+		void buffer_mgr__free_buffer(const buffer_entry& entry)
+		{
+			auto ctx = g_graphics_state.contexts[0];
+			if (entry.map_type != buffer_map_type::none)
+				ctx->UnmapBuffer(entry.handler, g_map_type_tbl[(u32)entry.map_type]);
+			entry.handler->Release();
 		}
 
 		u16 buffer_mgr__encode_id(u8 idx, u8 magic)
@@ -56,52 +53,32 @@ namespace rengine {
 		u16 buffer_mgr__try_create(const buffer_type& type, const buffer_create_desc& desc)
 		{
 			auto& state = g_buffer_mgr_state;
-			buffer_entry* buffers[] = {
-				state.vertex_buffers.data(),
-				state.index_buffers.data(),
-				state.constant_buffers.data()
-			};
-			const u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			u8* buffer_counters = reinterpret_cast<u8*>(&state.counts);
-			u8* magic_numbers = reinterpret_cast<u8*>(&state.magic_nums);
-
-			u8 buffer_idx = buffer_mgr__find_empty_entry(buffers[(u8)type], buffer_sizes[(u8)type]);
-			if (buffer_sizes[(u8)type] == buffer_counters[(u8)type])
-				throw graphics_exception(
-					fmt::format(strings::exceptions::g_buffer_mgr_reach_limit,
-						strings::g_buffer_names[(u8)type],
-						buffer_counters[(u8)type]).c_str()
-				);
-
+			u16 buffer_id = 0;
 			buffer_entry new_entry = {
-				null,
-				buffer_mgr__encode_id(buffer_idx, magic_numbers[(u8)type]++)
+				buffer_mgr__create(type, desc),
+				buffer_map_type::none
 			};
-			++buffer_counters[(u8)type];
 
-			auto hash_suitable_dynamic_buffer = buffer_mgr__find_existent_buffer(type, desc, &buffer_idx);
-			// Constant Buffer must not be recycled
-			if (hash_suitable_dynamic_buffer && type != buffer_type::constant_buffer) {
-				const auto& target_entry = buffers[(u8)type][buffer_idx];
-				target_entry.handler->AddRef();
-
-				new_entry.handler = target_entry.handler;
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+				buffer_id = state.vertex_buffers.push_back(new_entry);
+				break;
+			case buffer_type::index_buffer:
+				buffer_id = state.index_buffers.push_back(new_entry);
+				break;
+			case buffer_type::constant_buffer:
+				buffer_id = state.constant_buffers.push_back(new_entry);
+				break;
 			}
-			else {
-				new_entry.handler = buffer_mgr__create(type, desc);
-			}
 
-			buffers[(u8)type][buffer_idx] = new_entry;
-			return new_entry.id;
+			return buffer_id;
 		}
 
 		void buffer_mgr__free(const buffer_type& type, u16 buffer_id)
 		{
-			const auto log = g_buffer_mgr_state.log;
+			const auto& state = g_buffer_mgr_state;
+			const auto log = state.log;
 			if (!buffer_mgr__is_valid(type, buffer_id)) {
 				log->warn(
 					fmt::format(strings::logs::g_buffer_mgr_free_invalid_buffer,
@@ -110,38 +87,19 @@ namespace rengine {
 				return;
 			}
 
-			const auto& idx = buffer_mgr__decode_id(buffer_id);
-			buffer_entry* buffer_entries[] = {
-				g_buffer_mgr_state.vertex_buffers.data(),
-				g_buffer_mgr_state.index_buffers.data(),
-				g_buffer_mgr_state.constant_buffers.data()
-			};
-			const auto ctx = g_graphics_state.contexts[0];
-			auto& buffer_entry = buffer_entries[(u8)type][idx];
-			const auto handle = buffer_entry.handler;
-
-			handle->Release();
-			buffer_entry.handler = null;
-			buffer_entry.id = 0;
-
-			u8* buffer_counts = reinterpret_cast<u8*>(&g_buffer_mgr_state.counts);
-			--buffer_counts[(u8)type];
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);
+			buffer_mgr__free_buffer(entry);
 		}
 
 		u16 buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size)
 		{
-			const auto& idx = buffer_mgr__assert_id(type, buffer_id);
-			buffer_entry* buffer_entries[] = {
-				g_buffer_mgr_state.vertex_buffers.data(),
-				g_buffer_mgr_state.index_buffers.data(),
-				g_buffer_mgr_state.constant_buffers.data()
-			};
-			const auto ctx = g_graphics_state.contexts[0];
-			auto& buffer_entry = buffer_entries[(u8)type][idx];
-			const auto handle = buffer_entry.handler;
-			const auto desc = handle->GetDesc();
-			u8* magic = reinterpret_cast<u8*>(&g_buffer_mgr_state.magic_nums);
+			auto& state = g_buffer_mgr_state;
 
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);
+			
+			const auto& desc = entry.handler->GetDesc();
 			if (desc.Usage != Diligent::USAGE_DYNAMIC)
 				throw graphics_exception(
 					fmt::format(strings::exceptions::g_buffer_mgr_cant_realloc_non_dyn,
@@ -150,33 +108,45 @@ namespace rengine {
 						strings::g_buffer_names[(u8)type]).c_str()
 				);
 
-			handle->Release();
 
-			buffer_entry.id = buffer_mgr__encode_id(idx, ++magic[idx]);
-			buffer_entry.handler = buffer_mgr__create(type, {
-				desc.Name,
-				new_size,
-				null,
-				true
-			});
-
-			return buffer_entry.id;
-		}
-
-		void buffer_mgr__update(const buffer_type& type, u16 buffer_id, ptr data, u32 size)
-		{
-			const auto& idx = buffer_mgr__assert_id(type, buffer_id);
-			const buffer_entry* buffer_entries[] = {
-				g_buffer_mgr_state.vertex_buffers.data(),
-				g_buffer_mgr_state.index_buffers.data(),
-				g_buffer_mgr_state.constant_buffers.data()
+			buffer_entry new_entry = {
+				buffer_mgr__create(type, {
+					desc.Name,
+					new_size,
+					null,
+					true
+				}),
+				buffer_map_type::none
 			};
 
-			const auto log = g_buffer_mgr_state.log;
+			buffer_mgr__free_buffer(entry);
+
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+				buffer_id = state.vertex_buffers.replace(buffer_id, new_entry);
+				break;
+			case buffer_type::index_buffer:
+				buffer_id = state.index_buffers.replace(buffer_id, new_entry);
+				break;
+			case buffer_type::constant_buffer:
+				buffer_id = state.constant_buffers.replace(buffer_id, new_entry);
+				break;
+			}
+
+			return buffer_id;
+		}
+
+		void buffer_mgr__update(const buffer_type& type, u16 buffer_id, ptr data, u32 size, u32 offset)
+		{
+			const auto& state = g_buffer_mgr_state;
+			const auto log = state.log;
 			const auto ctx = g_graphics_state.contexts[0];
-			const auto& buffer_entry = buffer_entries[(u8)type][idx];
-			const auto handle = buffer_entry.handler;
-			const auto& desc = handle->GetDesc();
+
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);	
+
+			const auto& desc = entry.handler->GetDesc();
 			if (desc.Usage != Diligent::USAGE_DYNAMIC) {
 				log->error(
 					fmt::format(strings::logs::g_buffer_mgr_cant_update_non_dyn,
@@ -198,18 +168,82 @@ namespace rengine {
 				size = desc.Size;
 			}
 
+			ptr mapped_data = buffer_mgr__map(type, buffer_id, buffer_map_type::write);
+			memcpy(static_cast<u8*>(mapped_data) + offset, data, size);
+			buffer_mgr__unmap(type, buffer_id);
+		}
+
+		ptr buffer_mgr__map(const buffer_type& type, u16 buffer_id, const buffer_map_type& map_type)
+		{
+			if (map_type == buffer_map_type::none)
+				return null;
+
+			auto& state = g_buffer_mgr_state;
+			auto ctx = g_graphics_state.contexts[0];
 			ptr mapped_data = null;
-			ctx->MapBuffer(handle, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, mapped_data);
+
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);
+
+			ctx->MapBuffer(entry.handler, g_map_type_tbl[(u32)map_type], Diligent::MAP_FLAG_DISCARD, mapped_data);
 			if (mapped_data == null)
 				throw graphics_exception(
 					fmt::format(strings::exceptions::g_buffer_mgr_failed_to_update_buffer,
 						buffer_id,
-						desc.Name,
+						entry.handler->GetDesc().Name,
 						strings::g_buffer_names[(u8)type]).c_str()
 				);
 
-			memcpy(mapped_data, data, size);
-			ctx->UnmapBuffer(handle, Diligent::MAP_WRITE);
+			entry.map_type = map_type;
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+				state.vertex_buffers.overwrite(buffer_id, entry);
+				break;
+			case buffer_type::index_buffer:
+				state.index_buffers.overwrite(buffer_id, entry);
+				break;
+			case buffer_type::constant_buffer:
+				state.constant_buffers.overwrite(buffer_id, entry);
+				break;
+			}
+
+			return mapped_data;
+		}
+
+		void buffer_mgr__unmap(const buffer_type& type, u16 buffer_id)
+		{
+			auto& state = g_buffer_mgr_state;
+			const auto log = state.log;
+			auto ctx = g_graphics_state.contexts[0];
+
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);
+
+			if (entry.map_type == buffer_map_type::none) {
+				log->warn(
+					fmt::format(strings::logs::g_buffer_mgr_cant_unmap,
+						buffer_id,
+						strings::g_buffer_names[(u8)type]).c_str()
+				);
+				return;
+			}
+
+			ctx->UnmapBuffer(entry.handler, g_map_type_tbl[(u32)entry.map_type]);
+			entry.map_type = buffer_map_type::none;
+
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+				state.vertex_buffers.overwrite(buffer_id, entry);
+				break;
+			case buffer_type::index_buffer:
+				state.index_buffers.overwrite(buffer_id, entry);
+				break;
+			case buffer_type::constant_buffer:
+				state.constant_buffers.overwrite(buffer_id, entry);
+				break;
+			}
 		}
 
 		Diligent::IBuffer* buffer_mgr__create(const buffer_type& type, const buffer_create_desc& desc)
@@ -254,32 +288,21 @@ namespace rengine {
 
 		bool buffer_mgr__is_valid(const buffer_type& type, u16 buffer_id)
 		{
-			const u16 invalid_ids[] = {
-				no_vertex_buffer,
-				no_index_buffer,
-				no_constant_buffer,
-			};
+			bool result = false;
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+				result = g_buffer_mgr_state.vertex_buffers.is_valid(buffer_id);
+				break;
+			case buffer_type::index_buffer:
+				result = g_buffer_mgr_state.index_buffers.is_valid(buffer_id);
+				break;
+			case buffer_type::constant_buffer:
+				result = g_buffer_mgr_state.constant_buffers.is_valid(buffer_id);
+				break;
+			}
 
-			const buffer_entry* buffer_entries[] = {
-			   g_buffer_mgr_state.vertex_buffers.data(),
-			   g_buffer_mgr_state.index_buffers.data(),
-			   g_buffer_mgr_state.constant_buffers.data()
-			};
-			const u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			const auto type_idx = (u8)type;
-			if (invalid_ids[type_idx] == buffer_id)
-				return false;
-
-			const auto& idx = buffer_mgr__decode_id(buffer_id);
-			if (idx >= buffer_sizes[type_idx])
-				return false;
-
-			const auto& entry = buffer_entries[type_idx][idx];
-			return entry.handler != null && entry.id == buffer_id;
+			return result;
 		}
 
 		void buffer_mgr__get_handle(const buffer_type& type, u16 buffer_id, Diligent::IBuffer** output)
@@ -287,127 +310,79 @@ namespace rengine {
 			if (!output)
 				return;
 
-			const auto entry = buffer_mgr__get_entry(type, buffer_id);
-			*output = entry->handler;
+			buffer_entry entry;
+			buffer_mgr__get_entry(type, buffer_id, &entry);
+			*output = entry.handler;
 		}
 
 		u32 buffer_mgr__get_count(const buffer_type& type)
 		{
 			const auto& state = g_buffer_mgr_state;
-			const u8* counters = reinterpret_cast<const u8*>(&state.counts);
+			u32 counters[] = {
+				state.vertex_buffers.count(),
+				state.index_buffers.count(),
+				state.constant_buffers.count()
+			};
 			return counters[(u8)type];
 		}
 
 		u32 buffer_mgr__get_total_count()
 		{
-			const auto& counts = g_buffer_mgr_state.counts;
-			return counts.vbuffers_count + counts.ibuffers_count + counts.cbuffers_count;
+			const auto& state = g_buffer_mgr_state;
+			return state.vertex_buffers.count() +
+				state.index_buffers.count() +
+				state.constant_buffers.count();
 		}
 
 		void buffer_mgr__clear_cache(const buffer_type& type)
 		{
-			buffer_entry* buffers[] = {
-				g_buffer_mgr_state.vertex_buffers.data(),
-				g_buffer_mgr_state.index_buffers.data(),
-				g_buffer_mgr_state.constant_buffers.data()
-			};
-			u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			u8* magics = reinterpret_cast<u8*>(&g_buffer_mgr_state.magic_nums);
-			u8* counters = reinterpret_cast<u8*>(&g_buffer_mgr_state.counts);
-
-			const auto type_idx = (u8)type;
-			for (u32 i = 0; i < buffer_sizes[type_idx]; ++i) {
-				auto& entry = buffers[type_idx][i];
-				if (!entry.handler)
-					continue;
-
-				entry.handler->Release();
-				entry.handler = null;
-				entry.id = 0;
+			switch (type)
+			{
+			case buffer_type::vertex_buffer:
+			{
+				for (const auto& entry : g_buffer_mgr_state.vertex_buffers)
+					buffer_mgr__free_buffer(entry.value);
+				g_buffer_mgr_state.vertex_buffers.clear();
 			}
-
-			counters[type_idx] = magics[type_idx] = 0;
+				break;
+			case buffer_type::index_buffer:
+			{
+				for (const auto& entry : g_buffer_mgr_state.index_buffers)
+					buffer_mgr__free_buffer(entry.value);
+				g_buffer_mgr_state.index_buffers.clear();
+			}
+				break;
+			case buffer_type::constant_buffer:
+			{
+				for (const auto& entry : g_buffer_mgr_state.constant_buffers)
+					buffer_mgr__free_buffer(entry.value);
+				g_buffer_mgr_state.constant_buffers.clear();
+			}
+				break;
+			}
 		}
 
 		void buffer_mgr__get_available_buffers(const buffer_type& type, u32* count, u16* buffers)
 		{
 			const auto& state = g_buffer_mgr_state;
-			const buffer_entry* buffer_entries[] = {
+			u32 counters[] = {
+				state.vertex_buffers.count(),
+				state.index_buffers.count(),
+				state.constant_buffers.count()
+			};
+
+			*count = counters[(u8)type];
+			if (buffers == null)
+				return;
+
+			const core::pool_entry<buffer_entry, u16>* buffer_data[] = {
 				state.vertex_buffers.data(),
 				state.index_buffers.data(),
 				state.constant_buffers.data()
 			};
-			const u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			const auto type_idx = (u8)type;
-			u32 available_count = 0;
 
-			for (u32 i = 0; i < buffer_sizes[type_idx]; ++i) {
-				const auto& entry = buffer_entries[type_idx][i];
-				if (!entry.handler)
-					continue;
-				
-				if (buffers)
-					buffers[available_count] = entry.id;
-				++available_count;
-			}
-			*count = available_count;
-		}
-
-		bool buffer_mgr__find_existent_buffer(const buffer_type& type, const buffer_create_desc& desc, u8* output_idx)
-		{
-			const auto& state = g_buffer_mgr_state;
-			const buffer_entry* buffers[] = {
-				state.vertex_buffers.data(),
-				state.index_buffers.data(),
-				state.constant_buffers.data()
-			};
-			const u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			const auto expected_size = desc.size;
-
-			if (!desc.dynamic)
-				return false;
-
-			return buffer_mgr__find_dynamic_buffer(buffers[(u8)type], buffer_sizes[(u8)type], expected_size, output_idx);
-		}
-
-		bool buffer_mgr__find_dynamic_buffer(const buffer_entry* buffers, u32 buffers_count, u32 expected_size, u8* output_idx)
-		{
-			for (size_t i = 0; i < buffers_count; ++i) {
-				Diligent::IBuffer* buffer = buffers[i].handler;
-				if (!buffer)
-					continue;
-				const auto& buffer_desc = buffer->GetDesc();
-				if (buffer_desc.Usage != Diligent::USAGE_DYNAMIC || expected_size > buffer_desc.Size)
-					continue;
-
-				*output_idx = i;
-				return true;
-			}
-			return false;
-		}
-
-		u8 buffer_mgr__find_empty_entry(const buffer_entry* buffers, u32 buffers_count)
-		{
-			for (u32 i = 0; i < buffers_count; ++i) {
-				const auto& entry = buffers[i];
-				if (entry.handler != null)
-					continue;
-				return i;
-			}
-
-			return MAX_U8_VALUE;
+			for (u32 i = 0; i < *count; ++i)
+				buffers[i] = buffer_data[(u8)type][i].id;
 		}
 		
 		u8 buffer_mgr__assert_id(const buffer_type& type, u16 id) {
@@ -425,20 +400,20 @@ namespace rengine {
 			);
 		}
 
-		buffer_entry* buffer_mgr__get_entry(const buffer_type& type, u16 id)
+		void buffer_mgr__get_entry(const buffer_type& type, u16 id, buffer_entry* output)
 		{
-			buffer_entry* buffer_entries[] = {
-			   g_buffer_mgr_state.vertex_buffers.data(),
-			   g_buffer_mgr_state.index_buffers.data(),
-			   g_buffer_mgr_state.constant_buffers.data()
-			};
-			const u32 buffer_sizes[] = {
-				GRAPHICS_MAX_ALLOC_VBUFFERS,
-				GRAPHICS_MAX_ALLOC_IBUFFERS,
-				GRAPHICS_MAX_ALLOC_CBUFFERS
-			};
-			const auto& idx = buffer_mgr__assert_id(type, id);
-			return &buffer_entries[(u8)type][idx];
+			switch (type)
+			{
+				case buffer_type::vertex_buffer:
+					*output = g_buffer_mgr_state.vertex_buffers[id].value;
+					break;
+				case buffer_type::index_buffer:
+					*output = g_buffer_mgr_state.index_buffers[id].value;
+					break;
+				case buffer_type::constant_buffer:
+					*output = g_buffer_mgr_state.constant_buffers[id].value;
+					break;
+			}
 		}
 	}
 }

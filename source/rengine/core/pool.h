@@ -95,6 +95,16 @@ namespace rengine {
                 available_idx_[(N - count_) - 1] = idx;
             }
 
+			constexpr void overwrite(const Entity& id, const T& value) {
+				if (!is_valid(id))
+					throw pool_exception(
+						fmt::format(strings::exceptions::g_pool_invalid_id, id).c_str()
+					);
+				const auto& idx = decode_id(id);
+				auto& entry = entries_[idx];
+				entry.value = value;
+			}
+
             constexpr Entity replace(const Entity& id, const T& value) {
                 if (!is_valid(id))
                     throw pool_exception(

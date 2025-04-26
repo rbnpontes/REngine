@@ -31,19 +31,49 @@ namespace rengine {
             return buffer_mgr__try_create(buffer_type::constant_buffer, desc);
         }
 
-        void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size)
+        void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size, u32 offset)
         {
-			buffer_mgr__update(buffer_type::vertex_buffer, id, data, size);
+			buffer_mgr__update(buffer_type::vertex_buffer, id, data, size, offset);
         }
 
-        void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size)
+        void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size, u32 offset)
         {
-			buffer_mgr__update(buffer_type::index_buffer, id, data, size);
+			buffer_mgr__update(buffer_type::index_buffer, id, data, size, offset);
         }
 
-        void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size)
+        void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size, u32 offset)
         {
-			buffer_mgr__update(buffer_type::constant_buffer, id, data, size);
+			buffer_mgr__update(buffer_type::constant_buffer, id, data, size, offset);
+        }
+
+        ptr buffer_mgr_vbuffer_map(const vertex_buffer_t& id, const buffer_map_type& type)
+        {
+            return buffer_mgr__map(buffer_type::vertex_buffer, id, type);
+        }
+
+        ptr buffer_mgr_ibuffer_map(const index_buffer_t& id, const buffer_map_type& type)
+        {
+            return buffer_mgr__map(buffer_type::index_buffer, id, type);
+        }
+
+        ptr buffer_mgr_cbuffer_map(const constant_buffer_t& id, const buffer_map_type& type)
+        {
+            return buffer_mgr__map(buffer_type::constant_buffer, id, type);
+        }
+
+        void buffer_mgr_vbuffer_unmap(const vertex_buffer_t& id)
+        {
+			buffer_mgr__unmap(buffer_type::vertex_buffer, id);
+        }
+
+        void buffer_mgr_ibuffer_unmap(const index_buffer_t& id)
+        {
+            buffer_mgr__unmap(buffer_type::index_buffer, id);
+        }
+
+        void buffer_mgr_cbuffer_unmap(const constant_buffer_t& id)
+        {
+            buffer_mgr__unmap(buffer_type::constant_buffer, id);
         }
 
         u16 buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size)
