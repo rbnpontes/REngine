@@ -24,6 +24,12 @@
 #define MAX_U16_VALUE 0xFFFF
 #define MAX_U32_VALUE 0xFFFFFFFF
 
+#ifdef HIGH_DEFINITION_PRECISION
+	#define MATH_EPSILON 1e-6f
+#else
+	#define MATH_EPSILON 1e-5f
+#endif
+
 #ifdef PLATFORM_WINDOWS
 	#define GRAPHICS_BACKEND_DEFAULT rengine::graphics::backend::d3d11
 #elif PLATFORM_LINUX
@@ -57,3 +63,5 @@
 #if _DEBUG
 #define ENGINE_DEBUG 1
 #endif
+
+#define ENGINE_SSE 1

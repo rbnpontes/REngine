@@ -2,6 +2,8 @@
 #include <rengine/types.h>
 #include <rengine/api.h>
 #include <rengine/core/hash.h>
+#include <rengine/math/sse.h>
+
 
 namespace rengine {
     namespace math {
@@ -77,10 +79,6 @@ namespace rengine {
         typedef base_vec4<number_t> vec4;
         typedef base_vec4<int_t> ivec4;
         typedef base_vec4<uint_t> uvec4;
-
-        struct quat {
-            number_t x, y, z, w;
-        };
 
         struct color {
             float r, g, b, a;
