@@ -3,6 +3,7 @@
 #include <rengine/exceptions.h>
 #include <rengine/strings.h>
 #include <rengine/core/entity-utils.h>
+#include <rengine/core/allocator.h>
 
 #include <fmt/format.h>
 
@@ -237,23 +238,7 @@ namespace rengine {
                     return;
                 }
             }
-            /*void fix_data_gaps() {
-                pool_entry<T, Entity> new_entries[N];
-                u32 next_idx = 0;
-
-                for (u32 i = 0; i < N; ++i) {
-                    auto& entry_idx = entry_indexes_[i];
-                    if (entry_idx == invalid_id)
-                        continue;
-
-					new_entries[next_idx] = entries_[entry_idx];
-1					entry_indexes_[i] = next_idx;
-                    ++next_idx;
-                }
-
-				memcpy(entries_, new_entries, sizeof(T) * N);
-            }*/
-
+            
             static constexpr Entity encode_id(u32 idx, u8 magic) {
 				entity_id_encoder<Entity> encoder;
 				return encoder.encode(idx, magic);
@@ -270,6 +255,63 @@ namespace rengine {
 
             u32 count_;
             u8 magic_;
+        };
+    
+        template<typename T, u32 N, typename Size = u32>
+        class fixed_queue {
+        public:
+            constexpr fixed_queue(): count_(0) {}
+			constexpr void push(const T& value) {
+                if (is_full())
+                    return;
+                Size idx = curr_ > 0 ? --curr_ : count_;
+				entries_[idx] = value;
+
+                count_++;
+			}
+
+            constexpr void pop() {
+                if (empty())
+                    return;
+				count_--;
+                curr_++;
+            }
+
+            constexpr void clear() {
+                count_ = curr_ = 0;
+            }
+
+            constexpr bool is_full() const {
+				return count_ == N;
+            }
+
+            constexpr bool empty() const {
+                return count_ == 0;
+            }
+
+			constexpr Size size() const {
+				return count_;
+			}
+
+            constexpr const T& front() const {
+                if (empty())
+                    throw pool_exception(
+                        strings::exceptions::g_queue_empty
+                    );
+				return entries_[curr_];
+            }
+
+            constexpr const T& end() const {
+				if (empty())
+					throw pool_exception(
+						strings::exceptions::g_queue_empty
+					);
+				return entries_[count_ - 1];
+            }
+        private:
+			T entries_[N];
+			Size count_;
+            Size curr_;
         };
     }
 }
