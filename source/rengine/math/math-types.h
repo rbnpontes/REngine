@@ -48,31 +48,6 @@ namespace rengine {
         typedef base_vec2<uint_t> uvec2;
 
         template<typename T>
-        struct base_vec3 {
-            T x, y, z;
-
-            constexpr base_vec3(): x((T)0), y((T)0), z((T)0) {}
-            constexpr base_vec3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
-
-            u32 to_hash() const {
-                return core::hash_combine(core::hash_combine(x, y), z);
-            }
-
-            static const base_vec3<T> zero;
-            static const base_vec3<T> one;
-            static const base_vec3<T> left;
-            static const base_vec3<T> right;
-            static const base_vec3<T> up;
-            static const base_vec3<T> down;
-            static const base_vec3<T> forward;
-            static const base_vec3<T> backward;
-        };
-
-        typedef base_vec3<number_t> vec3;
-        typedef base_vec3<int_t> ivec3;
-        typedef base_vec3<uint_t> uvec3;
-
-        template<typename T>
         struct base_vec4 {
             T x, y, z, w;
         };
@@ -128,9 +103,5 @@ namespace rengine {
         typedef base_rect<vec2> rect;
         typedef base_rect<ivec2> irect;
         typedef base_rect<uvec2> urect;
-
-        struct box {
-            vec3 min, max;
-        };
     }
 }

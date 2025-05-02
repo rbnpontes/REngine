@@ -5,3 +5,4 @@
 #include <rengine/math/matrix3x3.h>
 #include <rengine/math/matrix4x4.h>
 #include <rengine/math/quaternion.h>
+#include <rengine/math/vec3.h>

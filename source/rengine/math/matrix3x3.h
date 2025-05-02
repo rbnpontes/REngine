@@ -1,6 +1,7 @@
 #pragma once
 #include <rengine/types.h>
 #include <rengine/math/math-types.h>
+#include <rengine/math/vec3.h>
 
 namespace rengine {
 	namespace math {

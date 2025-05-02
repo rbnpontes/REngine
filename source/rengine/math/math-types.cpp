@@ -13,19 +13,6 @@ namespace rengine {
         template struct base_vec2<int_t>;
         template struct base_vec2<uint_t>;
 
-        template<typename T> const base_vec3<T> base_vec3<T>::zero = base_vec3<T>((T)0, (T)0, (T)0);
-        template<typename T> const base_vec3<T> base_vec3<T>::one = base_vec3<T>((T)1, (T)1, (T)1);
-        template<typename T> const base_vec3<T> base_vec3<T>::left = base_vec3<T>((T)-1, (T)0, (T)0);
-        template<typename T> const base_vec3<T> base_vec3<T>::right = base_vec3<T>((T)1, (T)0, (T)0);
-        template<typename T> const base_vec3<T> base_vec3<T>::up = base_vec3<T>((T)0, (T)1, (T)0);
-        template<typename T> const base_vec3<T> base_vec3<T>::down = base_vec3<T>((T)0, (T)-1, (T)0);
-        template<typename T> const base_vec3<T> base_vec3<T>::forward = base_vec3<T>((T)0, (T)0, (T)1);
-        template<typename T> const base_vec3<T> base_vec3<T>::backward = base_vec3<T>((T)0, (T)0, (T)-1);
-
-        template struct base_vec3<number_t>;
-        template struct base_vec3<int_t>;
-        template struct base_vec3<uint_t>;
-
         const color color::black = color(0.f, 0.f, 0.f);
         const color color::white = color(1.f, 1.f, 1.f);
         const color color::red = color(1.f, 0.f, 0.f);

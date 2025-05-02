@@ -12,7 +12,9 @@
 		#define sse_shuffle_number(first, second, imm) _mm_shuffle_pd(first, second, imm)
 		#define sse_cast_int_number(first) _mm_castpd_si128(first)
 		#define sse_set_number(w, z, y, x) _mm_set_pd(w, z, y, x)
+		#define sse_set_int(w, z, y, x) _mm_set_epi32(w, z, y, x)
 		#define sse_set_single_number(x) _mm_set1_pd(x)
+		#define sse_set_single_int(x) _mm_set1_epi32(x)
 		#define sse_add_number(first, second) _mm_add_pd(first, second)
 		#define sse_sub_number(first, second) _mm_sub_pd(first, second)
 		#define sse_mul_number(first, second) _mm_mul_pd(first, second)
@@ -31,7 +33,9 @@
 		#define sse_shuffle_number(first, second, imm) _mm_shuffle_ps(first, second, imm)
 		#define sse_cast_int_number(first) _mm_castps_si128(first)
 		#define sse_set_number(w, z, y, x) _mm_set_ps(w, z, y, x)
+		#define sse_set_int(w, z, y, x) _mm_set_epi32(w, z, y, x)
 		#define sse_set_single_number(x) _mm_set1_ps(x)
+		#define sse_set_single_int(x) _mm_set1_epi32(x)
 		#define sse_add_number(first, second) _mm_add_ps(first, second)
 		#define sse_sub_number(first, second) _mm_sub_ps(first, second)
 		#define sse_mul_number(first, second) _mm_mul_ps(first, second)
@@ -55,7 +59,9 @@
     #define sse_cast_int_number(first) rengine::math::fake_sse::cast_int(first)
 	#define sse_cvtsi128_int(x) x.i[0]
 	#define sse_set_number(w, z, y, x) rengine::math::fake_sse::set(w, z, y, x)
+	#define sse_set_int(w, z, y, x) rengine::math::fake_sse::set(w, z, y, x)
 	#define sse_set_single_number(x) rengine::math::fake_sse::set(x, x, x, x)
+	#define sse_set_int_single(x) rengine::math::fake_sse::set(x, x, x, x)
 	#define sse_add_number(first, second) rengine::math::fake_sse::add(first, second)
 	#define sse_sub_number(first, second) rengine::math::fake_sse::sub(first, second)
 	#define sse_mul_number(first, second) rengine::math::fake_sse::mul(first, second)
@@ -150,6 +156,15 @@ namespace rengine {
 				result.n[1] = y;
 				result.n[2] = z;
 				result.n[3] = w;
+				return result;
+			}
+
+			constexpr m128_t set(const int_t& w, const int_t& z, const int_t& y, const int_t& x) {
+				m128_t result;
+				result.i[0] = x;
+				result.i[1] = y;
+				result.i[2] = z;
+				result.i[3] = w;
 				return result;
 			}
 
