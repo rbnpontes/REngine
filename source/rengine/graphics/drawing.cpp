@@ -86,14 +86,47 @@ namespace rengine {
 			});
 		}
 
-		void renderer_add_quad(const quad& quad)
+		void renderer_draw_quad(const math::vec3& center, const math::vec2& size)
 		{
-			throw not_implemented_exception();
+			number_t half_data[4];
+			// fast divide size by half (2)
+			sse_store_number(
+				half_data,
+				sse_mul_number(
+					sse_set_number(0, 0, size.x, size.y),
+					sse_set_single_number(0.5f)
+				)
+			);
+
+
+			math::vec3 left_top = center + math::vec3(-half_data[0], half_data[1]);
+			math::vec3 right_top = center + math::vec3(half_data[0], half_data[1]);
+			math::vec3 left_bottom = center + math::vec3(-half_data[0], -half_data[1]);
+			math::vec3 right_bottom = center + math::vec3(half_data[0], -half_data[1]);
+
+			renderer_set_uv({ 0., 1. });
+			renderer_push_vertex(left_top);
+			
+			renderer_set_uv({ 1., 1. });
+			renderer_push_vertex(right_top);
+			
+			renderer_set_uv({ 1., 0. });
+			renderer_push_vertex(right_bottom);
+			renderer_draw_triangle();
+
+			renderer_set_uv({ 0., 1. });
+			renderer_push_vertex(left_top);
+
+			renderer_set_uv({ 1., 0. });
+			renderer_push_vertex(right_bottom);
+
+			renderer_set_uv({});
+			renderer_push_vertex(left_bottom);
+			renderer_draw_triangle();
 		}
 
-		void renderer_add_quad(const math::vec3& center, const math::vec2& size)
+		void renderer_draw_quad_lines(const math::vec3& center, const math::vec2& size)
 		{
-			throw not_implemented_exception();
 		}
 
 		void renderer_add_cube(const cube& cube)
