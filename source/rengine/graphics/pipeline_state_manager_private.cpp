@@ -90,7 +90,7 @@ namespace rengine {
 				texcoord_element.InputIndex = 4;
 				texcoord_element.NumComponents = 2;
 				texcoord_element.ValueType = VT_FLOAT32;
-				texcoord_element.RelativeOffset = sizeof(float) * 2;
+				//texcoord_element.RelativeOffset = sizeof(float) * 2;
 
 				elements.push_back(texcoord_element);
 			}
