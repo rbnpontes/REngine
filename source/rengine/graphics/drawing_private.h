@@ -31,6 +31,14 @@ namespace rengine {
 			vertex_data b;
 		};
 
+		struct drawing_transform {
+			math::matrix4x4 transform{ math::matrix4x4::identity };
+			math::vec3 position{ math::vec3::zero };
+			math::quat rotation{};
+			math::vec2 scale{ math::vec2::one };
+			bool dirty{ false };
+		};
+
 		struct drawing_state
 		{
 			io::ILog* log;
@@ -42,6 +50,7 @@ namespace rengine {
 
 			math::byte_color current_color{ math::byte_color::white };
 			math::vec2 current_uv{ 0, 0 };
+			drawing_transform current_transform{};
 
 			vertex_buffer_t vertex_buffer{ no_vertex_buffer };
 			constant_buffer_t constant_buffer{ no_constant_buffer };
@@ -65,5 +74,6 @@ namespace rengine {
 		void drawing__draw_triangles();
 		void drawing__draw_lines();
 		void drawing__draw_points();
+		void drawing__compute_transform();
     }
 }

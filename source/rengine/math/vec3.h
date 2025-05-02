@@ -146,6 +146,16 @@ namespace rengine {
 				);
 			}
 
+			static base_vec3<T> from_x(T x) {
+				return base_vec3<T>(x, 0, 0);
+			}
+			static base_vec3<T> from_y(T y) {
+				return base_vec3<T>(0, y, 0);
+			}
+			static base_vec3<T> from_z(T x) {
+				return base_vec3<T>(0, 0, x);
+			}
+
 			static const base_vec3<T> zero;
 			static const base_vec3<T> one;
 			static const base_vec3<T> left;

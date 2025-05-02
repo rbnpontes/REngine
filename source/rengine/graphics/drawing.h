@@ -31,6 +31,12 @@ namespace rengine {
         R_EXPORT void renderer_push_vertex(const math::vec3& point);
 		R_EXPORT void renderer_set_uv(const math::vec2& uv);
         R_EXPORT void renderer_set_color(const math::byte_color& color);
+        R_EXPORT void renderer_set_transform(const math::matrix4x4& transform);
+        R_EXPORT void renderer_translate(const math::vec3& translation);
+        R_EXPORT void renderer_rotate(number_t degree);
+        R_EXPORT void renderer_rotate(const math::quat& rotation);
+        R_EXPORT void renderer_scale(number_t scale);
+        R_EXPORT void renderer_scale(const math::vec2& scale);
         R_EXPORT void renderer_draw_point();
         R_EXPORT void renderer_draw_line();
         R_EXPORT void renderer_draw_triangle();

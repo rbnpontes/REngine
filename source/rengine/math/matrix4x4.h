@@ -39,13 +39,13 @@ namespace rengine {
 
 			bool equals(const matrix4x4& rhs) const;
 
-			vec3 mul(const vec3& rhs) const;
+			static vec3 mul(const matrix4x4& m, const vec3& rhs);
 
-			vec4 mul(const vec4& rhs) const;
+			static vec4 mul(const matrix4x4& m, const vec4& rhs);
 
-			matrix4x4 mul(number_t rhs) const;
+			static matrix4x4 mul(const matrix4x4& m, number_t rhs);
 
-			matrix4x4 mul(const matrix4x4& rhs) const;
+			static matrix4x4 mul(const matrix4x4& m, const matrix4x4& rhs);
 
 			matrix4x4 add(const matrix4x4& rhs) const;
 
@@ -75,7 +75,18 @@ namespace rengine {
 
 			void decompose(vec3& translation, quat& rotation, vec3& scale) const;
 
+			static matrix4x4 from_translation(const vec3& value);
+			static matrix4x4 from_rotation(const quat& value);
+			static matrix4x4 from_rotation(const matrix3x3& value);
+			static matrix4x4 from_scale(number_t value);
+			static matrix4x4 from_scale(const vec3& value);
+
 			static matrix4x4 inverse(const matrix4x4& matrix);
+
+			static matrix4x4 transform(const vec3& translation, const quat& rotation, const vec3& scale);
+
+			static const matrix4x4 zero;
+			static const matrix4x4 identity;
 		};
 	}
 }

@@ -26,6 +26,16 @@ namespace rengine {
 		template<> inline u32 sqrt(u32 x) { return ::sqrt((double)x); }
 
 		template <typename T>
+		inline T sin(T x);
+		template <> inline float sin(float x) { return ::sinf(x); }
+		template <> inline double sin(double x) { return ::sin(x); }
+
+		template <typename T>
+		inline T cos(T x);
+		template <> inline float cos(float x) { return ::cosf(x); }
+		template <> inline double cos(double x) { return ::cos(x); }
+
+		template <typename T>
 		inline bool equals(T a, T b);
 
 		template<> inline bool equals(float a, float b) { return abs(a - b) <= MATH_EPSILON; }

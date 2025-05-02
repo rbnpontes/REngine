@@ -214,5 +214,17 @@ namespace rengine {
 			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
 			renderer_draw({ (u32)g_drawing_state.points.size() });
 		}
+
+		void drawing__compute_transform()
+		{
+			auto& state = g_drawing_state;
+			if (!state.current_transform.dirty)
+				return;
+
+			state.current_transform.dirty = false;
+			state.current_transform.transform = math::matrix4x4::transform(state.current_transform.position,
+				state.current_transform.rotation,
+				math::vec3(state.current_transform.scale.x, state.current_transform.scale.y));
+		}
 	}
 }

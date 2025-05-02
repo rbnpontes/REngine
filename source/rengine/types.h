@@ -126,4 +126,11 @@ namespace rengine {
             max,
         };
     }
+
+    namespace math {
+        static number_t pi = 3.14159265358979323846264338327950288;
+        static number_t half_pi = pi * 0.5;
+        static number_t deg_2_rad_ratio = pi / 180.;
+        static number_t rad_2_deg_ratio = 1. / deg_2_rad_ratio;
+    }
 }

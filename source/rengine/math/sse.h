@@ -74,7 +74,8 @@
 
 	#define sse_m128_t rengine::math::fake_sse::m128_t
 #endif
-#define sse_shuffle(fp3, fp2, fp1, fp0) ( (fp3 << 6) | (fp2 << 4) | (fp1 << 2) | fp0 )
+#define sse_shuffle(fp3, fp2, fp1, fp0) (((fp3) << 6) | ((fp2) << 4) | \
+                                     ((fp1) << 2) | ((fp0)))
 #define sse_transpose_number(row0, row1, row2, row3) { \
 	sse_m128_t _tmp3, _tmp2, _tmp1, _tmp0; \
 		\

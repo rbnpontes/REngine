@@ -14,6 +14,7 @@ namespace rengine {
 			state.lines.clear();
 			state.points.clear();
 			state.current_color = math::byte_color::white;
+			state.current_transform = {};
 		}
 
 		void renderer_end_draw()
@@ -25,7 +26,13 @@ namespace rengine {
 
 		void renderer_push_vertex(const math::vec3& point)
 		{
-			vertex_uv_data vertex = { point, g_drawing_state.current_color, g_drawing_state.current_uv };
+			auto& state = g_drawing_state;
+			drawing__compute_transform();
+			
+			vertex_uv_data vertex;
+			vertex.point = math::matrix4x4::mul(state.current_transform.transform, point);
+			vertex.color = state.current_color;
+			vertex.uv = state.current_uv;
 			g_drawing_state.vertex_queue.push(vertex);
 		}
 
@@ -37,6 +44,43 @@ namespace rengine {
 		void renderer_set_color(const math::byte_color& color)
 		{
 			g_drawing_state.current_color = color;
+		}
+
+		void renderer_set_transform(const math::matrix4x4& transform)
+		{
+			g_drawing_state.current_transform.transform = transform;
+			g_drawing_state.current_transform.dirty = false;
+		}
+
+		void renderer_translate(const math::vec3& translation)
+		{
+			auto& state = g_drawing_state;
+			state.current_transform.position = translation;
+			state.current_transform.dirty = true;
+		}
+
+		void renderer_rotate(number_t degree)
+		{
+			renderer_rotate(math::quat::from_rotation(degree));
+		}
+
+		void renderer_rotate(const math::quat& rotation)
+		{
+			auto& state = g_drawing_state;
+			state.current_transform.rotation = rotation;
+			state.current_transform.dirty = true;
+		}
+
+		void renderer_scale(number_t scale)
+		{
+			renderer_scale(math::vec2(scale, scale));
+		}
+
+		void renderer_scale(const math::vec2& scale)
+		{
+			auto& state = g_drawing_state;
+			state.current_transform.scale = scale;
+			state.current_transform.dirty = true;
 		}
 
 		void renderer_draw_point()
