@@ -31,15 +31,19 @@ namespace rengine {
             constexpr static c_str g_default_cmd_name = "rengine::render_command";
 
             namespace shaders {
-                constexpr static c_str g_model_nouv_vertex = R"(
+                constexpr static c_str g_drawing_vs = R"(
                     struct vs_input {
                         float3 position : ATTRIB0;
                         uint color      : ATTRIB3;
+                    #if defined(ENABLE_UV)
+                        float2 uv	    : ATTRIB4;
+                    #endif
                     };
    
                     struct vs_output {
                         float4 position : SV_Position;
                         float4 color    : COLOR0;
+                        float2 uv       : TEXCOORD0;
                     };
 
                     vs_output main(in vs_input input) {
@@ -54,34 +58,20 @@ namespace rengine {
                         );
                         color /= float4(255.0f, 255.0f, 255.0f, 255.0f);
                         output.color = color;
+                        #if defined(ENABLE_UV)
+                            output.uv = input.uv;
+                        #else
+                            output.uv = float2(0.0f, 0.0f);
+                        #endif
                         return output;
                     }   
                 )";
-                constexpr static c_str g_model_uv_vertex = R"(
-                    struct vs_input {
-                        float3 position : ATTRIB0;
-                        float4 color    : ATTRIB3;
-                        float2 uv       : ATTRIB4;
-                    };
-   
-                    struct vs_output {
-                        float4 position : SV_Position;
-                        float2 uv       : TEXCOORD0;
-                        float4 color    : COLOR0;
-                    };
-                    vs_output main(in vs_input input) {
-                        vs_output output = (vs_output)0;
-                        output.position = float4(input.position, 1.0f);
-                        output.uv = input.uv;
-                        output.color = input.color;
-                        return output;
-                    }
-                )";
 
-				constexpr static c_str g_model_nouv_pixel = R"(
+				constexpr static c_str g_drawing_ps = R"(
                     struct ps_input {
                         float4 position : SV_Position;
                         float4 color    : COLOR0;
+                        float2 uv       : TEXCOORD0;
                     };
                     float4 main(in ps_input input) : SV_Target {
                         return input.color;
@@ -97,6 +87,7 @@ namespace rengine {
             constexpr static c_str g_buffer_mgr_tag = "buffer_mgr";
             constexpr static c_str g_renderer_tag = "renderer";
             constexpr static c_str g_render_cmd_tag = "render_command";
+            constexpr static c_str g_drawing_cmd_tag = "drawing";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -123,6 +114,8 @@ namespace rengine {
             constexpr static c_str g_render_isnt_allowed_to_set_rt_grt_than_max = "Number of render targets ({0}) is greater than max allowed ({1})";
             constexpr static c_str g_render_cmd_isnt_allowed_to_set_buffer_grt_than_max = "Number of vertex buffer ({0}) is greater than max allowed ({1})";
             constexpr static c_str g_render_cmd_not_found_command = "Not found command from given id {0}";
+        
+            constexpr static c_str g_draw_require_x_vertices = "You must push {0} vertices first to do this operation. Vertices Count = {1}";
         }
 
         namespace exceptions {
@@ -135,6 +128,8 @@ namespace rengine {
             constexpr static c_str g_pool_invalid_id = "Cannot retrieve item: ID {0} is invalid.";
             constexpr static c_str g_pool_out_of_range = "Index out of range. IDX {0}";
 			constexpr static c_str g_logger_reached_max_log_objects = "Reached max of created log objects.";
+
+            constexpr static c_str g_queue_empty = "Queue is empty";
 
             constexpr static c_str g_graphics_unsupported_backend = "Unsupported graphics backend {0} on this platform";
             constexpr static c_str g_graphics_not_initialized = "Graphics is not initialized";

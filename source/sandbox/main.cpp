@@ -13,15 +13,59 @@ void game_loop() {
 	const auto b = rengine::math::vec3(+0., +.5, 0.);
 	const auto c = rengine::math::vec3(+.5, -.5, 0.);
 
+    const auto a_color = rengine::math::byte_color::red;
+	const auto b_color = rengine::math::byte_color::green;
+	const auto c_color = rengine::math::byte_color::blue;
+
     rengine::graphics::renderer_begin_draw();
-        rengine::graphics::renderer_add_triangle({
-            { rengine::math::vec3(-0.5f, -0.5f, 0.), rengine::math::byte_color::red },
-            { rengine::math::vec3(+0.0f, +0.5f, 0.), rengine::math::byte_color::green },
-            { rengine::math::vec3(+0.5f, -0.5f, 0.), rengine::math::byte_color::blue },
-        });
-        rengine::graphics::renderer_add_line(a, b);
-        rengine::graphics::renderer_add_line(b, c);
-        rengine::graphics::renderer_add_line(c, a);
+    {
+        rengine::graphics::renderer_set_color(a_color);
+        rengine::graphics::renderer_push_vertex(a);
+
+        rengine::graphics::renderer_set_color(b_color);
+        rengine::graphics::renderer_push_vertex(b);
+
+        rengine::graphics::renderer_set_color(c_color);
+        rengine::graphics::renderer_push_vertex(c);
+
+        rengine::graphics::renderer_draw_triangle();
+    }
+
+    {
+        // Draw line: A -> B
+        {
+		    rengine::graphics::renderer_set_color(a_color);
+		    rengine::graphics::renderer_push_vertex(a);
+
+		    rengine::graphics::renderer_set_color(b_color);
+		    rengine::graphics::renderer_push_vertex(b);
+
+		    rengine::graphics::renderer_draw_line();
+        }
+
+		// Draw line: B -> C
+        {
+		    rengine::graphics::renderer_set_color(b_color);
+		    rengine::graphics::renderer_push_vertex(b);
+
+		    rengine::graphics::renderer_set_color(c_color);
+		    rengine::graphics::renderer_push_vertex(c);
+
+		    rengine::graphics::renderer_draw_line();
+        }
+
+        // Draw line: C -> A
+        {
+		    rengine::graphics::renderer_set_color(c_color);
+		    rengine::graphics::renderer_push_vertex(c);
+
+		    rengine::graphics::renderer_set_color(a_color);
+		    rengine::graphics::renderer_push_vertex(a);
+
+		    rengine::graphics::renderer_draw_line();
+        }
+    }
+
     rengine::graphics::renderer_end_draw();
 }
 

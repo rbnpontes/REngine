@@ -9,52 +9,81 @@ namespace rengine {
 		void renderer_begin_draw()
 		{
 			auto& state = g_drawing_state;
-			state.num_triangles = state.num_lines = state.num_vertices = state.num_indices = 0;
-			state.current_vertex_color = math::byte_color::white;
-			state.offsets.fill(0);
+			state.vertex_queue.clear();
+			state.triangles.clear();
+			state.lines.clear();
+			state.points.clear();
+			state.current_color = math::byte_color::white;
 		}
 
 		void renderer_end_draw()
 		{
+			drawing__check_buffer_requirements();
 			drawing__upload_buffers();
 			drawing__submit_draw_calls();
 		}
 
-		void renderer_set_vertex_color(const math::byte_color& color)
+		void renderer_push_vertex(const math::vec3& point)
 		{
-			g_drawing_state.current_vertex_color = color;
+			vertex_uv_data vertex = { point, g_drawing_state.current_color, g_drawing_state.current_uv };
+			g_drawing_state.vertex_queue.push(vertex);
 		}
 
-		void renderer_add_point(const vertex& vertex)
+		void renderer_set_uv(const math::vec2& uv)
 		{
-			throw not_implemented_exception();
+			g_drawing_state.current_uv = uv;
 		}
 
-		void renderer_add_line(const line_t& line)
+		void renderer_set_color(const math::byte_color& color)
 		{
-			core::vector_utils_insert_item<line_t>(g_drawing_state.lines, line, &g_drawing_state.num_lines);
+			g_drawing_state.current_color = color;
 		}
 
-		void renderer_add_line(const math::vec3& a, const math::vec3& b)
+		void renderer_draw_point()
 		{
-			line_t line = { { a, g_drawing_state.current_vertex_color }, { b, g_drawing_state.current_vertex_color } };
-			renderer_add_line(line);
+			if (!drawing__assert_vert_count(1))
+				return;
+
+			const auto& vertex = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+
+			g_drawing_state.points.push_back({
+				vertex.point,
+				vertex.color
+			});
 		}
 
-		void renderer_add_triangle(const triangle& value)
+		void renderer_draw_line()
 		{
-			core::vector_utils_insert_item<triangle>(g_drawing_state.triangles, value, &g_drawing_state.num_triangles);
+			if (!drawing__assert_vert_count(2))
+				return;
+
+			const auto& a = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+			const auto& b = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+
+			g_drawing_state.lines.push_back({
+				{ a.point, a.color },
+				{ b.point, b.color }
+			});
 		}
 
-		void renderer_add_triangle(const math::vec3& a, const math::vec3& b, const math::vec3& c)
+		void renderer_draw_triangle()
 		{
-			triangle value = {};
-			value.a.point = a;
-			value.b.point = b;
-			value.c.point = c;
-			value.a.color = value.b.color = value.c.color = g_drawing_state.current_vertex_color;
+			if (!drawing__assert_vert_count(3))
+				return;
 
-			renderer_add_triangle(value);
+			const auto& a = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+			const auto& b = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+			const auto& c = g_drawing_state.vertex_queue.front();
+			g_drawing_state.vertex_queue.pop();
+
+			g_drawing_state.triangles.push_back({
+				a, b, c
+			});
 		}
 
 		void renderer_add_quad(const quad& quad)
