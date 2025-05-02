@@ -10,6 +10,13 @@ namespace rengine {
 		{
 			using namespace Diligent;
 			const auto device = g_graphics_state.device;
+
+			vector<ShaderMacro> macros(desc.num_macros);
+			for (u32 i = 0; i < desc.num_macros; ++i) {
+				macros[i].Name = desc.macros[i].name;
+				macros[i].Definition = desc.macros[i].definition;
+			}
+
 			ShaderCreateInfo ci = {};
 			ci.Desc.Name = desc.name;
 			ci.Desc.ShaderType = g_shader_type_tbl[(u8)desc.type];
@@ -19,6 +26,8 @@ namespace rengine {
 			ci.ByteCode = desc.bytecode;
 			ci.ByteCodeSize = desc.bytecode_length;
 			ci.EntryPoint = "main";
+			ci.Macros.Elements = macros.data();
+			ci.Macros.Count = macros.size();
 
 			IShader* shader = null;
 			device->CreateShader(ci, &shader, null);

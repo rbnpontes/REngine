@@ -4,13 +4,22 @@
 
 namespace rengine {
 	namespace graphics {
-		struct shader_create_desc {
+
+		struct shader_macro {
 			c_str name;
-			shader_type type;
-			c_str source_code;
-			u32 source_code_length;
-			byte* bytecode;
-			u32 bytecode_length;
+			c_str definition;
+		};
+
+		struct shader_create_desc {
+			c_str name{ null };
+			shader_type type{ shader_type::vertex };
+			c_str source_code{ null };
+			u32 source_code_length{ 0 };
+			byte* bytecode{ null };
+			u32 bytecode_length{ 0 };
+
+			shader_macro* macros{ null };
+			u32 num_macros{ 0 };
 		};
 
 		R_EXPORT shader_t shader_mgr_create(const shader_create_desc& desc);
