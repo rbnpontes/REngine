@@ -7,7 +7,10 @@
 #include "./drawing_private.h"
 #include "./buffer_manager_private.h"
 #include "./render_target_manager_private.h"
+#include "./pipeline_state_manager_private.h"
+#include "./srb_manager_private.h"
 #include "./render_command_private.h"
+#include "./shader_manager_private.h"
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
@@ -81,6 +84,8 @@ namespace rengine {
 			action_t init_calls[] = {
 				buffer_mgr__init,
 				render_target_mgr__init,
+				srb_mgr__init,
+				allocate_buffers,
 				renderer__init,
 				render_command__init,
 				drawing__init,
@@ -100,10 +105,14 @@ namespace rengine {
 		{
 			assert_initialization();
 
-			renderer__deinit();
-			//models__deinit();
-			render_target_mgr__deinit();
-			buffer_mgr__deinit();
+			action_t deinit_calls[] = {
+				renderer__deinit,
+				render_target_mgr__deinit,
+				buffer_mgr__deinit,
+				shader_mgr__deinit,
+				srb_mgr__deinit,
+				pipeline_state_mgr__deinit,
+			};
 
 			for(u32 i = 0; i < g_graphics_state.num_contexts; ++i)
 				g_graphics_state.contexts[i]->Release();
@@ -127,6 +136,8 @@ namespace rengine {
 			desc.depth = 1.0f;
 			desc.clear_depth = true;
 			renderer_clear(desc);
+
+			update_buffers();
 		}
 
 		void end() {
@@ -187,6 +198,16 @@ namespace rengine {
 			core::window__put_swapchain(window_id, swapchain);
 		}
 
+		void allocate_buffers()
+		{
+			g_graphics_state.buffers.frame = buffer_mgr_cbuffer_create({
+				strings::graphics::g_frame_buffer_name,
+				sizeof(frame_buffer_data),
+				null,
+				true
+			});
+		}
+
 		void prepare_viewport_rt(const core::window_t& window_id)
 		{
 			const auto& wnd_size = core::window_get_size(window_id);
@@ -229,6 +250,31 @@ namespace rengine {
 			ctx->CopyTexture(cpy_attribs);
 		}
 
+		void update_buffers()
+		{
+			update_frame_buffer();
+		}
+
+		void update_frame_buffer()
+		{
+			if (g_graphics_state.buffers.frame == no_constant_buffer)
+				return;
+
+			const auto& state = g_engine_state;
+			const auto& wnd_size = core::window_get_size(g_engine_state.window_id);
+			const auto& duration = std::chrono::duration_cast<std::chrono::milliseconds>(state.time.curr_elapsed.time_since_epoch());
+
+			const auto wnd_size_vec = math::vec2(wnd_size.x, wnd_size.y);
+			frame_buffer_data data;
+			data.screen_projection = math::matrix4x4::screen_projection(wnd_size_vec);
+			data.frame = (u32)state.time.curr_frame;
+			data.delta_time = state.time.curr_delta;
+			data.elapsed_time = duration.count();
+			data.window_size = wnd_size_vec;
+
+			buffer_mgr_cbuffer_update(g_graphics_state.buffers.frame, &data, sizeof(frame_buffer_data));
+		}
+		
 		u32 get_msaa_sample_count()
 		{
 			// TODO: add MSAA support

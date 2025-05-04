@@ -15,6 +15,8 @@ namespace rengine {
 			Diligent::SHADER_TYPE_UNKNOWN
 		};
 
+		void shader_mgr__deinit();
+
 		Diligent::IShader* shader_mgr__create_shader(const shader_create_desc& desc);
 		Diligent::IShader* shader_mgr__get_handle(const shader_t& shader_id);
 	}

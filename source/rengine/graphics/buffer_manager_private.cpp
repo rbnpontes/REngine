@@ -265,13 +265,21 @@ namespace rengine {
 			else if (!desc.initial_data)
 				throw graphics_exception(strings::exceptions::g_buffer_mgr_requires_initial_data);
 
+
 			BufferData data = {};
 			data.DataSize = desc.size;
 			data.pData = desc.initial_data;
+			
+			auto* initial_data = &data;
+
+			if (desc.dynamic)
+				initial_data = null;
+			if (type == buffer_type::constant_buffer)
+				initial_data = null;
 
 			IBuffer* buffer = null;
 			device->CreateBuffer(buffer_desc,
-				desc.dynamic ? null : &data,
+				initial_data,
 				&buffer);
 
 			if (!buffer)
@@ -405,13 +413,22 @@ namespace rengine {
 			switch (type)
 			{
 				case buffer_type::vertex_buffer:
-					*output = g_buffer_mgr_state.vertex_buffers[id].value;
+				{
+					if(id != no_vertex_buffer)
+						*output = g_buffer_mgr_state.vertex_buffers[id].value;
+				}
 					break;
 				case buffer_type::index_buffer:
-					*output = g_buffer_mgr_state.index_buffers[id].value;
+				{
+					if(id != no_index_buffer)
+						*output = g_buffer_mgr_state.index_buffers[id].value;
+				}
 					break;
 				case buffer_type::constant_buffer:
-					*output = g_buffer_mgr_state.constant_buffers[id].value;
+				{
+					if(id != no_constant_buffer)
+						*output = g_buffer_mgr_state.constant_buffers[id].value;
+				}
 					break;
 			}
 		}

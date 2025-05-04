@@ -36,6 +36,7 @@ namespace rengine {
             shader_t shaders[(u32)shader_type::max]{ no_shader, no_shader };
 
             pipeline_state_t pipeline_state{ no_pipeline_state };
+            srb_t srb{ no_srb };
             render_command_hashes hashes{};
         };
         typedef hash_map<render_command_t, shared_ptr<render_command_data>> command_list;
@@ -55,6 +56,7 @@ namespace rengine {
         void render_command__assert_update();
 #endif
         void render_command__build_pipeline(render_command_data& data);
+        void render_command__build_srb(render_command_data& data);
         void render_command__build_hash(render_command_data& data);
         void render_command__build_vbuffer_hash(render_command_data& cmd);
         void render_command__build_ibuffer_hash(render_command_data& cmd);

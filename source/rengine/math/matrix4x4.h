@@ -85,6 +85,8 @@ namespace rengine {
 
 			static matrix4x4 transform(const vec3& translation, const quat& rotation, const vec3& scale);
 
+			static matrix4x4 screen_projection(const vec2& size);
+
 			static const matrix4x4 zero;
 			static const matrix4x4 identity;
 		};

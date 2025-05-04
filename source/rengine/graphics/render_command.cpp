@@ -44,6 +44,7 @@ namespace rengine {
 				);
 
 			render_command__build_pipeline(curr_cmd);
+			render_command__build_srb(curr_cmd);
 
 			auto cmd = shared_ptr<render_command_data>(core::alloc_new<render_command_data>());
 			*cmd = curr_cmd;

@@ -4,6 +4,8 @@
 #include "../exceptions.h"
 #include "../core/vector_utils_private.h"
 
+#include <stb/stb_easy_font.h>
+
 namespace rengine {
 	namespace graphics {
 		void renderer_begin_draw()
@@ -13,6 +15,7 @@ namespace rengine {
 			state.triangles.clear();
 			state.lines.clear();
 			state.points.clear();
+			state.text_quads.clear();
 			state.current_color = math::byte_color::white;
 			state.current_transform = {};
 		}
@@ -171,6 +174,20 @@ namespace rengine {
 
 		void renderer_draw_quad_lines(const math::vec3& center, const math::vec2& size)
 		{
+		}
+
+		void renderer_draw_text(c_str text)
+		{
+			auto& state = g_drawing_state;
+			u32 len = strlen(text);
+			size_t offset = state.text_quads.size();
+			state.text_quads.resize(len * 4);
+
+			u32 num_quads = stb_easy_font_print(0, 0,
+				const_cast<char*>(text),
+				reinterpret_cast<byte*>(&g_drawing_state.current_color.r),
+				state.text_quads.data() + (offset * sizeof(vertex_data)),
+				len * (sizeof(vertex_data) * 4));
 		}
 
 		void renderer_add_cube(const cube& cube)

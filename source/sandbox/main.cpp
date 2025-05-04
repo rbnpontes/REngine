@@ -19,6 +19,8 @@ void game_loop() {
 
 	rengine::graphics::renderer_begin_draw();
 	g_rotation += 0.1;
+	rengine::graphics::renderer_scale(100);
+	rengine::graphics::renderer_translate(rengine::math::vec3(100, 100, 0));
 	rengine::graphics::renderer_rotate(g_rotation);
 	  {
 	      rengine::graphics::renderer_set_color(a_color);
@@ -33,6 +35,8 @@ void game_loop() {
 	      rengine::graphics::renderer_draw_triangle();
 	  }
 
+	  rengine::graphics::renderer_set_color(rengine::math::byte_color::white);
+	  rengine::graphics::renderer_draw_text("Hello World!!!");
 	//  {
 	//      // Draw line: A -> B
 	//      {

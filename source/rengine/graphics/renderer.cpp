@@ -209,6 +209,7 @@ namespace rengine {
 				return;
 
 			render_command__build_pipeline(cmd);
+			render_command__build_srb(cmd);
 			renderer__submit_render_state();
 		}
 

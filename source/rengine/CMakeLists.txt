@@ -36,6 +36,7 @@ set (PRIVATE_LIBS
     EASTL
     EABase
     xxHash
+    stb
 )
 set (PUBLIC_LIBS
     fmt::fmt)

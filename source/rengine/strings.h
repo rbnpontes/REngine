@@ -21,6 +21,7 @@ namespace rengine {
         constexpr static c_str g_pool_id = "pool";
 
         namespace graphics {
+            constexpr static c_str g_shader_entrypoint = "main";
             constexpr static c_str g_drawing_vbuffer_name = "rengine::models::vbuffer";
             constexpr static c_str g_drawing_ibuffer_name = "rengine::models::ibuffer";
 			constexpr static c_str g_drawing_pipeline_name = "rengine::models::gpipeline";
@@ -30,8 +31,20 @@ namespace rengine {
             constexpr static c_str g_viewport_rt_name = "rengine::viewport";
             constexpr static c_str g_default_cmd_name = "rengine::render_command";
 
+            constexpr static c_str g_frame_buffer_name = "rengine::graphics::frame::cbuffer";
+
             namespace shaders {
+                constexpr static c_str g_frame_buffer_key = "frame_constants";
+
                 constexpr static c_str g_drawing_vs = R"(
+                    cbuffer frame_constants {
+                        float4x4 g_screen_projection;
+                        float2 g_window_size;
+                        float g_delta_time;
+                        float g_elapsed_time;
+                        uint g_frame;
+                    };
+
                     struct vs_input {
                         float3 position : ATTRIB0;
                         uint color      : ATTRIB3;
@@ -48,7 +61,7 @@ namespace rengine {
 
                     vs_output main(in vs_input input) {
                         vs_output output = (vs_output)0;
-                        output.position = float4(input.position, 1.0f);
+                        output.position = mul(g_screen_projection, float4(input.position, 1.0f));
 
                         float4 color = float4(
                             (float)((input.color >> 0) & 0xFF),
@@ -88,6 +101,7 @@ namespace rengine {
             constexpr static c_str g_renderer_tag = "renderer";
             constexpr static c_str g_render_cmd_tag = "render_command";
             constexpr static c_str g_drawing_cmd_tag = "drawing";
+            constexpr static c_str g_srb_cmd_tag = "srb";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -116,6 +130,8 @@ namespace rengine {
             constexpr static c_str g_render_cmd_not_found_command = "Not found command from given id {0}";
         
             constexpr static c_str g_draw_require_x_vertices = "You must push {0} vertices first to do this operation. Vertices Count = {1}";
+        
+            constexpr static c_str g_srb_mgr_invalid_id = "Invalid Shader Resource Binding Id {0}";
         }
 
         namespace exceptions {
@@ -166,6 +182,8 @@ namespace rengine {
 
             constexpr static c_str g_render_cmd_call_begin_first = "Must call render_command_begin or render_command_begin_update first";
             constexpr static c_str g_render_cmd_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
+        
+            constexpr static c_str g_srb_invalid_pipeline = "Failed to create Shader Resource Binding. Pipeline State Id is invalid. Pipeline State = {0}";
         }
     }
 }

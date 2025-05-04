@@ -9,17 +9,18 @@ namespace rengine {
     namespace graphics {
         pipeline_state_t pipeline_state_mgr_create_graphics(const graphics_pipeline_state_create& create_info)
         {
+            auto& state = g_pipeline_state_mgr_state;
             const auto pipeline_id = pipeline_state_mgr_graphics_hash_desc(create_info);
-            const auto& it = g_cached_pipelines.find_as(pipeline_id);
-            if (it != g_cached_pipelines.end())
+            const auto& it = state.pipelines.find_as(pipeline_id);
+            if (it != state.pipelines.end())
                 return pipeline_id;
 
             const auto pipeline = pipeline_state_mgr__create_graphics(create_info);
             if (!pipeline)
                 throw graphics_exception(strings::exceptions::g_shader_mgr_fail_to_create_shader);
 
-            g_cached_pipelines[pipeline_id] = pipeline;
-            ++g_cached_pipelines_count;
+            state.pipelines[pipeline_id] = pipeline;
+            ++state.pipeline_count;
             return pipeline_id;
         }
         
@@ -46,15 +47,15 @@ namespace rengine {
 
         u32 pipeline_state_mgr_get_cache_count()
         {
-            return g_cached_pipelines_count;
+            return g_pipeline_state_mgr_state.pipeline_count;
         }
 
         void pipeline_state_mgr_clear_cache()
         {
-            for (const auto& it : g_cached_pipelines)
+            for (const auto& it : g_pipeline_state_mgr_state.pipelines)
                 it.second->Release();
 
-            g_cached_pipelines_count = 0;
+            g_pipeline_state_mgr_state.pipeline_count = 0;
         }
     }
 }

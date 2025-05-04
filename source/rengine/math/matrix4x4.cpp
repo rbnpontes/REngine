@@ -248,9 +248,9 @@ namespace rengine {
 		{
 			matrix4x4 ret;
 			ret.m[0][0] = ret.m[1][1] = ret.m[2][2] = ret.m[3][3] = 1;
-			ret.m[3][0] = value.x;
-			ret.m[3][1] = value.y;
-			ret.m[3][2] = value.z;
+			ret.m[0][3] = value.x;
+			ret.m[1][3] = value.y;
+			ret.m[2][3] = value.z;
 			return ret;
 		}
 
@@ -356,10 +356,17 @@ namespace rengine {
 			matrix4x4 r = from_rotation(rotation); 
 			matrix4x4 s = from_scale(scale);
 
-			matrix4x4 transform = mul(t, mul(r, s));
-			//matrix4x4 transform = mul(r, s);
-			//transform = mul(transform, t);
+			matrix4x4 transform = mul(mul(t, r), s);
 			return transform;
+		}
+		matrix4x4 matrix4x4::screen_projection(const vec2& size)
+		{
+			matrix4x4 ret;
+			ret.m[0][0] = 2. / size.x;
+			ret.m[1][1] = -2. / size.y;
+			ret.m[2][2] = ret.m[3][0] = -1.;
+			ret.m[3][1] = ret.m[3][3] = 1.;
+			return ret;
 		}
 	}
 }

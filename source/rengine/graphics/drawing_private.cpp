@@ -155,6 +155,12 @@ namespace rengine {
 			if (state.points.size() > 0) {
 				cpy_size = state.points.size() * sizeof(vertex_data);
 				memcpy(data, state.points.data(), cpy_size);
+				data = static_cast<u8*>(data) + cpy_size;
+			}
+
+			if (state.text_quads.size() > 0) {
+				cpy_size = state.text_quads.size() * sizeof(vertex_data);
+				memcpy(data, state.text_quads.data(), cpy_size);
 			}
 
 			buffer_mgr_vbuffer_unmap(state.vertex_buffer);
@@ -168,6 +174,8 @@ namespace rengine {
 				drawing__draw_lines();
 			if (g_drawing_state.points.size() > 0)
 				drawing__draw_points();
+			if (g_drawing_state.text_quads.size() > 0)
+				drawing__draw_text_quads();
 		}
 
 		void drawing__draw_triangles()
@@ -215,6 +223,24 @@ namespace rengine {
 			renderer_draw({ (u32)g_drawing_state.points.size() });
 		}
 
+		void drawing__draw_text_quads()
+		{
+			const auto& state = g_drawing_state;
+			u32 offset = state.triangles.size() * sizeof(vertex_data);
+			offset += state.lines.size() * sizeof(line_data);
+			offset += state.points.size() * sizeof(vertex_data);
+
+			renderer_set_vbuffer(state.vertex_buffer, offset);
+			renderer_set_topology(primitive_topology::point_list);
+			renderer_set_depth_enabled(true);
+			renderer_set_wireframe(false);
+			renderer_set_cull_mode(cull_mode::clock_wise);
+			renderer_set_vertex_shader(g_drawing_state.vertex_shader[0]);
+			renderer_set_pixel_shader(g_drawing_state.pixel_shader);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
+			renderer_draw({ (u32)g_drawing_state.text_quads.size() * 4 });
+		}
+
 		void drawing__compute_transform()
 		{
 			auto& state = g_drawing_state;
@@ -224,7 +250,7 @@ namespace rengine {
 			state.current_transform.dirty = false;
 			state.current_transform.transform = math::matrix4x4::transform(state.current_transform.position,
 				state.current_transform.rotation,
-				math::vec3(state.current_transform.scale.x, state.current_transform.scale.y));
+				math::vec3(state.current_transform.scale.x, state.current_transform.scale.y, 1));
 		}
 	}
 }

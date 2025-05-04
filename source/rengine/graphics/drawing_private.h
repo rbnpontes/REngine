@@ -47,6 +47,7 @@ namespace rengine {
 			vector<vertex_data> points;
 			vector<triangle_data> triangles;
 			vector<line_data> lines;
+			vector<vertex_data> text_quads;
 
 			math::byte_color current_color{ math::byte_color::white };
 			math::vec2 current_uv{ 0, 0 };
@@ -74,6 +75,7 @@ namespace rengine {
 		void drawing__draw_triangles();
 		void drawing__draw_lines();
 		void drawing__draw_points();
+		void drawing__draw_text_quads();
 		void drawing__compute_transform();
     }
 }

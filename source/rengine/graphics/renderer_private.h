@@ -26,6 +26,7 @@ namespace rengine {
             core::hash_t prev_ibuffer_hash{ 0 };
             core::hash_t prev_viewport_hash{ 0 };
             pipeline_state_t prev_pipeline_id { no_pipeline_state };
+            srb_t prev_srb{ no_srb };
         };
 
         struct renderer_state {
@@ -44,6 +45,7 @@ namespace rengine {
         void renderer__set_ibuffer();
         void renderer__set_viewport();
         void renderer__set_pipeline();
+        void renderer__set_srb();
         void renderer__submit_render_state();
     }
 }

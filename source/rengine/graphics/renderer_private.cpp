@@ -3,6 +3,7 @@
 #include "./render_target_manager_private.h"
 #include "./pipeline_state_manager_private.h"
 #include "./buffer_manager_private.h"
+#include "./srb_manager_private.h"
 
 #include "../exceptions.h"
 #include "../strings.h"
@@ -160,11 +161,27 @@ namespace rengine {
 			if (ctx_state.prev_pipeline_id == cmd.pipeline_state)
 				return;
 
-			Diligent::IPipelineState* pipeline;
+			Diligent::IPipelineState* pipeline = null;
 			pipeline_state_mgr__get_internal_handle(cmd.pipeline_state, &pipeline);
 
 			ctx->SetPipelineState(pipeline);
 			ctx_state.prev_pipeline_id = cmd.pipeline_state;
+		}
+
+		void renderer__set_srb()
+		{
+			const auto& cmd = g_renderer_state.default_cmd;
+			const auto ctx = g_graphics_state.contexts[0];
+			auto& ctx_state = g_renderer_state.context_state;
+
+			if (ctx_state.prev_srb == cmd.srb)
+				return;
+
+			Diligent::IShaderResourceBinding* srb = null;
+			srb_mgr__get_handle(cmd.srb, &srb);
+
+			ctx->CommitShaderResources(srb, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			ctx_state.prev_srb = cmd.srb;
 		}
 
 		void renderer__submit_render_state()
@@ -174,6 +191,7 @@ namespace rengine {
 			renderer__set_ibuffer();
 			renderer__set_viewport();
 			renderer__set_pipeline();
+			renderer__set_srb();
 		}
 	}
 }

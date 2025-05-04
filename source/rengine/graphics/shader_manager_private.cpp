@@ -6,6 +6,11 @@ namespace rengine {
 		hash_map<shader_t, Diligent::IShader*> g_shader_tbl = {};
 		u32 g_shader_count = 0;
 
+		void shader_mgr__deinit()
+		{
+			shader_mgr_clear_cache();
+		}
+
 		Diligent::IShader* shader_mgr__create_shader(const shader_create_desc& desc)
 		{
 			using namespace Diligent;
@@ -25,7 +30,7 @@ namespace rengine {
 			ci.SourceLength = desc.source_code_length;
 			ci.ByteCode = desc.bytecode;
 			ci.ByteCodeSize = desc.bytecode_length;
-			ci.EntryPoint = "main";
+			ci.EntryPoint = strings::graphics::g_shader_entrypoint;
 			ci.Macros.Elements = macros.data();
 			ci.Macros.Count = macros.size();
 

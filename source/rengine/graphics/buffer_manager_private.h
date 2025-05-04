@@ -31,7 +31,7 @@ namespace rengine {
         static constexpr Diligent::BIND_FLAGS g_bind_flags_tbl[] = {
             Diligent::BIND_VERTEX_BUFFER,
             Diligent::BIND_INDEX_BUFFER,
-            Diligent::BIND_SHADER_RESOURCE
+            Diligent::BIND_UNIFORM_BUFFER
         };
         extern buffer_mgr_state g_buffer_mgr_state;
 

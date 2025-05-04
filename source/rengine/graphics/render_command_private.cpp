@@ -1,6 +1,7 @@
 #include "./render_command_private.h"
 #include "./pipeline_state_manager.h"
 #include "./render_target_manager.h"
+#include "./srb_manager.h"
 
 #include "../strings.h"
 #include "../exceptions.h"
@@ -54,6 +55,13 @@ namespace rengine {
 
 			pipeline_create.vertex_elements = data.vertex_elements;
 			data.pipeline_state = pipeline_state_mgr_create_graphics(pipeline_create);
+		}
+
+		void render_command__build_srb(render_command_data& data)
+		{
+			// TODO: add other resources to SRB build
+			// TODO(2): recycle SRB instead of create new ones
+			data.srb = srb_mgr_create({ data.pipeline_state, null, 0 });
 		}
 
 		void render_command__build_hash(render_command_data& data)
