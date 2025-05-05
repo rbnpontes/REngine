@@ -175,6 +175,40 @@ static void stb_easy_font_spacing(float spacing)
    stb_easy_font_spacing_val = spacing;
 }
 
+static unsigned stb_easy_font_calc_seg_size(unsigned char* segs, int num_segs) {
+    unsigned result = 0;
+    for (unsigned i = 0; i < num_segs; ++i) {
+        int len = segs[i] & 7;
+        if (len)
+            result += 64;
+    }
+
+    return result;
+}
+
+static unsigned stb_easy_font_calc_buf_size(char* text) 
+{
+    unsigned result = 0;
+
+    while (*text) {
+        if (*text == '\n')
+            continue;
+
+        int h_seg, v_seg, num_h, num_v;
+        h_seg = stb_easy_font_charinfo[*text - 32].h_seg;
+        v_seg = stb_easy_font_charinfo[*text - 32].v_seg;
+        num_h = stb_easy_font_charinfo[*text - 32 + 1].h_seg - h_seg;
+        num_v = stb_easy_font_charinfo[*text - 32 + 1].v_seg - v_seg;
+
+        result += stb_easy_font_calc_seg_size(&stb_easy_font_hseg[h_seg], num_h);
+        result += stb_easy_font_calc_seg_size(&stb_easy_font_vseg[v_seg], num_v);
+
+        ++text;
+    }
+
+    return result;
+}
+
 static int stb_easy_font_print(float x, float y, char *text, unsigned char color[4], void *vertex_buffer, int vbuf_size)
 {
     char *vbuf = (char *) vertex_buffer;

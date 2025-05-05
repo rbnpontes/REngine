@@ -27,6 +27,10 @@ namespace rengine {
 	R_EXPORT void use_window(const core::window_t& window_id);
 	R_EXPORT const core::window_t& get_window();
 
+	R_EXPORT void enable_fps_monitor();
+	R_EXPORT void hide_fps_monitor();
+
+
 	R_EXPORT void begin();
 	R_EXPORT void end();
 }

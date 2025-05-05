@@ -4,6 +4,7 @@
 #include "./shader_manager.h"
 #include "./graphics_private.h"
 #include "./graphics.h"
+#include "../rengine_private.h"
 
 #include "../strings.h"
 #include "../exceptions.h"
@@ -72,6 +73,26 @@ namespace rengine {
 				);
 			}
 		}
+
+		/*void drawing__require_ibuffer_size(u32 buffer_size)
+		{
+			auto& state = g_drawing_state;
+			try {
+				if (state.index_buffer == no_vertex_buffer)
+					state.index_buffer = buffer_mgr_ibuffer_create({
+						strings::graphics::g_drawing_ibuffer_name,
+						buffer_size,
+						null,
+						true,
+						});
+				else if (buffer_size > state.index_buffer_size)
+			}
+			catch (const graphics_exception& exception) {
+				throw graphics_exception(
+					fmt::format(strings::exceptions::g_models_failed_to_alloc_ibuffer, buffer_size).c_str()
+				);
+			}
+		}*/
 
 		void drawing__compile_shaders()
 		{
@@ -158,11 +179,6 @@ namespace rengine {
 				data = static_cast<u8*>(data) + cpy_size;
 			}
 
-			if (state.text_quads.size() > 0) {
-				cpy_size = state.text_quads.size() * sizeof(vertex_data);
-				memcpy(data, state.text_quads.data(), cpy_size);
-			}
-
 			buffer_mgr_vbuffer_unmap(state.vertex_buffer);
 		}
 
@@ -174,15 +190,13 @@ namespace rengine {
 				drawing__draw_lines();
 			if (g_drawing_state.points.size() > 0)
 				drawing__draw_points();
-			if (g_drawing_state.text_quads.size() > 0)
-				drawing__draw_text_quads();
 		}
 
 		void drawing__draw_triangles()
 		{
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
-			renderer_set_topology(primitive_topology::triangle_strip);
+			renderer_set_topology(primitive_topology::triangle_list);
 			renderer_set_depth_enabled(true);
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
@@ -223,24 +237,6 @@ namespace rengine {
 			renderer_draw({ (u32)g_drawing_state.points.size() });
 		}
 
-		void drawing__draw_text_quads()
-		{
-			const auto& state = g_drawing_state;
-			u32 offset = state.triangles.size() * sizeof(vertex_data);
-			offset += state.lines.size() * sizeof(line_data);
-			offset += state.points.size() * sizeof(vertex_data);
-
-			renderer_set_vbuffer(state.vertex_buffer, offset);
-			renderer_set_topology(primitive_topology::point_list);
-			renderer_set_depth_enabled(true);
-			renderer_set_wireframe(false);
-			renderer_set_cull_mode(cull_mode::clock_wise);
-			renderer_set_vertex_shader(g_drawing_state.vertex_shader[0]);
-			renderer_set_pixel_shader(g_drawing_state.pixel_shader);
-			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
-			renderer_draw({ (u32)g_drawing_state.text_quads.size() * 4 });
-		}
-
 		void drawing__compute_transform()
 		{
 			auto& state = g_drawing_state;
@@ -251,6 +247,43 @@ namespace rengine {
 			state.current_transform.transform = math::matrix4x4::transform(state.current_transform.position,
 				state.current_transform.rotation,
 				math::vec3(state.current_transform.scale.x, state.current_transform.scale.y, 1));
+		}
+
+		void drawing__begin_draw()
+		{
+			auto& state = g_drawing_state;
+			state.vertex_queue.clear();
+			state.triangles.clear();
+			state.lines.clear();
+			state.points.clear();
+			state.current_color = math::byte_color::white;
+			state.current_transform = {};
+		}
+
+		void drawing__end_draw()
+		{
+			if (g_engine_state.monitor.fps)
+				drawing__render_fps_time();
+
+			drawing__check_buffer_requirements();
+			drawing__upload_buffers();
+			drawing__submit_draw_calls();
+		}
+
+		void drawing__render_fps_time()
+		{
+			renderer_set_color(math::byte_color::green);
+			renderer_translate(math::vec3::zero);
+			renderer_scale(2);
+			renderer_draw_text(
+				fmt::format(strings::g_engine_monitor_fps, g_engine_state.time.curr_fps).c_str()
+			);
+
+			auto& drawing_state = g_drawing_state;
+			drawing_state.current_transform.dirty = false;
+			drawing_state.current_transform.scale = math::vec2::one;
+			drawing_state.current_transform.position = math::vec3::zero;
+			drawing_state.current_transform.rotation = math::quat();
 		}
 	}
 }

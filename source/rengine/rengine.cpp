@@ -46,6 +46,16 @@ namespace rengine {
 		return g_engine_state.window_id;
 	}
 
+	void enable_fps_monitor()
+	{
+		g_engine_state.monitor.fps = true;
+	}
+
+	void hide_fps_monitor()
+	{
+		g_engine_state.monitor.fps = false;
+	}
+
 	void update() {
 		if (g_engine_state.stop)
 			return;

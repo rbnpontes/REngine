@@ -19,75 +19,83 @@ void game_loop() {
 
 	rengine::graphics::renderer_begin_draw();
 	g_rotation += 0.1;
-	rengine::graphics::renderer_scale(100);
+	//rengine::graphics::renderer_scale(12);
+	rengine::graphics::renderer_scale(2);
+	//rengine::graphics::renderer_rotate(g_rotation);
 	rengine::graphics::renderer_translate(rengine::math::vec3(100, 100, 0));
-	rengine::graphics::renderer_rotate(g_rotation);
-	  {
-	      rengine::graphics::renderer_set_color(a_color);
-	      rengine::graphics::renderer_push_vertex(a);
+	rengine::graphics::renderer_set_color(rengine::math::byte_color::white);
+	rengine::graphics::renderer_draw_text("Hello World!!!");
+	/*for (rengine::u8 y = 0; y < 4; ++y) {
+		for (rengine::u8 x = 0; x < 10; ++x) {
+			float offset_x = x * 50.;
+			float offset_y = y * 50.;
+			rengine::graphics::renderer_translate(rengine::math::vec3(10 + offset_x, 100 + offset_y));
+			{
+				rengine::graphics::renderer_set_color(a_color);
+				rengine::graphics::renderer_push_vertex(a);
 
-	      rengine::graphics::renderer_set_color(b_color);
-	      rengine::graphics::renderer_push_vertex(b);
+				rengine::graphics::renderer_set_color(b_color);
+				rengine::graphics::renderer_push_vertex(b);
 
-	      rengine::graphics::renderer_set_color(c_color);
-	      rengine::graphics::renderer_push_vertex(c);
+				rengine::graphics::renderer_set_color(c_color);
+				rengine::graphics::renderer_push_vertex(c);
 
-	      rengine::graphics::renderer_draw_triangle();
-	  }
-
-	  rengine::graphics::renderer_set_color(rengine::math::byte_color::white);
-	  rengine::graphics::renderer_draw_text("Hello World!!!");
-	//  {
-	//      // Draw line: A -> B
-	//      {
-		  //    rengine::graphics::renderer_set_color(a_color);
-		  //    rengine::graphics::renderer_push_vertex(a);
-
-		  //    rengine::graphics::renderer_set_color(b_color);
-		  //    rengine::graphics::renderer_push_vertex(b);
-
-		  //    rengine::graphics::renderer_draw_line();
-	//      }
-
-		  //// Draw line: B -> C
-	//      {
-		  //    rengine::graphics::renderer_set_color(b_color);
-		  //    rengine::graphics::renderer_push_vertex(b);
-
-		  //    rengine::graphics::renderer_set_color(c_color);
-		  //    rengine::graphics::renderer_push_vertex(c);
-
-		  //    rengine::graphics::renderer_draw_line();
-	//      }
-
-	//      // Draw line: C -> A
-	//      {
-		  //    rengine::graphics::renderer_set_color(c_color);
-		  //    rengine::graphics::renderer_push_vertex(c);
-
-		  //    rengine::graphics::renderer_set_color(a_color);
-		  //    rengine::graphics::renderer_push_vertex(a);
-
-		  //    rengine::graphics::renderer_draw_line();
-	//      }
-	//  }
-
-	/*{
-		rengine::graphics::renderer_set_color(a_color);
-		rengine::graphics::renderer_push_vertex(a);
-		rengine::graphics::renderer_draw_point();
-
-		rengine::graphics::renderer_set_color(b_color);
-		rengine::graphics::renderer_push_vertex(b);
-		rengine::graphics::renderer_draw_point();
-
-		rengine::graphics::renderer_set_color(c_color);
-		rengine::graphics::renderer_push_vertex(c);
-		rengine::graphics::renderer_draw_point();
+				rengine::graphics::renderer_draw_triangle();
+			}
+		}
 	}*/
-	/*
-	rengine::graphics::renderer_set_color(rengine::math::byte_color::green);
-	rengine::graphics::renderer_draw_quad(rengine::math::vec3(0.f, 0.f), rengine::math::vec2(.5f, .5f));*/
+
+  //  {
+  //      // Draw line: A -> B
+  //      {
+		//    rengine::graphics::renderer_set_color(a_color);
+		//    rengine::graphics::renderer_push_vertex(a);
+
+		//    rengine::graphics::renderer_set_color(b_color);
+		//    rengine::graphics::renderer_push_vertex(b);
+
+		//    rengine::graphics::renderer_draw_line();
+  //      }
+
+		//// Draw line: B -> C
+  //      {
+		//    rengine::graphics::renderer_set_color(b_color);
+		//    rengine::graphics::renderer_push_vertex(b);
+
+		//    rengine::graphics::renderer_set_color(c_color);
+		//    rengine::graphics::renderer_push_vertex(c);
+
+		//    rengine::graphics::renderer_draw_line();
+  //      }
+
+  //      // Draw line: C -> A
+  //      {
+		//    rengine::graphics::renderer_set_color(c_color);
+		//    rengine::graphics::renderer_push_vertex(c);
+
+		//    rengine::graphics::renderer_set_color(a_color);
+		//    rengine::graphics::renderer_push_vertex(a);
+
+		//    rengine::graphics::renderer_draw_line();
+  //      }
+  //  }
+
+  /*{
+	  rengine::graphics::renderer_set_color(a_color);
+	  rengine::graphics::renderer_push_vertex(a);
+	  rengine::graphics::renderer_draw_point();
+
+	  rengine::graphics::renderer_set_color(b_color);
+	  rengine::graphics::renderer_push_vertex(b);
+	  rengine::graphics::renderer_draw_point();
+
+	  rengine::graphics::renderer_set_color(c_color);
+	  rengine::graphics::renderer_push_vertex(c);
+	  rengine::graphics::renderer_draw_point();
+  }*/
+  /*
+  rengine::graphics::renderer_set_color(rengine::math::byte_color::green);
+  rengine::graphics::renderer_draw_quad(rengine::math::vec3(0.f, 0.f), rengine::math::vec2(.5f, .5f));*/
 	rengine::graphics::renderer_end_draw();
 }
 
@@ -98,6 +106,7 @@ int main(unsigned int argc, char** argv) {
 	const auto wnd = rengine::core::window_create("REngine", 500, 400);
 	g_window_id = wnd;
 	rengine::use_window(wnd);
+	rengine::enable_fps_monitor();
 	rengine::run(game_loop);
 	rengine::destroy();
 	return 0;

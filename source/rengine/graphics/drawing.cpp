@@ -10,21 +10,12 @@ namespace rengine {
 	namespace graphics {
 		void renderer_begin_draw()
 		{
-			auto& state = g_drawing_state;
-			state.vertex_queue.clear();
-			state.triangles.clear();
-			state.lines.clear();
-			state.points.clear();
-			state.text_quads.clear();
-			state.current_color = math::byte_color::white;
-			state.current_transform = {};
+			drawing__begin_draw();
 		}
 
 		void renderer_end_draw()
 		{
-			drawing__check_buffer_requirements();
-			drawing__upload_buffers();
-			drawing__submit_draw_calls();
+			drawing__end_draw();
 		}
 
 		void renderer_push_vertex(const math::vec3& point)
@@ -128,9 +119,15 @@ namespace rengine {
 			const auto& c = g_drawing_state.vertex_queue.front();
 			g_drawing_state.vertex_queue.pop();
 
-			g_drawing_state.triangles.push_back({
-				a, b, c
-			});
+			triangle_data triangle;
+			auto reverse = g_drawing_state.triangles.size() > 0;
+
+			if (reverse)
+				triangle = { c, b, a };
+			else
+				triangle = { a, b, c };
+
+			g_drawing_state.triangles.push_back(triangle);
 		}
 
 		void renderer_draw_quad(const math::vec3& center, const math::vec2& size)
@@ -151,12 +148,17 @@ namespace rengine {
 			math::vec3 left_bottom = center + math::vec3(-half_data[0], -half_data[1]);
 			math::vec3 right_bottom = center + math::vec3(half_data[0], -half_data[1]);
 
+			renderer_draw_rect(left_top, right_top, right_bottom, left_bottom);
+		}
+
+		void renderer_draw_rect(const math::vec3& left_top, const math::vec3& right_top, const math::vec3& right_bottom, const math::vec3& left_bottom)
+		{
 			renderer_set_uv({ 0., 1. });
 			renderer_push_vertex(left_top);
-			
+
 			renderer_set_uv({ 1., 1. });
 			renderer_push_vertex(right_top);
-			
+
 			renderer_set_uv({ 1., 0. });
 			renderer_push_vertex(right_bottom);
 			renderer_draw_triangle();
@@ -179,15 +181,26 @@ namespace rengine {
 		void renderer_draw_text(c_str text)
 		{
 			auto& state = g_drawing_state;
-			u32 len = strlen(text);
-			size_t offset = state.text_quads.size();
-			state.text_quads.resize(len * 4);
+			u32 buff_size = stb_easy_font_calc_buf_size(const_cast<char*>(text));
 
+			u32 len = strlen(text);
+			vector<vertex_data> vertices(buff_size / sizeof(vertex_data));
+
+			
 			u32 num_quads = stb_easy_font_print(0, 0,
 				const_cast<char*>(text),
-				reinterpret_cast<byte*>(&g_drawing_state.current_color.r),
-				state.text_quads.data() + (offset * sizeof(vertex_data)),
-				len * (sizeof(vertex_data) * 4));
+				null,
+				vertices.data(),
+				vertices.size() * sizeof(vertex_data));
+
+			for (u32 i = 0; i < vertices.size(); i += 4) {
+				vertex_data left_top = vertices[i + 3];
+				vertex_data right_top = vertices[i + 2];
+				vertex_data right_bottom = vertices[i + 1];
+				vertex_data left_bottom = vertices[i];
+
+				renderer_draw_rect(left_top.point, right_top.point, right_bottom.point, left_bottom.point);
+			}
 		}
 
 		void renderer_add_cube(const cube& cube)

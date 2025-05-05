@@ -41,6 +41,7 @@ namespace rengine {
         R_EXPORT void renderer_draw_line();
         R_EXPORT void renderer_draw_triangle();
         R_EXPORT void renderer_draw_quad(const math::vec3& center, const math::vec2& size);
+        R_EXPORT void renderer_draw_rect(const math::vec3& left_top, const math::vec3& right_top, const math::vec3& right_bottom, const math::vec3& left_bottom);
 		R_EXPORT void renderer_draw_quad_lines(const math::vec3& center, const math::vec2& size);
         R_EXPORT void renderer_draw_text(c_str text);
         R_EXPORT void renderer_add_cube(const cube& cube);

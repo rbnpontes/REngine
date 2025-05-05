@@ -12,11 +12,17 @@ namespace rengine {
 		time_point last_elapsed;
 		time_point curr_elapsed;
 		number_t curr_delta;
+		float curr_fps;
+	};
+
+	struct engine_monitor {
+		bool fps;
 	};
 
 	struct engine_state {
 		engine_update_callback callback;
 		engine_time time;
+		engine_monitor monitor;
 		core::window_t window_id{ core::no_window };
 		bool begin;
 		bool stop;

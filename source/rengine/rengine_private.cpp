@@ -4,7 +4,6 @@
 
 #include <chrono>
 
-
 namespace rengine {
 	engine_state g_engine_state = {};
 
@@ -67,6 +66,8 @@ namespace rengine {
 	void engine__end_timer() {
 		auto& time = g_engine_state.time;
 		auto delta = time.curr_elapsed - time.last_elapsed;
+		std::chrono::duration<float> frame_time = time.curr_elapsed - time.last_elapsed;
 		time.curr_delta = (number_t)delta.count();
+		time.curr_fps = 1. / frame_time.count();
 	}
 }

@@ -19,6 +19,7 @@ namespace rengine {
         };
 
         constexpr static c_str g_pool_id = "pool";
+        constexpr static c_str g_engine_monitor_fps = "FPS: {:.1f}";
 
         namespace graphics {
             constexpr static c_str g_shader_entrypoint = "main";
