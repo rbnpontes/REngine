@@ -7,7 +7,7 @@ namespace rengine {
 		struct graphics_pipeline_state_create {
 			c_str name{ null };
 			u16 render_target_formats[GRAPHICS_MAX_RENDER_TARGETS];
-			u16 depth_stencil_format{ MAX_U16_VALUE };
+			u16 depth_stencil_format{ 0 };
 			u8 num_render_targets{ 0 };
 			primitive_topology topology{ primitive_topology::triangle_list };
 			cull_mode cull{ cull_mode::clock_wise };

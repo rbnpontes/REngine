@@ -290,7 +290,6 @@ namespace rengine {
 					).c_str()
 				);
 			
-			buffer->AddRef();
 			return buffer;
 		}
 

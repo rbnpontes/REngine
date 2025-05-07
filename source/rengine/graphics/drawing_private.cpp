@@ -54,6 +54,12 @@ namespace rengine {
 		void drawing__require_vbuffer_size(u32 buffer_size)
 		{
 			auto& state = g_drawing_state;
+			size_t additional_size = DRAWING_DEFAULT_TRIANGLE_COUNT * sizeof(triangle_data);
+			additional_size += DRAWING_DEFAULT_LINES_COUNT * sizeof(line_data);
+			additional_size += DRAWING_DEFAULT_POINTS_COUNT * sizeof(vertex_data);
+			if (buffer_size > additional_size)
+				buffer_size += additional_size;
+
 			try {
 				if (state.vertex_buffer == no_vertex_buffer)
 					state.vertex_buffer = buffer_mgr_vbuffer_create({
@@ -262,28 +268,9 @@ namespace rengine {
 
 		void drawing__end_draw()
 		{
-			if (g_engine_state.monitor.fps)
-				drawing__render_fps_time();
-
 			drawing__check_buffer_requirements();
 			drawing__upload_buffers();
 			drawing__submit_draw_calls();
-		}
-
-		void drawing__render_fps_time()
-		{
-			renderer_set_color(math::byte_color::green);
-			renderer_translate(math::vec3::zero);
-			renderer_scale(2);
-			renderer_draw_text(
-				fmt::format(strings::g_engine_monitor_fps, g_engine_state.time.curr_fps).c_str()
-			);
-
-			auto& drawing_state = g_drawing_state;
-			drawing_state.current_transform.dirty = false;
-			drawing_state.current_transform.scale = math::vec2::one;
-			drawing_state.current_transform.position = math::vec3::zero;
-			drawing_state.current_transform.rotation = math::quat();
 		}
 	}
 }

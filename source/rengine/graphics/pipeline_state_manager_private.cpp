@@ -44,7 +44,6 @@ namespace rengine {
 			if (!pipeline)
 				return null;
 
-			pipeline->AddRef();
 			pipeline_state_mgr__bind_cbuffers(pipeline);
 			return pipeline;
 		}

@@ -36,8 +36,6 @@ namespace rengine {
 
 			IShader* shader = null;
 			device->CreateShader(ci, &shader, null);
-			if (shader)
-				shader->AddRef();
 			return shader;
 		}
 

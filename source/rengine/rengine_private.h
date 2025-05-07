@@ -37,4 +37,7 @@ namespace rengine {
 
 	void engine__begin_timer();
 	void engine__end_timer();
+
+	void engine__monitor_render();
+	void engine__monitor_render_fps();
 }

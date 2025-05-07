@@ -78,7 +78,5 @@ namespace rengine {
 
 		void drawing__begin_draw();
 		void drawing__end_draw();
-
-		void drawing__render_fps_time();
     }
 }

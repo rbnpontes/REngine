@@ -162,8 +162,6 @@ namespace rengine {
 					strings::exceptions::g_rt_mgr_failed_to_create
 				);
 
-			(*backbuffer)->AddRef();
-
 			if (create_info.desc.format == Diligent::TEX_FORMAT_UNKNOWN) {
 				*depthbuffer = null;
 				return;
@@ -182,8 +180,6 @@ namespace rengine {
 				throw graphics_exception(
 					strings::exceptions::g_rt_mgr_failed_to_create_depthbuffer
 				);
-
-			(*depthbuffer)->AddRef();
 		}
 
 		bool render_target_mgr__is_valid(const render_target_t& id)

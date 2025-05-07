@@ -17,14 +17,14 @@ void game_loop() {
 	const auto b_color = rengine::math::byte_color::green;
 	const auto c_color = rengine::math::byte_color::blue;
 
-	rengine::graphics::renderer_begin_draw();
+	rengine::graphics::drawing_begin_draw();
 	g_rotation += 0.1;
 	//rengine::graphics::renderer_scale(12);
-	rengine::graphics::renderer_scale(2);
+	rengine::graphics::drawing_scale(2);
 	//rengine::graphics::renderer_rotate(g_rotation);
-	rengine::graphics::renderer_translate(rengine::math::vec3(100, 100, 0));
-	rengine::graphics::renderer_set_color(rengine::math::byte_color::white);
-	rengine::graphics::renderer_draw_text("Hello World!!!");
+	rengine::graphics::drawing_translate(rengine::math::vec3(100, 100, 0));
+	rengine::graphics::drawing_set_color(rengine::math::byte_color::white);
+	rengine::graphics::drawing_draw_text("Hello World!!!");
 	/*for (rengine::u8 y = 0; y < 4; ++y) {
 		for (rengine::u8 x = 0; x < 10; ++x) {
 			float offset_x = x * 50.;
@@ -96,7 +96,7 @@ void game_loop() {
   /*
   rengine::graphics::renderer_set_color(rengine::math::byte_color::green);
   rengine::graphics::renderer_draw_quad(rengine::math::vec3(0.f, 0.f), rengine::math::vec2(.5f, .5f));*/
-	rengine::graphics::renderer_end_draw();
+	rengine::graphics::drawing_end_draw();
 }
 
 int main(unsigned int argc, char** argv) {

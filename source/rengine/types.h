@@ -51,7 +51,7 @@ namespace rengine {
         typedef u16 texture_cube_t;
         typedef u16 texture_array_t;
         typedef u16 render_target_t;
-        typedef u16 pipeline_state_t;
+        typedef u32 pipeline_state_t;
         typedef u32 srb_t;
         // shader objects
         typedef u32 shader_t;

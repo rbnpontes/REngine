@@ -8,17 +8,17 @@
 
 namespace rengine {
 	namespace graphics {
-		void renderer_begin_draw()
+		void drawing_begin_draw()
 		{
 			drawing__begin_draw();
 		}
 
-		void renderer_end_draw()
+		void drawing_end_draw()
 		{
 			drawing__end_draw();
 		}
 
-		void renderer_push_vertex(const math::vec3& point)
+		void drawing_push_vertex(const math::vec3& point)
 		{
 			auto& state = g_drawing_state;
 			drawing__compute_transform();
@@ -30,54 +30,59 @@ namespace rengine {
 			g_drawing_state.vertex_queue.push(vertex);
 		}
 
-		void renderer_set_uv(const math::vec2& uv)
+		void drawing_set_uv(const math::vec2& uv)
 		{
 			g_drawing_state.current_uv = uv;
 		}
 
-		void renderer_set_color(const math::byte_color& color)
+		void drawing_set_color(const math::byte_color& color)
 		{
 			g_drawing_state.current_color = color;
 		}
 
-		void renderer_set_transform(const math::matrix4x4& transform)
+		void drawing_set_transform(const math::matrix4x4& transform)
 		{
 			g_drawing_state.current_transform.transform = transform;
 			g_drawing_state.current_transform.dirty = false;
 		}
 
-		void renderer_translate(const math::vec3& translation)
+		void drawing_translate(const math::vec3& translation)
 		{
 			auto& state = g_drawing_state;
 			state.current_transform.position = translation;
 			state.current_transform.dirty = true;
 		}
 
-		void renderer_rotate(number_t degree)
+		void drawing_rotate(number_t degree)
 		{
-			renderer_rotate(math::quat::from_rotation(degree));
+			drawing_rotate(math::quat::from_rotation(degree));
 		}
 
-		void renderer_rotate(const math::quat& rotation)
+		void drawing_rotate(const math::quat& rotation)
 		{
 			auto& state = g_drawing_state;
 			state.current_transform.rotation = rotation;
 			state.current_transform.dirty = true;
 		}
 
-		void renderer_scale(number_t scale)
+		void drawing_scale(number_t scale)
 		{
-			renderer_scale(math::vec2(scale, scale));
+			drawing_scale(math::vec2(scale, scale));
 		}
 
-		void renderer_scale(const math::vec2& scale)
+		void drawing_scale(const math::vec2& scale)
 		{
 			auto& state = g_drawing_state;
 			state.current_transform.scale = scale;
 			state.current_transform.dirty = true;
 		}
 
-		void renderer_draw_point()
+		void drawing_reset_transform()
+		{
+			g_drawing_state.current_transform = {};
+		}
+
+		void drawing_draw_point()
 		{
 			if (!drawing__assert_vert_count(1))
 				return;
@@ -91,7 +96,7 @@ namespace rengine {
 			});
 		}
 
-		void renderer_draw_line()
+		void drawing_draw_line()
 		{
 			if (!drawing__assert_vert_count(2))
 				return;
@@ -107,7 +112,7 @@ namespace rengine {
 			});
 		}
 
-		void renderer_draw_triangle()
+		void drawing_draw_triangle()
 		{
 			if (!drawing__assert_vert_count(3))
 				return;
@@ -130,7 +135,7 @@ namespace rengine {
 			g_drawing_state.triangles.push_back(triangle);
 		}
 
-		void renderer_draw_quad(const math::vec3& center, const math::vec2& size)
+		void drawing_draw_quad(const math::vec3& center, const math::vec2& size)
 		{
 			number_t half_data[4];
 			// fast divide size by half (2)
@@ -148,37 +153,37 @@ namespace rengine {
 			math::vec3 left_bottom = center + math::vec3(-half_data[0], -half_data[1]);
 			math::vec3 right_bottom = center + math::vec3(half_data[0], -half_data[1]);
 
-			renderer_draw_rect(left_top, right_top, right_bottom, left_bottom);
+			drawing_draw_rect(left_top, right_top, right_bottom, left_bottom);
 		}
 
-		void renderer_draw_rect(const math::vec3& left_top, const math::vec3& right_top, const math::vec3& right_bottom, const math::vec3& left_bottom)
+		void drawing_draw_rect(const math::vec3& left_top, const math::vec3& right_top, const math::vec3& right_bottom, const math::vec3& left_bottom)
 		{
-			renderer_set_uv({ 0., 1. });
-			renderer_push_vertex(left_top);
+			drawing_set_uv({ 0., 1. });
+			drawing_push_vertex(left_top);
 
-			renderer_set_uv({ 1., 1. });
-			renderer_push_vertex(right_top);
+			drawing_set_uv({ 1., 1. });
+			drawing_push_vertex(right_top);
 
-			renderer_set_uv({ 1., 0. });
-			renderer_push_vertex(right_bottom);
-			renderer_draw_triangle();
+			drawing_set_uv({ 1., 0. });
+			drawing_push_vertex(right_bottom);
+			drawing_draw_triangle();
 
-			renderer_set_uv({ 0., 1. });
-			renderer_push_vertex(left_top);
+			drawing_set_uv({ 0., 1. });
+			drawing_push_vertex(left_top);
 
-			renderer_set_uv({ 1., 0. });
-			renderer_push_vertex(right_bottom);
+			drawing_set_uv({ 1., 0. });
+			drawing_push_vertex(right_bottom);
 
-			renderer_set_uv({});
-			renderer_push_vertex(left_bottom);
-			renderer_draw_triangle();
+			drawing_set_uv({});
+			drawing_push_vertex(left_bottom);
+			drawing_draw_triangle();
 		}
 
-		void renderer_draw_quad_lines(const math::vec3& center, const math::vec2& size)
+		void drawing_draw_quad_lines(const math::vec3& center, const math::vec2& size)
 		{
 		}
 
-		void renderer_draw_text(c_str text)
+		void drawing_draw_text(c_str text)
 		{
 			auto& state = g_drawing_state;
 			u32 buff_size = stb_easy_font_calc_buf_size(const_cast<char*>(text));
@@ -199,7 +204,7 @@ namespace rengine {
 				vertex_data right_bottom = vertices[i + 1];
 				vertex_data left_bottom = vertices[i];
 
-				renderer_draw_rect(left_top.point, right_top.point, right_bottom.point, left_bottom.point);
+				drawing_draw_rect(left_top.point, right_top.point, right_bottom.point, left_bottom.point);
 			}
 		}
 
