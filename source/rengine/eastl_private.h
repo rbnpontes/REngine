@@ -6,7 +6,9 @@
 #include <EASTL/string_view.h>
 #include <EASTL/array.h>
 #include <EASTL/vector.h>
+#include <EASTL/fixed_vector.h>
 #include <EASTL/queue.h>
+#include <EASTL/stack.h>
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
 #include <EASTL/unordered_map.h>
@@ -19,8 +21,12 @@ namespace rengine {
 	using string_view = eastl::string_view;
 	template<typename T>
 	using vector = eastl::vector<T>;
+	template<typename T, size_t N = 1>
+	using fixed_vector = eastl::fixed_vector<T, N>;
 	template<typename T>
 	using queue = eastl::queue<T>;
+	template<typename T>
+	using stack = eastl::stack<T>;
 	template<typename Key, typename Value>
 	using unordered_map = eastl::unordered_map<Key, Value>;
 	template<typename Key, typename Value>

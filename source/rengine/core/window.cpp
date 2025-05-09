@@ -1,5 +1,6 @@
 #include "./window_private.h"
 #include "./window_graphics_private.h"
+#include "./profiler.h"
 #include "../events/window_events.h"
 
 #include "../defines.h"
@@ -107,6 +108,8 @@ namespace rengine {
 
         void window_poll_events()
         {
+            profile();
+
             SDL_Event evt;
             events::window_event_args args = {};
 

@@ -326,6 +326,7 @@ namespace eastl
 		reverse_iterator erase_unsorted(const_reverse_iterator position);
 
 		void clear() EA_NOEXCEPT;
+		void reset() EA_NOEXCEPT;									// Same as clear, except it doesn't call destructors
 		void reset_lose_memory() EA_NOEXCEPT;                       // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
 
 		bool validate() const EA_NOEXCEPT;
@@ -1346,6 +1347,12 @@ namespace eastl
 	inline void vector<T, Allocator>::clear() EA_NOEXCEPT
 	{
 		eastl::destruct(mpBegin, mpEnd);
+		mpEnd = mpBegin;
+	}
+
+	template <typename T, typename Allocator>
+	inline void vector<T, Allocator>::reset() EA_NOEXCEPT
+	{
 		mpEnd = mpBegin;
 	}
 

@@ -29,8 +29,4 @@ namespace rengine {
 
 	R_EXPORT void enable_fps_monitor();
 	R_EXPORT void hide_fps_monitor();
-
-
-	R_EXPORT void begin();
-	R_EXPORT void end();
 }

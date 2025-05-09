@@ -21,6 +21,11 @@ namespace rengine {
         constexpr static c_str g_pool_id = "pool";
         constexpr static c_str g_engine_monitor_fps = "FPS: {:.1f}";
 
+        namespace profiler {
+            constexpr static c_str engine_loop = "rengine::loop";
+            constexpr static c_str graphics_loop = "graphics";
+        }
+
         namespace graphics {
             constexpr static c_str g_shader_entrypoint = "main";
             constexpr static c_str g_drawing_vbuffer_name = "rengine::models::vbuffer";
@@ -147,6 +152,8 @@ namespace rengine {
 			constexpr static c_str g_logger_reached_max_log_objects = "Reached max of created log objects.";
 
             constexpr static c_str g_queue_empty = "Queue is empty";
+
+            constexpr static c_str g_profiler_reached_entries = "Reached max of profiler entries. Increase the current capacity to continue";
 
             constexpr static c_str g_graphics_unsupported_backend = "Unsupported graphics backend {0} on this platform";
             constexpr static c_str g_graphics_not_initialized = "Graphics is not initialized";

@@ -1,5 +1,7 @@
 #include "./rengine_private.h"
 #include "./events/engine_events.h"
+#include "./core/profiler_private.h"
+#include "./core/window.h"
 #include "./graphics/graphics_private.h"
 
 #include "./graphics/drawing.h"
@@ -18,6 +20,10 @@ namespace rengine {
 			return;
 
 		g_engine_state.begin = true;
+
+		core::profiler__begin_frame();
+		core::window_poll_events();
+
 		if (core::window_is_destroyed(g_engine_state.window_id))
 			g_engine_state.window_id = core::no_window;
 
@@ -40,6 +46,8 @@ namespace rengine {
 		graphics::end();
 
 		EVENT_EMIT(engine, end_update)();
+
+		core::profiler__end_frame();
 	}
 
 	void engine__stop()

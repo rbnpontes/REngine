@@ -60,5 +60,7 @@ namespace rengine {
 
 		void update_buffers();
 		void update_frame_buffer();
+
+		void present_swapchain(Diligent::ISwapChain* swapchain);
 	}
 }

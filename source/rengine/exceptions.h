@@ -21,6 +21,7 @@ namespace rengine {
 		ENGINE_DEFINE_EXCEPTION(alloc_exception);
 		ENGINE_DEFINE_EXCEPTION(window_exception);
 		ENGINE_DEFINE_EXCEPTION(pool_exception);
+		ENGINE_DEFINE_EXCEPTION(profiler_exception);
 	}
 
 	namespace io {

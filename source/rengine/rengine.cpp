@@ -1,6 +1,8 @@
 #include "./rengine.h"
 #include "./rengine_private.h"
+#include "./core/profiler.h"
 #include "./core/window_private.h"
+#include "./core/profiler_private.h"
 #include "./graphics/graphics_private.h"
 #include "./io/logger_private.h"
 
@@ -17,6 +19,7 @@ namespace rengine {
 
 		io::logger__init();
 		core::window__init();
+		core::profiler__init();
 		graphics::init({
 			desc.window_id,
 			desc.adapter_id,
@@ -30,6 +33,7 @@ namespace rengine {
 		graphics::deinit();
 		core::window__deinit();
 		io::logger__deinit();
+		core::profiler__deinit();
 	}
 
 	number_t get_delta_time() {
@@ -60,10 +64,9 @@ namespace rengine {
 		if (g_engine_state.stop)
 			return;
 
-		core::window_poll_events();
-		begin();
+		engine__begin();
 		g_engine_state.callback();
-		end();
+		engine__end();
 	}
 
 	void run(engine_update_callback callback) {
@@ -75,13 +78,5 @@ namespace rengine {
 	void stop()
 	{
 		engine__stop();
-	}
-
-	void begin() {
-		engine__begin();
-	}
-
-	void end() {
-		engine__end();
 	}
 }

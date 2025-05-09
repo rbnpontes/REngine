@@ -4,6 +4,7 @@
 #define CORE_WINDOWS_MAX_ALLOWED 4
 #define CORE_DEFAULT_HASH_SEED 0xFABDDFE
 #define CORE_HASH_PRIME 4094394974U
+#define CORE_MAX_PROFILER_ENTRIES 255 // Increate this number if you need more profiler entries
 
 #define IO_MAX_LOG_OBJECTS 0xFF
 
@@ -66,3 +67,6 @@
 #endif
 
 #define ENGINE_SSE 1
+#define ENGINE_PROFILER 1
+
+#define nameof(name) (#name)

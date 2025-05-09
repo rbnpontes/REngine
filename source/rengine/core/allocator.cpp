@@ -2,6 +2,11 @@
 #include "../defines.h"
 #include "../exceptions.h"
 
+#if ENGINE_PROFILER
+    #include "./profiler_private.h"
+#endif
+
+
 namespace rengine{
     namespace core {
         struct alloc_data {
@@ -38,6 +43,10 @@ namespace rengine{
 
             void* ptr = g_data.malloc(size + sizeof(size_t));
             *(size_t*)ptr = size;
+
+#if ENGINE_PROFILER
+            profiler__alloc(ptr, size);
+#endif
             return (char*)ptr + sizeof(size_t);
         }
 
@@ -47,6 +56,10 @@ namespace rengine{
 
             ptr = (char*)ptr - sizeof(size_t);
             size_t size = *(size_t*)ptr;
+
+#if ENGINE_PROFILER
+            profiler__free(ptr);
+#endif
 
             g_data.usage -= size;
             g_data.free(ptr);
@@ -63,8 +76,16 @@ namespace rengine{
             g_data.usage -= old_size;
             ++g_data.num_realloc;
 
+#if ENGINE_PROFILER
+            profiler__free(ptr);
+#endif
             ptr = g_data.realloc(ptr, size);
             g_data.usage += size;
+
+#if ENGINE_PROFILER
+            profiler__alloc(ptr, size);
+#endif
+
             return (char*)ptr + sizeof(size_t);
         }
 

@@ -4,7 +4,9 @@
 #include "./shader_manager.h"
 #include "./graphics_private.h"
 #include "./graphics.h"
+
 #include "../rengine_private.h"
+#include "../core/profiler.h"
 
 #include "../strings.h"
 #include "../exceptions.h"
@@ -163,6 +165,8 @@ namespace rengine {
 
 		void drawing__upload_buffers()
 		{
+			profile();
+
 			auto& state = g_drawing_state;
 			u64 cpy_size = 0;
 			ptr data = buffer_mgr_vbuffer_map(state.vertex_buffer, buffer_map_type::write);
@@ -200,6 +204,8 @@ namespace rengine {
 
 		void drawing__draw_triangles()
 		{
+			profile();
+
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
 			renderer_set_topology(primitive_topology::triangle_list);
@@ -214,6 +220,8 @@ namespace rengine {
 
 		void drawing__draw_lines()
 		{
+			profile();
+
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(state.vertex_buffer, state.triangles.size() * sizeof(triangle_data));
 			renderer_set_topology(primitive_topology::line_strip);
@@ -228,6 +236,8 @@ namespace rengine {
 
 		void drawing__draw_points()
 		{
+			profile();
+
 			const auto& state = g_drawing_state;
 			u32 offset = state.triangles.size() * sizeof(triangle_data);
 			offset += state.lines.size() * sizeof(line_data);
@@ -257,6 +267,8 @@ namespace rengine {
 
 		void drawing__begin_draw()
 		{
+			profile_begin_name(nameof(drawing));
+
 			auto& state = g_drawing_state;
 			state.vertex_queue.clear();
 			state.triangles.clear();
@@ -271,6 +283,8 @@ namespace rengine {
 			drawing__check_buffer_requirements();
 			drawing__upload_buffers();
 			drawing__submit_draw_calls();
+
+			profile_end();
 		}
 	}
 }

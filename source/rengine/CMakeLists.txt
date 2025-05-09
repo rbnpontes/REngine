@@ -37,6 +37,7 @@ set (PRIVATE_LIBS
     EABase
     xxHash
     stb
+    Tracy::TracyClient
 )
 set (PUBLIC_LIBS
     fmt::fmt)
@@ -87,6 +88,7 @@ target_compile_options(rengine
     PUBLIC ${PUBLIC_DEFINITIONS})
 target_include_directories(rengine PUBLIC ${ENGINE_SOURCE_DIR})
 
+message(STATUS "Tracy Client: ${TRACY_PUBLIC_DIR}")
 # Diligent required call
 if(WIN32)
     copy_required_dlls(rengine)

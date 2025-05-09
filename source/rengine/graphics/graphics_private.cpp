@@ -15,6 +15,7 @@
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
 #include "../core/window_private.h"
+#include "../core/profiler.h"
 
 #include "../defines.h"
 #include "../exceptions.h"
@@ -123,6 +124,8 @@ namespace rengine {
 		}
 
 		void begin() {
+			profile_begin_name(strings::profiler::graphics_loop);
+
 			renderer__reset_state(true);
 			
 			const auto& window = g_engine_state.window_id;
@@ -141,6 +144,7 @@ namespace rengine {
 		}
 
 		void end() {
+			profile_scoped_end();
 			// if no draw command has been submitted but
 			// renderer has pending commands, we must
 			// flush these commands before present
@@ -159,7 +163,7 @@ namespace rengine {
 			const auto& cmd = g_renderer_state.default_cmd;
 			// if no render targets has been bound, do skip and finish rendering
 			if (cmd.num_render_targets == 0) {
-				swapchain->Present();
+				present_swapchain(swapchain);
 				return;
 			}
 
@@ -174,7 +178,7 @@ namespace rengine {
 				swapchain->GetCurrentBackBufferRTV()->GetTexture(), 
 				false);
 
-			swapchain->Present();
+			present_swapchain(swapchain);
 		}
 
 		void allocate_swapchain(const core::window_t& window_id)
@@ -273,6 +277,12 @@ namespace rengine {
 			data.window_size = wnd_size_vec;
 
 			buffer_mgr_cbuffer_update(g_graphics_state.buffers.frame, &data, sizeof(frame_buffer_data));
+		}
+
+		void present_swapchain(Diligent::ISwapChain* swapchain)
+		{
+			profile();
+			swapchain->Present();
 		}
 		
 		u32 get_msaa_sample_count()
