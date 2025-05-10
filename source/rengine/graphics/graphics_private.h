@@ -40,6 +40,8 @@ namespace rengine {
 			backend backend;
 
 			graphics_buffers buffers;
+
+			bool vsync{ false };
 		};
 
 		struct graphics_init_desc {

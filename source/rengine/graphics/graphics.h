@@ -9,6 +9,9 @@
 
 namespace rengine {
 	namespace graphics {
+		R_EXPORT void enable_vsync();
+		R_EXPORT void disable_vsync();
+		R_EXPORT bool vsync_enabled();
 		R_EXPORT u32 get_msaa_sample_count();
 		R_EXPORT u16 get_default_backbuffer_format();
 		R_EXPORT u16 get_default_depthbuffer_format();

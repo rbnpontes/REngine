@@ -346,7 +346,22 @@ namespace rengine {
 		void present_swapchain(Diligent::ISwapChain* swapchain)
 		{
 			profile();
-			swapchain->Present();
+			swapchain->Present(g_graphics_state.vsync ? 1 : 0);
+		}
+
+		void enable_vsync()
+		{
+			g_graphics_state.vsync = true;
+		}
+
+		void disable_vsync()
+		{
+			g_graphics_state.vsync = false;
+		}
+
+		bool vsync_enabled()
+		{
+			return g_graphics_state.vsync;
 		}
 
 		u32 get_msaa_sample_count()
