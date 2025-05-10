@@ -29,7 +29,69 @@ namespace rengine {
 		graphics_state g_graphics_state = {};
 
 		typedef void(*init_call_fn)(const graphics_init_desc&);
-		typedef Diligent::ISwapChain*(*allocate_swapchain_call_fn)(const core::window_t&);
+		typedef Diligent::ISwapChain* (*allocate_swapchain_call_fn)(const core::window_t&);
+
+#if ENGINE_DEBUG
+		struct diligent_memory_header {
+			c_str desc;
+			c_str file_name;
+			i32 line;
+		};
+#endif
+		ptr diligent_allocator::Allocate(size_t size, c_str dbg_desc, c_str dbg_file_name, const i32 dbg_line_num) {
+#if ENGINE_DEBUG
+			const auto curr_size = size;
+			size_t dbg_desc_len = 0;
+			size_t dbg_file_name_len = 0;
+			size += sizeof(diligent_memory_header);
+			if (dbg_desc != null) {
+				dbg_desc_len = strlen(dbg_desc) + 1;
+				size += dbg_desc_len * sizeof(char);
+			}
+			if (dbg_file_name != null) {
+				dbg_file_name_len = strlen(dbg_file_name) + 1;
+				size += dbg_file_name_len * sizeof(char);
+			}
+#endif
+			ptr raw_mem = core::alloc(size);
+#if ENGINE_DEBUG
+			diligent_memory_header* header = static_cast<diligent_memory_header*>(raw_mem);
+			u8* target_mem = static_cast<u8*>(raw_mem) + sizeof(diligent_memory_header);
+			// memory must write after header
+			raw_mem = target_mem;
+
+			// offset to dbg desc
+			target_mem += curr_size;
+			if (dbg_desc != null) {
+				strcpy((char*)target_mem, (c_str)dbg_desc);
+				header->desc = (c_str)target_mem;
+			}
+			else
+				header->desc = null;
+
+			// offset to dbg_desc
+			target_mem += dbg_desc_len;
+			if (dbg_file_name != null) {
+				strcpy((char*)target_mem, (c_str)dbg_file_name);
+				header->file_name = (c_str)target_mem;
+			}
+			else
+				header->file_name = null;
+
+			header->line = dbg_line_num;
+#endif
+			return raw_mem;
+		}
+
+		void diligent_allocator::Free(ptr mem) {
+			if (!mem)
+				return;
+#if ENGINE_DEBUG
+			auto header = (diligent_memory_header*)((u8*)mem - sizeof(diligent_memory_header));
+			mem = header;
+#endif
+			core::alloc_free(mem);
+		}
 
 		void assert_backend(backend value) {
 			c_str backend_str = strings::g_backend_strings[(u8)backend::max_backend];
@@ -75,6 +137,8 @@ namespace rengine {
 
 		void init(const graphics_init_desc& desc)
 		{
+			g_graphics_state.allocator = core::alloc_new<diligent_allocator>();
+
 			init_call_fn init_graphics_calls[] = {
 				init_d3d11,
 				init_d3d12,
@@ -115,7 +179,7 @@ namespace rengine {
 				pipeline_state_mgr__deinit,
 			};
 
-			for(u32 i = 0; i < g_graphics_state.num_contexts; ++i)
+			for (u32 i = 0; i < g_graphics_state.num_contexts; ++i)
 				g_graphics_state.contexts[i]->Release();
 			g_graphics_state.device->Release();
 			g_graphics_state.factory->Release();
@@ -127,7 +191,7 @@ namespace rengine {
 			profile_begin_name(strings::profiler::graphics_loop);
 
 			renderer__reset_state(true);
-			
+
 			const auto& window = g_engine_state.window_id;
 			if (window == core::no_window)
 				return;
@@ -174,8 +238,8 @@ namespace rengine {
 			ptr src_backbuffer = null;
 			render_target_mgr_get_handlers(src_rt_id, &src_backbuffer, null);
 
-			blit_render_targets((Diligent::ITexture*)src_backbuffer, 
-				swapchain->GetCurrentBackBufferRTV()->GetTexture(), 
+			blit_render_targets((Diligent::ITexture*)src_backbuffer,
+				swapchain->GetCurrentBackBufferRTV()->GetTexture(),
 				false);
 
 			present_swapchain(swapchain);
@@ -209,7 +273,7 @@ namespace rengine {
 				sizeof(frame_buffer_data),
 				null,
 				true
-			});
+				});
 		}
 
 		void prepare_viewport_rt(const core::window_t& window_id)
@@ -219,7 +283,7 @@ namespace rengine {
 			if (viewport_rt == no_render_target) {
 				viewport_rt = render_target_mgr_create({
 					{ strings::graphics::g_viewport_rt_name, wnd_size, get_default_backbuffer_format(), get_default_depthbuffer_format() },
-				});
+					});
 			}
 
 			renderer_set_render_target(viewport_rt, viewport_rt);
@@ -284,7 +348,7 @@ namespace rengine {
 			profile();
 			swapchain->Present();
 		}
-		
+
 		u32 get_msaa_sample_count()
 		{
 			// TODO: add MSAA support

@@ -7,11 +7,17 @@
 #include <DeviceContext.h>
 #include <RenderDevice.h>
 #include <GraphicsTypes.h>
+#include <MemoryAllocator.h>
 
 #define GRAPHICS_VERSION Diligent::Version { 11, 0 }
 
 namespace rengine {
 	namespace graphics {
+		struct diligent_allocator : Diligent::IMemoryAllocator {
+			ptr Allocate(size_t size, c_str dbg_desc, c_str dbg_file_name, const i32 dbg_line_num) override;
+			void Free(ptr mem) override;
+		};
+		
 		struct frame_buffer_data {
 			math::matrix4x4 screen_projection;
 			math::vec2 window_size;
@@ -28,6 +34,7 @@ namespace rengine {
 			Diligent::IEngineFactory* factory;
 			Diligent::IDeviceContext** contexts;
 			Diligent::IRenderDevice* device;
+			diligent_allocator* allocator;
 			u32 num_contexts;
 			render_target_t viewport_rt;
 			backend backend;

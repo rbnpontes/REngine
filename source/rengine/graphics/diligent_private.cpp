@@ -39,6 +39,7 @@ namespace rengine {
 			g_graphics_state.factory = factory;
 
 			Diligent::EngineD3D11CreateInfo create_info = {};
+			create_info.pRawMemAllocator = g_graphics_state.allocator;
 			utils::setup_engine_create_info(factory, desc.adapter_id, desc.backend, create_info);
 
 			g_graphics_state.num_contexts = std::max(create_info.NumImmediateContexts, 1u) + create_info.NumDeferredContexts;
@@ -101,6 +102,7 @@ namespace rengine {
 			desc.Height = window_desc.bounds.size.y;
 			desc.ColorBufferFormat = (Diligent::TEXTURE_FORMAT)get_default_backbuffer_format();
 			desc.DepthBufferFormat = Diligent::TEX_FORMAT_UNKNOWN;
+			desc.BufferCount = 3;
 
 			core::window__fill_native_window(window_id, native_window);
 

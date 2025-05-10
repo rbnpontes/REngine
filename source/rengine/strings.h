@@ -185,8 +185,9 @@ namespace rengine {
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
             constexpr static c_str g_renderer_clear_depth_without_set = "Can´t clear Depth Stencil. You must assign depth stencil first";
         
-            constexpr static c_str g_models_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
-            constexpr static c_str g_models_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";
+            constexpr static c_str g_drawing_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
+            constexpr static c_str g_drawing_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";
+            constexpr static c_str g_drawing_exceed_text_len = "Failed to draw text. Max allowed draw text length is {0}. Curr Text Length = {1}";
 
             constexpr static c_str g_render_cmd_call_begin_first = "Must call render_command_begin or render_command_begin_update first";
             constexpr static c_str g_render_cmd_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
