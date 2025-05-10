@@ -185,27 +185,40 @@ namespace rengine {
 
 		void drawing_draw_text(c_str text)
 		{
+			if (!text)
+				return;
+			const auto len = strlen(text);
+			if (len > DRAWING_MAX_TEXT_LENGTH)
+				throw graphics_exception(
+					fmt::format(
+						strings::exceptions::g_drawing_exceed_text_len,
+						DRAWING_MAX_TEXT_LENGTH, len
+					).c_str()
+				);
+
 			auto& state = g_drawing_state;
 			u32 buff_size = stb_easy_font_calc_buf_size(const_cast<char*>(text));
 
-			u32 len = strlen(text);
-			vector<vertex_data> vertices(buff_size / sizeof(vertex_data));
+			const auto required_size = buff_size / sizeof(vertex_data);
+			static vector<vertex_data> tmp_vertices;
+			tmp_vertices.resize(required_size);
 
-			
 			u32 num_quads = stb_easy_font_print(0, 0,
 				const_cast<char*>(text),
 				null,
-				vertices.data(),
-				vertices.size() * sizeof(vertex_data));
+				tmp_vertices.data(),
+				required_size * sizeof(vertex_data));
 
-			for (u32 i = 0; i < vertices.size(); i += 4) {
-				vertex_data left_top = vertices[i + 3];
-				vertex_data right_top = vertices[i + 2];
-				vertex_data right_bottom = vertices[i + 1];
-				vertex_data left_bottom = vertices[i];
+			for (u32 i = 0; i < required_size; i += 4) {
+				vertex_data left_top = tmp_vertices[i + 3];
+				vertex_data right_top = tmp_vertices[i + 2];
+				vertex_data right_bottom = tmp_vertices[i + 1];
+				vertex_data left_bottom = tmp_vertices[i];
 
 				drawing_draw_rect(left_top.point, right_top.point, right_bottom.point, left_bottom.point);
 			}
+
+			tmp_vertices.reset();
 		}
 
 		void renderer_add_cube(const cube& cube)

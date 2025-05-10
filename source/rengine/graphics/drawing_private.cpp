@@ -63,21 +63,23 @@ namespace rengine {
 				buffer_size += additional_size;
 
 			try {
-				if (state.vertex_buffer == no_vertex_buffer)
+				if (state.vertex_buffer == no_vertex_buffer) {
 					state.vertex_buffer = buffer_mgr_vbuffer_create({
 						strings::graphics::g_drawing_vbuffer_name,
 						buffer_size,
 						null,
 						true
 						});
-				else if (buffer_size > state.vertex_buffer_size)
+					state.vertex_buffer_size = buffer_size;
+				}
+				else if (buffer_size > state.vertex_buffer_size) {
 					state.vertex_buffer = buffer_mgr_vbuffer_realloc(state.vertex_buffer, buffer_size);
-
-				state.vertex_buffer_size = buffer_size;
+					state.vertex_buffer_size = buffer_size;
+				}
 			}
 			catch (const graphics_exception& exception) {
 				throw graphics_exception(
-					fmt::format(strings::exceptions::g_models_failed_to_alloc_vbuffer, buffer_size).c_str()
+					fmt::format(strings::exceptions::g_drawing_failed_to_alloc_vbuffer, buffer_size).c_str()
 				);
 			}
 		}
