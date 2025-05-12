@@ -273,9 +273,9 @@ namespace rengine {
 
 			auto& state = g_drawing_state;
 			state.vertex_queue.clear();
-			state.triangles.clear();
-			state.lines.clear();
-			state.points.clear();
+			state.triangles.reset();
+			state.lines.reset();
+			state.points.reset();
 			state.current_color = math::byte_color::white;
 			state.current_transform = {};
 		}
