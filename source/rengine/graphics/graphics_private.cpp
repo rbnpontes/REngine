@@ -190,7 +190,7 @@ namespace rengine {
 		void begin() {
 			profile_begin_name(strings::profiler::graphics_loop);
 
-			renderer__reset_state(true);
+			renderer__reset_state(false);
 
 			const auto& window = g_engine_state.window_id;
 			if (window == core::no_window)
@@ -301,6 +301,7 @@ namespace rengine {
 
 		void blit_render_targets(Diligent::ITexture* src, Diligent::ITexture* dst, bool msaa)
 		{
+			profile();
 			using namespace Diligent;
 
 			const auto ctx = g_graphics_state.contexts[0];
