@@ -6,6 +6,7 @@
 
 #include "../core/allocator.h"
 #include "../core/window_private.h"
+#include "../core/profiler.h"
 #include "../io/io.h"
 #include "../exceptions.h"
 
@@ -15,6 +16,7 @@
 namespace rengine {
 	namespace graphics {
 		void renderer_clear(const clear_desc& desc) {
+			profile();
 			const auto& cmd = g_renderer_state.default_cmd;
 			const auto ctx = g_graphics_state.contexts[0];
 			const auto log = g_renderer_state.log;
@@ -58,11 +60,13 @@ namespace rengine {
 
 		void renderer_reset_states()
 		{
+			profile();
 			renderer__reset_state();
 		}
 
 		void renderer_use_command(const render_command_t& command)
 		{
+			profile();
 			const auto log = g_renderer_state.log;
 			auto& state = g_renderer_state;
 
@@ -201,6 +205,7 @@ namespace rengine {
 
 		void renderer_flush()
 		{
+			profile();
 			auto& cmd = g_renderer_state.default_cmd;
 			auto prev_cmd_hash = cmd.id;
 			render_command__build_hash(cmd);
@@ -214,6 +219,7 @@ namespace rengine {
 		}
 
 		void renderer_draw(const draw_desc& desc) {
+			profile();
 			using namespace Diligent;
 			renderer_flush();
 
