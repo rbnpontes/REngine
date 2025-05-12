@@ -90,21 +90,27 @@ namespace rengine {
 			const auto ctx = g_graphics_state.contexts[0];
 			auto& ctx_state = g_renderer_state.context_state;
 
-			if (ctx_state.prev_vbuffer_hash == cmd.hashes.vertex_buffers)
+			const auto changed_offsets = ctx_state.prev_vbuffer_offsets_hash != cmd.hashes.vertex_buffer_offsets;
+			const auto changed_buffers = ctx_state.prev_vbuffer_hash != cmd.hashes.vertex_buffers;
+			const auto touched_buffers = changed_buffers || changed_offsets;
+
+			if (!touched_buffers)
 				return;
 
 			Diligent::IBuffer* vertex_buffers[GRAPHICS_MAX_VBUFFERS] = {};
 			for (u8 i = 0; i < cmd.num_vertex_buffers; ++i)
 				buffer_mgr__get_handle(buffer_type::vertex_buffer, cmd.vertex_buffers[i], &vertex_buffers[i]);
 
+			const auto flags = changed_buffers ? Diligent::SET_VERTEX_BUFFERS_FLAG_RESET : Diligent::SET_VERTEX_BUFFERS_FLAG_NONE;
 			ctx->SetVertexBuffers(0,
 				cmd.num_vertex_buffers,
 				vertex_buffers,
 				cmd.vertex_offsets.data(),
 				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
-				Diligent::SET_VERTEX_BUFFERS_FLAG_NONE);
+				flags);
 
 			ctx_state.prev_vbuffer_hash = cmd.hashes.vertex_buffers;
+			ctx_state.prev_vbuffer_offsets_hash = cmd.hashes.vertex_buffer_offsets;
 		}
 
 		void renderer__set_ibuffer()

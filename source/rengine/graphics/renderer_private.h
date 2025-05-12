@@ -23,6 +23,7 @@ namespace rengine {
         struct render_context_state {
             core::hash_t prev_rt_hash{ 0 };
             core::hash_t prev_vbuffer_hash{ 0 };
+            core::hash_t prev_vbuffer_offsets_hash{ 0 };
             core::hash_t prev_ibuffer_hash{ 0 };
             core::hash_t prev_viewport_hash{ 0 };
             pipeline_state_t prev_pipeline_id { no_pipeline_state };
