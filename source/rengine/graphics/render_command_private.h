@@ -10,6 +10,7 @@ namespace rengine {
         struct render_command_hashes {
             core::hash_t render_targets{ 0 };
             core::hash_t vertex_buffers{ 0 };
+            core::hash_t vertex_buffer_offsets{ 0 };
             core::hash_t index_buffer{ 0 };
             core::hash_t viewport{ 0 };
             core::hash_t graphics_state{ 0 };

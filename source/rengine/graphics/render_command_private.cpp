@@ -79,6 +79,7 @@ namespace rengine {
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_enabled);
 
 			data.id = core::hash_combine(hashes.render_targets, hashes.vertex_buffers);
+			data.id = core::hash_combine(data.id, hashes.vertex_buffer_offsets);
 			data.id = core::hash_combine(data.id, hashes.index_buffer);
 			data.id = core::hash_combine(data.id, hashes.viewport);
 			data.id = core::hash_combine(data.id, hashes.graphics_state);
@@ -86,13 +87,15 @@ namespace rengine {
 
 		void render_command__build_vbuffer_hash(render_command_data& cmd)
 		{
-			core::hash_t hash = cmd.num_vertex_buffers;
+			core::hash_t vbuffer_hash = cmd.num_vertex_buffers;
+			core::hash_t offsets_hash = cmd.num_vertex_buffers;
 			for (u8 i = 0; i < cmd.num_vertex_buffers; ++i) {
-				hash = core::hash_combine(hash, cmd.vertex_buffers[i]);
-				hash = core::hash_combine(hash, cmd.vertex_offsets[i]);
+				vbuffer_hash = core::hash_combine(vbuffer_hash, cmd.vertex_buffers[i]);
+				offsets_hash = core::hash_combine(offsets_hash, cmd.vertex_offsets[i]);
 			}
 
-			cmd.hashes.vertex_buffers = hash;
+			cmd.hashes.vertex_buffers = vbuffer_hash;
+			cmd.hashes.vertex_buffer_offsets = offsets_hash;
 		}
 
 		void render_command__build_ibuffer_hash(render_command_data& cmd)
