@@ -14,6 +14,7 @@ namespace rengine {
 		void profiler_entry_push(profiler_entry_info* entry);
 		void profiler_entry_pop();
 		void profiler_log(c_str str);
+		bool profiler_connected();
 		
 		struct profiler_scope {
 			~profiler_scope() {

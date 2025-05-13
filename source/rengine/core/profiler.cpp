@@ -17,5 +17,10 @@ namespace rengine {
 		{
 			profiler__log(str);
 		}
+
+		bool profiler_connected()
+		{
+			return g_profiler_state.connected;
+		}
 	}
 }
