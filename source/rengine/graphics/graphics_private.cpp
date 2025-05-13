@@ -278,6 +278,7 @@ namespace rengine {
 
 		void prepare_viewport_rt(const core::window_t& window_id)
 		{
+			profile();
 			const auto& wnd_size = core::window_get_size(window_id);
 			auto viewport_rt = render_target_mgr_find_from_size(wnd_size);
 			if (viewport_rt == no_render_target) {
@@ -321,6 +322,7 @@ namespace rengine {
 
 		void update_buffers()
 		{
+			profile();
 			update_frame_buffer();
 		}
 

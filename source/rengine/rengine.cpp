@@ -65,7 +65,10 @@ namespace rengine {
 			return;
 
 		engine__begin();
-		g_engine_state.callback();
+		{
+			profile_name(nameof(game_update));
+			g_engine_state.callback();
+		}
 		engine__end();
 	}
 

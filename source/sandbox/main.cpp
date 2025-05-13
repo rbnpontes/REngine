@@ -9,9 +9,9 @@ void game_loop() {
 		return;
 	}
 
-	const auto a = rengine::math::vec3(-.5, -.5, 0.);
-	const auto b = rengine::math::vec3(+0., +.5, 0.);
-	const auto c = rengine::math::vec3(+.5, -.5, 0.);
+	const auto a = rengine::math::vec3(-1, +0, 0.);
+	const auto b = rengine::math::vec3(+0, -1, 0.);
+	const auto c = rengine::math::vec3(+1, +0, 0.);
 
 	const auto a_color = rengine::math::byte_color::red;
 	const auto b_color = rengine::math::byte_color::green;
@@ -25,25 +25,27 @@ void game_loop() {
 	rengine::graphics::drawing_translate(rengine::math::vec3(100, 100, 0));
 	rengine::graphics::drawing_set_color(rengine::math::byte_color::white);
 	rengine::graphics::drawing_draw_text("Hello World!!!");
-	/*for (rengine::u8 y = 0; y < 4; ++y) {
-		for (rengine::u8 x = 0; x < 10; ++x) {
-			float offset_x = x * 50.;
-			float offset_y = y * 50.;
-			rengine::graphics::renderer_translate(rengine::math::vec3(10 + offset_x, 100 + offset_y));
-			{
-				rengine::graphics::renderer_set_color(a_color);
-				rengine::graphics::renderer_push_vertex(a);
 
-				rengine::graphics::renderer_set_color(b_color);
-				rengine::graphics::renderer_push_vertex(b);
+	for(auto i = 0; i < 10; ++i)
+	{
+		rengine::graphics::drawing_set_color(rengine::math::byte_color::blue);
+		rengine::graphics::drawing_scale(10.0f);
+		rengine::graphics::drawing_translate(rengine::math::vec3(100.0, 100.f));
+		rengine::graphics::drawing_translate(rengine::math::vec3(30.f + (i * 50.0), 30.f));
+		rengine::graphics::drawing_rotate(g_rotation);
 
-				rengine::graphics::renderer_set_color(c_color);
-				rengine::graphics::renderer_push_vertex(c);
+		rengine::graphics::drawing_draw_quad(rengine::math::vec3::zero, rengine::math::vec2::one);
+		/*rengine::graphics::drawing_set_color(a_color);
+		rengine::graphics::drawing_push_vertex(a);
 
-				rengine::graphics::renderer_draw_triangle();
-			}
-		}
-	}*/
+		rengine::graphics::drawing_set_color(b_color);
+		rengine::graphics::drawing_push_vertex(b);
+
+		rengine::graphics::drawing_set_color(c_color);
+		rengine::graphics::drawing_push_vertex(c);*/
+
+		//rengine::graphics::drawing_draw_triangle();
+	}
 
   //  {
   //      // Draw line: A -> B
