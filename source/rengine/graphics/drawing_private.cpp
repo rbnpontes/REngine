@@ -55,6 +55,7 @@ namespace rengine {
 
 		void drawing__require_vbuffer_size(u32 buffer_size)
 		{
+			profile();
 			auto& state = g_drawing_state;
 			size_t additional_size = DRAWING_DEFAULT_TRIANGLE_COUNT * sizeof(triangle_data);
 			additional_size += DRAWING_DEFAULT_LINES_COUNT * sizeof(line_data);
@@ -157,6 +158,7 @@ namespace rengine {
 
 		void drawing__check_buffer_requirements()
 		{
+			profile();
 			const auto& state = g_drawing_state;
 			size_t required_size = state.triangles.size() * sizeof(triangle_data);
 			required_size += state.lines.size() * sizeof(line_data);

@@ -128,9 +128,9 @@ namespace rengine {
 			auto reverse = g_drawing_state.triangles.size() > 0;
 
 			if (reverse)
-				triangle = { c, b, a };
-			else
 				triangle = { a, b, c };
+			else
+				triangle = { c, b, a };
 
 			g_drawing_state.triangles.push_back(triangle);
 		}
@@ -148,10 +148,10 @@ namespace rengine {
 			);
 
 
-			math::vec3 left_top = center + math::vec3(-half_data[0], half_data[1]);
-			math::vec3 right_top = center + math::vec3(half_data[0], half_data[1]);
-			math::vec3 left_bottom = center + math::vec3(-half_data[0], -half_data[1]);
-			math::vec3 right_bottom = center + math::vec3(half_data[0], -half_data[1]);
+			math::vec3 left_top = center + math::vec3(-half_data[0], -half_data[1]);
+			math::vec3 right_top = center + math::vec3(half_data[0], -half_data[1]);
+			math::vec3 left_bottom = center + math::vec3(-half_data[0], half_data[1]);
+			math::vec3 right_bottom = center + math::vec3(half_data[0], half_data[1]);
 
 			drawing_draw_rect(left_top, right_top, right_bottom, left_bottom);
 		}
@@ -159,22 +159,22 @@ namespace rengine {
 		void drawing_draw_rect(const math::vec3& left_top, const math::vec3& right_top, const math::vec3& right_bottom, const math::vec3& left_bottom)
 		{
 			drawing_set_uv({ 0., 1. });
+			drawing_push_vertex(left_bottom);
+
+			drawing_set_uv({ 0., 0. });
 			drawing_push_vertex(left_top);
 
-			drawing_set_uv({ 1., 1. });
-			drawing_push_vertex(right_top);
-
 			drawing_set_uv({ 1., 0. });
-			drawing_push_vertex(right_bottom);
+			drawing_push_vertex(right_top);
 			drawing_draw_triangle();
 
-			drawing_set_uv({ 0., 1. });
-			drawing_push_vertex(left_top);
-
 			drawing_set_uv({ 1., 0. });
+			drawing_push_vertex(right_top);
+
+			drawing_set_uv({ 1., 1. });
 			drawing_push_vertex(right_bottom);
 
-			drawing_set_uv({});
+			drawing_set_uv({ 0., 1.});
 			drawing_push_vertex(left_bottom);
 			drawing_draw_triangle();
 		}
@@ -210,10 +210,10 @@ namespace rengine {
 				required_size * sizeof(vertex_data));
 
 			for (u32 i = 0; i < required_size; i += 4) {
-				vertex_data left_top = tmp_vertices[i + 3];
-				vertex_data right_top = tmp_vertices[i + 2];
-				vertex_data right_bottom = tmp_vertices[i + 1];
-				vertex_data left_bottom = tmp_vertices[i];
+				vertex_data left_top = tmp_vertices[i + 0];
+				vertex_data right_top = tmp_vertices[i + 1];
+				vertex_data right_bottom = tmp_vertices[i + 2];
+				vertex_data left_bottom = tmp_vertices[i + 3];
 
 				drawing_draw_rect(left_top.point, right_top.point, right_bottom.point, left_bottom.point);
 			}
