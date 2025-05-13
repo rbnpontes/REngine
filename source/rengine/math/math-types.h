@@ -43,6 +43,13 @@ namespace rengine {
             static const base_vec2<T> down;
         };
 
+        template<typename T> inline const base_vec2<T> base_vec2<T>::zero = base_vec2<T>((T)+0, (T)+0);
+        template<typename T> inline const base_vec2<T> base_vec2<T>::one = base_vec2<T>((T)+1, (T)+1);
+        template<typename T> inline const base_vec2<T> base_vec2<T>::left = base_vec2<T>((T)-1, (T)+0);
+        template<typename T> inline const base_vec2<T> base_vec2<T>::right = base_vec2<T>((T)+1, (T)+0);
+        template<typename T> inline const base_vec2<T> base_vec2<T>::up = base_vec2<T>((T)+0, (T)+1);
+        template<typename T> inline const base_vec2<T> base_vec2<T>::down = base_vec2<T>((T)+0, (T)-1);
+
         typedef base_vec2<number_t> vec2;
         typedef base_vec2<int_t> ivec2;
         typedef base_vec2<uint_t> uvec2;

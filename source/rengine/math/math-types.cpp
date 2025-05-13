@@ -2,13 +2,6 @@
 
 namespace rengine {
 	namespace math {
-        template<typename T> const base_vec2<T> base_vec2<T>::zero = base_vec2<T>((T)+0, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::one = base_vec2<T>((T)+1, (T)+1);
-        template<typename T> const base_vec2<T> base_vec2<T>::left = base_vec2<T>((T)-1, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::right = base_vec2<T>((T)+1, (T)+0);
-        template<typename T> const base_vec2<T> base_vec2<T>::up = base_vec2<T>((T)+0, (T)+1);
-        template<typename T> const base_vec2<T> base_vec2<T>::down = base_vec2<T>((T)+0, (T)-1);
-
         template struct base_vec2<number_t>;
         template struct base_vec2<int_t>;
         template struct base_vec2<uint_t>;
