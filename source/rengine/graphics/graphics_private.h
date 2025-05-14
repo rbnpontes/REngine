@@ -30,6 +30,12 @@ namespace rengine {
 			constant_buffer_t frame{ no_constant_buffer };
 		};
 
+		struct graphics_msaa {
+			u8 available_levels{ 1 };
+			u8 curr_level{ 1 };
+			u8 next_level{ 1 };
+		};
+
 		struct graphics_state {
 			Diligent::IEngineFactory* factory;
 			Diligent::IDeviceContext** contexts;
@@ -38,10 +44,10 @@ namespace rengine {
 			u32 num_contexts;
 			render_target_t viewport_rt;
 			backend backend;
-
 			graphics_buffers buffers;
 
 			bool vsync{ false };
+			graphics_msaa msaa{};
 		};
 
 		struct graphics_init_desc {
@@ -61,10 +67,13 @@ namespace rengine {
 		void begin();
 		void end();
 
+		void calculate_msaa_levels();
 		void allocate_swapchain(const core::window_t& window_id);
 		void allocate_buffers();
+		void verify_graphics_resources();
 		void prepare_viewport_rt(const core::window_t& window_id);
 		void prepare_swapchain_window(const core::window_t& window_id);
+		
 		void blit_render_targets(Diligent::ITexture* src, Diligent::ITexture* dst, bool msaa);
 
 		void update_buffers();

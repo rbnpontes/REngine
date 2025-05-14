@@ -12,7 +12,9 @@ namespace rengine {
 		R_EXPORT void enable_vsync();
 		R_EXPORT void disable_vsync();
 		R_EXPORT bool vsync_enabled();
-		R_EXPORT u32 get_msaa_sample_count();
+		R_EXPORT void set_msaa_level(u8 lvl);
+		R_EXPORT u8 get_msaa_level();
+		R_EXPORT u8 get_msaa_available_levels();
 		R_EXPORT u16 get_default_backbuffer_format();
 		R_EXPORT u16 get_default_depthbuffer_format();
 	}

@@ -29,8 +29,7 @@ void game_loop() {
 	for(auto i = 0; i < 10; ++i)
 	{
 		rengine::graphics::drawing_set_color(rengine::math::byte_color::blue);
-		rengine::graphics::drawing_scale(10.0f);
-		rengine::graphics::drawing_translate(rengine::math::vec3(100.0, 100.f));
+		rengine::graphics::drawing_scale(30.0f);
 		rengine::graphics::drawing_translate(rengine::math::vec3(30.f + (i * 50.0), 30.f));
 		rengine::graphics::drawing_rotate(g_rotation);
 
@@ -109,6 +108,7 @@ int main(unsigned int argc, char** argv) {
 	g_window_id = wnd;
 	rengine::use_window(wnd);
 	rengine::enable_fps_monitor();
+	rengine::graphics::set_msaa_level(4);
 	rengine::run(game_loop);
 	rengine::destroy();
 	return 0;

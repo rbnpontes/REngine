@@ -79,5 +79,14 @@ namespace rengine {
 		template<> inline float is_inf(float x) { return isinf(x); }
 		template<> inline double is_inf(double x) { return isinf(x); }
 
+		template <typename T>
+		inline bool is_power_two(T x);
+
+		template<> inline bool is_power_two(byte x) { return x != 0 && (x & (x - 1)) == 0; }
+		template<> inline bool is_power_two(char x) { return x != 0 && (x & (x - 1)) == 0; }
+		template<> inline bool is_power_two(long x) { return x != 0 && (x & (x - 1)) == 0; }
+		template<> inline bool is_power_two(u64 x) { return x != 0 && (x & (x - 1)) == 0; }
+		template<> inline bool is_power_two(float x) { return is_power_two((long)x); }
+		template<> inline bool is_power_two(double x) { return is_power_two((long)x); }
 	}
 }

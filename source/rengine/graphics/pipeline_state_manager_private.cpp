@@ -2,6 +2,7 @@
 #include "./shader_manager_private.h"
 #include "./graphics_private.h"
 #include "./buffer_manager_private.h"
+#include "./render_target_manager.h"
 
 #include "../exceptions.h"
 
@@ -31,6 +32,8 @@ namespace rengine {
 			ci.GraphicsPipeline.RasterizerDesc.CullMode = g_cull_mode_tbl[(u8)create_info.cull];
 			ci.GraphicsPipeline.RasterizerDesc.FillMode = create_info.wireframe ? FILL_MODE_WIREFRAME : FILL_MODE_SOLID;
 			ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = create_info.scissors;
+			ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = create_info.msaa_level != 1;
+			ci.GraphicsPipeline.SmplDesc.Count = create_info.msaa_level;
 			ci.GraphicsPipeline.DepthStencilDesc.DepthEnable = create_info.depth;
 
 			ci.GraphicsPipeline.InputLayout.LayoutElements = pipeline_state_mgr__build_input_layout(create_info.vertex_elements,

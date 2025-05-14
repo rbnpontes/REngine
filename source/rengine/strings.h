@@ -117,6 +117,7 @@ namespace rengine {
             constexpr static c_str g_graphics_no_suitable_device_found = "No suitable device found, using first available.";
             constexpr static c_str g_graphics_swapchain_has_been_created = "SwapChain has been created for window {0}";
             constexpr static c_str g_graphics_diligent_dbg_fmt = "{0} | Function: {1} | File: {2} | Line: {3}";
+            constexpr static c_str g_graphics_unsupported_msaa_level = "Unsupported MSAA Level. MSAA Level: {0}";
 
             constexpr static c_str g_buffer_mgr_cbuffer_must_be_dyn = "Constant buffer must be dynamic. Forcing to dynamic!";
             constexpr static c_str g_buffer_mgr_cant_update_non_dyn = "Failed to update buffer. Is not possible to update a non-dynamic buffer, "

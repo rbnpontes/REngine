@@ -151,7 +151,7 @@ namespace rengine {
 
 			// MSAA texture cannot be used as shader resource
 			if (create_info.type == render_target_type::multisampling) {
-				desc.SampleCount = get_msaa_sample_count();
+				desc.SampleCount = create_info.desc.sample_count;
 				desc.BindFlags = Diligent::BIND_RENDER_TARGET;
 			}
 

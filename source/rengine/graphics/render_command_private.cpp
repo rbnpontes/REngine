@@ -46,6 +46,9 @@ namespace rengine {
 			for (u8 i = 0; i < data.num_render_targets; ++i) {
 				render_target_mgr_get_desc(data.render_targets[i], &rt_desc);
 				pipeline_create.render_target_formats[i] = rt_desc.format;
+
+				if (i == 0 && render_target_mgr_get_type(data.render_targets[0]) == render_target_type::multisampling)
+					pipeline_create.msaa_level = rt_desc.sample_count;
 			}
 
 			if (data.depth_stencil != no_render_target) {

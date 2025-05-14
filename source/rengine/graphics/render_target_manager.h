@@ -16,6 +16,7 @@ namespace rengine {
 			math::uvec2 size;
 			u16 format{ 0 };
 			u16 depth_format{ 0 };
+			u8 sample_count{ 1 };
 		};
 
 		struct render_target_external_desc {

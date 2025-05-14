@@ -147,6 +147,7 @@ namespace rengine {
 				init_opengl
 			};
 			action_t init_calls[] = {
+				calculate_msaa_levels,
 				buffer_mgr__init,
 				render_target_mgr__init,
 				srb_mgr__init,
@@ -196,6 +197,7 @@ namespace rengine {
 			if (window == core::no_window)
 				return;
 
+			verify_graphics_resources();
 			prepare_swapchain_window(window);
 			prepare_viewport_rt(window);
 
@@ -240,9 +242,38 @@ namespace rengine {
 
 			blit_render_targets((Diligent::ITexture*)src_backbuffer,
 				swapchain->GetCurrentBackBufferRTV()->GetTexture(),
-				false);
+				g_graphics_state.msaa.curr_level != 1);
 
 			present_swapchain(swapchain);
+		}
+
+		void calculate_msaa_levels()
+		{
+			const auto backbuffer_fmt = (Diligent::TEXTURE_FORMAT)get_default_backbuffer_format();
+			const auto depthbuffer_fmt = (Diligent::TEXTURE_FORMAT)get_default_depthbuffer_format();
+
+			const auto device = g_graphics_state.device;
+			// Some GPU's can contains different sample count for specific texture format
+			// We must guarantee that backbuffer format and depthbuffer has the same sample count
+			// even if each format has their own sample count, we must return the minimum sample
+			// count that it is been supported by both.
+			// Ex:
+			// Backbuffer Format Sample Count = 16x
+			// Depthbuffer Format Sample Count = 8x
+			// MSAA Levels must be = 8x
+			auto sample_counts = device->GetTextureFormatInfoExt(backbuffer_fmt).SampleCounts & device->GetTextureFormatInfoExt(depthbuffer_fmt).SampleCounts;
+
+			u8 result = 1;
+			for (u8 i = 6; i > 0; --i) {
+				auto sample_count = 1 << i;
+				if ((sample_counts & sample_count) == 0)
+					continue;
+
+				result = sample_count;
+				break;
+			}
+
+			g_graphics_state.msaa.available_levels = result;
 		}
 
 		void allocate_swapchain(const core::window_t& window_id)
@@ -276,15 +307,46 @@ namespace rengine {
 				});
 		}
 
+		void verify_graphics_resources()
+		{
+			profile();
+			const auto& state = g_graphics_state;
+			const auto changed_msaa = state.msaa.curr_level != state.msaa.next_level;
+
+			if (!changed_msaa)
+				return;
+
+			// TODO: clear only MSAA pipeline states
+			srb_mgr_clear_cache();
+			pipeline_state_mgr_clear_cache();
+		}
+
 		void prepare_viewport_rt(const core::window_t& window_id)
 		{
 			profile();
+			auto& state = g_graphics_state;
 			const auto& wnd_size = core::window_get_size(window_id);
 			auto viewport_rt = render_target_mgr_find_from_size(wnd_size);
-			if (viewport_rt == no_render_target) {
+
+			const auto changed_msaa = state.msaa.curr_level != state.msaa.next_level;
+			const auto no_viewport_rt = viewport_rt == no_render_target;
+			const auto rebuild_rt = no_viewport_rt || changed_msaa;
+
+			if (rebuild_rt) {
+				if (viewport_rt != no_render_target)
+					render_target_mgr_destroy(viewport_rt);
+
 				viewport_rt = render_target_mgr_create({
-					{ strings::graphics::g_viewport_rt_name, wnd_size, get_default_backbuffer_format(), get_default_depthbuffer_format() },
+						{ 
+							strings::graphics::g_viewport_rt_name, 
+							wnd_size, 
+							get_default_backbuffer_format(), 
+							get_default_depthbuffer_format(),
+							state.msaa.next_level
+						},
+						state.msaa.next_level == 1 ? render_target_type::normal : render_target_type::multisampling
 					});
+				state.msaa.curr_level = state.msaa.next_level;
 			}
 
 			renderer_set_render_target(viewport_rt, viewport_rt);
@@ -307,8 +369,13 @@ namespace rengine {
 
 			const auto ctx = g_graphics_state.contexts[0];
 
-			if (msaa)
-				throw not_implemented_exception();
+			if (msaa) 
+			{
+				ResolveTextureSubresourceAttribs resolve_attribs;
+				resolve_attribs.SrcTextureTransitionMode = resolve_attribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+				ctx->ResolveTextureSubresource(src, dst, resolve_attribs);
+				return;
+			}
 
 			CopyTextureAttribs cpy_attribs = {};
 			cpy_attribs.pSrcTexture = src;
@@ -367,10 +434,24 @@ namespace rengine {
 			return g_graphics_state.vsync;
 		}
 
-		u32 get_msaa_sample_count()
+		void set_msaa_level(u8 lvl)
 		{
-			// TODO: add MSAA support
-			throw not_implemented_exception();
+			auto& state = g_graphics_state;
+			if (math::is_power_two(lvl) && (lvl >= 1 || lvl <= state.msaa.available_levels))
+				state.msaa.next_level = lvl;
+			else
+				io::logger_warn(strings::logs::g_graphics_tag,
+					fmt::format(strings::logs::g_graphics_unsupported_msaa_level, lvl).c_str());
+		}
+
+		u8 get_msaa_level()
+		{
+			return g_graphics_state.msaa.curr_level;
+		}
+
+		u8 get_msaa_available_levels()
+		{
+			return g_graphics_state.msaa.available_levels;
 		}
 
 		u16 get_default_backbuffer_format()
