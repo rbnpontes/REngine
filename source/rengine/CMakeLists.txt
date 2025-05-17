@@ -40,7 +40,8 @@ set (PRIVATE_LIBS
     Tracy::TracyClient
 )
 set (PUBLIC_LIBS
-    fmt::fmt)
+    fmt::fmt
+    imgui)
 
 set (PRIVATE_DEFINITIONS 
     -DENGINE_LIB
