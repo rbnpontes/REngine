@@ -3911,8 +3911,7 @@ bool ImGui::InputDouble(const char* label, double* v, double step, double step_f
 
 namespace ImStb
 {
-//#include "imstb_textedit.h"
-    #include <stb/stb_textedit.h>
+#include "imstb_textedit.h"
 }
 
 bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
@@ -4181,10 +4180,9 @@ static bool STB_TEXTEDIT_INSERTCHARS(ImGuiInputTextState* obj, int pos, const ch
 #define STB_TEXTEDIT_K_PGDOWN       0x20000F // keyboard input to move cursor down a page
 #define STB_TEXTEDIT_K_SHIFT        0x400000
 
-#define STB_TEXTEDIT_IMPLEMENTATION
-#define STB_TEXTEDIT_memmove memmove
-//#include "imstb_textedit.h"
-#include <stb/stb_textedit.h>
+#define IMSTB_TEXTEDIT_IMPLEMENTATION
+#define IMSTB_TEXTEDIT_memmove memmove
+#include "imstb_textedit.h"
 
 // stb_textedit internally allows for a single undo record to do addition and deletion, but somehow, calling
 // the stb_textedit_paste() function creates two separate records, so we perform it manually. (FIXME: Report to nothings/stb?)

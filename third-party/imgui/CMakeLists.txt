@@ -8,7 +8,5 @@ if(MSVC)
     target_sources(imgui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${NATVIS_FILE})
 endif()
 
-target_link_libraries(imgui 
-    PUBLIC EASTL
-    PRIVATE stb)
+target_link_libraries(imgui PUBLIC EASTL)
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
