@@ -9,7 +9,10 @@ namespace rengine {
         struct window_desc_t {
             c_str title;
             irect bounds;
+            vec2 dpi_scale;
             bool visible;
+            bool minimized;
+            bool focused;
         };
 
         R_EXPORT window_t window_create(c_str title, u32 width, u32 height);

@@ -11,7 +11,7 @@ namespace rengine {
 
 		void srb_mgr__init()
 		{
-			g_srb_mgr_state.log = io::logger_use(strings::logs::g_srb_cmd_tag);
+			g_srb_mgr_state.log = io::logger_use(strings::logs::g_srb_mgr_tag);
 		}
 
 		void srb_mgr__deinit()

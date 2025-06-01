@@ -46,6 +46,8 @@ namespace rengine {
 
         void window__init() {
             SDL_Init(SDL_INIT_AUDIO);
+            SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+            SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
         }
 
         void window__deinit() {

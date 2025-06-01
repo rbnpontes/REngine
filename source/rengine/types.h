@@ -119,6 +119,41 @@ namespace rengine {
             instancing = 1 << 5
         };
 
+        enum class resource_usage : u8 {
+            // after created, can not be modified anymore
+            immutable = 0,
+			// can be modified, but not frequently (low frequency updates)
+			normal,
+			// can be modified frequently (idealy for high frequency updates)
+            dynamic
+        };
+
+        enum class texture_format : u32 {
+			unknown = 0,
+			// color formats
+			rgba8,
+			bgra8,
+            rgba8_srgb,
+			bgra8_srgb,
+            // hdr color formats
+			rgba16f,
+            rgba32f,
+            // depth + stencil formats
+            d16,
+			d24s8,
+			d32s8,
+			d32f,
+			r8,
+            rg8,
+            // compressed formats
+            bc1_dxt1,
+            bc3_dxt5,
+            bc4,
+            bc5,
+            bc6h,
+            bc7,
+        };
+
         // TODO: add more types
         enum class shader_type : u8 {
             vertex = 0,

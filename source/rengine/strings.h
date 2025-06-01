@@ -20,6 +20,8 @@ namespace rengine {
 
         constexpr static c_str g_pool_id = "pool";
         constexpr static c_str g_engine_monitor_fps = "FPS: {:.1f}";
+        constexpr static c_str g_imgui_backend_name = "rengine - backend: {0}";
+        constexpr static c_str g_renderer_name = "rengine_renderer";
 
         namespace profiler {
             constexpr static c_str engine_loop = "rengine::loop";
@@ -38,6 +40,8 @@ namespace rengine {
             constexpr static c_str g_default_cmd_name = "rengine::render_command";
 
             constexpr static c_str g_frame_buffer_name = "rengine::graphics::frame::cbuffer";
+
+			constexpr static c_str g_imgui_mgr_name = "rengine::imgui::manager::font_texture";
 
             namespace shaders {
                 constexpr static c_str g_frame_buffer_key = "frame_constants";
@@ -107,7 +111,8 @@ namespace rengine {
             constexpr static c_str g_renderer_tag = "renderer";
             constexpr static c_str g_render_cmd_tag = "render_command";
             constexpr static c_str g_drawing_cmd_tag = "drawing";
-            constexpr static c_str g_srb_cmd_tag = "srb";
+            constexpr static c_str g_srb_mgr_tag = "srb";
+            constexpr static c_str g_tex_mgr_tag = "texture_mgr";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -175,6 +180,8 @@ namespace rengine {
             constexpr static c_str g_buffer_mgr_cant_realloc_non_dyn = "Failed to realloc buffer. Is not possible to realloc a non-dynamic buffer, "
                 "You must free this buffer ({0}) and create again with different size! "
                 "Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
+
+            constexpr static c_str g_texture_mgr_failed_to_create_tex = "Failed to create texture. Texture Name = {0}";
 
 			constexpr static c_str g_rt_mgr_reach_limit = "Failed to create render target. Reached limit of {0} render targets";
             constexpr static c_str g_rt_mgr_failed_to_create = "Failed to create render target";

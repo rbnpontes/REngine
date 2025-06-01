@@ -6,6 +6,8 @@
 #include <rengine/graphics/pipeline_state_manager.h>
 #include <rengine/graphics/buffer_manager.h>
 #include <rengine/graphics/render_target_manager.h>
+#include <rengine/graphics/texture_manager.h>
+#include <rengine/graphics/imgui_manager.h>
 
 namespace rengine {
 	namespace graphics {

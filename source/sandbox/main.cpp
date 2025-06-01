@@ -1,5 +1,6 @@
 #include <iostream>
 #include <rengine/rengine.h>
+#include <imgui/imgui.h>
 
 static rengine::core::window_t g_window_id;
 static float g_rotation;
@@ -98,6 +99,12 @@ void game_loop() {
   rengine::graphics::renderer_set_color(rengine::math::byte_color::green);
   rengine::graphics::renderer_draw_quad(rengine::math::vec3(0.f, 0.f), rengine::math::vec2(.5f, .5f));*/
 	rengine::graphics::drawing_end_draw();
+
+	if (rengine::graphics::imgui_manager_begin()) {
+		bool show_wnd;
+		ImGui::ShowDemoWindow(&show_wnd);
+		rengine::graphics::imgui_manager_end();
+	}
 }
 
 int main(unsigned int argc, char** argv) {

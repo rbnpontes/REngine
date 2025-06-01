@@ -71,15 +71,20 @@ namespace rengine {
         window_desc_t window_get_desc(const window_t& id)
         {
             const auto& wnd = window__get_data(id);
-            int x, y, w, h;
+            int x, y, w, h, w_pixel, h_pixel;
+            SDL_WindowFlags flags = SDL_GetWindowFlags(wnd.owner);
 
             SDL_GetWindowPosition(wnd.owner, &x, &y);
             SDL_GetWindowSize(wnd.owner, &w, &h);
+            SDL_GetWindowSizeInPixels(wnd.owner, &w_pixel, &h_pixel);
 
             return {
                 SDL_GetWindowTitle(wnd.owner),
                 { {x, y}, {w, h} },
-                (SDL_GetWindowFlags(wnd.owner) & SDL_WINDOW_HIDDEN) != 0
+                { (float)w_pixel / w, (float)h_pixel / h },
+                (flags & SDL_WINDOW_HIDDEN) != 0,
+                (flags & SDL_WINDOW_MINIMIZED) != 0,
+                (flags & SDL_WINDOW_INPUT_FOCUS) != 0,
             };
         }
 

@@ -7,7 +7,8 @@ namespace rengine {
         enum class buffer_type {
             vertex_buffer = 0,
             index_buffer,
-            constant_buffer
+            constant_buffer,
+			uav_buffer,
         };
 
         enum class buffer_map_type {

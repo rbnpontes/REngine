@@ -11,6 +11,9 @@
 #include "./srb_manager_private.h"
 #include "./render_command_private.h"
 #include "./shader_manager_private.h"
+#include "./texture_manager_private.h"
+
+#include "./imgui_manager_private.h"
 
 #include "../rengine_private.h"
 #include "../core/window_graphics_private.h"
@@ -150,11 +153,13 @@ namespace rengine {
 				calculate_msaa_levels,
 				buffer_mgr__init,
 				render_target_mgr__init,
+				texture_mgr__init,
 				srb_mgr__init,
 				allocate_buffers,
 				renderer__init,
 				render_command__init,
 				drawing__init,
+				imgui_manager__init
 			};
 
 			assert_backend(desc.backend);
@@ -172,6 +177,7 @@ namespace rengine {
 			assert_initialization();
 
 			action_t deinit_calls[] = {
+				imgui_manager__deinit,
 				renderer__deinit,
 				render_target_mgr__deinit,
 				buffer_mgr__deinit,
