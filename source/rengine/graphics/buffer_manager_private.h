@@ -19,6 +19,9 @@ namespace rengine {
             core::array_pool<buffer_entry, GRAPHICS_MAX_ALLOC_IBUFFERS> index_buffers{};
             core::array_pool<buffer_entry, GRAPHICS_MAX_ALLOC_CBUFFERS> constant_buffers{};
 
+            vertex_buffer_t dynamic_vbuffer{ no_vertex_buffer };
+            index_buffer_t dynamic_ibuffer{ no_index_buffer };
+
             io::ILog* log{ null };
         };
 

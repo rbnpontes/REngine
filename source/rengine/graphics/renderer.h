@@ -22,6 +22,15 @@ namespace rengine {
 			u32 start_instance_idx{ 0 };
 		};
 
+		struct draw_indexed_desc {
+			u32 num_indices{ 0 };
+			u32 num_instances{ 1 };
+			u32 start_vertex_idx{ 0 };
+			u32 start_index_idx{ 0 };
+			u32 start_instance_idx{ 0 };
+			bool use_32bit_indices{ false };
+		};
+
 		R_EXPORT void renderer_clear(const clear_desc& desc);
 
 		R_EXPORT void renderer_reset_states();
@@ -51,6 +60,7 @@ namespace rengine {
 		R_EXPORT void renderer_set_material(const material_t& material_id);
 		R_EXPORT void renderer_flush();
 		R_EXPORT void renderer_draw(const draw_desc& desc);
+		R_EXPORT void renderer_draw_indexed(const draw_indexed_desc& desc);
 
 		R_EXPORT void renderer_blit(const render_target_t& src, const render_target_t& dst);
 	}

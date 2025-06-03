@@ -20,6 +20,11 @@ namespace rengine {
 
 			shader_macro* macros{ null };
 			u32 num_macros{ 0 };
+
+			// specify vertex elements as hint for shader
+			// the shader manager will insert required macros
+			// to enable or disable some vertex elements
+			u32 vertex_elements{ (u32)vertex_elements::none };
 		};
 
 		R_EXPORT shader_t shader_mgr_create(const shader_create_desc& desc);

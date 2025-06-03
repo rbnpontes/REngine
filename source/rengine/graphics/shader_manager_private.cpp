@@ -22,6 +22,9 @@ namespace rengine {
 				macros[i].Definition = desc.macros[i].definition;
 			}
 
+			if(desc.type == shader_type::vertex && desc.vertex_elements != 0)
+				shader_mgr__fill_vertex_elements_macros(macros, desc.vertex_elements);
+
 			ShaderCreateInfo ci = {};
 			ci.Desc.Name = desc.name;
 			ci.Desc.ShaderType = g_shader_type_tbl[(u8)desc.type];
@@ -45,6 +48,45 @@ namespace rengine {
 			if (it == g_shader_tbl.end())
 				return null;
 			return it->second;
+		}
+
+		void shader_mgr__fill_vertex_elements_macros(vector<Diligent::ShaderMacro>& macros, u32 elements)
+		{
+			const auto attrib_names = strings::graphics::shaders::g_attrib_names;
+			if (elements & (u32)vertex_elements::position) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_POSITION_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::normal) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_NORMAL_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::tangent) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_TANGENT_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::color) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_COLOR_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::colorf) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_COLORF_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::uv) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_UV_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
+
+			if (elements & (u32)vertex_elements::instancing) {
+				const auto pair = attrib_names[VERTEX_ELEMENT_INSTANCING_IDX];
+				macros.push_back({ pair[0], pair[1] });
+			}
 		}
 	}
 }

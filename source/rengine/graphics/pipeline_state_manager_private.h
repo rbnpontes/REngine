@@ -28,7 +28,7 @@ namespace rengine {
 			hash_map<pipeline_state_t, Diligent::IPipelineState*> pipelines;
 			u32 pipeline_count;
 
-			Diligent::LayoutElement tmp_layout_elements[6];
+			Diligent::LayoutElement tmp_layout_elements[VERTEX_ELEMENT_COUNT];
 			Diligent::ShaderResourceVariableDesc tmp_srv[4];
 		};
 

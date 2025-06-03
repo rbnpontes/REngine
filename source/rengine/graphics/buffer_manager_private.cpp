@@ -26,6 +26,7 @@ namespace rengine {
 			for (const auto& buffer : state.constant_buffers)
 				buffer_mgr__free_buffer(buffer.value);
 
+			state.dynamic_vbuffer = no_vertex_buffer;
 			state.vertex_buffers.clear();
 			state.index_buffers.clear();
 			state.constant_buffers.clear();

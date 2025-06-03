@@ -36,6 +36,9 @@ namespace rengine {
         index_buffer_t buffer_mgr_ibuffer_create(const buffer_create_desc& desc);
         constant_buffer_t buffer_mgr_cbuffer_create(const buffer_create_desc& desc);
 
+		vertex_buffer_t buffer_mgr_get_dynamic_vbuffer(u32 vbuffer_size);
+		index_buffer_t buffer_mgr_get_dynamic_ibuffer(u32 ibuffer_size);
+
 		R_EXPORT void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size, u32 offset = 0);
 		R_EXPORT void buffer_mgr_ibuffer_update(const index_buffer_t& id, ptr data, u32 size, u32 offset = 0);
 		R_EXPORT void buffer_mgr_cbuffer_update(const constant_buffer_t& id, ptr data, u32 size, u32 offset = 0);

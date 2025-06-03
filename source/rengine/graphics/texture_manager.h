@@ -161,5 +161,7 @@ namespace rengine {
 		R_EXPORT void texture_mgr_tex3d_gen_mipmap(texture_3d_t id);
 		R_EXPORT void texture_mgr_texcube_gen_mipmap(texture_cube_t id);
 		R_EXPORT void texture_mgr_texarray_gen_mipmap(texture_cube_t id);
+
+		R_EXPORT texture_2d_t texture_mgr_get_white_dummy_tex2d();
 	}
 }

@@ -19,5 +19,7 @@ namespace rengine {
 
 		Diligent::IShader* shader_mgr__create_shader(const shader_create_desc& desc);
 		Diligent::IShader* shader_mgr__get_handle(const shader_t& shader_id);
+
+		void shader_mgr__fill_vertex_elements_macros(vector<Diligent::ShaderMacro>& macros, u32 elements);
 	}
 }

@@ -114,9 +114,10 @@ namespace rengine {
             position = 1 << 0,
             normal = 1 << 1,
             color = 1 << 2,
-            texcoord = 1 << 3,
-            tangent = 1 << 4,
-            instancing = 1 << 5
+            colorf = 1 << 3,
+            uv = 1 << 4,
+            tangent = 1 << 5,
+            instancing = 1 << 6
         };
 
         enum class resource_usage : u8 {

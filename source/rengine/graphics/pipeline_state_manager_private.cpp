@@ -59,7 +59,7 @@ namespace rengine {
 			*count = 0;
 			if ((flags & (u32)vertex_elements::position) != 0) {
 				auto& position_element = layout_elements[*count];
-				position_element.InputIndex = 0;
+				position_element.InputIndex = VERTEX_ELEMENT_POSITION_IDX;
 				position_element.NumComponents = 3;
 				position_element.ValueType = VT_FLOAT32;
 				position_element.IsNormalized = false;
@@ -69,7 +69,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::normal) != 0) {
 				LayoutElement& normal_element = layout_elements[*count];
-				normal_element.InputIndex = 1;
+				normal_element.InputIndex = VERTEX_ELEMENT_NORMAL_IDX;
 				normal_element.NumComponents = 3;
 				normal_element.ValueType = VT_FLOAT32;
 				normal_element.RelativeOffset = sizeof(float) * 3;
@@ -79,7 +79,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::tangent) != 0) {
 				LayoutElement tangent_element = layout_elements[*count];
-				tangent_element.InputIndex = 2;
+				tangent_element.InputIndex = VERTEX_ELEMENT_TANGENT_IDX;
 				tangent_element.NumComponents = 4;
 				tangent_element.ValueType = VT_FLOAT32;
 				tangent_element.RelativeOffset = sizeof(float) * 4;
@@ -89,7 +89,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::color) != 0) {
 				LayoutElement& color_element = layout_elements[*count];
-				color_element.InputIndex = 3;
+				color_element.InputIndex = VERTEX_ELEMENT_COLOR_IDX;
 				color_element.NumComponents = 1;
 				color_element.ValueType = VT_UINT32;
 				color_element.IsNormalized = false;
@@ -97,9 +97,18 @@ namespace rengine {
 				(*count)++;
 			}
 
-			if ((flags & (u32)vertex_elements::texcoord) != 0) {
+			if ((flags & (u32)vertex_elements::colorf) != 0) {
+				LayoutElement& colorf_element = layout_elements[*count];
+				colorf_element.InputIndex = VERTEX_ELEMENT_COLORF_IDX;
+				colorf_element.NumComponents = 4;
+				colorf_element.ValueType = VT_FLOAT32;
+				colorf_element.IsNormalized = false;
+				(*count)++;
+			}
+
+			if ((flags & (u32)vertex_elements::uv) != 0) {
 				LayoutElement& texcoord_element = layout_elements[*count];
-				texcoord_element.InputIndex = 4;
+				texcoord_element.InputIndex = VERTEX_ELEMENT_UV_IDX;
 				texcoord_element.NumComponents = 2;
 				texcoord_element.ValueType = VT_FLOAT32;
 

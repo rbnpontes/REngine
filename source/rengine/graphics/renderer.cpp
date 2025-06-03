@@ -237,6 +237,29 @@ namespace rengine {
 
 			ctx->Draw(draw_attr);
 		}
+
+		void renderer_draw_indexed(const draw_indexed_desc& desc)
+		{
+			profile();
+			using namespace Diligent;
+			renderer_flush();
+
+			const auto ctx = g_graphics_state.contexts[0];
+			DrawIndexedAttribs draw_attr;
+#if ENGINE_DEBUG
+			draw_attr.Flags = DRAW_FLAG_VERIFY_ALL;
+#else
+			draw_attr.Flags = DRAW_FLAG_NONE;
+#endif
+			draw_attr.NumIndices = desc.num_indices;
+			draw_attr.IndexType = desc.use_32bit_indices ? VT_UINT32 : VT_UINT16;
+			draw_attr.NumInstances = desc.num_instances;
+			draw_attr.FirstIndexLocation = desc.start_index_idx;
+			draw_attr.BaseVertex = desc.start_vertex_idx;
+			draw_attr.FirstInstanceLocation = desc.start_instance_idx;
+
+			ctx->DrawIndexed(draw_attr);
+		}
 		
 		void renderer_blit(const render_target_t& src, const render_target_t& dst)
 		{

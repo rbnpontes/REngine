@@ -43,6 +43,8 @@ namespace rengine {
 			if (engine_state.window_id == core::no_window && null == state.ctx)
 				return;
 			ImGui::Render();
+
+			imgui_manager__render();
 		}
 	}
 }

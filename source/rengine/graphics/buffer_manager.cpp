@@ -31,6 +31,46 @@ namespace rengine {
             return buffer_mgr__try_create(buffer_type::constant_buffer, desc);
         }
 
+        vertex_buffer_t buffer_mgr_get_dynamic_vbuffer(u32 vbuffer_size)
+        {
+            auto& state = g_buffer_mgr_state;
+            if (state.dynamic_vbuffer == no_vertex_buffer) {
+                state.dynamic_vbuffer = buffer_mgr_vbuffer_create({
+                    strings::graphics::g_buffer_mgr_vbuffer_dyn_name,
+                    vbuffer_size,
+                    null,
+                    true
+                });
+
+                return state.dynamic_vbuffer;
+            }
+
+            const auto curr_buffer_size = state.vertex_buffers[state.dynamic_vbuffer].value.handler->GetDesc().Size;
+            if (vbuffer_size > curr_buffer_size)
+                state.dynamic_vbuffer = buffer_mgr__realloc(buffer_type::vertex_buffer, state.dynamic_vbuffer, vbuffer_size);
+            return state.dynamic_vbuffer;
+        }
+
+        index_buffer_t buffer_mgr_get_dynamic_ibuffer(u32 ibuffer_size)
+        {
+            auto& state = g_buffer_mgr_state;
+            if (state.dynamic_ibuffer == no_index_buffer) {
+                state.dynamic_ibuffer = buffer_mgr_ibuffer_create({
+                    strings::graphics::g_buffer_mgr_ibuffer_dyn_name,
+                    ibuffer_size,
+                    null,
+                    true
+                    });
+
+                return state.dynamic_ibuffer;
+            }
+
+            const auto curr_buffer_size = state.index_buffers[state.dynamic_ibuffer].value.handler->GetDesc().Size;
+            if (ibuffer_size > curr_buffer_size)
+                state.dynamic_ibuffer = buffer_mgr__realloc(buffer_type::index_buffer, state.dynamic_ibuffer, ibuffer_size);
+            return state.dynamic_ibuffer;
+        }
+
         void buffer_mgr_vbuffer_update(const vertex_buffer_t& id, ptr data, u32 size, u32 offset)
         {
 			buffer_mgr__update(buffer_type::vertex_buffer, id, data, size, offset);
@@ -76,17 +116,29 @@ namespace rengine {
             buffer_mgr__unmap(buffer_type::constant_buffer, id);
         }
 
-        u16 buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size)
+        vertex_buffer_t buffer_mgr_vbuffer_realloc(const vertex_buffer_t& buffer_id, u32 new_size)
         {
+            if (buffer_id == g_buffer_mgr_state.dynamic_vbuffer) {
+                const auto log = g_buffer_mgr_state.log;
+                log->warn(
+                    fmt::format(strings::logs::g_buffer_mgr_realloc_internal_dyn_buffer, nameof(buffer_mgr_vbuffer_realloc), buffer_id, new_size).c_str()
+                );
+            }
 			return buffer_mgr__realloc(buffer_type::vertex_buffer, buffer_id, new_size);
         }
 
-        u16 buffer_mgr_ibuffer_realloc(const index_buffer_t& id, u32 new_size)
+        index_buffer_t buffer_mgr_ibuffer_realloc(const index_buffer_t& buffer_id, u32 new_size)
         {
-			return buffer_mgr__realloc(buffer_type::index_buffer, id, new_size);
+            if (buffer_id == g_buffer_mgr_state.dynamic_ibuffer) {
+                const auto log = g_buffer_mgr_state.log;
+                log->warn(
+                    fmt::format(strings::logs::g_buffer_mgr_realloc_internal_dyn_buffer, nameof(buffer_mgr_vbuffer_realloc), buffer_id, new_size).c_str()
+                );
+            }
+			return buffer_mgr__realloc(buffer_type::index_buffer, buffer_id, new_size);
         }
 
-        u16 buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size)
+        constant_buffer_t buffer_mgr_cbuffer_realloc(const constant_buffer_t& id, u32 new_size)
         {
 			return buffer_mgr__realloc(buffer_type::constant_buffer, id, new_size);
         }

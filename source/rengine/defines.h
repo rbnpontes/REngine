@@ -25,6 +25,9 @@
 #define DRAWING_DEFAULT_POINTS_COUNT 3
 #define DRAWING_MAX_TEXT_LENGTH 256
 
+#define IMGUI_MANAGER_VBUFFER_EXTRA_SIZE 5000 // extra size for ImGui vertex buffer, to avoid reallocations (same as in ImGui samples)
+#define IMGUI_MANAGER_IBUFFER_EXTRA_SIZE 10000 // extra size for ImGui index buffer, to avoid reallocations (same as in ImGui samples)
+
 #define LIGHT_ENTITY_SIZE u16
 
 #define MAX_U8_VALUE 0xFF

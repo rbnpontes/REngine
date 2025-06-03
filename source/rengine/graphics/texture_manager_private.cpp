@@ -9,6 +9,8 @@ namespace rengine {
 
 		void texture_mgr__init() {
 			g_texture_mgr_state.log = io::logger_use(strings::logs::g_tex_mgr_tag);
+
+			texture_mgr__init_dummy_white_tex2d();
 		}
 
 		void texture_mgr__deinit() {
@@ -20,6 +22,26 @@ namespace rengine {
 				texture_mgr_destroy_texcube(entry.id);
 			for (auto& entry : g_texture_mgr_state.textures_array)
 				texture_mgr_destroy_texarray(entry.id);
+		}
+
+		void texture_mgr__init_dummy_white_tex2d()
+		{
+			auto& state = g_texture_mgr_state;
+			byte white_dummy_data[] = {255, 255, 255, 255}; // RGBA white pixel
+
+			texture_create_desc<texture_2d_size> desc;
+			desc.name = strings::graphics::g_texture_mgr_white_dummy_tex2d;
+			desc.format = texture_format::rgba8;
+			desc.size = { 1, 1 };
+			desc.usage = resource_usage::immutable;
+			desc.mip_levels = 1;
+			desc.generate_mips = false;
+			desc.readable = false;
+			texture_resource_data data{};
+			data.stride = 4;
+			data.data = white_dummy_data;
+
+			state.white_dummy_tex2d = texture_mgr_create_tex2d(desc, data);
 		}
 
 		void texture_mgr__fill_tex2d_desc(const texture_create_desc<texture_2d_size>& desc, Diligent::TextureDesc& out_desc)

@@ -1,5 +1,6 @@
 #include "imgui_manager_private.h"
 #include "./graphics_private.h"
+#include "./renderer.h"
 #include "../rengine_private.h"
 
 #include "../core/window_private.h"
@@ -99,6 +100,26 @@ namespace rengine {
 			data.stride = font_width * font_bpp;
 
 			state.font_tex = texture_mgr_create_tex2d(desc, data);
+		}
+
+		void imgui_manager__init_shaders()
+		{
+			auto& state = g_imgui_manager_state;
+			
+			shader_create_desc shader_desc = {};
+			shader_desc.type = shader_type::vertex;
+			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
+			shader_desc.source_code_length = strlen(shader_desc.source_code);
+			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color;
+
+			state.vertex_shader = shader_mgr_create(shader_desc);
+
+			shader_desc.num_macros = 0;
+			shader_desc.type = shader_type::pixel;
+			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
+			shader_desc.source_code_length = strlen(shader_desc.source_code);
+
+			state.pixel_shader = shader_mgr_create(shader_desc);
 		}
 
 		c_str imgui_manager__get_clipboard_text(ImGuiContext* ctx)
@@ -232,6 +253,105 @@ namespace rengine {
 				SDL_SetCursor(expected_cursor);
 
 			SDL_ShowCursor();
+		}
+
+		void imgui_manager__render()
+		{
+			auto& state = g_imgui_manager_state;
+			auto draw_data = ImGui::GetDrawData();
+
+			if (draw_data->TotalVtxCount > state.curr_vbuffer_count) {
+
+				state.curr_vbuffer_count = draw_data->TotalVtxCount + IMGUI_MANAGER_VBUFFER_EXTRA_SIZE;
+				state.vertex_buffer = buffer_mgr_get_dynamic_vbuffer(state.curr_vbuffer_count * sizeof(ImDrawVert));
+			}
+
+			if (draw_data->TotalIdxCount > state.curr_ibuffer_count) {
+				state.curr_ibuffer_count = draw_data->TotalIdxCount + IMGUI_MANAGER_IBUFFER_EXTRA_SIZE;
+				state.index_buffer = buffer_mgr_get_dynamic_ibuffer(state.curr_ibuffer_count * sizeof(ImDrawIdx));
+			}
+
+			if ((state.curr_ibuffer_count + state.curr_vbuffer_count) == 0)
+				return;
+
+			imgui_manager__copy_buffers(draw_data);
+			imgui_manager__setup_render_state();
+			imgui_manager__render_commands(draw_data);
+		}
+
+		void imgui_manager__copy_buffers(ImDrawData* draw_data)
+		{
+			const auto& state = g_imgui_manager_state;
+			auto vbuffer_map = (ImDrawVert*)buffer_mgr_vbuffer_map(state.vertex_buffer, buffer_map_type::write);
+			auto ibuffer_map = (ImDrawIdx*)buffer_mgr_ibuffer_map(state.index_buffer, buffer_map_type::write);
+
+			for (u32 i = 0; i < draw_data->CmdListsCount; ++i) {
+				const auto draw_list = draw_data->CmdLists[i];
+				memcpy(vbuffer_map, draw_list->VtxBuffer.Data, draw_list->VtxBuffer.Size * sizeof(ImDrawVert));
+				memcpy(ibuffer_map, draw_list->IdxBuffer.Data, draw_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+
+				vbuffer_map += draw_list->VtxBuffer.Size;
+				ibuffer_map += draw_list->IdxBuffer.Size;
+			}
+
+			buffer_mgr_vbuffer_unmap(state.vertex_buffer);
+			buffer_mgr_ibuffer_unmap(state.index_buffer);
+		}
+
+		void imgui_manager__setup_render_state()
+		{
+			const auto& state = g_imgui_manager_state;
+			renderer_set_vbuffer(state.vertex_buffer, 0);
+			renderer_set_ibuffer(state.index_buffer, 0);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color);
+			renderer_set_vertex_shader(state.vertex_shader);
+			renderer_set_pixel_shader(state.pixel_shader);
+			renderer_set_cull_mode(cull_mode::none);
+			renderer_set_topology(primitive_topology::triangle_list);
+			renderer_set_wireframe(false);
+			renderer_set_depth_enabled(true);
+		}
+		
+		void imgui_manager__render_commands(ImDrawData* draw_data)
+		{
+			u32 global_idx_offset = 0;
+			u32 global_vtx_offset = 0;
+
+			ImVec2 clip_off = draw_data->DisplayPos;
+			ImVec2 clip_scale = draw_data->FramebufferScale;
+
+			for (u32 draw_list_idx = 0; draw_list_idx < draw_data->CmdListsCount; ++draw_list_idx) {
+				const auto draw_list = draw_data->CmdLists[draw_list_idx];
+				for (u32 cmd_i = 0; cmd_i < draw_list->CmdBuffer.Size; ++cmd_i) {
+					const auto cmd = &draw_list->CmdBuffer[cmd_i];
+					if (cmd->UserCallback != null) {
+
+						if (cmd->UserCallback == ImDrawCallback_ResetRenderState)
+							renderer_reset_states();
+						else
+							cmd->UserCallback(draw_list, cmd);
+						continue;
+					}
+
+					ImVec2 clip_min((cmd->ClipRect.x - clip_off.x) * clip_scale.x, (cmd->ClipRect.y - clip_off.y) * clip_scale.y);
+					ImVec2 clip_max((cmd->ClipRect.z - clip_off.x) * clip_scale.x, (cmd->ClipRect.w - clip_off.y) * clip_scale.y);
+					if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+						continue;
+
+					// TODO: implement scissors
+					const auto tex = cmd->GetTexID();
+					renderer_set_texture_2d(0, tex);
+
+					draw_indexed_desc draw_desc = {};
+					draw_desc.num_indices = cmd->ElemCount;
+					draw_desc.start_index_idx = cmd->IdxOffset + global_idx_offset;
+					draw_desc.start_vertex_idx = cmd->VtxOffset + global_vtx_offset;
+					renderer_draw_indexed(draw_desc);
+				}
+
+				global_idx_offset += draw_list->IdxBuffer.Size;
+				global_vtx_offset += draw_list->VtxBuffer.Size;
+			}
 		}
 	}
 }

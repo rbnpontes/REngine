@@ -64,19 +64,7 @@ namespace rengine {
 				buffer_size += additional_size;
 
 			try {
-				if (state.vertex_buffer == no_vertex_buffer) {
-					state.vertex_buffer = buffer_mgr_vbuffer_create({
-						strings::graphics::g_drawing_vbuffer_name,
-						buffer_size,
-						null,
-						true
-						});
-					state.vertex_buffer_size = buffer_size;
-				}
-				else if (buffer_size > state.vertex_buffer_size) {
-					state.vertex_buffer = buffer_mgr_vbuffer_realloc(state.vertex_buffer, buffer_size);
-					state.vertex_buffer_size = buffer_size;
-				}
+				state.vertex_buffer = buffer_mgr_get_dynamic_vbuffer(buffer_size);
 			}
 			catch (const graphics_exception& exception) {
 				throw graphics_exception(
@@ -109,19 +97,15 @@ namespace rengine {
 		{
 			auto& state = g_drawing_state;
 
-			shader_macro macros[] = {
-				{ "ENABLE_UV", "1" }
-			};
-
 			shader_create_desc shader_desc = {};
 			shader_desc.name = strings::graphics::g_drawing_vshader_name;
 			shader_desc.type = shader_type::vertex;
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
-			shader_desc.macros = macros;
+			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
 			
 			state.vertex_shader[0] = shader_mgr_create(shader_desc);
-			shader_desc.num_macros = 1;
+			shader_desc.vertex_elements |= (u32)vertex_elements::uv;
 			state.vertex_shader[1] = shader_mgr_create(shader_desc);
 
 			shader_desc.num_macros = 0;
@@ -218,7 +202,7 @@ namespace rengine {
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_vertex_shader(g_drawing_state.vertex_shader[1]);
 			renderer_set_pixel_shader(g_drawing_state.pixel_shader);
-			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color | (u32)vertex_elements::texcoord);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color | (u32)vertex_elements::uv);
 			renderer_draw({ (u32)state.triangles.size() * 3 });
 		}
 

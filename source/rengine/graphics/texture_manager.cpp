@@ -225,5 +225,10 @@ namespace rengine {
 		{
 			throw not_implemented_exception();
 		}
+		
+		texture_2d_t texture_mgr_get_white_dummy_tex2d()
+		{
+			return g_texture_mgr_state.white_dummy_tex2d;
+		}
 	}
 }

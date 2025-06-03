@@ -30,8 +30,9 @@ namespace rengine {
 
         namespace graphics {
             constexpr static c_str g_shader_entrypoint = "main";
-            constexpr static c_str g_drawing_vbuffer_name = "rengine::models::vbuffer";
-            constexpr static c_str g_drawing_ibuffer_name = "rengine::models::ibuffer";
+            constexpr static c_str g_buffer_mgr_vbuffer_dyn_name = "rengine::buffer_mgr::vbuffer_dynamic";
+            constexpr static c_str g_buffer_mgr_ibuffer_dyn_name = "rengine::buffer_mgr::ibuffer_dynamic";
+			constexpr static c_str g_texture_mgr_white_dummy_tex2d = "rengine::texture_mgr::white_dummy_tex2d";
 			constexpr static c_str g_drawing_pipeline_name = "rengine::models::gpipeline";
 			constexpr static c_str g_drawing_vshader_name = "rengine::models::vshader";
 			constexpr static c_str g_drawing_pshader_name = "rengine::models::pshader";
@@ -46,6 +47,16 @@ namespace rengine {
             namespace shaders {
                 constexpr static c_str g_frame_buffer_key = "frame_constants";
 
+                constexpr static c_str g_attrib_names[][2] = {
+                    { "POSITION_ATTR", "ATTRIB0" },
+                    { "NORMAL_ATTR", "ATTRIB1" },
+					{ "TANGENT_ATTR", "ATTRIB2" },
+					{ "COLOR_ATTR", "ATTRIB3" },
+					{ "COLORF_ATTR", "ATTRIB4" },
+					{ "UV_ATTR", "ATTRIB5" },
+					{ "INSTANCING_ATTR", "ATTRIB6" }
+                };
+
                 constexpr static c_str g_drawing_vs = R"(
                     cbuffer frame_constants {
                         float4x4 g_screen_projection;
@@ -56,10 +67,17 @@ namespace rengine {
                     };
 
                     struct vs_input {
-                        float3 position : ATTRIB0;
-                        uint color      : ATTRIB3;
-                    #if defined(ENABLE_UV)
-                        float2 uv	    : ATTRIB4;
+                    #if defined(POSITION_ATTR)
+                        float3 position : POSITION_ATTR;
+                    #endif
+                    #if defined(COLOR_ATTR)
+                        uint color      : COLOR_ATTR;
+                    #endif
+                    #if defined(COLORF_ATTR)
+                        float4 colorf   : COLORF_ATTR;
+                    #endif
+                    #if defined(UV_ATTR)
+                        float2 uv	    : UV_ATTR;
                     #endif
                     };
    
@@ -71,21 +89,43 @@ namespace rengine {
 
                     vs_output main(in vs_input input) {
                         vs_output output = (vs_output)0;
-                        output.position = mul(g_screen_projection, float4(input.position, 1.0f));
+                        
+                        #if defined(POSITION_ATTR)
+                            float4 vertex_position = float4(input.position, 1.0f);   
+                        #else
+                            float4 vertex_position = float4(0.0f, 0.0f, 0.0f, 1.0f);
+                        #endif
+    
+                        #if defined(COLORF_ATTR)
+                            float4 color_float = input.colorf;
+                        #else
+                            float4 color_float = float4(0, 0, 0, 1);
+                        #endif
 
+                        #if defined(COLOR_ATTR)
+                            uint color_int = input.color;
+                        #else
+                            uint color_int = 0;
+                        #endif
                         float4 color = float4(
-                            (float)((input.color >> 0) & 0xFF),
-                            (float)((input.color >> 8) & 0xFF),
-                            (float)((input.color >> 16) & 0xFF),
-                            (float)((input.color >> 24) & 0xFF)
+                            (float)((color_int >> 0) & 0xFF),
+                            (float)((color_int >> 8) & 0xFF),
+                            (float)((color_int >> 16) & 0xFF),
+                            (float)((color_int >> 24) & 0xFF)
                         );
                         color /= float4(255.0f, 255.0f, 255.0f, 255.0f);
-                        output.color = color;
-                        #if defined(ENABLE_UV)
-                            output.uv = input.uv;
+
+                        #if defined(UV_ATTR)
+                            float2 uv = input.uv;
                         #else
-                            output.uv = float2(0.0f, 0.0f);
+                            float2 uv = float2(0.0f, 0.0f);
                         #endif
+
+                        output.position = mul(g_screen_projection, vertex_position);
+                        // usually, there's no reason to have COLORF_ATTR and COLOR_ATTR at the same time
+                        // if this occurs, then we must do add operation
+                        output.color = color + color_float;
+                        output.uv = uv;
                         return output;
                     }   
                 )";
@@ -98,6 +138,20 @@ namespace rengine {
                     };
                     float4 main(in ps_input input) : SV_Target {
                         return input.color;
+                    }
+                )";
+
+                constexpr static c_str g_imgui_ps = R"(
+                    Texture2D    g_texture;
+                    SamplerState g_texture_sampler;
+
+                    struct ps_input {
+                        float4 position : SV_Position;
+                        float4 color    : COLOR0;
+                        float2 uv	    : TEXCOORD0; 
+                    };
+                    float4 main(in ps_input input) : SV_Target {
+                        return input.color * g_texture.Sample(g_texture_sampler, input.uv);
                     }
                 )";
             }
@@ -132,6 +186,9 @@ namespace rengine {
                 "Upload Size = {0}, Buffer Id = {1} Buffer Name = {2}, Buffer Size = {3}, Buffer Type = {4}";
             constexpr static c_str g_buffer_mgr_free_invalid_buffer = "Can´t free an invalid buffer. Buffer Id = {0}";
 			constexpr static c_str g_buffer_mgr_cant_unmap = "Can´t unmap buffer. Buffer is not mapped. Buffer Id = {0}, Buffer Type = {1}";
+            constexpr static c_str g_buffer_mgr_realloc_internal_dyn_buffer = "You are trying to realloc an internal dynamic buffer. Please, use '{0}({1} /*buffer id*/, {2}/*new buffer size*/)' method instead. "
+                "Engine will fix this problem for you by updating internal state. "
+                "To avoid any kind of side-effects, always call the required method!";
 
             constexpr static c_str g_rt_mgr_cant_destroy_invalid_id = "Can't destroy render target from invalid id. Id = {0}";
 

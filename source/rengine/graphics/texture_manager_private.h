@@ -18,6 +18,7 @@ namespace rengine {
 			core::array_pool<texture_entry, GRAPHICS_MAX_ALLOC_TEXCUBE> textures_cube{};
 			core::array_pool<texture_entry, GRAPHICS_MAX_ALLOC_TEXARRAY> textures_array{};
 
+			texture_2d_t white_dummy_tex2d{ no_texture_2d };
 			io::ILog* log{ null };
 		};
 
@@ -47,6 +48,8 @@ namespace rengine {
 
 		void texture_mgr__init();
 		void texture_mgr__deinit();
+
+		void texture_mgr__init_dummy_white_tex2d();
 
 		void texture_mgr__fill_tex2d_desc(const texture_create_desc<texture_2d_size>& desc, Diligent::TextureDesc& out_desc);
 		void texture_mgr__fill_subres(const texture_data_desc& data, Diligent::TextureSubResData* subres);
