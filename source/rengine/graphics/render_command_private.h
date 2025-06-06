@@ -1,6 +1,8 @@
 #pragma once
 #include "../base_private.h"
 #include "./render_command.h"
+#include "./texture_manager.h"
+#include "./shader_manager.h"
 
 #include "../math/math-types.h"
 #include "../io/logger.h"
@@ -14,6 +16,12 @@ namespace rengine {
             core::hash_t index_buffer{ 0 };
             core::hash_t viewport{ 0 };
             core::hash_t graphics_state{ 0 };
+        };
+
+        struct render_command_texture_resource {
+			texture_type type{ texture_type::unknow };
+            shader_resource resource{};
+            entity tex_id{ 0 };
         };
 
         struct render_command_data {
@@ -35,6 +43,7 @@ namespace rengine {
             u32 vertex_elements{ 0 };
             math::urect viewport{};
             shader_t shaders[(u32)shader_type::max]{ no_shader, no_shader };
+			hash_map<core::hash_t, render_command_texture_resource> textures;
 
             pipeline_state_t pipeline_state{ no_pipeline_state };
             srb_t srb{ no_srb };
@@ -67,10 +76,10 @@ namespace rengine {
         void render_command__set_vbuffers(render_command_data& cmd, const vertex_buffer_t* buffers, u8 num_buffers, const u64* offsets);
         void render_command__set_ibuffer(render_command_data& cmd, const index_buffer_t& buffer, const u64& offset);
         void render_command__set_rts(render_command_data& cmd, const render_target_t* rts, u8 num_rts, const render_target_t& depth_id);
-        void render_command__set_tex2d(render_command_data& cmd, const u8& slot, const texture_2d_t& id);
-        void render_command__set_tex3d(render_command_data& cmd, const u8& slot, const texture_3d_t& id);
-        void render_command__set_texcube(render_command_data& cmd, const u8& slot, const texture_cube_t& id);
-        void render_command__set_texarray(render_command_data& cmd, const u8& slot, const texture_array_t& id);
+        void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id);
+        void render_command__set_tex3d(render_command_data& cmd, const core::hash_t& slot, const texture_3d_t& id);
+        void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id);
+        void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id);
         void render_command__set_viewport(render_command_data& cmd, const math::urect& rect);
         void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology);
         void render_command__set_cull(render_command_data& cmd, const cull_mode& cull);

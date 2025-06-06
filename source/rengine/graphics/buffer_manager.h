@@ -25,13 +25,6 @@ namespace rengine {
             bool dynamic{ false };
         };
 
-        struct buffer_update_desc {
-            buffer_type type;
-            u32 id;
-            ptr source;
-            u32 size;
-        };
-
         vertex_buffer_t buffer_mgr_vbuffer_create(const buffer_create_desc& desc);
         index_buffer_t buffer_mgr_ibuffer_create(const buffer_create_desc& desc);
         constant_buffer_t buffer_mgr_cbuffer_create(const buffer_create_desc& desc);

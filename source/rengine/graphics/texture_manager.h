@@ -5,6 +5,14 @@
 
 namespace rengine {
 	namespace graphics {
+		enum class texture_type {
+			unknow = 0,
+			tex2d,
+			tex3d,
+			texarray,
+			texcube
+		};
+
 		struct texture_resource_data {
 			/// <summary>
 			/// Data where the pixelbuffer/pixel array will be copied

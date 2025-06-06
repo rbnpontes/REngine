@@ -14,10 +14,14 @@ namespace rengine {
 		void render_command_set_ibuffer(const index_buffer_t& buffer, const u64& offset = 0);
 		void render_command_set_rt(const render_target_t& rt_id, const render_target_t& depth_id = no_render_target);
 		void render_command_set_rts(const render_target_t* render_targets, u8 num_rts, const render_target_t& depth_id = no_render_target);
-		void render_command_set_tex2d(const u8& tex_slot, const texture_2d_t& tex_id);
-		void render_command_set_tex3d(const u8& tex_slot, const texture_3d_t& tex_id);
-		void render_command_set_texcube(const u8& tex_slot, const texture_cube_t& tex_id);
-		void render_command_set_texarray(const u8& tex_slot, const texture_array_t& tex_id);
+		void render_command_set_tex2d(c_str slot_name, const texture_2d_t& tex_id);
+		void render_command_set_tex3d(c_str slot_name, const texture_3d_t& tex_id);
+		void render_command_set_texcube(c_str slot_name, const texture_cube_t& tex_id);
+		void render_command_set_texarray(c_str slot_name, const texture_array_t& tex_id);		
+		void render_command_set_tex2d(core::hash_t slot, const texture_2d_t& tex_id);
+		void render_command_set_tex3d(core::hash_t slot, const texture_3d_t& tex_id);
+		void render_command_set_texcube(core::hash_t slot, const texture_cube_t& tex_id);
+		void render_command_set_texarray(core::hash_t slot, const texture_array_t& tex_id);
 		void render_command_set_viewport(const math::urect& rect);
 		void render_command_set_topology(const primitive_topology& topology);
 		void render_command_set_cull_mode(const cull_mode& cull);

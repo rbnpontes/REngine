@@ -1,10 +1,11 @@
 #include "./shader_manager_private.h"
 #include "./graphics_private.h"
 
+#include "../core/string_pool.h"
+
 namespace rengine {
 	namespace graphics {
-		hash_map<shader_t, Diligent::IShader*> g_shader_tbl = {};
-		u32 g_shader_count = 0;
+		shader_state g_shader_mgr_state = {};
 
 		void shader_mgr__deinit()
 		{
@@ -44,10 +45,34 @@ namespace rengine {
 
 		Diligent::IShader* shader_mgr__get_handle(const shader_t& shader_id)
 		{
-			const auto it = g_shader_tbl.find_as(shader_id);
-			if (it == g_shader_tbl.end())
+			const auto& state = g_shader_mgr_state;
+			const auto it = state.shaders.find_as(shader_id);
+			if (it == state.shaders.end())
 				return null;
-			return it->second;
+			return it->second.handler;
+		}
+
+		void shader_mgr__free(const shader_entry& entry)
+		{
+			entry.handler->Release();
+			core::alloc_free(entry.resources);
+		}
+
+		void shader_mgr__collect_resources(Diligent::IShader* shader, shader_resource* resources)
+		{
+			const auto resource_count = shader->GetResourceCount();
+			for (u32 i = 0; i < resource_count; ++i) {
+				Diligent::ShaderResourceDesc resource_desc;
+				shader->GetResourceDesc(i, resource_desc);
+
+				core::hash_t resource_hash = 0;
+				c_str resource_name = core::string_pool_intern(resource_desc.Name, &resource_hash);
+				resources[i] ={
+					resource_hash,
+					shader_mgr__get_resource_type(&resource_desc),
+					resource_name
+				};
+			}
 		}
 
 		void shader_mgr__fill_vertex_elements_macros(vector<Diligent::ShaderMacro>& macros, u32 elements)
@@ -87,6 +112,14 @@ namespace rengine {
 				const auto pair = attrib_names[VERTEX_ELEMENT_INSTANCING_IDX];
 				macros.push_back({ pair[0], pair[1] });
 			}
+		}
+
+		shader_resource_type shader_mgr__get_resource_type(Diligent::ShaderResourceDesc* desc)
+		{
+			shader_resource_type res_type = g_shader_resource_tbl[desc->Type];
+			if (res_type == shader_resource_type::texture && desc->ArraySize > 0)
+				res_type = shader_resource_type::texarray;
+			return res_type;
 		}
 	}
 }
