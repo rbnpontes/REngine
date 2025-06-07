@@ -6,6 +6,7 @@
 #include "../strings.h"
 #include "../exceptions.h"
 #include "../core/hash.h"
+#include "../core/string_pool.h"
 
 #include <fmt/format.h>
 namespace rengine {
@@ -172,25 +173,53 @@ namespace rengine {
 			cmd.depth_stencil = depth_id;
 		}
 
-		void render_command__set_tex2d(render_command_data& cmd, const u8& slot, const texture_2d_t& id)
-		{
-			throw not_implemented_exception();
-		}
+                void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id)
+                {
+                        render_command_texture_resource res{};
+                        res.type = texture_type::tex2d;
+                        res.tex_id = id;
+                        res.resource.id = slot;
+                        res.resource.type = shader_resource_type::texture;
+                        res.resource.name = core::string_pool_get_from_hash(slot);
+                        cmd.textures[slot] = res;
+                        cmd.srb = no_srb;
+                }
 
-		void render_command__set_tex3d(render_command_data& cmd, const u8& slot, const texture_3d_t& id)
-		{
-			throw not_implemented_exception();
-		}
+                void render_command__set_tex3d(render_command_data& cmd, const core::hash_t& slot, const texture_3d_t& id)
+                {
+                        render_command_texture_resource res{};
+                        res.type = texture_type::tex3d;
+                        res.tex_id = id;
+                        res.resource.id = slot;
+                        res.resource.type = shader_resource_type::texture;
+                        res.resource.name = core::string_pool_get_from_hash(slot);
+                        cmd.textures[slot] = res;
+                        cmd.srb = no_srb;
+                }
 
-		void render_command__set_texcube(render_command_data& cmd, const u8& slot, const texture_cube_t& id)
-		{
-			throw not_implemented_exception();
-		}
+                void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id)
+                {
+                        render_command_texture_resource res{};
+                        res.type = texture_type::texcube;
+                        res.tex_id = id;
+                        res.resource.id = slot;
+                        res.resource.type = shader_resource_type::texture;
+                        res.resource.name = core::string_pool_get_from_hash(slot);
+                        cmd.textures[slot] = res;
+                        cmd.srb = no_srb;
+                }
 
-		void render_command__set_texarray(render_command_data& cmd, const u8& slot, const texture_array_t& id)
-		{
-			throw not_implemented_exception();
-		}
+                void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id)
+                {
+                        render_command_texture_resource res{};
+                        res.type = texture_type::texarray;
+                        res.tex_id = id;
+                        res.resource.id = slot;
+                        res.resource.type = shader_resource_type::texarray;
+                        res.resource.name = core::string_pool_get_from_hash(slot);
+                        cmd.textures[slot] = res;
+                        cmd.srb = no_srb;
+                }
 
 		void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)
 		{

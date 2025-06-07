@@ -339,8 +339,8 @@ namespace rengine {
 						continue;
 
 					// TODO: implement scissors
-					const auto tex = cmd->GetTexID();
-					renderer_set_texture_2d(0, tex);
+                                        const auto tex = cmd->GetTexID();
+                                        renderer_set_texture_2d("g_texture", tex);
 
 					draw_indexed_desc draw_desc = {};
 					draw_desc.num_indices = cmd->ElemCount;

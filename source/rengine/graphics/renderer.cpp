@@ -7,6 +7,7 @@
 #include "../core/allocator.h"
 #include "../core/window_private.h"
 #include "../core/profiler.h"
+#include "../core/string_pool.h"
 #include "../io/io.h"
 #include "../exceptions.h"
 
@@ -126,29 +127,61 @@ namespace rengine {
 			render_command__set_rts(cmd, render_targets, num_rts, depth_id);
 		}
 
-		void renderer_set_texture_2d(const u8& tex_slot, const texture_2d_t& tex_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_tex2d(cmd, tex_slot, tex_id);
-		}
+                void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command__set_tex2d(cmd, slot_hash, tex_id);
+                }
 
-		void renderer_set_texture_3d(const u8& tex_slot, const texture_3d_t& tex_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_tex3d(cmd, tex_slot, tex_id);
-		}
+                void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command__set_tex3d(cmd, slot_hash, tex_id);
+                }
 
-		void renderer_set_texture_cube(const u8& tex_slot, const texture_cube_t& tex_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_texcube(cmd, tex_slot, tex_id);
-		}
+                void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command__set_texcube(cmd, slot_hash, tex_id);
+                }
 
-		void renderer_set_texture_array(const u8& tex_slot, const texture_array_t& tex_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_texarray(cmd, tex_slot, tex_id);
-		}
+                void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command__set_texarray(cmd, slot_hash, tex_id);
+                }
+
+                void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_tex2d(cmd, slot, tex_id);
+                }
+
+                void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_tex3d(cmd, slot, tex_id);
+                }
+
+                void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_texcube(cmd, slot, tex_id);
+                }
+
+                void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_texarray(cmd, slot, tex_id);
+                }
 
 		void renderer_set_viewport(const math::urect& rect)
 		{

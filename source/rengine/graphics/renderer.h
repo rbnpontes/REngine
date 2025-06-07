@@ -43,10 +43,14 @@ namespace rengine {
 		R_EXPORT void renderer_set_ibuffer(const index_buffer_t& buffer, u64 offset = 0);
 		R_EXPORT void renderer_set_render_target(const render_target_t& rt_id, const render_target_t& depth_id = no_render_target);
 		R_EXPORT void renderer_set_render_targets(const render_target_t* render_targets, const u8& num_rts, const render_target_t& depth_id = no_render_target);
-		R_EXPORT void renderer_set_texture_2d(const u8& tex_slot, const texture_2d_t& tex_id);
-		R_EXPORT void renderer_set_texture_3d(const u8& tex_slot, const texture_3d_t& tex_id);
-		R_EXPORT void renderer_set_texture_cube(const u8& tex_slot, const texture_cube_t& tex_id);
-		R_EXPORT void renderer_set_texture_array(const u8& tex_slot, const texture_array_t& tex_id);
+                R_EXPORT void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id);
+                R_EXPORT void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id);
+                R_EXPORT void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id);
+                R_EXPORT void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id);
+                R_EXPORT void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id);
+                R_EXPORT void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id);
+                R_EXPORT void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id);
+                R_EXPORT void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id);
 
 		R_EXPORT void renderer_set_viewport(const math::urect& rect);
 		R_EXPORT void renderer_set_topology(const primitive_topology& topology);
