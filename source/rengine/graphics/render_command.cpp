@@ -3,6 +3,7 @@
 
 #include "../exceptions.h"
 #include "../core/allocator.h"
+#include "../core/string_pool.h"
 
 #include <fmt/format.h>
 
@@ -98,33 +99,65 @@ namespace rengine {
 			render_command__set_rts(cmd, render_targets, num_rts, depth_id);
 		}
 		
-		void render_command_set_tex2d(const u8& tex_slot, const texture_2d_t& tex_id)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_tex2d(cmd, tex_slot, tex_id);
-		}
-		
-		void render_command_set_tex3d(const u8& tex_slot, const texture_3d_t& tex_id)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_tex2d(cmd, tex_slot, tex_id);
-		}
-		
-		void render_command_set_texcube(const u8& tex_slot, const texture_cube_t& tex_id)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_texcube(cmd, tex_slot, tex_id);
-		}
-		
-		void render_command_set_texarray(const u8& tex_slot, const texture_array_t& tex_id)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_texarray(cmd, tex_slot, tex_id);
-		}
+                void render_command_set_tex2d(c_str slot_name, const texture_2d_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command_set_tex2d(slot_hash, tex_id);
+                }
+
+                void render_command_set_tex3d(c_str slot_name, const texture_3d_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command_set_tex3d(slot_hash, tex_id);
+                }
+
+                void render_command_set_texcube(c_str slot_name, const texture_cube_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command_set_texcube(slot_hash, tex_id);
+                }
+
+                void render_command_set_texarray(c_str slot_name, const texture_array_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        core::hash_t slot_hash{};
+                        core::string_pool_intern(slot_name, &slot_hash);
+                        render_command_set_texarray(slot_hash, tex_id);
+                }
+
+                void render_command_set_tex2d(core::hash_t slot, const texture_2d_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_tex2d(cmd, slot, tex_id);
+                }
+
+                void render_command_set_tex3d(core::hash_t slot, const texture_3d_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_tex3d(cmd, slot, tex_id);
+                }
+
+                void render_command_set_texcube(core::hash_t slot, const texture_cube_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_texcube(cmd, slot, tex_id);
+                }
+
+                void render_command_set_texarray(core::hash_t slot, const texture_array_t& tex_id)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_texarray(cmd, slot, tex_id);
+                }
 		
 		void render_command_set_viewport(const math::urect& rect)
 		{
