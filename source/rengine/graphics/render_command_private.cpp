@@ -2,11 +2,13 @@
 #include "./pipeline_state_manager.h"
 #include "./render_target_manager.h"
 #include "./srb_manager.h"
+#include "./shader_manager_private.h"
 
 #include "../strings.h"
 #include "../exceptions.h"
 #include "../core/hash.h"
 #include "../core/string_pool.h"
+#include "../core/allocator.h"
 
 #include <fmt/format.h>
 namespace rengine {
@@ -30,18 +32,20 @@ namespace rengine {
 
 		void render_command__build_pipeline(render_command_data& data)
 		{
+			auto immutable_samplers = (immutable_sampler_desc*)core::alloc_scratch(
+				sizeof(immutable_sampler_desc) * GRAPHICS_MAX_BOUND_TEXTURES
+			);
 			const auto name = fmt::format("{0}::gpipeline", data.name);
 			graphics_pipeline_state_create pipeline_create;
-			pipeline_create.name				= name.c_str();
-			pipeline_create.cull				= data.cull;
-			pipeline_create.depth				= data.depth_enabled;
-			pipeline_create.wireframe			= data.wireframe;
-			pipeline_create.topology			= data.topology;
-			pipeline_create.vertex_shader		= data.shaders[(u32)shader_type::vertex];
-			pipeline_create.pixel_shader		= data.shaders[(u32)shader_type::pixel];
+			pipeline_create.name = name.c_str();
+			pipeline_create.cull = data.cull;
+			pipeline_create.depth = data.depth_enabled;
+			pipeline_create.wireframe = data.wireframe;
+			pipeline_create.topology = data.topology;
+			pipeline_create.shader_program = data.program;
 			// TODO: implement scissors
 			// pipeline_create.scissors = cmd.scissors;
-			pipeline_create.num_render_targets	= data.num_render_targets;
+			pipeline_create.num_render_targets = data.num_render_targets;
 
 			render_target_desc rt_desc;
 			for (u8 i = 0; i < data.num_render_targets; ++i) {
@@ -57,14 +61,46 @@ namespace rengine {
 				pipeline_create.depth_stencil_format = rt_desc.depth_format;
 			}
 
+			pipeline_create.immutable_samplers = immutable_samplers;
+			pipeline_create.num_immutable_samplers = 0;
+			u32 num_immutable_samplers = 0;
+			for (auto& res_it : data.resources) {
+				auto& res = res_it.second;
+				if (res.resource.type != resource_type::cbuffer)
+					continue;
+
+				auto& immutable_sampler = pipeline_create.immutable_samplers[num_immutable_samplers];
+				immutable_sampler.name = res.resource.name;
+				immutable_sampler.shader_type_flags = res.resource.shader_flags;
+				++pipeline_create.num_immutable_samplers;
+			}
+
 			pipeline_create.vertex_elements = data.vertex_elements;
 			data.pipeline_state = pipeline_state_mgr_create_graphics(pipeline_create);
+
+			core::alloc_scratch_pop(
+				sizeof(immutable_sampler_desc) * GRAPHICS_MAX_BOUND_TEXTURES
+			);
 		}
 
 		void render_command__build_srb(render_command_data& data)
 		{
-			// TODO: add other resources to SRB build
-			// TODO(2): recycle SRB instead of create new ones
+			// TODO: recycle SRB instead of create new ones
+			srb_mgr_create_desc srb_desc;
+			srb_desc.pipeline = data.pipeline_state;
+			srb_desc.num_resources = 0;
+			srb_desc.resources = (srb_mgr_resource_desc*)core::alloc_scratch(
+				sizeof(srb_mgr_resource_desc) * data.resources.size()
+			);
+
+			for (const auto& it : data.resources) {
+				const auto& res = it.second;
+				auto& srb_res = srb_desc.resources[srb_desc.num_resources];
+				srb_res.name = res.resource.name;
+				srb_res.id = res.tex_id;
+				srb_res.type = res.type;
+				++srb_desc.num_resources;
+			}
 			data.srb = srb_mgr_create({ data.pipeline_state, null, 0 });
 		}
 
@@ -75,6 +111,7 @@ namespace rengine {
 			render_command__build_ibuffer_hash(data);
 			render_command__build_rts_hash(data);
 			render_command__build_viewport_hash(data);
+			render_command__build_texture_hash(data);
 			// calculate graphics state hashes
 			hashes.graphics_state = data.vertex_elements;
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.topology);
@@ -95,6 +132,7 @@ namespace rengine {
 			core::hash_t offsets_hash = cmd.num_vertex_buffers;
 			for (u8 i = 0; i < cmd.num_vertex_buffers; ++i) {
 				vbuffer_hash = core::hash_combine(vbuffer_hash, cmd.vertex_buffers[i]);
+				// TODO: remove offsets from hash check
 				offsets_hash = core::hash_combine(offsets_hash, cmd.vertex_offsets[i]);
 			}
 
@@ -104,6 +142,7 @@ namespace rengine {
 
 		void render_command__build_ibuffer_hash(render_command_data& cmd)
 		{
+			// TODO: remove offsets from hash check
 			cmd.hashes.index_buffer = core::hash_combine(cmd.index_buffer, cmd.index_offset);
 		}
 
@@ -118,6 +157,60 @@ namespace rengine {
 		void render_command__build_viewport_hash(render_command_data& cmd)
 		{
 			cmd.hashes.viewport = cmd.viewport.to_hash();
+		}
+
+		void render_command__build_texture_hash(render_command_data& cmd)
+		{
+			// only build texture hash if shader program is set
+			if (cmd.program == no_shader_program)
+				return;
+
+			auto hash = (core::hash_t)cmd.textures.size();
+			for (const auto& it : cmd.textures) {
+				const auto& res = it.second;
+				hash = core::hash_combine(hash, res.resource.id);
+				hash = core::hash_combine(hash, (u32)res.type);
+			}
+
+			cmd.hashes.textures = hash;
+		}
+
+		void render_command__prepare_textures(render_command_data& cmd)
+		{
+			if (cmd.program == no_shader_program)
+				return;
+
+			// check bounded textures with shader resources
+			// if some textures are not bounded, then we need to bind a
+			// dummy texture instead.
+			auto& state = g_render_command_state;
+
+			shader_program program;
+			shader_mgr__get_program(cmd.program, &program);
+
+			hash_map<core::hash_t, render_command_resource> new_textures;
+			for (auto i = 0; i < program.num_resources; ++i) {
+				const auto& res = program.resources[i];
+				if (res.type == resource_type::cbuffer)
+					continue;
+
+				if (res.type != resource_type::tex2d)
+					throw not_implemented_exception();
+				
+				const auto& bounded_tex_it = cmd.resources.find_as(res.id);
+				if (cmd.resources.end() == bounded_tex_it) {
+					new_textures[res.id] = render_command_resource{
+						.type = res.type,
+						.resource = res,
+						.tex_id = texture_mgr_get_white_dummy_tex2d(),
+					};
+					continue;
+				}
+
+				new_textures[res.id] = bounded_tex_it->second;
+			}
+
+			cmd.resources = new_textures;
 		}
 
 		void render_command__set_vbuffers(render_command_data& cmd, const vertex_buffer_t* buffers, u8 num_buffers, const u64* offsets)
@@ -173,53 +266,65 @@ namespace rengine {
 			cmd.depth_stencil = depth_id;
 		}
 
-                void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id)
-                {
-                        render_command_texture_resource res{};
-                        res.type = texture_type::tex2d;
-                        res.tex_id = id;
-                        res.resource.id = slot;
-                        res.resource.type = shader_resource_type::texture;
-                        res.resource.name = core::string_pool_get_from_hash(slot);
-                        cmd.textures[slot] = res;
-                        cmd.srb = no_srb;
-                }
+		void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id)
+		{
+			if (no_texture_2d == id)
+				return;
 
-                void render_command__set_tex3d(render_command_data& cmd, const core::hash_t& slot, const texture_3d_t& id)
-                {
-                        render_command_texture_resource res{};
-                        res.type = texture_type::tex3d;
-                        res.tex_id = id;
-                        res.resource.id = slot;
-                        res.resource.type = shader_resource_type::texture;
-                        res.resource.name = core::string_pool_get_from_hash(slot);
-                        cmd.textures[slot] = res;
-                        cmd.srb = no_srb;
-                }
+			render_command_resource res{};
+			res.type = resource_type::tex2d;
+			res.tex_id = id;
 
-                void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id)
-                {
-                        render_command_texture_resource res{};
-                        res.type = texture_type::texcube;
-                        res.tex_id = id;
-                        res.resource.id = slot;
-                        res.resource.type = shader_resource_type::texture;
-                        res.resource.name = core::string_pool_get_from_hash(slot);
-                        cmd.textures[slot] = res;
-                        cmd.srb = no_srb;
-                }
+			cmd.resources[slot] = res;
+			cmd.srb = no_srb;
+		}
 
-                void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id)
-                {
-                        render_command_texture_resource res{};
-                        res.type = texture_type::texarray;
-                        res.tex_id = id;
-                        res.resource.id = slot;
-                        res.resource.type = shader_resource_type::texarray;
-                        res.resource.name = core::string_pool_get_from_hash(slot);
-                        cmd.textures[slot] = res;
-                        cmd.srb = no_srb;
-                }
+		void render_command__set_tex3d(render_command_data& cmd, const core::hash_t& slot, const texture_3d_t& id)
+		{
+			if (no_texture_3d == id)
+				return;
+
+			render_command_resource res{};
+			res.type = resource_type::tex3d;
+			res.tex_id = id;
+
+			cmd.resources[slot] = res;
+			cmd.srb = no_srb;
+		}
+
+		void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id)
+		{
+			if (no_texture_cube = id)
+				return;
+
+			render_command_resource res{};
+			res.type = resource_type::texcube;
+			res.tex_id = id;
+
+			cmd.resources[slot] = res;
+			cmd.srb = no_srb;
+		}
+
+		void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id)
+		{
+			if (no_texture_array == id)
+				return;
+
+			render_command_resource res{};
+			res.type = resource_type::texarray;
+			res.tex_id = id;
+
+			cmd.resources[slot] = res;
+			cmd.srb = no_srb;
+		}
+
+		void render_command__unset_tex(render_command_data& cmd, const core::hash_t& slot)
+		{
+			const auto& it = cmd.textures.find_as(slot);
+			if (cmd.textures.end() == it)
+				return;
+			cmd.textures.erase(it);
+		}
 
 		void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)
 		{
@@ -251,9 +356,9 @@ namespace rengine {
 			cmd.vertex_elements = flags;
 		}
 
-		void render_command__set_shader(render_command_data& cmd, const shader_type type, const shader_t& shader_id)
+		void render_command__set_program(render_command_data& cmd, const shader_t& program_id)
 		{
-			cmd.shaders[(u32)type] = shader_id;
+			cmd.program = program_id;
 		}
 
 		void render_command__set_depth_enabled(render_command_data& cmd, const bool& enabled)

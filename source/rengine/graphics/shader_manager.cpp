@@ -20,10 +20,10 @@ namespace rengine {
 				throw graphics_exception(strings::exceptions::g_shader_mgr_fail_to_create_shader);
 
 			const auto resource_count = shader->GetResourceCount();
-			shader_entry entry{ 
-				shader, 
+			shader_entry entry{
+				shader,
 				resource_count,
-				core::alloc_array_alloc<shader_resource>(resource_count) 
+				core::alloc_array_alloc<shader_resource>(resource_count)
 			};
 			shader_mgr__collect_resources(shader, entry.resources);
 
@@ -39,13 +39,7 @@ namespace rengine {
 
 		core::hash_t shader_mgr_hash_desc(const shader_create_desc& desc)
 		{
-			core::hash_t result = core::hash(desc.name);
-			result = core::hash_combine(result, (core::hash_t)desc.type);
-			result = core::hash_combine(result, core::hash(desc.name));
-			result = core::hash_combine(result, desc.source_code_length);
-			result = core::hash_combine(result, core::hash(desc.bytecode, desc.bytecode_length));
-			result = core::hash_combine(result, desc.bytecode_length);
-			return result;
+			return shader_mgr__hash_desc(desc);
 		}
 
 		void shader_mgr_get_resources(const shader_t& shader_id, u32* num_resources, shader_resource* output_resources)
@@ -60,10 +54,10 @@ namespace rengine {
 
 			const auto& entry = it->second;
 			*num_resources = entry.num_resources;
-			
+
 			if (!output_resources)
 				return;
-		
+
 			memcpy(output_resources, entry.resources, sizeof(shader_resource) * entry.num_resources);
 		}
 
@@ -79,6 +73,37 @@ namespace rengine {
 
 			state.shaders.clear();
 			state.shaders_count = 0;
+		}
+
+		shader_program_t shader_mgr_create_program(const shader_program_create_desc& desc)
+		{
+			return shader_mgr__create_program(desc);
+		}
+
+		void shader_mgr_free_program(const shader_program_t& program_id)
+		{
+			if (program_id == no_shader_program)
+				return;
+
+			auto& state = g_shader_mgr_state;
+			const auto it = state.programs.find_as(program_id);
+			if (it == state.programs.end())
+				return;
+
+			state.programs.erase(it);
+			--state.programs_count;
+		}
+
+		void shader_mgr_clear_program_cache()
+		{
+			auto& state = g_shader_mgr_state;
+			state.programs.clear();
+			state.programs_count = 0;
+		}
+
+		u32 shader_mgr_get_program_cache_count()
+		{
+			return g_shader_mgr_state.programs_count;
 		}
 	}
 }

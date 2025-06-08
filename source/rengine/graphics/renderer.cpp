@@ -127,61 +127,61 @@ namespace rengine {
 			render_command__set_rts(cmd, render_targets, num_rts, depth_id);
 		}
 
-                void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        core::hash_t slot_hash{};
-                        core::string_pool_intern(slot_name, &slot_hash);
-                        render_command__set_tex2d(cmd, slot_hash, tex_id);
-                }
+		void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			core::hash_t slot_hash{};
+			core::string_pool_intern(slot_name, &slot_hash);
+			render_command__set_tex2d(cmd, slot_hash, tex_id);
+		}
 
-                void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        core::hash_t slot_hash{};
-                        core::string_pool_intern(slot_name, &slot_hash);
-                        render_command__set_tex3d(cmd, slot_hash, tex_id);
-                }
+		void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			core::hash_t slot_hash{};
+			core::string_pool_intern(slot_name, &slot_hash);
+			render_command__set_tex3d(cmd, slot_hash, tex_id);
+		}
 
-                void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        core::hash_t slot_hash{};
-                        core::string_pool_intern(slot_name, &slot_hash);
-                        render_command__set_texcube(cmd, slot_hash, tex_id);
-                }
+		void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			core::hash_t slot_hash{};
+			core::string_pool_intern(slot_name, &slot_hash);
+			render_command__set_texcube(cmd, slot_hash, tex_id);
+		}
 
-                void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        core::hash_t slot_hash{};
-                        core::string_pool_intern(slot_name, &slot_hash);
-                        render_command__set_texarray(cmd, slot_hash, tex_id);
-                }
+		void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			core::hash_t slot_hash{};
+			core::string_pool_intern(slot_name, &slot_hash);
+			render_command__set_texarray(cmd, slot_hash, tex_id);
+		}
 
-                void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_tex2d(cmd, slot, tex_id);
-                }
+		void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_tex2d(cmd, slot, tex_id);
+		}
 
-                void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_tex3d(cmd, slot, tex_id);
-                }
+		void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_tex3d(cmd, slot, tex_id);
+		}
 
-                void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_texcube(cmd, slot, tex_id);
-                }
+		void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_texcube(cmd, slot, tex_id);
+		}
 
-                void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_texarray(cmd, slot, tex_id);
-                }
+		void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_texarray(cmd, slot, tex_id);
+		}
 
 		void renderer_set_viewport(const math::urect& rect)
 		{
@@ -207,16 +207,10 @@ namespace rengine {
 			render_command__set_vertex_elements(cmd, vertex_elements);
 		}
 
-		void renderer_set_vertex_shader(const shader_t& shader_id)
+		void renderer_set_program(const shader_program_t& program_id)
 		{
 			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_shader(cmd, shader_type::vertex, shader_id);
-		}
-
-		void renderer_set_pixel_shader(const shader_t& shader_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_shader(cmd, shader_type::pixel, shader_id);
+			render_command__set_program(cmd, program_id);
 		}
 
 		void renderer_set_depth_enabled(const bool& enabled)
@@ -293,7 +287,7 @@ namespace rengine {
 
 			ctx->DrawIndexed(draw_attr);
 		}
-		
+
 		void renderer_blit(const render_target_t& src, const render_target_t& dst)
 		{
 			throw not_implemented_exception();

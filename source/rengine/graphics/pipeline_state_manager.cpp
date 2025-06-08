@@ -35,7 +35,21 @@ namespace rengine {
             result = core::hash_combine(result, (u32)create_info.cull);
             result = core::hash_combine(result, create_info.vertex_elements);
             result = core::hash_combine(result, create_info.depth);
-            return core::hash_combine(result, create_info.wireframe);
+            result = core::hash_combine(result, create_info.wireframe);
+            result = core::hash_combine(result, create_info.num_immutable_samplers);
+			for (u32 i = 0; i < create_info.num_immutable_samplers; ++i) {
+				const auto& sampler = create_info.immutable_samplers[i];
+				result = core::hash_combine(result, core::hash(sampler.name));
+				result = core::hash_combine(result, (u32)sampler.shader_type_flags);
+                result = core::hash_combine(result, (u32)sampler.desc.filter);
+                result = core::hash_combine(result, (u32)sampler.desc.address);
+                result = core::hash_combine(result, (u32)sampler.desc.lod_bias);
+                result = core::hash_combine(result, (u32)sampler.desc.min_lod);
+                result = core::hash_combine(result, (u32)sampler.desc.max_lod);
+                result = core::hash_combine(result, (u32)sampler.desc.max_anisotropy);
+                result = core::hash_combine(result, (u32)sampler.desc.comparison);
+			}
+            return result;
         }
 
         ptr pipeline_state_mgr_get_internal_handle(pipeline_state_t id)

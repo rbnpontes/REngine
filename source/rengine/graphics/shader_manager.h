@@ -27,17 +27,19 @@ namespace rengine {
 			u32 vertex_elements{ (u32)vertex_elements::none };
 		};
 
-		enum class shader_resource_type : u8 {
-			unknow = 0,
-			cbuffer,
-			texture,
-			texarray,
-		};
-
 		struct shader_resource {
 			core::hash_t id{};
-			shader_resource_type type{ shader_resource_type::unknow };
+			resource_type type{ resource_type::unknow };
 			c_str name{};
+			u32 shader_flags{ (u32)shader_type_flags::none };
+		};
+
+		struct shader_program_desc {
+			shader_t vertex_shader{ no_shader };
+			shader_t pixel_shader{ no_shader };
+		};
+		struct shader_program_create_desc {
+			shader_program_desc desc{};
 		};
 
 		R_EXPORT shader_t shader_mgr_create(const shader_create_desc& desc);
@@ -46,5 +48,11 @@ namespace rengine {
 		R_EXPORT void shader_mgr_get_resources(const shader_t& shader_id, u32* num_resources, shader_resource* output_resources);
 		R_EXPORT u32 shader_mgr_get_cache_count();
 		R_EXPORT void shader_mgr_clear_cache();
+
+		R_EXPORT shader_program_t shader_mgr_create_program(const shader_program_create_desc& desc);
+		R_EXPORT void shader_mgr_free_program(const shader_program_t& program_id);
+		R_EXPORT void shader_mgr_clear_program_cache();
+
+		R_EXPORT u32 shader_mgr_get_program_cache_count();
 	}
 }

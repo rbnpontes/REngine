@@ -9,6 +9,7 @@ namespace rengine {
 
 		void shader_mgr__deinit()
 		{
+			shader_mgr_clear_program_cache();
 			shader_mgr_clear_cache();
 		}
 
@@ -50,6 +51,60 @@ namespace rengine {
 			if (it == state.shaders.end())
 				return null;
 			return it->second.handler;
+		}
+
+		void shader_mgr__get_program(const shader_program_t& program_id, shader_program* program_output)
+		{
+			if (program_id == no_shader_program)
+				return;
+			auto& state = g_shader_mgr_state;
+			const auto it = state.programs.find_as(program_id);
+			if (it == state.programs.end())
+				return;
+
+			if(program_output)
+				*program_output = it->second;
+		}
+
+		shader_program_t shader_mgr__create_program(const shader_program_create_desc& desc)
+		{
+			auto& state = g_shader_mgr_state;
+			const auto hash = shader_mgr__hash_program_desc(desc.desc);
+			const auto it = state.programs.find_as(hash);
+
+			if (it != state.programs.end())
+				return hash;
+			// TODO: make validation of what kind of shaders are used
+			shader_entry* entries[(u8)shader_type::max] = {};
+			shader_mgr__get_entries_batch(reinterpret_cast<const shader_t*>(&desc.desc), entries);
+
+			shader_program program;
+			program.desc = desc.desc;
+
+			// collect shader resources and insert into program
+			for (u8 i = 0; i < (u8)shader_type::max; ++i) {
+				if (!entries[i])
+					continue;
+
+				for (u8 j = 0; j < entries[i]->num_resources; ++j) {
+					auto& res = entries[i]->resources[j];
+					if (resource_type::unknow != res.type)
+						continue;
+					auto it = program.resources.find_as(res.id);
+					if (program.resources.end() != it) {
+						it->second.shader_flags |= 1 << i;
+						continue;
+					}
+
+					program.resources[res.id] = res;
+					program.num_resources++;
+				}
+			}
+
+			// finally, insert program
+			state.programs[hash] = program;
+			state.programs_count++;
+			return hash;
 		}
 
 		void shader_mgr__free(const shader_entry& entry)
@@ -114,12 +169,46 @@ namespace rengine {
 			}
 		}
 
-		shader_resource_type shader_mgr__get_resource_type(Diligent::ShaderResourceDesc* desc)
+		resource_type shader_mgr__get_resource_type(Diligent::ShaderResourceDesc* desc)
 		{
-			shader_resource_type res_type = g_shader_resource_tbl[desc->Type];
-			if (res_type == shader_resource_type::texture && desc->ArraySize > 0)
-				res_type = shader_resource_type::texarray;
+			resource_type res_type = g_shader_resource_tbl[desc->Type];
+			if (res_type == resource_type::tex2d && desc->ArraySize > 0)
+				res_type = resource_type::texarray;
 			return res_type;
+		}
+
+		void shader_mgr__get_entries_batch(const shader_t* shaders, shader_entry** entries_output)
+		{
+			// there's no limit check here, we assume that the caller
+			// always send the correct size 
+			for (u8 i = 0; i < (u8)shader_type::max; ++i) {
+				if (shaders[i] == no_shader) {
+					entries_output[i] = null;
+					continue;
+				}
+
+				auto it = g_shader_mgr_state.shaders.find_as(shaders[i]);
+				if (it == g_shader_mgr_state.shaders.end())
+					entries_output[i] = null;
+				else
+					entries_output[i] = &it->second;
+			}
+		}
+
+		core::hash_t shader_mgr__hash_desc(const shader_create_desc& desc)
+		{
+			core::hash_t result = core::hash(desc.name);
+			result = core::hash_combine(result, (core::hash_t)desc.type);
+			result = core::hash_combine(result, core::hash(desc.name));
+			result = core::hash_combine(result, desc.source_code_length);
+			result = core::hash_combine(result, core::hash(desc.bytecode, desc.bytecode_length));
+			result = core::hash_combine(result, desc.bytecode_length);
+			return result;
+		}
+
+		core::hash_t shader_mgr__hash_program_desc(const shader_program_desc& desc)
+		{
+			return core::hash_combine(desc.vertex_shader, desc.pixel_shader);
 		}
 	}
 }

@@ -4,19 +4,10 @@
 
 namespace rengine {
 	namespace graphics {
-		enum class srb_mgr_resource_type {
-			unknow = 0,
-			tex2d,
-			tex3d,
-			texcube,
-			texarray,
-			rt
-		};
-
 		struct srb_mgr_resource_desc {
 			c_str name;
 			entity id;
-			srb_mgr_resource_type type;
+			resource_type type;
 		};
 
 		struct srb_mgr_create_desc {

@@ -4,6 +4,8 @@
 #include "./buffer_manager_private.h"
 #include "./render_target_manager.h"
 
+#include "../core/allocator.h"
+
 #include "../exceptions.h"
 
 namespace rengine {
@@ -22,8 +24,7 @@ namespace rengine {
 			GraphicsPipelineStateCreateInfo ci = {};
 
 			ci.PSODesc.Name = create_info.name;
-			ci.pVS = shader_mgr__get_handle(create_info.vertex_shader);
-			ci.pPS = shader_mgr__get_handle(create_info.pixel_shader);
+			pipeline_state_mgr__fill_shaders(&ci, create_info.shader_program);
 			ci.GraphicsPipeline.NumRenderTargets = create_info.num_render_targets;
 			ci.GraphicsPipeline.DSVFormat = (TEXTURE_FORMAT)create_info.depth_stencil_format;
 			for (u8 i = 0; i < create_info.num_render_targets; ++i)
@@ -41,9 +42,19 @@ namespace rengine {
 
 			ci.PSODesc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE;
 			ci.PSODesc.ResourceLayout.Variables = pipeline_state_mgr__build_srv(&ci.PSODesc.ResourceLayout.NumVariables);
+			ci.PSODesc.ResourceLayout.NumImmutableSamplers = create_info.num_immutable_samplers;
+			ci.PSODesc.ResourceLayout.ImmutableSamplers = pipeline_state_mgr__build_immutable_samplers(create_info);
 
 			IPipelineState* pipeline = null;
 			device->CreateGraphicsPipelineState(ci, &pipeline);
+
+			// free scratch memory
+			core::alloc_scratch_pop(
+				sizeof(Diligent::LayoutElement) * VERTEX_ELEMENT_COUNT +
+				sizeof(Diligent::ImmutableSamplerDesc) * GRAPHICS_MAX_BOUND_TEXTURES +
+				sizeof(Diligent::ShaderResourceVariableDesc) * GRAPHICS_MAX_BOUND_CBUFFERS
+			);
+
 			if (!pipeline)
 				return null;
 
@@ -51,10 +62,32 @@ namespace rengine {
 			return pipeline;
 		}
 
+		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id)
+		{
+			using namespace Diligent;
+			if (program_id == no_shader_program)
+				return;
+			
+			shader_program program;
+			shader_mgr__get_program(program_id, &program);
+			shader_t* shader_ids = reinterpret_cast<shader_t*>(&program.resources);
+			IShader** shader_outputs[(u8)shader_type::max] = {
+				&ci->pVS,
+				&ci->pPS
+			};
+			for (u8 i = 0; i < (u8)shader_type::max; ++i)
+				*shader_outputs[i] = shader_mgr__get_handle(shader_ids[i]);
+
+			if (ci->pVS == null || ci->pPS == null)
+				throw graphics_exception(strings::exceptions::g_pipeline_state_mgr_required_vs_ps_shaders);
+		}
+
 		Diligent::LayoutElement* pipeline_state_mgr__build_input_layout(u32 flags, u32* count)
 		{
 			using namespace Diligent;
-			Diligent::LayoutElement* layout_elements = g_pipeline_state_mgr_state.tmp_layout_elements;
+			auto layout_elements = (Diligent::LayoutElement*)core::alloc_scratch(
+				sizeof(Diligent::LayoutElement) * VERTEX_ELEMENT_COUNT
+			);
 
 			*count = 0;
 			if ((flags & (u32)vertex_elements::position) != 0) {
@@ -123,8 +156,40 @@ namespace rengine {
 			return layout_elements;
 		}
 
+		Diligent::ImmutableSamplerDesc* pipeline_state_mgr__build_immutable_samplers(const graphics_pipeline_state_create& create_info)
+		{
+			using namespace Diligent;
+			if (create_info.num_immutable_samplers == 0)
+				return null;
+
+			auto immutable_samplers = (Diligent::ImmutableSamplerDesc*)core::alloc_scratch(
+				sizeof(Diligent::ImmutableSamplerDesc) * create_info.num_immutable_samplers
+			);
+			for (auto i = 0; i < create_info.num_immutable_samplers; ++i) {
+				const auto& sampler = create_info.immutable_samplers[i];
+				auto& desc = immutable_samplers[i];
+				desc.SamplerOrTextureName = sampler.name;
+				desc.ShaderStages = (Diligent::SHADER_TYPE)sampler.shader_type_flags;
+				desc.Desc.MinFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
+				desc.Desc.MipFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
+				desc.Desc.MagFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
+				desc.Desc.AddressU = g_texture_address_mode_tbl[(u32)sampler.desc.address];
+				desc.Desc.AddressV = g_texture_address_mode_tbl[(u32)sampler.desc.address];
+				desc.Desc.AddressW = g_texture_address_mode_tbl[(u32)sampler.desc.address];
+				desc.Desc.ComparisonFunc = g_comparison_function_tbl[(u32)sampler.desc.comparison];
+				desc.Desc.MinLOD = sampler.desc.min_lod;
+				desc.Desc.MaxLOD = sampler.desc.max_lod;
+				desc.Desc.MipLODBias = sampler.desc.lod_bias;
+				desc.Desc.Name = sampler.name;
+			}
+			return null;
+		}
+
 		Diligent::ShaderResourceVariableDesc* pipeline_state_mgr__build_srv(u32* count)
 		{
+			auto srv_list = (Diligent::ShaderResourceVariableDesc*)core::alloc_scratch(
+				sizeof(Diligent::ShaderResourceVariableDesc) * GRAPHICS_MAX_BOUND_CBUFFERS
+			);
 			c_str cbuffer_keys[] = {
 				strings::graphics::shaders::g_frame_buffer_key,
 			};
@@ -134,15 +199,15 @@ namespace rengine {
 				supported_shader_stages |= g_supported_shader_types[i];
 
 			for (u8 i = 0; i < _countof(cbuffer_keys); ++i) {
-				auto& srv = g_pipeline_state_mgr_state.tmp_srv[i];
+				auto& srv = srv_list[i];
 				srv.Name = cbuffer_keys[i];
-				srv.Flags = Diligent::SHADER_VARIABLE_FLAG_NONE;
 				srv.ShaderStages = supported_shader_stages;
+				srv.Flags = Diligent::SHADER_VARIABLE_FLAG_NONE;
 				srv.Type = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
 			}
 
 			*count = _countof(cbuffer_keys);
-			return g_pipeline_state_mgr_state.tmp_srv;
+			return srv_list;
 		}
 
 		void pipeline_state_mgr__get_internal_handle(const pipeline_state_t& id, Diligent::IPipelineState** output)

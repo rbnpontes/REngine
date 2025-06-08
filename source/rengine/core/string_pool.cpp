@@ -45,6 +45,7 @@ namespace rengine {
                 return;
 
             core::alloc_free((ptr)pair->second);
+			state.strings.erase(pair);
             --state.num_strings;
         }
         

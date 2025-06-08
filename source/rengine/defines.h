@@ -1,5 +1,8 @@
 #pragma once
+#include <float.h>
+
 #define CORE_ALLOC_DEFAULT_LIMIT 128 * 1000000 // default size is 128mb
+#define CORE_ALLOC_SCRATCH_BUFFER_SIZE 1000 * 64 // 64kb scratch buffer size
 //#define HIGH_DEFINITION_PRECISION // enable high precision math types
 #define CORE_WINDOWS_MAX_ALLOWED 4
 #define CORE_DEFAULT_HASH_SEED 0xFABDDFE
@@ -33,6 +36,7 @@
 #define MAX_U8_VALUE 0xFF
 #define MAX_U16_VALUE 0xFFFF
 #define MAX_U32_VALUE 0xFFFFFFFF
+#define MAX_FLOAT_VALUE FLT_MAX
 
 #ifdef HIGH_DEFINITION_PRECISION
 	#define MATH_EPSILON 1e-6f

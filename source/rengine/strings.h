@@ -205,6 +205,8 @@ namespace rengine {
 
         namespace exceptions {
             constexpr static c_str g_null_object = "{0} is null";
+            constexpr static c_str g_core_alloc_memory_exceeded = "Memory limit exceeded!";
+			constexpr static c_str g_core_alloc_scratch_memory_exceeded = "Scratch memory limit exceeded! Increase the size of scratch buffer to continue. Current size = {0} bytes, Required size = {1} bytes";
 
             constexpr static c_str g_window_invalid_id = "Invalid window id";
             constexpr static c_str g_window_reached_max_created_windows = "Reached max of created windows";
@@ -227,7 +229,9 @@ namespace rengine {
             constexpr static c_str g_graphics_fail_to_create_swapchain = "Failed to create SwapChain";
             
             constexpr static c_str g_shader_mgr_fail_to_create_shader = "Failed to create shader object";
+            
             constexpr static c_str g_pipeline_state_mgr_fail_to_create_gpipeline = "Failed to create graphics pipeline object";
+            constexpr static c_str g_pipeline_state_mgr_required_vs_ps_shaders = "PipelineState requires an bounded shader program with Vertex and Pixel shaders";
 
             constexpr static c_str g_buffer_mgr_requires_initial_data = "Non dynamic buffers requires an initial data";
             constexpr static c_str g_buffer_mgr_fail_to_create_buffer = "Failed to create {0}";

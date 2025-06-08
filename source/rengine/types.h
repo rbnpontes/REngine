@@ -75,7 +75,7 @@ namespace rengine {
         static u8 no_texture_array        = MAX_U8_VALUE;
         static u8 no_render_target        = MAX_U8_VALUE;
         static u16 no_pipeline_state      = MAX_U16_VALUE;
-        static u16 no_srb           = MAX_U16_VALUE;
+        static u16 no_srb                 = MAX_U16_VALUE;
         static u32 no_shader              = MAX_U32_VALUE;
         static u32 no_shader_program      = MAX_U32_VALUE;
 		static u32 no_render_command      = 0;
@@ -129,6 +129,16 @@ namespace rengine {
             dynamic
         };
 
+        enum class resource_type : u8 {
+            unknow = 0,
+            tex2d,
+            tex3d,
+            texcube,
+            texarray,
+            rt,
+            cbuffer,
+        };
+
         enum class texture_format : u32 {
 			unknown = 0,
 			// color formats
@@ -160,6 +170,101 @@ namespace rengine {
             vertex = 0,
             pixel,
             max,
+        };
+
+        enum class shader_type_flags : u32 {
+            none = 0,
+            vertex = 1 << 0,
+			pixel = 1 << 1,
+        };
+
+        enum class filter_type : u8 {
+            unknown = 0,                    ///< Unknown filter type
+            point,                          ///< Point filtering
+            linear,                         ///< Linear filtering
+            anisotropic,                    ///< Anisotropic filtering
+            comparison_point,              ///< Comparison-point filtering
+            comparison_linear,             ///< Comparison-linear filtering
+            comparison_anisotropic,        ///< Comparison-anisotropic filtering
+            minimum_point,                 ///< Minimum-point filtering (DX12 only)
+            minimum_linear,                ///< Minimum-linear filtering (DX12 only)
+            minimum_anisotropic,           ///< Minimum-anisotropic filtering (DX12 only)
+            maximum_point,                 ///< Maximum-point filtering (DX12 only)
+            maximum_linear,                ///< Maximum-linear filtering (DX12 only)
+            maximum_anisotropic,           ///< Maximum-anisotropic filtering (DX12 only)
+        };
+
+        enum class texture_address_mode : u8 {
+            unknown = 0,               ///< Unknown mode
+
+            /// Tile the texture at every integer junction.
+            /// Direct3D: D3D11_TEXTURE_ADDRESS_WRAP/D3D12_TEXTURE_ADDRESS_MODE_WRAP
+            /// OpenGL: GL_REPEAT
+            wrap = 1,
+
+            /// Flip the texture at every integer junction.
+            /// Direct3D: D3D11_TEXTURE_ADDRESS_MIRROR/D3D12_TEXTURE_ADDRESS_MODE_MIRROR
+            /// OpenGL: GL_MIRRORED_REPEAT
+            mirror = 2,
+
+            /// Clamp texture coordinates outside [0.0, 1.0] to the edge color.
+            /// Direct3D: D3D11_TEXTURE_ADDRESS_CLAMP/D3D12_TEXTURE_ADDRESS_MODE_CLAMP
+            /// OpenGL: GL_CLAMP_TO_EDGE
+            clamp = 3,
+
+            /// Clamp texture coordinates outside [0.0, 1.0] to the border color.
+            /// Direct3D: D3D11_TEXTURE_ADDRESS_BORDER/D3D12_TEXTURE_ADDRESS_MODE_BORDER
+            /// OpenGL: GL_CLAMP_TO_BORDER
+            border = 4,
+
+            /// Take absolute value of texture coordinate and then clamp.
+            /// Direct3D: D3D11_TEXTURE_ADDRESS_MIRROR_ONCE/D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE
+            /// OpenGL: GL_MIRROR_CLAMP_TO_EDGE (GL4.4+ / GLES3.1+)
+            mirror_once = 5,
+        };
+
+        enum class comparison_function : u8 {
+            unknown = 0,             ///< Unknown comparison function
+
+            /// Comparison never passes.
+            /// Direct3D: D3D11_COMPARISON_NEVER/D3D12_COMPARISON_FUNC_NEVER
+            /// OpenGL: GL_NEVER
+            never,
+
+            /// Passes if source < destination.
+            /// Direct3D: D3D11_COMPARISON_LESS/D3D12_COMPARISON_FUNC_LESS
+            /// OpenGL: GL_LESS
+            less,
+
+            /// Passes if source == destination.
+            /// Direct3D: D3D11_COMPARISON_EQUAL/D3D12_COMPARISON_FUNC_EQUAL
+            /// OpenGL: GL_EQUAL
+            equal,
+
+            /// Passes if source <= destination.
+            /// Direct3D: D3D11_COMPARISON_LESS_EQUAL/D3D12_COMPARISON_FUNC_LESS_EQUAL
+            /// OpenGL: GL_LEQUAL
+            less_equal,
+
+            /// Passes if source > destination.
+            /// Direct3D: D3D11_COMPARISON_GREATER/D3D12_COMPARISON_FUNC_GREATER
+            /// OpenGL: GL_GREATER
+            greater,
+
+            /// Passes if source != destination.
+            /// Direct3D: D3D11_COMPARISON_NOT_EQUAL/D3D12_COMPARISON_FUNC_NOT_EQUAL
+            /// OpenGL: GL_NOTEQUAL
+            not_equal,
+
+            /// Passes if source >= destination.
+            /// Direct3D: D3D11_COMPARISON_GREATER_EQUAL/D3D12_COMPARISON_FUNC_GREATER_EQUAL
+            /// OpenGL: GL_GEQUAL
+            greater_equal,
+
+            /// Comparison always passes.
+            /// Direct3D: D3D11_COMPARISON_ALWAYS/D3D12_COMPARISON_FUNC_ALWAYS
+            /// OpenGL: GL_ALWAYS
+            always,
         };
     }
 

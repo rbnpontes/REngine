@@ -104,9 +104,9 @@ namespace rengine {
 				return null;
 			}
 
-			T* new_event_list = core::alloc_array_realloc<T>(event_list, *event_count);
+			T* new_event_list = core::alloc_array_realloc<T>(event_list, new_count);
 			size_t second_idx = 0;
-			for (size_t i = 0; i < *event_count; ++i) {
+			for (size_t i = 0; i < *event_count && second_idx < new_count; ++i) {
 				if (i == event_idx)
 					continue;
 				new_event_list[second_idx] = event_list[i];

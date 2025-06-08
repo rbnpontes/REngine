@@ -35,29 +35,26 @@ namespace rengine {
 
 		R_EXPORT void renderer_reset_states();
 		R_EXPORT void renderer_use_command(const render_command_t& command);
-		R_EXPORT render_command_t renderer_build_command(c_str cmd_name = null);
-		R_EXPORT void renderer_destroy_command(const render_command_t& command);
 
 		R_EXPORT void renderer_set_vbuffer(const vertex_buffer_t& buffer, u64 offset = 0);
 		R_EXPORT void renderer_set_vbuffers(const vertex_buffer_t* buffers, u8 num_buffers, u64* offsets);
 		R_EXPORT void renderer_set_ibuffer(const index_buffer_t& buffer, u64 offset = 0);
 		R_EXPORT void renderer_set_render_target(const render_target_t& rt_id, const render_target_t& depth_id = no_render_target);
 		R_EXPORT void renderer_set_render_targets(const render_target_t* render_targets, const u8& num_rts, const render_target_t& depth_id = no_render_target);
-                R_EXPORT void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id);
-                R_EXPORT void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id);
-                R_EXPORT void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id);
-                R_EXPORT void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id);
-                R_EXPORT void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id);
-                R_EXPORT void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id);
-                R_EXPORT void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id);
-                R_EXPORT void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id);
+        R_EXPORT void renderer_set_texture_2d(c_str slot_name, const texture_2d_t& tex_id);
+        R_EXPORT void renderer_set_texture_3d(c_str slot_name, const texture_3d_t& tex_id);
+        R_EXPORT void renderer_set_texture_cube(c_str slot_name, const texture_cube_t& tex_id);
+        R_EXPORT void renderer_set_texture_array(c_str slot_name, const texture_array_t& tex_id);
+        R_EXPORT void renderer_set_texture_2d(core::hash_t slot, const texture_2d_t& tex_id);
+        R_EXPORT void renderer_set_texture_3d(core::hash_t slot, const texture_3d_t& tex_id);
+        R_EXPORT void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id);
+        R_EXPORT void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id);
 
 		R_EXPORT void renderer_set_viewport(const math::urect& rect);
 		R_EXPORT void renderer_set_topology(const primitive_topology& topology);
 		R_EXPORT void renderer_set_cull_mode(const cull_mode& cull);
 		R_EXPORT void renderer_set_vertex_elements(const u32& vertex_elements);
-		R_EXPORT void renderer_set_vertex_shader(const shader_t& shader_id);
-		R_EXPORT void renderer_set_pixel_shader(const shader_t& shader_id);
+		R_EXPORT void renderer_set_program(const shader_program_t& program_id);
 		R_EXPORT void renderer_set_depth_enabled(const bool& enabled);
 		R_EXPORT void renderer_set_wireframe(const bool enabled);
 
