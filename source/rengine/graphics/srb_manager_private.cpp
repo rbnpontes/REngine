@@ -1,6 +1,7 @@
 #include "./srb_manager_private.h"
 #include "./render_target_manager.h"
 #include "./buffer_manager_private.h"
+#include "./texture_manager_private.h"
 
 #include "../core/hash.h"
 #include "../exceptions.h"
@@ -66,27 +67,52 @@ namespace rengine {
 			*output = state.entries[id].handle;
 		}
 
-		Diligent::IDeviceObject* srb_mgr__get_device_obj(const srb_mgr_resource_desc& resource)
-		{
-			Diligent::IDeviceObject* result = null;
-			switch (resource.type)
-			{
-			case srb_mgr_resource_type::tex2d:
-				throw not_implemented_exception();
-				break;
-			case srb_mgr_resource_type::tex3d:
-				throw not_implemented_exception();
-				break;
-			case srb_mgr_resource_type::texcube:
-				throw not_implemented_exception();
-				break;
-			case srb_mgr_resource_type::texarray:
-				throw not_implemented_exception();
-				break;
-			case srb_mgr_resource_type::rt:
-				render_target_mgr_get_handlers(resource.id, reinterpret_cast<ptr*>(&result), null);
-				break;
-			}
+                Diligent::IDeviceObject* srb_mgr__get_device_obj(const srb_mgr_resource_desc& resource)
+                {
+                        Diligent::IDeviceObject* result = null;
+
+                        switch (resource.type)
+                        {
+                        case resource_type::tex2d:
+                        {
+                                Diligent::ITexture* tex = null;
+                                texture_mgr__get_internal_handle(texture_type::tex2d, resource.id, &tex);
+                                if (tex)
+                                        result = tex->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+                        }
+                                break;
+                        case resource_type::tex3d:
+                        {
+                                Diligent::ITexture* tex = null;
+                                texture_mgr__get_internal_handle(texture_type::tex3d, resource.id, &tex);
+                                if (tex)
+                                        result = tex->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+                        }
+                                break;
+                        case resource_type::texcube:
+                        {
+                                Diligent::ITexture* tex = null;
+                                texture_mgr__get_internal_handle(texture_type::texcube, resource.id, &tex);
+                                if (tex)
+                                        result = tex->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+                        }
+                                break;
+                        case resource_type::texarray:
+                        {
+                                Diligent::ITexture* tex = null;
+                                texture_mgr__get_internal_handle(texture_type::texarray, resource.id, &tex);
+                                if (tex)
+                                        result = tex->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+                        }
+                                break;
+                        case resource_type::rt:
+                                render_target_mgr_get_handlers(resource.id, reinterpret_cast<ptr*>(&result), null);
+                                if(result)
+                                        result = reinterpret_cast<Diligent::ITexture*>(result)->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+                                break;
+                        default:
+                                break;
+                        }
 
 			return result;
 		}

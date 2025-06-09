@@ -54,6 +54,8 @@ namespace rengine {
 		void texture_mgr__fill_tex2d_desc(const texture_create_desc<texture_2d_size>& desc, Diligent::TextureDesc& out_desc);
 		void texture_mgr__fill_subres(const texture_data_desc& data, Diligent::TextureSubResData* subres);
 
-		Diligent::ITexture* texture_mgr__create(Diligent::TextureDesc& desc, Diligent::TextureData& data, bool gen_mipmap);
-	}
+                Diligent::ITexture* texture_mgr__create(Diligent::TextureDesc& desc, Diligent::TextureData& data, bool gen_mipmap);
+
+                void texture_mgr__get_internal_handle(texture_type type, u16 id, Diligent::ITexture** output);
+        }
 }
