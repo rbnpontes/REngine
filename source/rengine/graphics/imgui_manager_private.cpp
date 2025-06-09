@@ -119,8 +119,13 @@ namespace rengine {
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
 
-			state.pixel_shader = shader_mgr_create(shader_desc);
-		}
+                        state.pixel_shader = shader_mgr_create(shader_desc);
+
+                        shader_program_create_desc program_desc{};
+                        program_desc.desc.vertex_shader = state.vertex_shader;
+                        program_desc.desc.pixel_shader = state.pixel_shader;
+                        state.program = shader_mgr_create_program(program_desc);
+                }
 
 		c_str imgui_manager__get_clipboard_text(ImGuiContext* ctx)
 		{
@@ -304,9 +309,8 @@ namespace rengine {
 			renderer_set_vbuffer(state.vertex_buffer, 0);
 			renderer_set_ibuffer(state.index_buffer, 0);
 			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color);
-			renderer_set_vertex_shader(state.vertex_shader);
-			renderer_set_pixel_shader(state.pixel_shader);
-			renderer_set_cull_mode(cull_mode::none);
+                        renderer_set_program(state.program);
+                        renderer_set_cull_mode(cull_mode::none);
 			renderer_set_topology(primitive_topology::triangle_list);
 			renderer_set_wireframe(false);
 			renderer_set_depth_enabled(true);
