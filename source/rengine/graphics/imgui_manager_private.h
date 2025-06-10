@@ -15,8 +15,9 @@ namespace rengine {
 			SDL_Cursor* last_cursor{ null };
 
 			texture_2d_t font_tex{ UINT16_MAX };
-			shader_t vertex_shader{ no_shader };
-			shader_t pixel_shader{ no_shader };
+                        shader_t vertex_shader{ no_shader };
+                        shader_t pixel_shader{ no_shader };
+                        shader_program_t program{ no_shader_program };
 
 			vertex_buffer_t vertex_buffer{ no_vertex_buffer };
 			index_buffer_t index_buffer{ no_index_buffer };
