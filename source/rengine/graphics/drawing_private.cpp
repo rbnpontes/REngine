@@ -97,31 +97,34 @@ namespace rengine {
 		{
 			auto& state = g_drawing_state;
 
-			shader_create_desc shader_desc = {};
-			shader_desc.name = strings::graphics::g_drawing_vshader_name;
-			shader_desc.type = shader_type::vertex;
-			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
-			shader_desc.source_code_length = strlen(shader_desc.source_code);
-			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
-			
-			state.vertex_shader[0] = shader_mgr_create(shader_desc);
-			shader_desc.vertex_elements |= (u32)vertex_elements::uv;
-			state.vertex_shader[1] = shader_mgr_create(shader_desc);
+                        shader_create_desc shader_desc = {};
+                        shader_t vertex_shader[2]{ no_shader };
+                        shader_t pixel_shader{ no_shader };
 
-			shader_desc.num_macros = 0;
-			shader_desc.name = strings::graphics::g_drawing_pshader_name;
-			shader_desc.type = shader_type::pixel;
-			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
-			shader_desc.source_code_length = strlen(shader_desc.source_code);
+                        shader_desc.name = strings::graphics::g_drawing_vshader_name;
+                        shader_desc.type = shader_type::vertex;
+                        shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
+                        shader_desc.source_code_length = strlen(shader_desc.source_code);
+                        shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
 
-                        state.pixel_shader = shader_mgr_create(shader_desc);
+                        vertex_shader[0] = shader_mgr_create(shader_desc);
+                        shader_desc.vertex_elements |= (u32)vertex_elements::uv;
+                        vertex_shader[1] = shader_mgr_create(shader_desc);
+
+                        shader_desc.num_macros = 0;
+                        shader_desc.name = strings::graphics::g_drawing_pshader_name;
+                        shader_desc.type = shader_type::pixel;
+                        shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
+                        shader_desc.source_code_length = strlen(shader_desc.source_code);
+
+                        pixel_shader = shader_mgr_create(shader_desc);
 
                         shader_program_create_desc program_desc{};
-                        program_desc.desc.pixel_shader = state.pixel_shader;
-                        program_desc.desc.vertex_shader = state.vertex_shader[0];
+                        program_desc.desc.pixel_shader = pixel_shader;
+                        program_desc.desc.vertex_shader = vertex_shader[0];
                         state.program[0] = shader_mgr_create_program(program_desc);
 
-                        program_desc.desc.vertex_shader = state.vertex_shader[1];
+                        program_desc.desc.vertex_shader = vertex_shader[1];
                         state.program[1] = shader_mgr_create_program(program_desc);
                 }
 

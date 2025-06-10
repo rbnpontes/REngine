@@ -55,9 +55,7 @@ namespace rengine {
 			vertex_buffer_t vertex_buffer{ no_vertex_buffer };
 			constant_buffer_t constant_buffer{ no_constant_buffer };
 
-                        shader_t vertex_shader[2]{ no_shader };
-                        shader_t pixel_shader{ no_shader };
-                        shader_program_t program[2]{ no_shader_program, no_shader_program };
+                       shader_program_t program[2]{ no_shader_program, no_shader_program };
 
 			u32 vertex_buffer_size{ 0 };
 		};
