@@ -14,7 +14,10 @@ namespace rengine {
 
 		ptr imgui_manager__malloc(size_t size, ptr user_data)
 		{
-			return core::alloc(size);
+			ptr result = core::alloc(size);
+			// TODO: fix ImVertData, unfortunately ImGui doesn't initialize ImVert struct
+			memset(result, 0, size);
+			return result;
 		}
 
 		void imgui_manager__free(ptr _ptr, ptr user_data)
@@ -113,7 +116,7 @@ namespace rengine {
 			shader_desc.type = shader_type::vertex;
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
-			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::colorf;
+			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color;
 
 			state.vertex_shader = shader_mgr_create(shader_desc);
 

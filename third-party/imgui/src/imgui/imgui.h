@@ -3024,11 +3024,13 @@ struct ImDrawCmd
 
 // Vertex layout
 #ifndef IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT
+//[rengine]: adapted struct to match vertex struct data
 struct ImDrawVert
 {
     ImVec2  pos;
-    ImVec2  uv;
+    float padding;
     ImU32   col;
+    ImVec2  uv;
 };
 #else
 // You can override the vertex format layout by defining IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT in imconfig.h
