@@ -201,12 +201,6 @@ namespace rengine {
 			render_command__set_cull(cmd, cull);
 		}
 
-		void renderer_set_vertex_elements(const u32& vertex_elements)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_vertex_elements(cmd, vertex_elements);
-		}
-
 		void renderer_set_program(const shader_program_t& program_id)
 		{
 			auto& cmd = g_renderer_state.default_cmd;

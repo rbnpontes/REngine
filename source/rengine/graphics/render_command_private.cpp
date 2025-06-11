@@ -88,7 +88,6 @@ namespace rengine {
 				++pipeline_create.num_immutable_samplers;
 			}
 
-			pipeline_create.vertex_elements = data.vertex_elements;
 			data.pipeline_state = pipeline_state_mgr_create_graphics(pipeline_create);
 
 			core::alloc_scratch_pop(
@@ -362,13 +361,6 @@ namespace rengine {
 			if (cmd.cull != cull)
 				cmd.pipeline_state = no_pipeline_state;
 			cmd.cull = cull;
-		}
-
-		void render_command__set_vertex_elements(render_command_data& cmd, const u32& flags)
-		{
-			if (cmd.vertex_elements != flags)
-				cmd.pipeline_state = no_pipeline_state;
-			cmd.vertex_elements = flags;
 		}
 
 		void render_command__set_program(render_command_data& cmd, const shader_t& program_id)

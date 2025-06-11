@@ -33,7 +33,6 @@ namespace rengine {
             result = core::hash_combine(result, create_info.num_render_targets);
             result = core::hash_combine(result, (u32)create_info.topology);
             result = core::hash_combine(result, (u32)create_info.cull);
-            result = core::hash_combine(result, create_info.vertex_elements);
             result = core::hash_combine(result, create_info.depth);
             result = core::hash_combine(result, create_info.wireframe);
             result = core::hash_combine(result, create_info.num_immutable_samplers);

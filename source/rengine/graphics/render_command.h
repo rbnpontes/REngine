@@ -27,7 +27,6 @@ namespace rengine {
 		void render_command_set_viewport(const math::urect& rect);
 		void render_command_set_topology(const primitive_topology& topology);
 		void render_command_set_cull_mode(const cull_mode& cull);
-		void render_command_set_vertex_elements(const u32& vertex_elements);
 		void render_command_set_program(const shader_program_t& program_id);
 		void render_command_set_depth_enabled(const bool& enabled);
 		void render_command_set_wireframe(const bool& enabled);

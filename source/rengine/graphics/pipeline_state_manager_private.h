@@ -68,7 +68,7 @@ namespace rengine {
 		void pipeline_state_mgr__deinit();
 
 		Diligent::IPipelineState* pipeline_state_mgr__create_graphics(const graphics_pipeline_state_create& create_info);
-		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id);
+		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id, u32* vertex_elements);
 		Diligent::LayoutElement* pipeline_state_mgr__build_input_layout(u32 flags, u32* count);
 		Diligent::ImmutableSamplerDesc* pipeline_state_mgr__build_immutable_samplers(const graphics_pipeline_state_create& create_info);
 		

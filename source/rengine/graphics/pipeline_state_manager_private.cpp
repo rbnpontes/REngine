@@ -21,10 +21,11 @@ namespace rengine {
 		{
 			using namespace Diligent;
 			const auto device = g_graphics_state.device;
+			u32 vertex_elements = (u32)vertex_elements::none;
 			GraphicsPipelineStateCreateInfo ci = {};
 
 			ci.PSODesc.Name = create_info.name;
-			pipeline_state_mgr__fill_shaders(&ci, create_info.shader_program);
+			pipeline_state_mgr__fill_shaders(&ci, create_info.shader_program, &vertex_elements);
 			ci.GraphicsPipeline.NumRenderTargets = create_info.num_render_targets;
 			ci.GraphicsPipeline.DSVFormat = (TEXTURE_FORMAT)create_info.depth_stencil_format;
 			for (u8 i = 0; i < create_info.num_render_targets; ++i)
@@ -37,7 +38,8 @@ namespace rengine {
 			ci.GraphicsPipeline.SmplDesc.Count = create_info.msaa_level;
 			ci.GraphicsPipeline.DepthStencilDesc.DepthEnable = create_info.depth;
 
-			ci.GraphicsPipeline.InputLayout.LayoutElements = pipeline_state_mgr__build_input_layout(create_info.vertex_elements,
+			ci.GraphicsPipeline.InputLayout.LayoutElements = pipeline_state_mgr__build_input_layout(
+				vertex_elements,
 				&ci.GraphicsPipeline.InputLayout.NumElements);
 
 			ci.PSODesc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE;
@@ -62,12 +64,12 @@ namespace rengine {
 			return pipeline;
 		}
 
-		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id)
+		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id, u32* vertex_elements)
 		{
 			using namespace Diligent;
 			if (program_id == no_shader_program)
 				return;
-			
+
 			shader_program program;
 			shader_mgr__get_program(program_id, &program);
 			shader_t* shader_ids = reinterpret_cast<shader_t*>(&program.desc);
@@ -75,6 +77,9 @@ namespace rengine {
 				&ci->pVS,
 				&ci->pPS
 			};
+
+			*vertex_elements = shader_mgr_get_vertex_elements(shader_ids[(u8)shader_type::vertex]);
+
 			for (u8 i = 0; i < (u8)shader_type::max; ++i)
 				*shader_outputs[i] = shader_mgr__get_handle(shader_ids[i]);
 
@@ -140,6 +145,7 @@ namespace rengine {
 				colorf_element.InputIndex = VERTEX_ELEMENT_COLORF_IDX;
 				colorf_element.NumComponents = 4;
 				colorf_element.ValueType = VT_FLOAT32;
+				colorf_element.RelativeOffset = sizeof(float) * 4;
 				colorf_element.IsNormalized = false;
 				(*count)++;
 			}
@@ -153,7 +159,7 @@ namespace rengine {
 
 				(*count)++;
 			}
-			
+
 			if ((flags & (u32)vertex_elements::instancing) != 0) {
 				(*count)++;
 				throw not_implemented_exception();
@@ -227,7 +233,7 @@ namespace rengine {
 				return;
 			*output = it->second;
 		}
-		
+
 		void pipeline_state_mgr__bind_cbuffers(Diligent::IPipelineState* pipeline)
 		{
 			c_str cbuffer_keys[] = {

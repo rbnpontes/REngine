@@ -111,7 +111,7 @@ namespace rengine {
 			shader_desc.type = shader_type::vertex;
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
-			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color;
+			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::colorf;
 
 			state.vertex_shader = shader_mgr_create(shader_desc);
 
@@ -309,7 +309,6 @@ namespace rengine {
 			const auto& state = g_imgui_manager_state;
 			renderer_set_vbuffer(state.vertex_buffer, 0);
 			renderer_set_ibuffer(state.index_buffer, 0);
-			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color);
 			renderer_set_program(state.program);
 			renderer_set_cull_mode(cull_mode::none);
 			renderer_set_topology(primitive_topology::triangle_list);

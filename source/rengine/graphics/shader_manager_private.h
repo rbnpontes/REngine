@@ -16,6 +16,8 @@ namespace rengine {
 			Diligent::IShader* handler{ null };
 			u32 num_resources{ 0 };
 			shader_resource* resources{ null };
+			// TODO: fill with shader reflection data
+			u32 vertex_elements{ 0 };
 		};
 
 		struct shader_state {

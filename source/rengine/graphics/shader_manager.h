@@ -49,6 +49,8 @@ namespace rengine {
 		R_EXPORT u32 shader_mgr_get_cache_count();
 		R_EXPORT void shader_mgr_clear_cache();
 
+		R_EXPORT u32 shader_mgr_get_vertex_elements(const shader_t& shader_id);
+
 		R_EXPORT shader_program_t shader_mgr_create_program(const shader_program_create_desc& desc);
 		R_EXPORT void shader_mgr_free_program(const shader_program_t& program_id);
 		R_EXPORT void shader_mgr_clear_program_cache();

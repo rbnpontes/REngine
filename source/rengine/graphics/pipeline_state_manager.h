@@ -27,7 +27,6 @@ namespace rengine {
 			primitive_topology topology{ primitive_topology::triangle_list };
 			cull_mode cull{ cull_mode::clock_wise };
 			u8 msaa_level{ 1 };
-			u32 vertex_elements{ (u32)vertex_elements::none };
 			bool depth{ true };
 			bool wireframe{ false };
 			bool scissors{ false };

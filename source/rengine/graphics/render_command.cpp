@@ -186,13 +186,6 @@ namespace rengine {
 			render_command__set_cull(cmd, cull);
 		}
 
-		void render_command_set_vertex_elements(const u32& vertex_elements)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_vertex_elements(cmd, vertex_elements);
-		}
-
 		void render_command_set_program(const shader_program_t& program_id)
 		{
 			ASSERT_RENDER_COMMAND_UPDATE();

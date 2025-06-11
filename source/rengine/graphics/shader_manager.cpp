@@ -23,7 +23,8 @@ namespace rengine {
 			shader_entry entry{
 				shader,
 				resource_count,
-				core::alloc_array_alloc<shader_resource>(resource_count)
+				core::alloc_array_alloc<shader_resource>(resource_count),
+				desc.vertex_elements
 			};
 			shader_mgr__collect_resources(shader, entry.resources);
 
@@ -73,6 +74,18 @@ namespace rengine {
 
 			state.shaders.clear();
 			state.shaders_count = 0;
+		}
+
+		u32 shader_mgr_get_vertex_elements(const shader_t& shader_id)
+		{
+			auto& state = g_shader_mgr_state;
+			if (shader_id == no_shader)
+				return (u32)vertex_elements::none;
+			const auto it = state.shaders.find_as(shader_id);
+			if (it == state.shaders.end())
+				return (u32)vertex_elements::none;
+
+			return it->second.vertex_elements;
 		}
 
 		shader_program_t shader_mgr_create_program(const shader_program_create_desc& desc)

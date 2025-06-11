@@ -93,7 +93,6 @@ namespace rengine {
         void render_command__set_viewport(render_command_data& cmd, const math::urect& rect);
         void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology);
         void render_command__set_cull(render_command_data& cmd, const cull_mode& cull);
-        void render_command__set_vertex_elements(render_command_data& cmd, const u32& flags);
 		void render_command__set_program(render_command_data& cmd, const shader_t& program_id);
         void render_command__set_depth_enabled(render_command_data& cmd, const bool& enabled);
         void render_command__set_wireframe(render_command_data& cmd, const bool& enabled);

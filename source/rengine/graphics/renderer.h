@@ -53,7 +53,6 @@ namespace rengine {
 		R_EXPORT void renderer_set_viewport(const math::urect& rect);
 		R_EXPORT void renderer_set_topology(const primitive_topology& topology);
 		R_EXPORT void renderer_set_cull_mode(const cull_mode& cull);
-		R_EXPORT void renderer_set_vertex_elements(const u32& vertex_elements);
 		R_EXPORT void renderer_set_program(const shader_program_t& program_id);
 		R_EXPORT void renderer_set_depth_enabled(const bool& enabled);
 		R_EXPORT void renderer_set_wireframe(const bool enabled);
