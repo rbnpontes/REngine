@@ -22,6 +22,7 @@ namespace rengine {
 			core::string_pool__init,
 			io::logger__init,
 			core::window__init,
+			core::profiler__init,
 		};
 
 		for(u32 i = 0; i < _countof(actions); ++i)

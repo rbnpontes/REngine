@@ -10,7 +10,7 @@
 #include <PipelineState.h>
 
 namespace rengine {
-    namespace graphics {
+	namespace graphics {
 		struct vertex_data {
 			math::vec3 point;
 			math::byte_color color{ math::byte_color::white };
@@ -55,7 +55,7 @@ namespace rengine {
 			vertex_buffer_t vertex_buffer{ no_vertex_buffer };
 			constant_buffer_t constant_buffer{ no_constant_buffer };
 
-                       shader_program_t program[2]{ no_shader_program, no_shader_program };
+			shader_program_t program[2]{ no_shader_program, no_shader_program };
 
 			u32 vertex_buffer_size{ 0 };
 		};
@@ -77,5 +77,5 @@ namespace rengine {
 
 		void drawing__begin_draw();
 		void drawing__end_draw();
-    }
+	}
 }

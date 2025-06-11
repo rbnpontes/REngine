@@ -235,13 +235,13 @@ namespace rengine {
 			profile();
 			auto& cmd = g_renderer_state.default_cmd;
 			auto prev_cmd_hash = cmd.id;
-			render_command__build_hash(cmd);
+
+			render_command__prepare(cmd);
 
 			if (cmd.id == prev_cmd_hash && cmd.pipeline_state != no_pipeline_state)
 				return;
 
-			render_command__build_pipeline(cmd);
-			render_command__build_srb(cmd);
+			render_command__build_internal_objects(cmd);
 			renderer__submit_render_state();
 		}
 

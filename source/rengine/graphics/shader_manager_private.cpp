@@ -203,6 +203,13 @@ namespace rengine {
 			result = core::hash_combine(result, desc.source_code_length);
 			result = core::hash_combine(result, core::hash(desc.bytecode, desc.bytecode_length));
 			result = core::hash_combine(result, desc.bytecode_length);
+			result = core::hash_combine(result, desc.vertex_elements);
+			result = core::hash_combine(result, desc.num_macros);
+			for (u32 i = 0; i < desc.num_macros; ++i) {
+				const auto& macro = desc.macros[i];
+				result = core::hash_combine(result, core::hash(macro.name));
+				result = core::hash_combine(result, core::hash(macro.definition));
+			}
 			return result;
 		}
 

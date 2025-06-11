@@ -68,6 +68,9 @@ namespace rengine {
 #if ENGINE_DEBUG
         void render_command__assert_update();
 #endif
+        void render_command__prepare(render_command_data& data);
+		void render_command__build_internal_objects(render_command_data& data);
+
         void render_command__build_pipeline(render_command_data& data);
         void render_command__build_srb(render_command_data& data);
         void render_command__build_hash(render_command_data& data);

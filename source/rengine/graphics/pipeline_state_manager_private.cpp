@@ -70,7 +70,7 @@ namespace rengine {
 			
 			shader_program program;
 			shader_mgr__get_program(program_id, &program);
-			shader_t* shader_ids = reinterpret_cast<shader_t*>(&program.resources);
+			shader_t* shader_ids = reinterpret_cast<shader_t*>(&program.desc);
 			IShader** shader_outputs[(u8)shader_type::max] = {
 				&ci->pVS,
 				&ci->pPS
@@ -92,6 +92,7 @@ namespace rengine {
 			*count = 0;
 			if ((flags & (u32)vertex_elements::position) != 0) {
 				auto& position_element = layout_elements[*count];
+				position_element = {};
 				position_element.InputIndex = VERTEX_ELEMENT_POSITION_IDX;
 				position_element.NumComponents = 3;
 				position_element.ValueType = VT_FLOAT32;
@@ -102,6 +103,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::normal) != 0) {
 				LayoutElement& normal_element = layout_elements[*count];
+				normal_element = {};
 				normal_element.InputIndex = VERTEX_ELEMENT_NORMAL_IDX;
 				normal_element.NumComponents = 3;
 				normal_element.ValueType = VT_FLOAT32;
@@ -112,6 +114,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::tangent) != 0) {
 				LayoutElement tangent_element = layout_elements[*count];
+				tangent_element = {};
 				tangent_element.InputIndex = VERTEX_ELEMENT_TANGENT_IDX;
 				tangent_element.NumComponents = 4;
 				tangent_element.ValueType = VT_FLOAT32;
@@ -122,6 +125,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::color) != 0) {
 				LayoutElement& color_element = layout_elements[*count];
+				color_element = {};
 				color_element.InputIndex = VERTEX_ELEMENT_COLOR_IDX;
 				color_element.NumComponents = 1;
 				color_element.ValueType = VT_UINT32;
@@ -132,6 +136,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::colorf) != 0) {
 				LayoutElement& colorf_element = layout_elements[*count];
+				colorf_element = {};
 				colorf_element.InputIndex = VERTEX_ELEMENT_COLORF_IDX;
 				colorf_element.NumComponents = 4;
 				colorf_element.ValueType = VT_FLOAT32;
@@ -141,6 +146,7 @@ namespace rengine {
 
 			if ((flags & (u32)vertex_elements::uv) != 0) {
 				LayoutElement& texcoord_element = layout_elements[*count];
+				texcoord_element = {};
 				texcoord_element.InputIndex = VERTEX_ELEMENT_UV_IDX;
 				texcoord_element.NumComponents = 2;
 				texcoord_element.ValueType = VT_FLOAT32;

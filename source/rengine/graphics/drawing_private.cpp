@@ -23,7 +23,7 @@ namespace rengine {
 
 			size_t size = DRAWING_DEFAULT_TRIANGLE_COUNT * sizeof(triangle_data);
 			size += DRAWING_DEFAULT_LINES_COUNT * sizeof(line_data);
-			size += DRAWING_DEFAULT_POINTS_COUNT * sizeof(vertex_data);	
+			size += DRAWING_DEFAULT_POINTS_COUNT * sizeof(vertex_data);
 			drawing__require_vbuffer_size(size);
 			drawing__compile_shaders();
 			drawing__prewarm_pipelines();
@@ -97,57 +97,57 @@ namespace rengine {
 		{
 			auto& state = g_drawing_state;
 
-                        shader_create_desc shader_desc = {};
-                        shader_t vertex_shader[2]{ no_shader };
-                        shader_t pixel_shader{ no_shader };
+			shader_create_desc shader_desc = {};
+			shader_t vertex_shader[2]{ no_shader };
+			shader_t pixel_shader{ no_shader };
 
-                        shader_desc.name = strings::graphics::g_drawing_vshader_name;
-                        shader_desc.type = shader_type::vertex;
-                        shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
-                        shader_desc.source_code_length = strlen(shader_desc.source_code);
-                        shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
+			shader_desc.name = strings::graphics::g_drawing_vshader_name;
+			shader_desc.type = shader_type::vertex;
+			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
+			shader_desc.source_code_length = strlen(shader_desc.source_code);
+			shader_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
 
-                        vertex_shader[0] = shader_mgr_create(shader_desc);
-                        shader_desc.vertex_elements |= (u32)vertex_elements::uv;
-                        vertex_shader[1] = shader_mgr_create(shader_desc);
+			vertex_shader[0] = shader_mgr_create(shader_desc);
+			shader_desc.vertex_elements |= (u32)vertex_elements::uv;
+			vertex_shader[1] = shader_mgr_create(shader_desc);
 
-                        shader_desc.num_macros = 0;
-                        shader_desc.name = strings::graphics::g_drawing_pshader_name;
-                        shader_desc.type = shader_type::pixel;
-                        shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
-                        shader_desc.source_code_length = strlen(shader_desc.source_code);
+			shader_desc.num_macros = 0;
+			shader_desc.name = strings::graphics::g_drawing_pshader_name;
+			shader_desc.type = shader_type::pixel;
+			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
+			shader_desc.source_code_length = strlen(shader_desc.source_code);
 
-                        pixel_shader = shader_mgr_create(shader_desc);
+			pixel_shader = shader_mgr_create(shader_desc);
 
-                        shader_program_create_desc program_desc{};
-                        program_desc.desc.pixel_shader = pixel_shader;
-                        program_desc.desc.vertex_shader = vertex_shader[0];
-                        state.program[0] = shader_mgr_create_program(program_desc);
+			shader_program_create_desc program_desc{};
+			program_desc.desc.pixel_shader = pixel_shader;
+			program_desc.desc.vertex_shader = vertex_shader[0];
+			state.program[0] = shader_mgr_create_program(program_desc);
 
-                        program_desc.desc.vertex_shader = vertex_shader[1];
-                        state.program[1] = shader_mgr_create_program(program_desc);
-                }
+			program_desc.desc.vertex_shader = vertex_shader[1];
+			state.program[1] = shader_mgr_create_program(program_desc);
+		}
 
 		void drawing__prewarm_pipelines()
 		{
-                        graphics_pipeline_state_create create_desc = {};
-                        create_desc.name = strings::graphics::g_drawing_pipeline_name;
-                        create_desc.topology = primitive_topology::triangle_list;
-                        create_desc.num_render_targets = 1;
-                        create_desc.render_target_formats[0] = get_default_backbuffer_format();
-                        create_desc.depth_stencil_format = get_default_depthbuffer_format();
-                        create_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
+			graphics_pipeline_state_create create_desc = {};
+			create_desc.name = strings::graphics::g_drawing_pipeline_name;
+			create_desc.topology = primitive_topology::triangle_list;
+			create_desc.num_render_targets = 1;
+			create_desc.render_target_formats[0] = get_default_backbuffer_format();
+			create_desc.depth_stencil_format = get_default_depthbuffer_format();
+			create_desc.vertex_elements = (u32)vertex_elements::position | (u32)vertex_elements::color;
 
-                        for (u32 i = 0; i < 2; ++i) {
-                                create_desc.shader_program = g_drawing_state.program[i];
-                                for (u32 j = 0; j < (u8)primitive_topology::line_strip; ++j) {
-                                        create_desc.topology = (primitive_topology)j;
-                                        create_desc.wireframe = false;
-                                        pipeline_state_mgr_create_graphics(create_desc);
-                                        create_desc.wireframe = true;
-                                        pipeline_state_mgr_create_graphics(create_desc);
-                                }
-                        }
+			for (u32 i = 0; i < 2; ++i) {
+				create_desc.shader_program = g_drawing_state.program[i];
+				for (u32 j = 0; j < (u8)primitive_topology::line_strip; ++j) {
+					create_desc.topology = (primitive_topology)j;
+					create_desc.wireframe = false;
+					pipeline_state_mgr_create_graphics(create_desc);
+					create_desc.wireframe = true;
+					pipeline_state_mgr_create_graphics(create_desc);
+				}
+			}
 		}
 
 		void drawing__check_buffer_requirements()
@@ -210,9 +210,9 @@ namespace rengine {
 			renderer_set_depth_enabled(true);
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
-                        renderer_set_program(g_drawing_state.program[1]);
-                        renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color | (u32)vertex_elements::uv);
-                        renderer_draw({ (u32)state.triangles.size() * 3 });
+			renderer_set_program(g_drawing_state.program[1]);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color | (u32)vertex_elements::uv);
+			renderer_draw({ (u32)state.triangles.size() * 3 });
 		}
 
 		void drawing__draw_lines()
@@ -225,9 +225,9 @@ namespace rengine {
 			renderer_set_depth_enabled(true);
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
-                        renderer_set_program(g_drawing_state.program[0]);
-                        renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
-                        renderer_draw({ (u32)g_drawing_state.lines.size() * 2 });
+			renderer_set_program(g_drawing_state.program[0]);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
+			renderer_draw({ (u32)g_drawing_state.lines.size() * 2 });
 		}
 
 		void drawing__draw_points()
@@ -243,9 +243,9 @@ namespace rengine {
 			renderer_set_depth_enabled(true);
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
-                        renderer_set_program(g_drawing_state.program[0]);
-                        renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
-                        renderer_draw({ (u32)g_drawing_state.points.size() });
+			renderer_set_program(g_drawing_state.program[0]);
+			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::color);
+			renderer_draw({ (u32)g_drawing_state.points.size() });
 		}
 
 		void drawing__compute_transform()

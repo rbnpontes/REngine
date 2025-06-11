@@ -47,25 +47,26 @@ namespace rengine {
 			platform_io.Platform_GetClipboardTextFn = imgui_manager__get_clipboard_text;
 			platform_io.Platform_SetClipboardTextFn = imgui_manager__set_clipboard_text;
 			platform_io.Platform_OpenInShellFn = imgui_manager__open_in_shell;
-			
+
 			auto& cursors = state.cursors;
 			// TODO: move SDL cursors to proper place
-			cursors[ImGuiMouseCursor_Arrow]			= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-			cursors[ImGuiMouseCursor_TextInput]		= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
-			cursors[ImGuiMouseCursor_ResizeAll]		= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_MOVE);
-			cursors[ImGuiMouseCursor_ResizeNS]		= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NS_RESIZE);
-			cursors[ImGuiMouseCursor_ResizeEW]		= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_EW_RESIZE);
-			cursors[ImGuiMouseCursor_ResizeNESW]	= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NESW_RESIZE);
-			cursors[ImGuiMouseCursor_ResizeNWSE]	= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NWSE_RESIZE);
-			cursors[ImGuiMouseCursor_Hand]			= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
-			cursors[ImGuiMouseCursor_Wait]			= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
-			cursors[ImGuiMouseCursor_Progress]		= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_PROGRESS);
-			cursors[ImGuiMouseCursor_NotAllowed]	= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NOT_ALLOWED);
-			
+			cursors[ImGuiMouseCursor_Arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+			cursors[ImGuiMouseCursor_TextInput] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
+			cursors[ImGuiMouseCursor_ResizeAll] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_MOVE);
+			cursors[ImGuiMouseCursor_ResizeNS] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NS_RESIZE);
+			cursors[ImGuiMouseCursor_ResizeEW] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_EW_RESIZE);
+			cursors[ImGuiMouseCursor_ResizeNESW] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NESW_RESIZE);
+			cursors[ImGuiMouseCursor_ResizeNWSE] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NWSE_RESIZE);
+			cursors[ImGuiMouseCursor_Hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+			cursors[ImGuiMouseCursor_Wait] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
+			cursors[ImGuiMouseCursor_Progress] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_PROGRESS);
+			cursors[ImGuiMouseCursor_NotAllowed] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NOT_ALLOWED);
+
 			ImGui::StyleColorsDark();
 
 			io.Fonts->AddFontDefault();
 			imgui_manager__init_font_tex();
+			imgui_manager__init_shaders();
 			events::window_subscribe_event(imgui_manager__on_sdl_event);
 		}
 
@@ -84,7 +85,7 @@ namespace rengine {
 			auto& io = ImGui::GetIO();
 			byte* font_data = null;
 			int font_width = 0, font_height = 0, font_bpp = 0;
-			
+
 			io.Fonts->GetTexDataAsRGBA32(&font_data, &font_width, &font_height, &font_bpp);
 
 			texture_create_desc<texture_2d_size> desc;
@@ -105,7 +106,7 @@ namespace rengine {
 		void imgui_manager__init_shaders()
 		{
 			auto& state = g_imgui_manager_state;
-			
+
 			shader_create_desc shader_desc = {};
 			shader_desc.type = shader_type::vertex;
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_vs;
@@ -119,13 +120,13 @@ namespace rengine {
 			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
 
-                        state.pixel_shader = shader_mgr_create(shader_desc);
+			state.pixel_shader = shader_mgr_create(shader_desc);
 
-                        shader_program_create_desc program_desc{};
-                        program_desc.desc.vertex_shader = state.vertex_shader;
-                        program_desc.desc.pixel_shader = state.pixel_shader;
-                        state.program = shader_mgr_create_program(program_desc);
-                }
+			shader_program_create_desc program_desc{};
+			program_desc.desc.vertex_shader = state.vertex_shader;
+			program_desc.desc.pixel_shader = state.pixel_shader;
+			state.program = shader_mgr_create_program(program_desc);
+		}
 
 		c_str imgui_manager__get_clipboard_text(ImGuiContext* ctx)
 		{
@@ -158,59 +159,59 @@ namespace rengine {
 
 			switch (evt->type)
 			{
-				case SDL_EVENT_MOUSE_MOTION:
-				{
-					ImVec2 ms_pos((float)evt->motion.x, (float)evt->motion.y);
-					io.AddMouseSourceEvent(evt->motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
-					io.AddMousePosEvent(ms_pos.x, ms_pos.y);
-				}
-					break;
-				case SDL_EVENT_MOUSE_WHEEL:
-				{
-					auto& wheel = evt->wheel;
-					io.AddMouseSourceEvent(evt->wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
-					io.AddMouseWheelEvent(-wheel.x, wheel.y);
-				}
-					break;
-				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-				case SDL_EVENT_MOUSE_BUTTON_UP:
-				{
-					int ms_button = -1;
-					auto& btn = evt->button;
-					if (btn.button == SDL_BUTTON_LEFT)
-						ms_button = 0;
-					if (btn.button == SDL_BUTTON_RIGHT)
-						ms_button = 1;
-					if (btn.button == SDL_BUTTON_MIDDLE)
-						ms_button = 2;
-					if (btn.button == SDL_BUTTON_X1)
-						ms_button = 3;
-					if (btn.button == SDL_BUTTON_X2)
-						ms_button = 4;
+			case SDL_EVENT_MOUSE_MOTION:
+			{
+				ImVec2 ms_pos((float)evt->motion.x, (float)evt->motion.y);
+				io.AddMouseSourceEvent(evt->motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
+				io.AddMousePosEvent(ms_pos.x, ms_pos.y);
+			}
+			break;
+			case SDL_EVENT_MOUSE_WHEEL:
+			{
+				auto& wheel = evt->wheel;
+				io.AddMouseSourceEvent(evt->wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
+				io.AddMouseWheelEvent(-wheel.x, wheel.y);
+			}
+			break;
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
+			{
+				int ms_button = -1;
+				auto& btn = evt->button;
+				if (btn.button == SDL_BUTTON_LEFT)
+					ms_button = 0;
+				if (btn.button == SDL_BUTTON_RIGHT)
+					ms_button = 1;
+				if (btn.button == SDL_BUTTON_MIDDLE)
+					ms_button = 2;
+				if (btn.button == SDL_BUTTON_X1)
+					ms_button = 3;
+				if (btn.button == SDL_BUTTON_X2)
+					ms_button = 4;
 
-					if (ms_button == -1)
-						return;
+				if (ms_button == -1)
+					return;
 
-					io.AddMouseSourceEvent(evt->button.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
-					io.AddMouseButtonEvent(ms_button, evt->type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-				}
-					break;
-				case SDL_EVENT_TEXT_INPUT:
-					io.AddInputCharactersUTF8(evt->text.text);
-					break;
-				case SDL_EVENT_WINDOW_FOCUS_GAINED:
-				case SDL_EVENT_WINDOW_FOCUS_LOST:
-					io.AddFocusEvent(evt->type == SDL_EVENT_WINDOW_FOCUS_GAINED);
-					break;
+				io.AddMouseSourceEvent(evt->button.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
+				io.AddMouseButtonEvent(ms_button, evt->type == SDL_EVENT_MOUSE_BUTTON_DOWN);
+			}
+			break;
+			case SDL_EVENT_TEXT_INPUT:
+				io.AddInputCharactersUTF8(evt->text.text);
+				break;
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			case SDL_EVENT_WINDOW_FOCUS_LOST:
+				io.AddFocusEvent(evt->type == SDL_EVENT_WINDOW_FOCUS_GAINED);
+				break;
 			}
 		}
-		
+
 		void imgui_manager__update()
 		{
 			auto& io = ImGui::GetIO();
 			const auto wnd_id = g_engine_state.window_id;
 			const auto& wnd_desc = core::window_get_desc(wnd_id);
-		
+
 			io.DisplaySize = ImVec2(wnd_desc.bounds.size.x, wnd_desc.bounds.size.y);
 			io.DisplayFramebufferScale = ImVec2(wnd_desc.dpi_scale.x, wnd_desc.dpi_scale.y);
 			io.DeltaTime = g_engine_state.time.curr_delta;
@@ -237,7 +238,7 @@ namespace rengine {
 			SDL_GetGlobalMouseState(&ms_global_x, &ms_global_y);
 			io.AddMousePosEvent(ms_global_x - wnd_desc.bounds.position.x, ms_global_y - wnd_desc.bounds.position.y);
 		}
-		
+
 		void imgui_manager__update_mouse_cursor()
 		{
 			// TODO: there's no reason to made cursor handling here
@@ -309,13 +310,13 @@ namespace rengine {
 			renderer_set_vbuffer(state.vertex_buffer, 0);
 			renderer_set_ibuffer(state.index_buffer, 0);
 			renderer_set_vertex_elements((u32)vertex_elements::position | (u32)vertex_elements::uv | (u32)vertex_elements::color);
-                        renderer_set_program(state.program);
-                        renderer_set_cull_mode(cull_mode::none);
+			renderer_set_program(state.program);
+			renderer_set_cull_mode(cull_mode::none);
 			renderer_set_topology(primitive_topology::triangle_list);
 			renderer_set_wireframe(false);
 			renderer_set_depth_enabled(true);
 		}
-		
+
 		void imgui_manager__render_commands(ImDrawData* draw_data)
 		{
 			u32 global_idx_offset = 0;
@@ -343,8 +344,8 @@ namespace rengine {
 						continue;
 
 					// TODO: implement scissors
-                                        const auto tex = cmd->GetTexID();
-                                        renderer_set_texture_2d("g_texture", tex);
+					const auto tex = cmd->GetTexID();
+					renderer_set_texture_2d("g_texture", tex);
 
 					draw_indexed_desc draw_desc = {};
 					draw_desc.num_indices = cmd->ElemCount;

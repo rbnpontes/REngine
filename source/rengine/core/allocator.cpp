@@ -35,7 +35,7 @@ namespace rengine{
             0,
             0,
         };
-		export byte* g_scratch_buffer = null;
+		extern byte* g_scratch_buffer = null;
 
         void alloc__assert_limit(size_t limit) {
             if(g_data.usage + limit <= g_data.limit )

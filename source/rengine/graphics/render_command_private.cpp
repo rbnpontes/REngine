@@ -31,6 +31,18 @@ namespace rengine {
 			);
 		}
 
+		void render_command__prepare(render_command_data& data)
+		{
+			render_command__prepare_textures(data);
+			render_command__build_hash(data);
+		}
+
+		void render_command__build_internal_objects(render_command_data& data)
+		{
+			render_command__build_pipeline(data);
+			render_command__build_srb(data);
+		}
+
 		void render_command__build_pipeline(render_command_data& data)
 		{
 			auto immutable_samplers = (immutable_sampler_desc*)core::alloc_scratch(
@@ -94,18 +106,18 @@ namespace rengine {
 				sizeof(srb_mgr_resource_desc) * data.resources.size()
 			);
 
-                        for (const auto& it : data.resources) {
-                                const auto& res = it.second;
-                                auto& srb_res = srb_desc.resources[srb_desc.num_resources];
-                                srb_res.name = res.resource.name;
-                                srb_res.id = res.tex_id;
-                                srb_res.type = res.type;
-                                ++srb_desc.num_resources;
-                        }
-                        data.srb = srb_mgr_create(srb_desc);
+			for (const auto& it : data.resources) {
+				const auto& res = it.second;
+				auto& srb_res = srb_desc.resources[srb_desc.num_resources];
+				srb_res.name = res.resource.name;
+				srb_res.id = res.tex_id;
+				srb_res.type = res.type;
+				++srb_desc.num_resources;
+			}
+			data.srb = srb_mgr_create(srb_desc);
 
-                        core::alloc_scratch_pop(sizeof(srb_mgr_resource_desc) * data.resources.size());
-                }
+			core::alloc_scratch_pop(sizeof(srb_mgr_resource_desc) * data.resources.size());
+		}
 
 		void render_command__build_hash(render_command_data& data)
 		{
@@ -168,12 +180,12 @@ namespace rengine {
 			if (cmd.program == no_shader_program)
 				return;
 
-                        auto hash = (core::hash_t)cmd.resources.size();
-                        for (const auto& it : cmd.resources) {
-                                const auto& res = it.second;
-                                hash = core::hash_combine(hash, res.resource.id);
-                                hash = core::hash_combine(hash, (u32)res.type);
-                        }
+			auto hash = (core::hash_t)cmd.resources.size();
+			for (const auto& it : cmd.resources) {
+				const auto& res = it.second;
+				hash = core::hash_combine(hash, res.resource.id);
+				hash = core::hash_combine(hash, (u32)res.type);
+			}
 
 			cmd.hashes.textures = hash;
 		}
@@ -199,7 +211,7 @@ namespace rengine {
 
 				if (res.type != resource_type::tex2d)
 					throw not_implemented_exception();
-				
+
 				const auto& bounded_tex_it = cmd.resources.find_as(res.id);
 				if (cmd.resources.end() == bounded_tex_it) {
 					new_textures[res.id] = render_command_resource{
@@ -297,8 +309,8 @@ namespace rengine {
 
 		void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id)
 		{
-                        if (no_texture_cube == id)
-                                return;
+			if (no_texture_cube == id)
+				return;
 
 			render_command_resource res{};
 			res.type = resource_type::texcube;
@@ -323,10 +335,10 @@ namespace rengine {
 
 		void render_command__unset_tex(render_command_data& cmd, const core::hash_t& slot)
 		{
-                        const auto& it = cmd.resources.find_as(slot);
-                        if (cmd.resources.end() == it)
-                                return;
-                        cmd.resources.erase(it);
+			const auto& it = cmd.resources.find_as(slot);
+			if (cmd.resources.end() == it)
+				return;
+			cmd.resources.erase(it);
 		}
 
 		void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)

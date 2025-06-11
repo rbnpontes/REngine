@@ -33,8 +33,7 @@ namespace rengine {
 			auto& state = g_render_command_state;
 			auto curr_cmd = *state.curr_cmd;
 
-			render_command__prepare_textures(curr_cmd);
-			render_command__build_hash(curr_cmd);
+			render_command__prepare(curr_cmd);
 
 			const auto& it = state.commands.find_as(curr_cmd.id);
 			if (it != state.commands.end())
@@ -45,8 +44,7 @@ namespace rengine {
 					fmt::format(strings::exceptions::g_render_cmd_cant_build_render_cmd, GRAPHICS_MAX_RENDER_COMMANDS).c_str()
 				);
 
-			render_command__build_pipeline(curr_cmd);
-			render_command__build_srb(curr_cmd);
+			render_command__build_internal_objects(curr_cmd);
 
 			auto cmd = shared_ptr<render_command_data>(core::alloc_new<render_command_data>());
 			*cmd = curr_cmd;
