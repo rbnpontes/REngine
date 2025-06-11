@@ -79,12 +79,12 @@ namespace rengine {
 			u32 num_immutable_samplers = 0;
 			for (auto& res_it : data.resources) {
 				auto& res = res_it.second;
-				if (res.resource.type != resource_type::cbuffer)
-					continue;
-
+				// TODO: implement sampler desc from texture desc
 				auto& immutable_sampler = pipeline_create.immutable_samplers[num_immutable_samplers];
-				immutable_sampler.name = res.resource.name;
-				immutable_sampler.shader_type_flags = res.resource.shader_flags;
+				immutable_sampler = {
+					.name = res.resource.name,
+					.shader_type_flags = res.resource.shader_flags,
+				};
 				++pipeline_create.num_immutable_samplers;
 			}
 
@@ -150,6 +150,14 @@ namespace rengine {
 				offsets_hash = core::hash_combine(offsets_hash, cmd.vertex_offsets[i]);
 			}
 
+			if (cmd.program != no_shader_program) {
+				const auto program = shader_mgr__get_program(cmd.program);
+				// diligent stores vertex stride internaly, we must use vertex elements
+				// to force internal lookup for input layout, this can be made
+				// by simple integrating vertex elements into vertex buffer hash
+				vbuffer_hash = core::hash_combine(vbuffer_hash, shader_mgr_get_vertex_elements(program->desc.vertex_shader));
+			}
+
 			cmd.hashes.vertex_buffers = vbuffer_hash;
 			cmd.hashes.vertex_buffer_offsets = offsets_hash;
 		}
@@ -199,29 +207,36 @@ namespace rengine {
 			// dummy texture instead.
 			auto& state = g_render_command_state;
 
-			shader_program program;
-			shader_mgr__get_program(cmd.program, &program);
+			const auto program = shader_mgr__get_program(cmd.program);
+			const auto& program_resources = program->resources;
 
 			hash_map<core::hash_t, render_command_resource> new_textures;
-			for (auto i = 0; i < program.num_resources; ++i) {
-				const auto& res = program.resources[i];
+			for (const auto& it : program_resources) {
+				const auto& res = it.second;
 				if (res.type == resource_type::cbuffer)
 					continue;
 
 				if (res.type != resource_type::tex2d)
 					throw not_implemented_exception();
 
-				const auto& bounded_tex_it = cmd.resources.find_as(res.id);
-				if (cmd.resources.end() == bounded_tex_it) {
-					new_textures[res.id] = render_command_resource{
+				render_command_resource resource;
+
+				const auto& resource_it = cmd.resources.find_as(res.id);
+				auto bound_resource = cmd.resources.end() != resource_it;
+				if (bound_resource) {
+					resource = {
 						.type = res.type,
 						.resource = res,
-						.tex_id = texture_mgr_get_white_dummy_tex2d(),
+						.tex_id = resource_it->second.tex_id,
 					};
-					continue;
+				} else {
+					//if resource is not bounded, then we need to assign a dummy texture
+					resource.type = res.type;
+					resource.resource = res;
+					resource.tex_id = texture_mgr_get_white_dummy_tex2d();
 				}
 
-				new_textures[res.id] = bounded_tex_it->second;
+				new_textures[res.id] = resource;
 			}
 
 			cmd.resources = new_textures;

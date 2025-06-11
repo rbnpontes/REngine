@@ -70,9 +70,8 @@ namespace rengine {
 			if (program_id == no_shader_program)
 				return;
 
-			shader_program program;
-			shader_mgr__get_program(program_id, &program);
-			shader_t* shader_ids = reinterpret_cast<shader_t*>(&program.desc);
+			const auto program = shader_mgr__get_program(program_id);
+			const auto shader_ids = reinterpret_cast<const shader_t*>(&program->desc);
 			IShader** shader_outputs[(u8)shader_type::max] = {
 				&ci->pVS,
 				&ci->pPS
@@ -182,19 +181,23 @@ namespace rengine {
 				auto& desc = immutable_samplers[i];
 				desc.SamplerOrTextureName = sampler.name;
 				desc.ShaderStages = (Diligent::SHADER_TYPE)sampler.shader_type_flags;
-				desc.Desc.MinFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
-				desc.Desc.MipFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
-				desc.Desc.MagFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
-				desc.Desc.AddressU = g_texture_address_mode_tbl[(u32)sampler.desc.address];
-				desc.Desc.AddressV = g_texture_address_mode_tbl[(u32)sampler.desc.address];
-				desc.Desc.AddressW = g_texture_address_mode_tbl[(u32)sampler.desc.address];
+				desc.Desc.MinFilter =
+					desc.Desc.MipFilter = 
+					desc.Desc.MagFilter = g_filter_type_tbl[(u32)sampler.desc.filter];
+				desc.Desc.AddressU = 
+					desc.Desc.AddressV =
+					desc.Desc.AddressW = g_texture_address_mode_tbl[(u32)sampler.desc.address];
 				desc.Desc.ComparisonFunc = g_comparison_function_tbl[(u32)sampler.desc.comparison];
 				desc.Desc.MinLOD = sampler.desc.min_lod;
 				desc.Desc.MaxLOD = sampler.desc.max_lod;
 				desc.Desc.MipLODBias = sampler.desc.lod_bias;
+				desc.Desc.MaxAnisotropy = sampler.desc.max_anisotropy;
 				desc.Desc.Name = sampler.name;
+				desc.Desc.Flags = SAMPLER_FLAG_NONE;
+				desc.Desc.UnnormalizedCoords = false;
+				memset(desc.Desc.BorderColor, 0x0, sizeof(float) * 4);
 			}
-			return null;
+			return immutable_samplers;
 		}
 
 		Diligent::ShaderResourceVariableDesc* pipeline_state_mgr__build_srv(u32* count)

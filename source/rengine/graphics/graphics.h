@@ -19,5 +19,7 @@ namespace rengine {
 		R_EXPORT u8 get_msaa_available_levels();
 		R_EXPORT u16 get_default_backbuffer_format();
 		R_EXPORT u16 get_default_depthbuffer_format();
+		R_EXPORT render_target_t get_viewport_rt();
+		R_EXPORT math::uvec2 get_viewport_size();
 	}
 }

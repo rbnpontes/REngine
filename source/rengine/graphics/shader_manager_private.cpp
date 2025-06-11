@@ -30,6 +30,7 @@ namespace rengine {
 			ShaderCreateInfo ci = {};
 			ci.Desc.Name = desc.name;
 			ci.Desc.ShaderType = g_shader_type_tbl[(u8)desc.type];
+			ci.Desc.UseCombinedTextureSamplers = true;
 			ci.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
 			ci.Source = desc.source_code;
 			ci.SourceLength = desc.source_code_length;
@@ -53,17 +54,16 @@ namespace rengine {
 			return it->second.handler;
 		}
 
-		void shader_mgr__get_program(const shader_program_t& program_id, shader_program* program_output)
+		const shader_program* shader_mgr__get_program(const shader_program_t& program_id)
 		{
 			if (program_id == no_shader_program)
-				return;
+				return null;
 			auto& state = g_shader_mgr_state;
 			const auto it = state.programs.find_as(program_id);
 			if (it == state.programs.end())
-				return;
+				return null;
 
-			if(program_output)
-				*program_output = it->second;
+			return &it->second;
 		}
 
 		shader_program_t shader_mgr__create_program(const shader_program_create_desc& desc)
@@ -88,7 +88,7 @@ namespace rengine {
 
 				for (u8 j = 0; j < entries[i]->num_resources; ++j) {
 					auto& res = entries[i]->resources[j];
-					if (resource_type::unknow != res.type)
+					if (resource_type::unknow == res.type)
 						continue;
 					auto it = program.resources.find_as(res.id);
 					if (program.resources.end() != it) {
@@ -113,7 +113,7 @@ namespace rengine {
 			core::alloc_free(entry.resources);
 		}
 
-		void shader_mgr__collect_resources(Diligent::IShader* shader, shader_resource* resources)
+		void shader_mgr__collect_resources(Diligent::IShader* shader, shader_resource* resources, u32 shader_type_flag)
 		{
 			const auto resource_count = shader->GetResourceCount();
 			for (u32 i = 0; i < resource_count; ++i) {
@@ -122,10 +122,11 @@ namespace rengine {
 
 				core::hash_t resource_hash = 0;
 				c_str resource_name = core::string_pool_intern(resource_desc.Name, &resource_hash);
-				resources[i] ={
+				resources[i] = {
 					resource_hash,
 					shader_mgr__get_resource_type(&resource_desc),
-					resource_name
+					resource_name,
+					shader_type_flag
 				};
 			}
 		}
@@ -172,7 +173,7 @@ namespace rengine {
 		resource_type shader_mgr__get_resource_type(Diligent::ShaderResourceDesc* desc)
 		{
 			resource_type res_type = g_shader_resource_tbl[desc->Type];
-			if (res_type == resource_type::tex2d && desc->ArraySize > 0)
+			if (res_type == resource_type::tex2d && desc->ArraySize > 1)
 				res_type = resource_type::texarray;
 			return res_type;
 		}

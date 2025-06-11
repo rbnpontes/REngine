@@ -54,17 +54,22 @@ namespace rengine {
 			//SHADER_RESOURCE_TYPE_ACCEL_STRUCT
 			resource_type::unknow
 		};
+		static constexpr shader_type_flags g_shader_type_flags_tbl[] = {
+			shader_type_flags::vertex,
+			shader_type_flags::pixel,
+			shader_type_flags::none,
+		};
 
 		void shader_mgr__deinit();
 
 		Diligent::IShader* shader_mgr__create_shader(const shader_create_desc& desc);
 		Diligent::IShader* shader_mgr__get_handle(const shader_t& shader_id);
-		void shader_mgr__get_program(const shader_program_t& program_id, shader_program* program_output);
+		const shader_program* shader_mgr__get_program(const shader_program_t& program_id);
 
 		shader_program_t shader_mgr__create_program(const shader_program_create_desc& desc);
 
 		void shader_mgr__free(const shader_entry& entry);
-		void shader_mgr__collect_resources(Diligent::IShader* shader, shader_resource* resources);
+		void shader_mgr__collect_resources(Diligent::IShader* shader, shader_resource* resources, u32 shader_type_flag);
 		void shader_mgr__fill_vertex_elements_macros(vector<Diligent::ShaderMacro>& macros, u32 elements);
 
 		resource_type shader_mgr__get_resource_type(Diligent::ShaderResourceDesc* desc);

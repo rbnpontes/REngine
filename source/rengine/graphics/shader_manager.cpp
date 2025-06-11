@@ -26,7 +26,7 @@ namespace rengine {
 				core::alloc_array_alloc<shader_resource>(resource_count),
 				desc.vertex_elements
 			};
-			shader_mgr__collect_resources(shader, entry.resources);
+			shader_mgr__collect_resources(shader, entry.resources, (u32)g_shader_type_flags_tbl[(u8)desc.type]);
 
 			++state.shaders_count;
 			state.shaders[id] = entry;

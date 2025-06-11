@@ -8,6 +8,7 @@
 #include "../exceptions.h"
 #include "../strings.h"
 #include "../core/hash.h"
+#include "../math/math-types.h"
 
 #include <fmt/format.h>
 
@@ -26,16 +27,19 @@ namespace rengine {
 
 		void renderer__reset_state(bool reset_ctx_state) {
 			auto& cmd = g_renderer_state.default_cmd;
+			auto viewport_size = g_graphics_state.viewport_size;
 			cmd.name = strings::graphics::g_default_cmd_name;
 			cmd.id = 0;
 			cmd.hashes = {};
-			cmd.viewport = math::urect::zero;
+			cmd.viewport = { {0, 0}, viewport_size };
 			cmd.topology = primitive_topology::triangle_list;
 			cmd.depth_enabled = true;
 			cmd.wireframe = false;
-			cmd.num_render_targets = cmd.num_vertex_buffers = 0;
+			cmd.num_vertex_buffers = 0;
 			cmd.depth_stencil = no_render_target;
 			cmd.render_targets.fill(no_render_target);
+			cmd.render_targets[0] = cmd.depth_stencil = g_graphics_state.viewport_rt;
+			cmd.num_render_targets = 1;
 			cmd.vertex_buffers.fill(no_vertex_buffer);
 			cmd.vertex_offsets.fill(0);
 			cmd.index_buffer = no_index_buffer;

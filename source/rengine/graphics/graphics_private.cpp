@@ -197,15 +197,15 @@ namespace rengine {
 		void begin() {
 			profile_begin_name(strings::profiler::graphics_loop);
 
-			renderer__reset_state(false);
-
 			const auto& window = g_engine_state.window_id;
 			if (window == core::no_window)
 				return;
 
+			prepare_viewport(window);
+			renderer__reset_state(false);
+
 			verify_graphics_resources();
 			prepare_swapchain_window(window);
-			prepare_viewport_rt(window);
 
 			clear_desc desc = {};
 			desc.depth = 1.0f;
@@ -217,15 +217,15 @@ namespace rengine {
 
 		void end() {
 			profile_scoped_end();
+			// skip if no window has been set
+			if (g_engine_state.window_id == core::no_window)
+				return;
+
 			// if no draw command has been submitted but
 			// renderer has pending commands, we must
 			// flush these commands before present
 			if (g_renderer_state.dirty_flags != 0)
 				renderer_flush();
-
-			// skip if no window has been set
-			if (g_engine_state.window_id == core::no_window)
-				return;
 
 			// if swapchain has not been created, skip then
 			auto swapchain = core::window__get_swapchain(g_engine_state.window_id);
@@ -327,36 +327,46 @@ namespace rengine {
 			pipeline_state_mgr_clear_cache();
 		}
 
-		void prepare_viewport_rt(const core::window_t& window_id)
+		void prepare_viewport(const core::window_t& window_id)
 		{
-			profile();
 			auto& state = g_graphics_state;
 			const auto& wnd_size = core::window_get_size(window_id);
 			auto viewport_rt = render_target_mgr_find_from_size(wnd_size);
+
+			// TODO: apply dpi here
+			state.viewport_size = wnd_size;
+			prepare_viewport_rt();
+		}
+
+		void prepare_viewport_rt()
+		{
+			profile();
+			auto& state = g_graphics_state;
+			auto& viewport_size = state.viewport_size;
+			auto viewport_rt = render_target_mgr_find_from_size(viewport_size);
 
 			const auto changed_msaa = state.msaa.curr_level != state.msaa.next_level;
 			const auto no_viewport_rt = viewport_rt == no_render_target;
 			const auto rebuild_rt = no_viewport_rt || changed_msaa;
 
-			if (rebuild_rt) {
-				if (viewport_rt != no_render_target)
-					render_target_mgr_destroy(viewport_rt);
+			if (!rebuild_rt)
+				return;
+			
+			if (viewport_rt != no_render_target)
+				render_target_mgr_destroy(viewport_rt);
 
-				viewport_rt = render_target_mgr_create({
-						{ 
-							strings::graphics::g_viewport_rt_name, 
-							wnd_size, 
-							get_default_backbuffer_format(), 
-							get_default_depthbuffer_format(),
-							state.msaa.next_level
-						},
-						state.msaa.next_level == 1 ? render_target_type::normal : render_target_type::multisampling
-					});
-				state.msaa.curr_level = state.msaa.next_level;
-			}
-
-			renderer_set_render_target(viewport_rt, viewport_rt);
-			renderer_set_viewport({ {0, 0}, { wnd_size.x, wnd_size.y } });
+			viewport_rt = render_target_mgr_create({
+					{ 
+						strings::graphics::g_viewport_rt_name, 
+						viewport_size,
+						get_default_backbuffer_format(), 
+						get_default_depthbuffer_format(),
+						state.msaa.next_level
+					},
+					state.msaa.next_level == 1 ? render_target_type::normal : render_target_type::multisampling
+				});
+			state.msaa.curr_level = state.msaa.next_level;
+			state.viewport_rt = viewport_rt;
 		}
 
 		void prepare_swapchain_window(const core::window_t& window_id)
@@ -472,6 +482,16 @@ namespace rengine {
 			// TODO: add support for other formats
 			// Ex: Apple devices uses D24_UNORM_S8_UINT if i'm not wrong
 			return Diligent::TEX_FORMAT_D16_UNORM;
+		}
+		
+		render_target_t get_viewport_rt()
+		{
+			return g_graphics_state.viewport_rt;
+		}
+
+		math::uvec2 get_viewport_size()
+		{
+			return g_graphics_state.viewport_size;
 		}
 	}
 }

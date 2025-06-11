@@ -101,6 +101,8 @@ namespace rengine {
 			data.stride = font_width * font_bpp;
 
 			state.font_tex = texture_mgr_create_tex2d(desc, data);
+
+			io.Fonts->SetTexID(state.font_tex);
 		}
 
 		void imgui_manager__init_shaders()
@@ -117,7 +119,7 @@ namespace rengine {
 
 			shader_desc.num_macros = 0;
 			shader_desc.type = shader_type::pixel;
-			shader_desc.source_code = strings::graphics::shaders::g_drawing_ps;
+			shader_desc.source_code = strings::graphics::shaders::g_imgui_ps;
 			shader_desc.source_code_length = strlen(shader_desc.source_code);
 
 			state.pixel_shader = shader_mgr_create(shader_desc);
@@ -356,6 +358,8 @@ namespace rengine {
 				global_idx_offset += draw_list->IdxBuffer.Size;
 				global_vtx_offset += draw_list->VtxBuffer.Size;
 			}
+
+			renderer_reset_states();
 		}
 	}
 }

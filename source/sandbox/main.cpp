@@ -35,69 +35,8 @@ void game_loop() {
 		rengine::graphics::drawing_rotate(g_rotation);
 
 		rengine::graphics::drawing_draw_quad(rengine::math::vec3::zero, rengine::math::vec2::one);
-		/*rengine::graphics::drawing_set_color(a_color);
-		rengine::graphics::drawing_push_vertex(a);
-
-		rengine::graphics::drawing_set_color(b_color);
-		rengine::graphics::drawing_push_vertex(b);
-
-		rengine::graphics::drawing_set_color(c_color);
-		rengine::graphics::drawing_push_vertex(c);*/
-
-		//rengine::graphics::drawing_draw_triangle();
 	}
 
-  //  {
-  //      // Draw line: A -> B
-  //      {
-		//    rengine::graphics::renderer_set_color(a_color);
-		//    rengine::graphics::renderer_push_vertex(a);
-
-		//    rengine::graphics::renderer_set_color(b_color);
-		//    rengine::graphics::renderer_push_vertex(b);
-
-		//    rengine::graphics::renderer_draw_line();
-  //      }
-
-		//// Draw line: B -> C
-  //      {
-		//    rengine::graphics::renderer_set_color(b_color);
-		//    rengine::graphics::renderer_push_vertex(b);
-
-		//    rengine::graphics::renderer_set_color(c_color);
-		//    rengine::graphics::renderer_push_vertex(c);
-
-		//    rengine::graphics::renderer_draw_line();
-  //      }
-
-  //      // Draw line: C -> A
-  //      {
-		//    rengine::graphics::renderer_set_color(c_color);
-		//    rengine::graphics::renderer_push_vertex(c);
-
-		//    rengine::graphics::renderer_set_color(a_color);
-		//    rengine::graphics::renderer_push_vertex(a);
-
-		//    rengine::graphics::renderer_draw_line();
-  //      }
-  //  }
-
-  /*{
-	  rengine::graphics::renderer_set_color(a_color);
-	  rengine::graphics::renderer_push_vertex(a);
-	  rengine::graphics::renderer_draw_point();
-
-	  rengine::graphics::renderer_set_color(b_color);
-	  rengine::graphics::renderer_push_vertex(b);
-	  rengine::graphics::renderer_draw_point();
-
-	  rengine::graphics::renderer_set_color(c_color);
-	  rengine::graphics::renderer_push_vertex(c);
-	  rengine::graphics::renderer_draw_point();
-  }*/
-  /*
-  rengine::graphics::renderer_set_color(rengine::math::byte_color::green);
-  rengine::graphics::renderer_draw_quad(rengine::math::vec3(0.f, 0.f), rengine::math::vec2(.5f, .5f));*/
 	rengine::graphics::drawing_end_draw();
 
 	if (rengine::graphics::imgui_manager_begin()) {

@@ -202,7 +202,8 @@ namespace rengine {
 		void drawing__draw_triangles()
 		{
 			profile();
-
+			const auto ctx = g_graphics_state.contexts[0];
+			ctx->BeginDebugGroup("drawing::triangles");
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
 			renderer_set_topology(primitive_topology::triangle_list);
@@ -211,6 +212,7 @@ namespace rengine {
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[1]);
 			renderer_draw({ (u32)state.triangles.size() * 3 });
+			ctx->EndDebugGroup();
 		}
 
 		void drawing__draw_lines()
