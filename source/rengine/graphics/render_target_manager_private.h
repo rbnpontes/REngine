@@ -40,7 +40,7 @@ namespace rengine {
 		render_target_type render_target_mgr__get_type(const render_target_t& id);
 		bool render_target_mgr__has_depthbuffer(const render_target_t& id);
 		void render_target_mgr__get_internal_handles(const render_target_t& id, Diligent::ITexture** backbuffer, Diligent::ITexture** depthbuffer);
-		render_target_t render_target_mgr__find_suitable_from_size(const math::uvec2& size);
+		render_target_t render_target_mgr__find_suitable_from_size(const math::uvec2& size, render_target_type expected_type);
 
 
 		void render_target_mgr__alloc_textures(const render_target_create_info& create_info, Diligent::ITexture** backbuffer, Diligent::ITexture** depthbuffer);

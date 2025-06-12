@@ -43,6 +43,7 @@ namespace rengine {
 			diligent_allocator* allocator;
 			u32 num_contexts;
 			render_target_t viewport_rt;
+			render_target_t resolve_rt;
 			math::uvec2 viewport_size;
 			backend backend;
 			graphics_buffers buffers;
@@ -76,7 +77,7 @@ namespace rengine {
 		void prepare_viewport_rt();
 		void prepare_swapchain_window(const core::window_t& window_id);
 		
-		void blit_render_targets(Diligent::ITexture* src, Diligent::ITexture* dst, bool msaa);
+		void blit_2_swapchain(Diligent::ITexture* swapchain_buffer);
 
 		void update_buffers();
 		void update_frame_buffer();

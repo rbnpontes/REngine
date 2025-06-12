@@ -60,9 +60,9 @@ namespace rengine {
 			return render_target_mgr__is_valid(id);
 		}
 
-		render_target_t render_target_mgr_find_from_size(const math::uvec2& size)
+		render_target_t render_target_mgr_find_from_size(const math::uvec2& size, render_target_type expected_type)
 		{
-			return render_target_mgr__find_suitable_from_size(size);
+			return render_target_mgr__find_suitable_from_size(size, expected_type);
 		}
 	}
 }

@@ -38,6 +38,7 @@ namespace rengine {
 			constexpr static c_str g_drawing_pshader_name = "rengine::models::pshader";
 
             constexpr static c_str g_viewport_rt_name = "rengine::viewport";
+            constexpr static c_str g_viewport_resolve_rt_name = "rengine::viewport_resolve";
             constexpr static c_str g_default_cmd_name = "rengine::render_command";
 
             constexpr static c_str g_frame_buffer_name = "rengine::graphics::frame::cbuffer";

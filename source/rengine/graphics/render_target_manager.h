@@ -42,6 +42,6 @@ namespace rengine {
 		R_EXPORT void render_target_mgr_clear_cache();
 		R_EXPORT void render_target_mgr_get_available_rts(u8* count, render_target_t* output_ids);
 		R_EXPORT bool render_target_mgr_is_valid(const render_target_t& id);
-		R_EXPORT render_target_t render_target_mgr_find_from_size(const math::uvec2& size);
+		R_EXPORT render_target_t render_target_mgr_find_from_size(const math::uvec2& size, render_target_type expected_type = render_target_type::normal);
 	}
 }

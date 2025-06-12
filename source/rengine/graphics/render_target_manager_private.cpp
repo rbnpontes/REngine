@@ -122,10 +122,10 @@ namespace rengine {
 				*depthbuffer = entry.value.depthbuffer;
 		}
 
-		render_target_t render_target_mgr__find_suitable_from_size(const math::uvec2& size)
+		render_target_t render_target_mgr__find_suitable_from_size(const math::uvec2& size, render_target_type expected_type = render_target_type::normal)
 		{
 			for (const auto& entry : g_rt_mgr_state.render_targets) {
-				if (!entry.value.backbuffer)
+				if (!entry.value.backbuffer || entry.value.type != expected_type)
 					continue;
 
 				const auto& rt_size = entry.value.desc.size;

@@ -232,24 +232,7 @@ namespace rengine {
 			if (!swapchain)
 				return;
 
-			const auto& cmd = g_renderer_state.default_cmd;
-			// if no render targets has been bound, do skip and finish rendering
-			if (cmd.num_render_targets == 0) {
-				present_swapchain(swapchain);
-				return;
-			}
-
-			// if render target has been bound, we must
-			// copy render target pixels to swapchain backbuffer
-			// and do present. this step resolves MSAA
-			auto src_rt_id = cmd.render_targets[0];
-			ptr src_backbuffer = null;
-			render_target_mgr_get_handlers(src_rt_id, &src_backbuffer, null);
-
-			blit_render_targets((Diligent::ITexture*)src_backbuffer,
-				swapchain->GetCurrentBackBufferRTV()->GetTexture(),
-				g_graphics_state.msaa.curr_level != 1);
-
+			blit_2_swapchain(swapchain->GetCurrentBackBufferRTV()->GetTexture());
 			present_swapchain(swapchain);
 		}
 
@@ -343,7 +326,11 @@ namespace rengine {
 			profile();
 			auto& state = g_graphics_state;
 			auto& viewport_size = state.viewport_size;
-			auto viewport_rt = render_target_mgr_find_from_size(viewport_size);
+			const auto requires_msaa_rt = state.msaa.next_level > 1;
+			const auto rt_type = requires_msaa_rt ? render_target_type::multisampling : render_target_type::normal;
+
+			auto viewport_rt = render_target_mgr_find_from_size(viewport_size, rt_type);
+			auto resolve_rt = requires_msaa_rt ? render_target_mgr_find_from_size(viewport_size, render_target_type::normal) : no_render_target;
 
 			const auto changed_msaa = state.msaa.curr_level != state.msaa.next_level;
 			const auto no_viewport_rt = viewport_rt == no_render_target;
@@ -354,19 +341,31 @@ namespace rengine {
 			
 			if (viewport_rt != no_render_target)
 				render_target_mgr_destroy(viewport_rt);
+			// destroy resolve copy too
+			if (resolve_rt != no_render_target)
+				render_target_mgr_destroy(resolve_rt);
 
-			viewport_rt = render_target_mgr_create({
-					{ 
-						strings::graphics::g_viewport_rt_name, 
-						viewport_size,
-						get_default_backbuffer_format(), 
-						get_default_depthbuffer_format(),
-						state.msaa.next_level
-					},
-					state.msaa.next_level == 1 ? render_target_type::normal : render_target_type::multisampling
-				});
+			render_target_create_info ci{
+				.desc = {
+					.name = strings::graphics::g_viewport_rt_name,
+					.size = viewport_size,
+					.format = get_default_backbuffer_format(),
+					.depth_format = get_default_depthbuffer_format(),
+					.sample_count = state.msaa.next_level,
+				},
+				.type = rt_type
+			};
+
+			viewport_rt = render_target_mgr_create(ci);
+			if (requires_msaa_rt) {
+				ci.desc.name = strings::graphics::g_viewport_resolve_rt_name;
+				ci.type = render_target_type::normal;
+				resolve_rt = render_target_mgr_create(ci);
+			}
+
 			state.msaa.curr_level = state.msaa.next_level;
 			state.viewport_rt = viewport_rt;
+			state.resolve_rt = resolve_rt;
 		}
 
 		void prepare_swapchain_window(const core::window_t& window_id)
@@ -401,6 +400,53 @@ namespace rengine {
 				RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 
 			ctx->CopyTexture(cpy_attribs);
+		}
+
+		void blit_2_swapchain(Diligent::ITexture* swapchain_buffer)
+		{
+			profile();
+			using namespace Diligent;
+			const auto state = g_graphics_state;
+			const auto ctx = state.contexts[0];
+
+			const auto rt = state.viewport_rt;
+			const auto resolve_rt = state.resolve_rt;
+			const auto msaa_enabled = state.msaa.curr_level != 0;
+
+			ITexture* rt_tex;
+			ITexture* resolve_tex;
+			rt_tex = resolve_tex = null;
+
+			render_target_mgr__get_internal_handles(rt, &rt_tex, null);
+			if (msaa_enabled)
+				render_target_mgr__get_internal_handles(resolve_rt, &resolve_tex, null);
+
+			if (msaa_enabled) {
+				ResolveTextureSubresourceAttribs resolve_attr = {};
+				resolve_attr.DstTextureTransitionMode =
+					resolve_attr.SrcTextureTransitionMode =
+					RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+
+				ctx->ResolveTextureSubresource(rt_tex, resolve_tex, resolve_attr);
+
+				rt_tex = resolve_tex;
+			}
+
+			const auto& desc = swapchain_buffer->GetDesc();
+			Box cpy_area;
+			cpy_area.MinX = cpy_area.MinY = cpy_area.MinZ = 0; 
+			cpy_area.MaxX = desc.Width;
+			cpy_area.MaxY = desc.Height;
+			cpy_area.MaxZ = 1;
+
+			CopyTextureAttribs cpy_attr = {};
+			cpy_attr.pSrcTexture = rt_tex;
+			cpy_attr.pDstTexture = swapchain_buffer;
+			cpy_attr.pSrcBox = &cpy_area;
+			cpy_attr.SrcTextureTransitionMode =
+				cpy_attr.DstTextureTransitionMode =
+				RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+			ctx->CopyTexture(cpy_attr);
 		}
 
 		void update_buffers()
