@@ -140,7 +140,7 @@ namespace rengine {
 
 		void pipeline_state_mgr__fill_depth_stencil(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info)
 		{
-			auto& stencil_desc = create_info.stencil_desc;
+			auto& stencil_desc = create_info.depth_desc;
 			auto& depth_stencil_desc = ci->GraphicsPipeline.DepthStencilDesc;
 			depth_stencil_desc.DepthEnable = stencil_desc.depth_enabled;
 			depth_stencil_desc.DepthWriteEnable = stencil_desc.depth_write;

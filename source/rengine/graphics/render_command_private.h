@@ -43,7 +43,6 @@ namespace rengine {
             cull_mode cull{ cull_mode::clock_wise };
             bool wireframe{ false };
             bool depth_enabled{ true };
-            u32 vertex_elements{ 0 };
             math::urect viewport{};
 			shader_program_t program{ no_shader_program };
             hash_map<core::hash_t, render_command_resource> resources{};

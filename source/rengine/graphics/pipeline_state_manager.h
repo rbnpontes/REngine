@@ -44,7 +44,7 @@ namespace rengine {
 			cull_mode cull{ cull_mode::clock_wise };
 			u8 msaa_level{ 1 };
 			blend_mode blend_mode{ blend_mode::replace };
-			depth_desc stencil_desc{};
+			depth_desc depth_desc{};
 			bool color_write{ true };
 			bool alpha_to_coverage{ false };
 			bool wireframe{ false };

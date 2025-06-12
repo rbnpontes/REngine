@@ -52,7 +52,7 @@ namespace rengine {
 			graphics_pipeline_state_create pipeline_create;
 			pipeline_create.name = name.c_str();
 			pipeline_create.cull = data.cull;
-			pipeline_create.depth = data.depth_enabled;
+			pipeline_create.depth_desc.depth_enabled = data.depth_enabled;
 			pipeline_create.wireframe = data.wireframe;
 			pipeline_create.topology = data.topology;
 			pipeline_create.shader_program = data.program;
@@ -127,7 +127,6 @@ namespace rengine {
 			render_command__build_viewport_hash(data);
 			render_command__build_texture_hash(data);
 			// calculate graphics state hashes
-			hashes.graphics_state = data.vertex_elements;
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.topology);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.cull);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.wireframe);
