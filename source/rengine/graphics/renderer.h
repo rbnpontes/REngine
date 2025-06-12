@@ -52,10 +52,25 @@ namespace rengine {
 
 		R_EXPORT void renderer_set_viewport(const math::urect& rect);
 		R_EXPORT void renderer_set_topology(const primitive_topology& topology);
-		R_EXPORT void renderer_set_cull_mode(const cull_mode& cull);
-		R_EXPORT void renderer_set_program(const shader_program_t& program_id);
-		R_EXPORT void renderer_set_depth_enabled(const bool& enabled);
-		R_EXPORT void renderer_set_wireframe(const bool enabled);
+                R_EXPORT void renderer_set_cull_mode(const cull_mode& cull);
+                R_EXPORT void renderer_set_program(const shader_program_t& program_id);
+                R_EXPORT void renderer_set_depth_enabled(const bool& enabled);
+                R_EXPORT void renderer_set_depth_write(const bool& enabled);
+                R_EXPORT void renderer_set_stencil_test(const bool& enabled);
+                R_EXPORT void renderer_set_depth_cmp_func(const comparison_function& func);
+                R_EXPORT void renderer_set_stencil_cmp_func(const comparison_function& func);
+                R_EXPORT void renderer_set_stencil_pass_op(const stencil_op& op);
+                R_EXPORT void renderer_set_stencil_fail_op(const stencil_op& op);
+                R_EXPORT void renderer_set_depth_fail_op(const stencil_op& op);
+                R_EXPORT void renderer_set_stencil_cmp_mask(u8 mask);
+                R_EXPORT void renderer_set_stencil_write_mask(u8 mask);
+                R_EXPORT void renderer_set_blend_mode(const blend_mode& mode);
+                R_EXPORT void renderer_set_color_write(const bool enabled);
+                R_EXPORT void renderer_set_alpha_to_coverage(const bool enabled);
+                R_EXPORT void renderer_set_scissors(const bool enabled);
+                R_EXPORT void renderer_set_constant_depth_bias(float bias);
+                R_EXPORT void renderer_set_slope_scaled_depth_bias(float bias);
+                R_EXPORT void renderer_set_wireframe(const bool enabled);
 
 		R_EXPORT void renderer_set_material(const material_t& material_id);
 		R_EXPORT void renderer_flush();

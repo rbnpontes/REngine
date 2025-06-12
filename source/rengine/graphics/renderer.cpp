@@ -207,11 +207,101 @@ namespace rengine {
 			render_command__set_program(cmd, program_id);
 		}
 
-		void renderer_set_depth_enabled(const bool& enabled)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_depth_enabled(cmd, enabled);
-		}
+                void renderer_set_depth_enabled(const bool& enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_depth_enabled(cmd, enabled);
+                }
+
+                void renderer_set_depth_write(const bool& enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_depth_write(cmd, enabled);
+                }
+
+                void renderer_set_stencil_test(const bool& enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_test(cmd, enabled);
+                }
+
+                void renderer_set_depth_cmp_func(const comparison_function& func)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_depth_cmp_func(cmd, func);
+                }
+
+                void renderer_set_stencil_cmp_func(const comparison_function& func)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_cmp_func(cmd, func);
+                }
+
+                void renderer_set_stencil_pass_op(const stencil_op& op)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_pass_op(cmd, op);
+                }
+
+                void renderer_set_stencil_fail_op(const stencil_op& op)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_fail_op(cmd, op);
+                }
+
+                void renderer_set_depth_fail_op(const stencil_op& op)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_depth_fail_op(cmd, op);
+                }
+
+                void renderer_set_stencil_cmp_mask(u8 mask)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_cmp_mask(cmd, mask);
+                }
+
+                void renderer_set_stencil_write_mask(u8 mask)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_stencil_write_mask(cmd, mask);
+                }
+
+                void renderer_set_blend_mode(const blend_mode& mode)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_blend_mode(cmd, mode);
+                }
+
+                void renderer_set_color_write(const bool enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_color_write(cmd, enabled);
+                }
+
+                void renderer_set_alpha_to_coverage(const bool enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_alpha_to_coverage(cmd, enabled);
+                }
+
+                void renderer_set_scissors(const bool enabled)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_scissors(cmd, enabled);
+                }
+
+                void renderer_set_constant_depth_bias(float bias)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_constant_depth_bias(cmd, bias);
+                }
+
+                void renderer_set_slope_scaled_depth_bias(float bias)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_slope_scaled_depth_bias(cmd, bias);
+                }
 
 		void renderer_set_wireframe(const bool enabled)
 		{

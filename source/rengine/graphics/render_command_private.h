@@ -43,9 +43,25 @@ namespace rengine {
             cull_mode cull{ cull_mode::clock_wise };
             bool wireframe{ false };
             bool depth_enabled{ true };
+            bool depth_write{ true };
+            bool stencil_test{ false };
+            comparison_function depth_cmp_func{ comparison_function::less_equal };
+            comparison_function stencil_cmp_func{ comparison_function::always };
+            stencil_op depth_pass_op{ stencil_op::keep };
+            stencil_op stencil_fail_op{ stencil_op::keep };
+            stencil_op depth_fail_op{ stencil_op::keep };
+            u8 stencil_cmp_mask{ 255 };
+            u8 stencil_write_mask{ 255 };
             math::urect viewport{};
-			shader_program_t program{ no_shader_program };
+            shader_program_t program{ no_shader_program };
             hash_map<core::hash_t, render_command_resource> resources{};
+
+            blend_mode blend_mode{ blend_mode::replace };
+            bool color_write{ true };
+            bool alpha_to_coverage{ false };
+            bool scissors{ false };
+            float constant_depth_bias{ 0.0f };
+            float slope_scaled_depth_bias{ 0.0f };
 
             pipeline_state_t pipeline_state{ no_pipeline_state };
             srb_t srb{ no_srb };
@@ -92,8 +108,23 @@ namespace rengine {
         void render_command__set_viewport(render_command_data& cmd, const math::urect& rect);
         void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology);
         void render_command__set_cull(render_command_data& cmd, const cull_mode& cull);
-		void render_command__set_program(render_command_data& cmd, const shader_t& program_id);
+                void render_command__set_program(render_command_data& cmd, const shader_t& program_id);
         void render_command__set_depth_enabled(render_command_data& cmd, const bool& enabled);
+        void render_command__set_depth_write(render_command_data& cmd, const bool& enabled);
+        void render_command__set_stencil_test(render_command_data& cmd, const bool& enabled);
+        void render_command__set_depth_cmp_func(render_command_data& cmd, const comparison_function& func);
+        void render_command__set_stencil_cmp_func(render_command_data& cmd, const comparison_function& func);
+        void render_command__set_stencil_pass_op(render_command_data& cmd, const stencil_op& op);
+        void render_command__set_stencil_fail_op(render_command_data& cmd, const stencil_op& op);
+        void render_command__set_depth_fail_op(render_command_data& cmd, const stencil_op& op);
+        void render_command__set_stencil_cmp_mask(render_command_data& cmd, u8 mask);
+        void render_command__set_stencil_write_mask(render_command_data& cmd, u8 mask);
+        void render_command__set_blend_mode(render_command_data& cmd, const blend_mode& mode);
+        void render_command__set_color_write(render_command_data& cmd, bool enabled);
+        void render_command__set_alpha_to_coverage(render_command_data& cmd, bool enabled);
+        void render_command__set_scissors(render_command_data& cmd, bool enabled);
+        void render_command__set_constant_depth_bias(render_command_data& cmd, float bias);
+        void render_command__set_slope_scaled_depth_bias(render_command_data& cmd, float bias);
         void render_command__set_wireframe(render_command_data& cmd, const bool& enabled);
         
         bool render_command__get(const render_command_t& cmd_id, render_command_data* data);
