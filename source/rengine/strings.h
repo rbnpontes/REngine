@@ -125,6 +125,9 @@ namespace rengine {
                         // usually, there's no reason to have COLORF_ATTR and COLOR_ATTR at the same time
                         // if this occurs, then we must do add operation
                         output.color = color + color_float;
+                        // alpha channels is added twice, we must divide by 2.
+                        // otherwise we will have alpha 2 instead of 1
+                        output.color.a *= 0.5;
                         output.uv = uv;
                         return output;
                     }   

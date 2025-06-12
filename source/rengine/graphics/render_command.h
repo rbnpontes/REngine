@@ -2,6 +2,7 @@
 #include <rengine/api.h>
 #include <rengine/types.h>
 #include <rengine/math/math-types.h>
+#include <rengine/graphics/pipeline_state_manager.h>
 
 namespace rengine {
 	namespace graphics {
@@ -27,13 +28,13 @@ namespace rengine {
 		void render_command_set_viewport(const math::urect& rect);
 		void render_command_set_topology(const primitive_topology& topology);
 		void render_command_set_cull_mode(const cull_mode& cull);
-                void render_command_set_program(const shader_program_t& program_id);
-                void render_command_set_depth(const depth_desc& desc);
-                void render_command_set_blend_mode(const blend_mode& mode);
-                void render_command_set_color_write(const bool& enabled);
-                void render_command_set_alpha_to_coverage(const bool& enabled);
-                void render_command_set_scissors(const bool& enabled);
-                void render_command_set_constant_depth_bias(float bias);
+		void render_command_set_program(const shader_program_t& program_id);
+		void render_command_set_depth(const depth_desc& desc);
+		void render_command_set_blend_mode(const blend_mode& mode);
+		void render_command_set_color_write(const bool& enabled);
+		void render_command_set_alpha_to_coverage(const bool& enabled);
+		void render_command_set_scissors(const bool& enabled);
+		void render_command_set_constant_depth_bias(float bias);
 		void render_command_set_slope_scaled_depth_bias(float bias);
 		void render_command_set_wireframe(const bool& enabled);
 	}

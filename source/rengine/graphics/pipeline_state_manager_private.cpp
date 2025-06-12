@@ -112,7 +112,7 @@ namespace rengine {
 			if (is_opengl || is_vulkan)
 				rasterizer_desc.DepthBiasClamp = 0;
 			else
-				rasterizer_desc.DepthBiasClamp = MAX_FLOAT_VALUE;
+				rasterizer_desc.DepthBiasClamp = INFINITY;
 			rasterizer_desc.SlopeScaledDepthBias = create_info.slope_scaled_depth_bias;
 			rasterizer_desc.DepthClipEnable = true;
 			rasterizer_desc.ScissorEnable = create_info.scissors;
@@ -126,12 +126,12 @@ namespace rengine {
 				return;
 
 			auto& blend_desc = ci->GraphicsPipeline.BlendDesc.RenderTargets[0];
-			blend_desc.BlendEnable = create_info.blend_mode == blend_mode::replace;
+			blend_desc.BlendEnable = create_info.blend_mode != blend_mode::replace;
 			blend_desc.SrcBlend = g_source_blends_tbl[(u8)create_info.blend_mode];
 			blend_desc.DestBlend = g_dest_blends_tbl[(u8)create_info.blend_mode];
 			blend_desc.BlendOp = g_blend_operation_tbl[(u8)create_info.blend_mode];
-			blend_desc.SrcBlendAlpha = g_source_blends_tbl[(u8)create_info.blend_mode];
-			blend_desc.DestBlendAlpha = g_dest_blends_tbl[(u8)create_info.blend_mode];
+			blend_desc.SrcBlendAlpha = g_source_alpha_blend_tbl[(u8)create_info.blend_mode];
+			blend_desc.DestBlendAlpha = g_dest_alpha_blend_tbl[(u8)create_info.blend_mode];
 			blend_desc.BlendOpAlpha = g_blend_operation_tbl[(u8)create_info.blend_mode];
 			blend_desc.RenderTargetWriteMask = create_info.color_write
 				? Diligent::COLOR_MASK_ALL
