@@ -31,12 +31,13 @@ namespace rengine {
 			for (u8 i = 0; i < create_info.num_render_targets; ++i)
 				ci.GraphicsPipeline.RTVFormats[i] = (TEXTURE_FORMAT)create_info.render_target_formats[i];
 			ci.GraphicsPipeline.PrimitiveTopology = g_primitive_topology_tbl[(u8)create_info.topology];
-			ci.GraphicsPipeline.RasterizerDesc.CullMode = g_cull_mode_tbl[(u8)create_info.cull];
-			ci.GraphicsPipeline.RasterizerDesc.FillMode = create_info.wireframe ? FILL_MODE_WIREFRAME : FILL_MODE_SOLID;
-			ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = create_info.scissors;
-			ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = create_info.msaa_level != 1;
+			ci.GraphicsPipeline.BlendDesc.AlphaToCoverageEnable = create_info.alpha_to_coverage;
+			ci.GraphicsPipeline.BlendDesc.IndependentBlendEnable = false;
 			ci.GraphicsPipeline.SmplDesc.Count = create_info.msaa_level;
-			ci.GraphicsPipeline.DepthStencilDesc.DepthEnable = create_info.depth;
+
+			pipeline_state_mgr__fill_rasterizer(&ci, create_info);
+			pipeline_state_mgr__fill_blend_desc(&ci, create_info);
+			pipeline_state_mgr__fill_depth_stencil(&ci, create_info);
 
 			ci.GraphicsPipeline.InputLayout.LayoutElements = pipeline_state_mgr__build_input_layout(
 				vertex_elements,
@@ -84,6 +85,77 @@ namespace rengine {
 
 			if (ci->pVS == null || ci->pPS == null)
 				throw graphics_exception(strings::exceptions::g_pipeline_state_mgr_required_vs_ps_shaders);
+		}
+
+		void pipeline_state_mgr__fill_rasterizer(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info)
+		{
+			using namespace Diligent;
+			auto curr_backend = g_graphics_state.backend;
+			auto is_opengl = curr_backend == backend::opengl;
+			auto is_vulkan = curr_backend == backend::vulkan;
+
+			auto depth_bits = 24;
+			if (TEX_FORMAT_D16_UNORM == create_info.depth_stencil_format)
+				depth_bits = 16;
+
+			// opengl doesn't supports depth bias
+			const auto scaled_depth_bias = is_opengl 
+				? 0 
+				: (create_info.constant_depth_bias * (1 << depth_bits));
+
+
+			auto& rasterizer_desc = ci->GraphicsPipeline.RasterizerDesc;
+			rasterizer_desc.CullMode = g_cull_mode_tbl[(u8)create_info.cull];
+			rasterizer_desc.FillMode = create_info.wireframe ? FILL_MODE_WIREFRAME : FILL_MODE_SOLID;
+			rasterizer_desc.FrontCounterClockwise = false;
+			rasterizer_desc.DepthBias = scaled_depth_bias;
+			if (is_opengl || is_vulkan)
+				rasterizer_desc.DepthBiasClamp = 0;
+			else
+				rasterizer_desc.DepthBiasClamp = MAX_FLOAT_VALUE;
+			rasterizer_desc.SlopeScaledDepthBias = create_info.slope_scaled_depth_bias;
+			rasterizer_desc.DepthClipEnable = true;
+			rasterizer_desc.ScissorEnable = create_info.scissors;
+			rasterizer_desc.AntialiasedLineEnable = create_info.msaa_level != 1;
+			rasterizer_desc.DepthBias = create_info.constant_depth_bias;
+		}
+
+		void pipeline_state_mgr__fill_blend_desc(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info)
+		{
+			if (create_info.num_render_targets == 0)
+				return;
+
+			auto& blend_desc = ci->GraphicsPipeline.BlendDesc.RenderTargets[0];
+			blend_desc.BlendEnable = create_info.blend_mode == blend_mode::replace;
+			blend_desc.SrcBlend = g_source_blends_tbl[(u8)create_info.blend_mode];
+			blend_desc.DestBlend = g_dest_blends_tbl[(u8)create_info.blend_mode];
+			blend_desc.BlendOp = g_blend_operation_tbl[(u8)create_info.blend_mode];
+			blend_desc.SrcBlendAlpha = g_source_blends_tbl[(u8)create_info.blend_mode];
+			blend_desc.DestBlendAlpha = g_dest_blends_tbl[(u8)create_info.blend_mode];
+			blend_desc.BlendOpAlpha = g_blend_operation_tbl[(u8)create_info.blend_mode];
+			blend_desc.RenderTargetWriteMask = create_info.color_write
+				? Diligent::COLOR_MASK_ALL
+				: Diligent::COLOR_MASK_NONE;
+		}
+
+		void pipeline_state_mgr__fill_depth_stencil(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info)
+		{
+			auto& stencil_desc = create_info.stencil_desc;
+			auto& depth_stencil_desc = ci->GraphicsPipeline.DepthStencilDesc;
+			depth_stencil_desc.DepthEnable = stencil_desc.depth_enabled;
+			depth_stencil_desc.DepthWriteEnable = stencil_desc.depth_write;
+			depth_stencil_desc.DepthFunc = g_comparison_function_tbl[(u8)stencil_desc.depth_cmp_func];
+			depth_stencil_desc.StencilEnable = stencil_desc.stencil_test;
+			depth_stencil_desc.StencilReadMask = stencil_desc.cmp_mask;
+			depth_stencil_desc.StencilWriteMask = stencil_desc.write_mask;
+			depth_stencil_desc.FrontFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_stencil];
+			depth_stencil_desc.FrontFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_depth_fail];
+			depth_stencil_desc.FrontFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.on_passed];
+			depth_stencil_desc.FrontFace.StencilFunc = g_comparison_function_tbl[(u8)stencil_desc.stencil_cmp_func];
+			depth_stencil_desc.BackFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_stencil];
+			depth_stencil_desc.BackFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_depth_fail];
+			depth_stencil_desc.BackFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.on_passed];
+			depth_stencil_desc.BackFace.StencilFunc = g_comparison_function_tbl[(u8)stencil_desc.stencil_cmp_func];
 		}
 
 		Diligent::LayoutElement* pipeline_state_mgr__build_input_layout(u32 flags, u32* count)

@@ -19,6 +19,22 @@ namespace rengine {
 			sampler_desc desc;
 		};
 
+		struct depth_desc {
+			bool depth_enabled{ true };
+			bool depth_write{ true };
+			bool stencil_test{ false };
+			
+			comparison_function depth_cmp_func{ comparison_function::less_equal };
+			comparison_function stencil_cmp_func{ comparison_function::always };
+			
+			stencil_op on_passed{ stencil_op::keep };
+			stencil_op on_stencil{ stencil_op::keep };
+			stencil_op on_depth_fail{ stencil_op::keep };
+
+			u8 cmp_mask{ 255 };
+			u8 write_mask{ 255 };
+		};
+
 		struct graphics_pipeline_state_create {
 			c_str name{ null };
 			u16 render_target_formats[GRAPHICS_MAX_RENDER_TARGETS];
@@ -27,9 +43,14 @@ namespace rengine {
 			primitive_topology topology{ primitive_topology::triangle_list };
 			cull_mode cull{ cull_mode::clock_wise };
 			u8 msaa_level{ 1 };
-			bool depth{ true };
+			blend_mode blend_mode{ blend_mode::replace };
+			depth_desc stencil_desc{};
+			bool color_write{ true };
+			bool alpha_to_coverage{ false };
 			bool wireframe{ false };
 			bool scissors{ false };
+			float constant_depth_bias{ 0.0f };
+			float slope_scaled_depth_bias{ 0.0f };
 			shader_program_t shader_program{ no_shader_program };
 			immutable_sampler_desc* immutable_samplers{ null };
 			u32 num_immutable_samplers{ 0 };

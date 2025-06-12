@@ -57,6 +57,73 @@ namespace rengine {
 			Diligent::COMPARISON_FUNC_GREATER_EQUAL,
 			Diligent::COMPARISON_FUNC_ALWAYS
 		};
+		static constexpr Diligent::BLEND_FACTOR g_source_blends_tbl[] = {
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_DEST_COLOR,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_DEST_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+		};
+		static constexpr Diligent::BLEND_FACTOR g_dest_blends_tbl[] = {
+			Diligent::BLEND_FACTOR_ZERO,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ZERO,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_DEST_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+		};
+		static constexpr Diligent::BLEND_FACTOR g_source_alpha_blend_tbl[] = {
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_DEST_COLOR,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_DEST_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_ZERO,
+		};
+		static constexpr Diligent::BLEND_FACTOR g_dest_alpha_blend_tbl[] = {
+			Diligent::BLEND_FACTOR_ZERO,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ZERO,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+			Diligent::BLEND_FACTOR_DEST_ALPHA,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_ONE,
+			Diligent::BLEND_FACTOR_INV_SRC_ALPHA,
+		};
+		static constexpr Diligent::BLEND_OPERATION g_blend_operation_tbl[] = {
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_ADD,
+			Diligent::BLEND_OPERATION_REV_SUBTRACT,
+			Diligent::BLEND_OPERATION_REV_SUBTRACT,
+			Diligent::BLEND_OPERATION_ADD,
+		};
+		static constexpr Diligent::STENCIL_OP g_stencil_op_tbl[] = {
+			Diligent::STENCIL_OP_KEEP,
+			Diligent::STENCIL_OP_ZERO,
+			Diligent::STENCIL_OP_REPLACE,
+			Diligent::STENCIL_OP_INCR_WRAP,
+			Diligent::STENCIL_OP_DECR_WRAP,
+		};
 
 		struct pipeline_state_mgr_state {
 			hash_map<pipeline_state_t, Diligent::IPipelineState*> pipelines;
@@ -69,6 +136,9 @@ namespace rengine {
 
 		Diligent::IPipelineState* pipeline_state_mgr__create_graphics(const graphics_pipeline_state_create& create_info);
 		void pipeline_state_mgr__fill_shaders(Diligent::GraphicsPipelineStateCreateInfo* ci, shader_program_t program_id, u32* vertex_elements);
+		void pipeline_state_mgr__fill_rasterizer(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info);
+		void pipeline_state_mgr__fill_blend_desc(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info);
+		void pipeline_state_mgr__fill_depth_stencil(Diligent::GraphicsPipelineStateCreateInfo* ci, const graphics_pipeline_state_create& create_info);
 		Diligent::LayoutElement* pipeline_state_mgr__build_input_layout(u32 flags, u32* count);
 		Diligent::ImmutableSamplerDesc* pipeline_state_mgr__build_immutable_samplers(const graphics_pipeline_state_create& create_info);
 		

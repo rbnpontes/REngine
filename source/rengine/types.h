@@ -109,6 +109,26 @@ namespace rengine {
             clock_wise
         };
 
+        enum class blend_mode : u8 {
+            replace = 0,
+            add,
+            mul,
+            alpha,
+            add_alpha,
+            pre_mul_alpha,
+            inv_dest_alpha,
+            sub,
+            sub_alpha
+        };
+
+        enum class stencil_op : u8 {
+            keep = 0,
+            zero,
+            ref,
+            incr,
+            decr
+        };
+
         enum class vertex_elements : u32 {
             none = 0,
             position = 1 << 0,
