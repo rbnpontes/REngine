@@ -147,5 +147,8 @@ namespace rengine {
 		void pipeline_state_mgr__get_internal_handle(const pipeline_state_t& id, Diligent::IPipelineState** output);
 
 		void pipeline_state_mgr__bind_cbuffers(Diligent::IPipelineState* pipeline);
+	
+		core::hash_t pipeline_state_mgr__hash_depth_desc(const depth_desc& desc);
+		core::hash_t pipeline_state_mgr__hash_immutable_sampler(const immutable_sampler_desc& desc);
 	}
 }

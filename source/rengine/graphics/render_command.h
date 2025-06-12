@@ -18,7 +18,7 @@ namespace rengine {
 		void render_command_set_tex2d(c_str slot_name, const texture_2d_t& tex_id);
 		void render_command_set_tex3d(c_str slot_name, const texture_3d_t& tex_id);
 		void render_command_set_texcube(c_str slot_name, const texture_cube_t& tex_id);
-		void render_command_set_texarray(c_str slot_name, const texture_array_t& tex_id);		
+		void render_command_set_texarray(c_str slot_name, const texture_array_t& tex_id);
 		void render_command_set_tex2d(core::hash_t slot, const texture_2d_t& tex_id);
 		void render_command_set_tex3d(core::hash_t slot, const texture_3d_t& tex_id);
 		void render_command_set_texcube(core::hash_t slot, const texture_cube_t& tex_id);
@@ -26,24 +26,24 @@ namespace rengine {
 		void render_command_unset_tex(core::hash_t slot);
 		void render_command_set_viewport(const math::urect& rect);
 		void render_command_set_topology(const primitive_topology& topology);
-                void render_command_set_cull_mode(const cull_mode& cull);
-                void render_command_set_program(const shader_program_t& program_id);
-                void render_command_set_depth_enabled(const bool& enabled);
-                void render_command_set_depth_write(const bool& enabled);
-                void render_command_set_stencil_test(const bool& enabled);
-                void render_command_set_depth_cmp_func(const comparison_function& func);
-                void render_command_set_stencil_cmp_func(const comparison_function& func);
-                void render_command_set_stencil_pass_op(const stencil_op& op);
-                void render_command_set_stencil_fail_op(const stencil_op& op);
-                void render_command_set_depth_fail_op(const stencil_op& op);
-                void render_command_set_stencil_cmp_mask(u8 mask);
-                void render_command_set_stencil_write_mask(u8 mask);
-                void render_command_set_blend_mode(const blend_mode& mode);
-                void render_command_set_color_write(const bool& enabled);
-                void render_command_set_alpha_to_coverage(const bool& enabled);
-                void render_command_set_scissors(const bool& enabled);
-                void render_command_set_constant_depth_bias(float bias);
-                void render_command_set_slope_scaled_depth_bias(float bias);
-                void render_command_set_wireframe(const bool& enabled);
-        }
+		void render_command_set_cull_mode(const cull_mode& cull);
+		void render_command_set_program(const shader_program_t& program_id);
+		void render_command_set_depth_enabled(const bool& enabled);
+		void render_command_set_depth_write(const bool& enabled);
+		void render_command_set_stencil_test(const bool& enabled);
+		void render_command_set_depth_cmp_func(const comparison_function& func);
+		void render_command_set_stencil_cmp_func(const comparison_function& func);
+		void render_command_set_stencil_pass_op(const stencil_op& op);
+		void render_command_set_stencil_fail_op(const stencil_op& op);
+		void render_command_set_depth_fail_op(const stencil_op& op);
+		void render_command_set_stencil_cmp_mask(u8 mask);
+		void render_command_set_stencil_write_mask(u8 mask);
+		void render_command_set_blend_mode(const blend_mode& mode);
+		void render_command_set_color_write(const bool& enabled);
+		void render_command_set_alpha_to_coverage(const bool& enabled);
+		void render_command_set_scissors(const bool& enabled);
+		void render_command_set_constant_depth_bias(float bias);
+		void render_command_set_slope_scaled_depth_bias(float bias);
+		void render_command_set_wireframe(const bool& enabled);
+	}
 }

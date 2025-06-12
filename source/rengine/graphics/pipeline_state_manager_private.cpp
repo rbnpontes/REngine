@@ -146,15 +146,15 @@ namespace rengine {
 			depth_stencil_desc.DepthWriteEnable = stencil_desc.depth_write;
 			depth_stencil_desc.DepthFunc = g_comparison_function_tbl[(u8)stencil_desc.depth_cmp_func];
 			depth_stencil_desc.StencilEnable = stencil_desc.stencil_test;
-			depth_stencil_desc.StencilReadMask = stencil_desc.cmp_mask;
-			depth_stencil_desc.StencilWriteMask = stencil_desc.write_mask;
-			depth_stencil_desc.FrontFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_stencil];
-			depth_stencil_desc.FrontFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_depth_fail];
-			depth_stencil_desc.FrontFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.on_passed];
+			depth_stencil_desc.StencilReadMask = stencil_desc.stencil_cmp_mask;
+			depth_stencil_desc.StencilWriteMask = stencil_desc.stencil_write_mask;
+			depth_stencil_desc.FrontFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_stencil_failed];
+			depth_stencil_desc.FrontFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_fail];
+			depth_stencil_desc.FrontFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_passed];
 			depth_stencil_desc.FrontFace.StencilFunc = g_comparison_function_tbl[(u8)stencil_desc.stencil_cmp_func];
-			depth_stencil_desc.BackFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_stencil];
-			depth_stencil_desc.BackFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.on_depth_fail];
-			depth_stencil_desc.BackFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.on_passed];
+			depth_stencil_desc.BackFace.StencilFailOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_stencil_failed];
+			depth_stencil_desc.BackFace.StencilDepthFailOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_fail];
+			depth_stencil_desc.BackFace.StencilPassOp = g_stencil_op_tbl[(u8)stencil_desc.stencil_on_passed];
 			depth_stencil_desc.BackFace.StencilFunc = g_comparison_function_tbl[(u8)stencil_desc.stencil_cmp_func];
 		}
 
@@ -331,6 +331,37 @@ namespace rengine {
 						var->Set(cbuffer);
 				}
 			}
+		}
+		
+		core::hash_t pipeline_state_mgr__hash_depth_desc(const depth_desc& desc)
+		{
+			auto result = (core::hash_t)desc.depth_enabled;
+			result = core::hash_combine(result, (core::hash_t)desc.depth_write);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_test);
+			result = core::hash_combine(result, (core::hash_t)desc.depth_cmp_func);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_cmp_func);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_on_passed);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_on_stencil_failed);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_on_fail);
+			result = core::hash_combine(result, (core::hash_t)desc.stencil_on_fail);
+			result = core::hash_combine(result, desc.stencil_cmp_mask);
+			result = core::hash_combine(result, desc.stencil_write_mask);
+			return result;
+		}
+
+		core::hash_t pipeline_state_mgr__hash_immutable_sampler(const immutable_sampler_desc& desc)
+		{
+			const auto& sampler_desc = desc.desc;
+			auto result = core::hash(desc.name);
+			result = core::hash_combine(result, (core::hash_t)desc.shader_type_flags);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.filter);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.address);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.lod_bias);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.min_lod);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.max_lod);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.max_anisotropy);
+			result = core::hash_combine(result, (core::hash_t)sampler_desc.comparison);
+			return result;
 		}
 	}
 }

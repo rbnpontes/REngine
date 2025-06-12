@@ -6,3 +6,4 @@
 #include <rengine/core/pool.h>
 #include <rengine/core/entity-utils.h>
 #include <rengine/core/profiler.h>
+#include <rengine/core/number_utils.h>

@@ -27,12 +27,12 @@ namespace rengine {
 			comparison_function depth_cmp_func{ comparison_function::less_equal };
 			comparison_function stencil_cmp_func{ comparison_function::always };
 			
-			stencil_op on_passed{ stencil_op::keep };
-			stencil_op on_stencil{ stencil_op::keep };
-			stencil_op on_depth_fail{ stencil_op::keep };
+			stencil_op stencil_on_passed{ stencil_op::keep };
+			stencil_op stencil_on_stencil_failed{ stencil_op::keep };
+			stencil_op stencil_on_fail{ stencil_op::keep };
 
-			u8 cmp_mask{ 255 };
-			u8 write_mask{ 255 };
+			u8 stencil_cmp_mask{ 255 };
+			u8 stencil_write_mask{ 255 };
 		};
 
 		struct graphics_pipeline_state_create {

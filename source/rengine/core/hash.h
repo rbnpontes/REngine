@@ -7,6 +7,9 @@ namespace rengine {
 		R_EXPORT hash_t hash(c_str str);
 		R_EXPORT hash_t hash(const ptr _ptr);
 		R_EXPORT hash_t hash(u32 value);
+		R_EXPORT hash_t hash(u64 value);
+		R_EXPORT hash_t hash(float value);
+		R_EXPORT hash_t hash(double value);
 		R_EXPORT hash_t hash(const byte* values, u32 count);
 		R_EXPORT hash_t hash(const u16* values, u32 count);
 		R_EXPORT hash_t hash(const u32* values, u32 count);

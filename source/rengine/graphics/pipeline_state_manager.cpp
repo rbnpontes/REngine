@@ -36,32 +36,14 @@ namespace rengine {
             result = core::hash_combine(result, (u32)create_info.blend_mode);
             result = core::hash_combine(result, create_info.constant_depth_bias);
             result = core::hash_combine(result, create_info.slope_scaled_depth_bias);
-            const auto& dd = create_info.depth_desc;
-            result = core::hash_combine(result, (u32)dd.depth_enabled);
-            result = core::hash_combine(result, (u32)dd.depth_write);
-            result = core::hash_combine(result, (u32)dd.stencil_test);
-            result = core::hash_combine(result, (u32)dd.depth_cmp_func);
-            result = core::hash_combine(result, (u32)dd.stencil_cmp_func);
-            result = core::hash_combine(result, (u32)dd.on_passed);
-            result = core::hash_combine(result, (u32)dd.on_stencil);
-            result = core::hash_combine(result, (u32)dd.on_depth_fail);
-            result = core::hash_combine(result, dd.cmp_mask);
-            result = core::hash_combine(result, dd.write_mask);
+            result = core::hash_combine(result, pipeline_state_mgr__hash_depth_desc(create_info.depth_desc));
             result = core::hash_combine(result, create_info.color_write);
             result = core::hash_combine(result, create_info.alpha_to_coverage);
             result = core::hash_combine(result, create_info.wireframe);
             result = core::hash_combine(result, create_info.num_immutable_samplers);
 			for (u32 i = 0; i < create_info.num_immutable_samplers; ++i) {
 				const auto& sampler = create_info.immutable_samplers[i];
-				result = core::hash_combine(result, core::hash(sampler.name));
-				result = core::hash_combine(result, (u32)sampler.shader_type_flags);
-                result = core::hash_combine(result, (u32)sampler.desc.filter);
-                result = core::hash_combine(result, (u32)sampler.desc.address);
-                result = core::hash_combine(result, (u32)sampler.desc.lod_bias);
-                result = core::hash_combine(result, (u32)sampler.desc.min_lod);
-                result = core::hash_combine(result, (u32)sampler.desc.max_lod);
-                result = core::hash_combine(result, (u32)sampler.desc.max_anisotropy);
-                result = core::hash_combine(result, (u32)sampler.desc.comparison);
+                result = core::hash_combine(result, pipeline_state_mgr__hash_immutable_sampler(sampler));
 			}
             return result;
         }

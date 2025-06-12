@@ -1,4 +1,5 @@
 #include "./hash.h"
+#include "./number_utils.h"
 
 #include <utility>
 #include <xxHash/xxhash.h>
@@ -20,6 +21,27 @@ namespace rengine {
 		hash_t hash(u32 value)
 		{
 			return XXH32(&value, sizeof(u32), CORE_DEFAULT_HASH_SEED);
+		}
+
+		hash_t hash(u64 value)
+		{
+			return XXH32(&value, sizeof(u32) * 2, CORE_DEFAULT_HASH_SEED);
+		}
+
+		hash_t hash(float value)
+		{
+			number_conversor conversor{
+				.num_32{.f = value }
+			};
+			return hash(conversor.num_32.u);
+		}
+
+		hash_t hash(double value)
+		{
+			number_conversor conversor{
+				.num_64{.d = value }
+			};
+			return hash(conversor.num_64.u);
 		}
 
 		hash_t hash(const byte* values, u32 count)

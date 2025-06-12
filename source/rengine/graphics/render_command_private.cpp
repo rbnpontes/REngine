@@ -1,5 +1,5 @@
 #include "./render_command_private.h"
-#include "./pipeline_state_manager.h"
+#include "./pipeline_state_manager_private.h"
 #include "./render_target_manager.h"
 #include "./srb_manager.h"
 #include "./texture_manager.h"
@@ -51,24 +51,15 @@ namespace rengine {
 			const auto name = fmt::format("{0}::gpipeline", data.name);
 			graphics_pipeline_state_create pipeline_create;
 			pipeline_create.name = name.c_str();
-                        pipeline_create.cull = data.cull;
-                        pipeline_create.depth_desc.depth_enabled = data.depth_enabled;
-                        pipeline_create.depth_desc.depth_write = data.depth_write;
-                        pipeline_create.depth_desc.stencil_test = data.stencil_test;
-                        pipeline_create.depth_desc.depth_cmp_func = data.depth_cmp_func;
-                        pipeline_create.depth_desc.stencil_cmp_func = data.stencil_cmp_func;
-                        pipeline_create.depth_desc.on_passed = data.depth_pass_op;
-                        pipeline_create.depth_desc.on_stencil = data.stencil_fail_op;
-                        pipeline_create.depth_desc.on_depth_fail = data.depth_fail_op;
-                        pipeline_create.depth_desc.cmp_mask = data.stencil_cmp_mask;
-                        pipeline_create.depth_desc.write_mask = data.stencil_write_mask;
-                        pipeline_create.blend_mode = data.blend_mode;
-                        pipeline_create.color_write = data.color_write;
-                        pipeline_create.alpha_to_coverage = data.alpha_to_coverage;
-                        pipeline_create.scissors = data.scissors;
-                        pipeline_create.constant_depth_bias = data.constant_depth_bias;
-                        pipeline_create.slope_scaled_depth_bias = data.slope_scaled_depth_bias;
-                        pipeline_create.wireframe = data.wireframe;
+			pipeline_create.cull = data.cull;
+			pipeline_create.depth_desc = data.depth_desc;
+			pipeline_create.blend_mode = data.blend_mode;
+			pipeline_create.color_write = data.color_write;
+			pipeline_create.alpha_to_coverage = data.alpha_to_coverage;
+			pipeline_create.scissors = data.scissors;
+			pipeline_create.constant_depth_bias = data.constant_depth_bias;
+			pipeline_create.slope_scaled_depth_bias = data.slope_scaled_depth_bias;
+			pipeline_create.wireframe = data.wireframe;
 			pipeline_create.topology = data.topology;
 			pipeline_create.shader_program = data.program;
 			pipeline_create.num_render_targets = data.num_render_targets;
@@ -142,23 +133,16 @@ namespace rengine {
 			// calculate graphics state hashes
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.topology);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.cull);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.wireframe);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_enabled);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_write);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.stencil_test);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_cmp_func);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.stencil_cmp_func);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_pass_op);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.stencil_fail_op);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.depth_fail_op);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, data.stencil_cmp_mask);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, data.stencil_write_mask);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.blend_mode);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.color_write);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.alpha_to_coverage);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.scissors);
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(&data.constant_depth_bias, sizeof(float)));
-                        hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(&data.slope_scaled_depth_bias, sizeof(float)));
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.wireframe);
+			if (data.hashes.depth_desc == 0)
+				data.hashes.depth_desc = pipeline_state_mgr__hash_depth_desc(data.depth_desc);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, data.hashes.depth_desc);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.blend_mode);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.color_write);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.alpha_to_coverage);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.scissors);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(data.constant_depth_bias));
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(data.slope_scaled_depth_bias));
 
 			data.id = core::hash_combine(hashes.render_targets, hashes.vertex_buffers);
 			data.id = core::hash_combine(data.id, hashes.vertex_buffer_offsets);
@@ -256,7 +240,8 @@ namespace rengine {
 						.resource = res,
 						.tex_id = resource_it->second.tex_id,
 					};
-				} else {
+				}
+				else {
 					//if resource is not bounded, then we need to assign a dummy texture
 					resource.type = res.type;
 					resource.resource = res;
@@ -382,6 +367,22 @@ namespace rengine {
 			cmd.resources.erase(it);
 		}
 
+		void render_command__set_program(render_command_data& cmd, const shader_t& program_id)
+		{
+			cmd.program = program_id;
+		}
+
+		void render_command__set_depth(render_command_data& cmd, const depth_desc& desc)
+		{
+			cmd.depth_desc = desc;
+			auto hash = pipeline_state_mgr__hash_depth_desc(desc);
+
+			if (cmd.hashes.depth_desc != hash)
+				cmd.pipeline_state = no_pipeline_state;
+
+			cmd.hashes.depth_desc = hash;
+		}
+
 		void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)
 		{
 			auto& state = g_render_command_state;
@@ -405,122 +406,47 @@ namespace rengine {
 			cmd.cull = cull;
 		}
 
-		void render_command__set_program(render_command_data& cmd, const shader_t& program_id)
+		void render_command__set_blend_mode(render_command_data& cmd, const blend_mode& mode)
 		{
-			cmd.program = program_id;
+			if (cmd.blend_mode != mode)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.blend_mode = mode;
 		}
 
-                void render_command__set_depth_enabled(render_command_data& cmd, const bool& enabled)
-                {
-                        if (cmd.depth_enabled != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.depth_enabled = enabled;
-                }
+		void render_command__set_color_write(render_command_data& cmd, bool enabled)
+		{
+			if (cmd.color_write != enabled)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.color_write = enabled;
+		}
 
-                void render_command__set_depth_write(render_command_data& cmd, const bool& enabled)
-                {
-                        if (cmd.depth_write != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.depth_write = enabled;
-                }
+		void render_command__set_alpha_to_coverage(render_command_data& cmd, bool enabled)
+		{
+			if (cmd.alpha_to_coverage != enabled)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.alpha_to_coverage = enabled;
+		}
 
-                void render_command__set_stencil_test(render_command_data& cmd, const bool& enabled)
-                {
-                        if (cmd.stencil_test != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.stencil_test = enabled;
-                }
+		void render_command__set_scissors(render_command_data& cmd, bool enabled)
+		{
+			if (cmd.scissors != enabled)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.scissors = enabled;
+		}
 
-                void render_command__set_depth_cmp_func(render_command_data& cmd, const comparison_function& func)
-                {
-                        if (cmd.depth_cmp_func != func)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.depth_cmp_func = func;
-                }
+		void render_command__set_constant_depth_bias(render_command_data& cmd, float bias)
+		{
+			if (cmd.constant_depth_bias != bias)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.constant_depth_bias = bias;
+		}
 
-                void render_command__set_stencil_cmp_func(render_command_data& cmd, const comparison_function& func)
-                {
-                        if (cmd.stencil_cmp_func != func)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.stencil_cmp_func = func;
-                }
-
-                void render_command__set_stencil_pass_op(render_command_data& cmd, const stencil_op& op)
-                {
-                        if (cmd.depth_pass_op != op)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.depth_pass_op = op;
-                }
-
-                void render_command__set_stencil_fail_op(render_command_data& cmd, const stencil_op& op)
-                {
-                        if (cmd.stencil_fail_op != op)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.stencil_fail_op = op;
-                }
-
-                void render_command__set_depth_fail_op(render_command_data& cmd, const stencil_op& op)
-                {
-                        if (cmd.depth_fail_op != op)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.depth_fail_op = op;
-                }
-
-                void render_command__set_stencil_cmp_mask(render_command_data& cmd, u8 mask)
-                {
-                        if (cmd.stencil_cmp_mask != mask)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.stencil_cmp_mask = mask;
-                }
-
-                void render_command__set_stencil_write_mask(render_command_data& cmd, u8 mask)
-                {
-                        if (cmd.stencil_write_mask != mask)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.stencil_write_mask = mask;
-                }
-
-                void render_command__set_blend_mode(render_command_data& cmd, const blend_mode& mode)
-                {
-                        if (cmd.blend_mode != mode)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.blend_mode = mode;
-                }
-
-                void render_command__set_color_write(render_command_data& cmd, bool enabled)
-                {
-                        if (cmd.color_write != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.color_write = enabled;
-                }
-
-                void render_command__set_alpha_to_coverage(render_command_data& cmd, bool enabled)
-                {
-                        if (cmd.alpha_to_coverage != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.alpha_to_coverage = enabled;
-                }
-
-                void render_command__set_scissors(render_command_data& cmd, bool enabled)
-                {
-                        if (cmd.scissors != enabled)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.scissors = enabled;
-                }
-
-                void render_command__set_constant_depth_bias(render_command_data& cmd, float bias)
-                {
-                        if (cmd.constant_depth_bias != bias)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.constant_depth_bias = bias;
-                }
-
-                void render_command__set_slope_scaled_depth_bias(render_command_data& cmd, float bias)
-                {
-                        if (cmd.slope_scaled_depth_bias != bias)
-                                cmd.pipeline_state = no_pipeline_state;
-                        cmd.slope_scaled_depth_bias = bias;
-                }
+		void render_command__set_slope_scaled_depth_bias(render_command_data& cmd, float bias)
+		{
+			if (cmd.slope_scaled_depth_bias != bias)
+				cmd.pipeline_state = no_pipeline_state;
+			cmd.slope_scaled_depth_bias = bias;
+		}
 
 		void render_command__set_wireframe(render_command_data& cmd, const bool& enabled)
 		{
