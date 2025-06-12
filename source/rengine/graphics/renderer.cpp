@@ -201,70 +201,16 @@ namespace rengine {
 			render_command__set_cull(cmd, cull);
 		}
 
-		void renderer_set_program(const shader_program_t& program_id)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_program(cmd, program_id);
-		}
-
-                void renderer_set_depth_enabled(const bool& enabled)
+                void renderer_set_program(const shader_program_t& program_id)
                 {
                         auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_depth_enabled(cmd, enabled);
+                        render_command__set_program(cmd, program_id);
                 }
 
-                void renderer_set_depth_write(const bool& enabled)
+                void renderer_set_depth(const depth_desc& desc)
                 {
                         auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_depth_write(cmd, enabled);
-                }
-
-                void renderer_set_stencil_test(const bool& enabled)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_test(cmd, enabled);
-                }
-
-                void renderer_set_depth_cmp_func(const comparison_function& func)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_depth_cmp_func(cmd, func);
-                }
-
-                void renderer_set_stencil_cmp_func(const comparison_function& func)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_cmp_func(cmd, func);
-                }
-
-                void renderer_set_stencil_pass_op(const stencil_op& op)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_pass_op(cmd, op);
-                }
-
-                void renderer_set_stencil_fail_op(const stencil_op& op)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_fail_op(cmd, op);
-                }
-
-                void renderer_set_depth_fail_op(const stencil_op& op)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_depth_fail_op(cmd, op);
-                }
-
-                void renderer_set_stencil_cmp_mask(u8 mask)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_cmp_mask(cmd, mask);
-                }
-
-                void renderer_set_stencil_write_mask(u8 mask)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_stencil_write_mask(cmd, mask);
+                        render_command__set_depth(cmd, desc);
                 }
 
                 void renderer_set_blend_mode(const blend_mode& mode)
