@@ -314,11 +314,13 @@ namespace rengine {
 			const auto& state = g_imgui_manager_state;
 			renderer_set_vbuffer(state.vertex_buffer, 0);
 			renderer_set_ibuffer(state.index_buffer, 0);
-			renderer_set_program(state.program);
-			renderer_set_cull_mode(cull_mode::none);
-			renderer_set_topology(primitive_topology::triangle_list);
-			renderer_set_wireframe(false);
-			renderer_set_depth_enabled(true);
+                        renderer_set_program(state.program);
+                        renderer_set_cull_mode(cull_mode::none);
+                        renderer_set_topology(primitive_topology::triangle_list);
+                        renderer_set_wireframe(false);
+                        renderer_set_depth({ .depth_enabled = true });
+                        renderer_set_blend_mode(blend_mode::alpha);
+                        renderer_set_color_write(true);
 		}
 
 		void imgui_manager__render_commands(ImDrawData* draw_data)

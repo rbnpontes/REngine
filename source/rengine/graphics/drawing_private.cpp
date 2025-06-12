@@ -206,8 +206,8 @@ namespace rengine {
 			ctx->BeginDebugGroup("drawing::triangles");
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
-			renderer_set_topology(primitive_topology::triangle_list);
-			renderer_set_depth_enabled(true);
+                        renderer_set_topology(primitive_topology::triangle_list);
+                        renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[1]);
@@ -221,8 +221,8 @@ namespace rengine {
 
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(state.vertex_buffer, state.triangles.size() * sizeof(triangle_data));
-			renderer_set_topology(primitive_topology::line_strip);
-			renderer_set_depth_enabled(true);
+                        renderer_set_topology(primitive_topology::line_strip);
+                        renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[0]);
@@ -238,8 +238,8 @@ namespace rengine {
 			offset += state.lines.size() * sizeof(line_data);
 
 			renderer_set_vbuffer(state.vertex_buffer, offset);
-			renderer_set_topology(primitive_topology::point_list);
-			renderer_set_depth_enabled(true);
+                        renderer_set_topology(primitive_topology::point_list);
+                        renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[0]);
