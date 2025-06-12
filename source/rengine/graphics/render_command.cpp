@@ -193,12 +193,117 @@ namespace rengine {
 			render_command__set_program(cmd, program_id);
 		}
 
-		void render_command_set_depth_enabled(const bool& enabled)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_depth_enabled(cmd, enabled);
-		}
+                void render_command_set_depth_enabled(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_depth_enabled(cmd, enabled);
+                }
+
+                void render_command_set_depth_write(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_depth_write(cmd, enabled);
+                }
+
+                void render_command_set_stencil_test(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_test(cmd, enabled);
+                }
+
+                void render_command_set_depth_cmp_func(const comparison_function& func)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_depth_cmp_func(cmd, func);
+                }
+
+                void render_command_set_stencil_cmp_func(const comparison_function& func)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_cmp_func(cmd, func);
+                }
+
+                void render_command_set_stencil_pass_op(const stencil_op& op)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_pass_op(cmd, op);
+                }
+
+                void render_command_set_stencil_fail_op(const stencil_op& op)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_fail_op(cmd, op);
+                }
+
+                void render_command_set_depth_fail_op(const stencil_op& op)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_depth_fail_op(cmd, op);
+                }
+
+                void render_command_set_stencil_cmp_mask(u8 mask)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_cmp_mask(cmd, mask);
+                }
+
+                void render_command_set_stencil_write_mask(u8 mask)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_stencil_write_mask(cmd, mask);
+                }
+
+                void render_command_set_blend_mode(const blend_mode& mode)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_blend_mode(cmd, mode);
+                }
+
+                void render_command_set_color_write(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_color_write(cmd, enabled);
+                }
+
+                void render_command_set_alpha_to_coverage(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_alpha_to_coverage(cmd, enabled);
+                }
+
+                void render_command_set_scissors(const bool& enabled)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_scissors(cmd, enabled);
+                }
+
+                void render_command_set_constant_depth_bias(float bias)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_constant_depth_bias(cmd, bias);
+                }
+
+                void render_command_set_slope_scaled_depth_bias(float bias)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_slope_scaled_depth_bias(cmd, bias);
+                }
 
 		void render_command_set_wireframe(const bool& enabled)
 		{
