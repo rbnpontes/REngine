@@ -43,10 +43,10 @@ namespace rengine {
 			u8 num_vertex_buffers{ 0 };
 
 			shader_program_t program{ no_shader_program };
-                       hash_map<core::hash_t, render_command_resource> resources{};
-                       math::urect viewport{};
-                       array<math::rect, GRAPHICS_MAX_SCISSORS> scissor_rects{};
-                       u8 num_scissors{ 0 };
+            hash_map<core::hash_t, render_command_resource> resources{};
+            math::urect viewport{};
+            array<math::rect, GRAPHICS_MAX_SCISSORS> scissor_rects{};
+            u8 num_scissors{ 0 };
 
 			primitive_topology topology{ primitive_topology::triangle_list };
 			cull_mode cull{ cull_mode::clock_wise };
@@ -54,7 +54,6 @@ namespace rengine {
 			bool color_write{ true };
 			bool alpha_to_coverage{ false };
 			bool wireframe{ false };
-			bool scissors{ false };
 			float constant_depth_bias{ 0.0f };
 			float slope_scaled_depth_bias{ 0.0f };
 			depth_desc depth_desc{};
@@ -87,10 +86,10 @@ namespace rengine {
 		void render_command__build_hash(render_command_data& data);
 		void render_command__build_vbuffer_hash(render_command_data& cmd);
 		void render_command__build_ibuffer_hash(render_command_data& cmd);
-                void render_command__build_rts_hash(render_command_data& cmd);
-                void render_command__build_viewport_hash(render_command_data& cmd);
-                void render_command__build_scissor_hash(render_command_data& cmd);
-                void render_command__build_texture_hash(render_command_data& cmd);
+        void render_command__build_rts_hash(render_command_data& cmd);
+        void render_command__build_viewport_hash(render_command_data& cmd);
+        void render_command__build_scissor_hash(render_command_data& cmd);
+        void render_command__build_texture_hash(render_command_data& cmd);
 
 		void render_command__prepare_textures(render_command_data& cmd);
 
@@ -102,17 +101,17 @@ namespace rengine {
 		void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id);
 		void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id);
 		void render_command__unset_tex(render_command_data& cmd, const core::hash_t& slot);
-                void render_command__set_viewport(render_command_data& cmd, const math::urect& rect);
-                void render_command__set_scissor_rects(render_command_data& cmd, const math::rect* rects, u8 num_rects);
-                void render_command__set_scissor_rect(render_command_data& cmd, const math::rect& rect);
-                void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology);
+        void render_command__set_viewport(render_command_data& cmd, const math::urect& rect);
+        void render_command__set_scissor_rects(render_command_data& cmd, const math::rect* rects, u8 num_rects);
+        void render_command__set_scissor_rect(render_command_data& cmd, const math::rect& rect);
+		void render_command__disable_scissors(render_command_data& cmd);
+        void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology);
 		void render_command__set_cull(render_command_data& cmd, const cull_mode& cull);
 		void render_command__set_program(render_command_data& cmd, const shader_t& program_id);
 		void render_command__set_depth(render_command_data& cmd, const depth_desc& desc);
 		void render_command__set_blend_mode(render_command_data& cmd, const blend_mode& mode);
 		void render_command__set_color_write(render_command_data& cmd, bool enabled);
 		void render_command__set_alpha_to_coverage(render_command_data& cmd, bool enabled);
-		void render_command__set_scissors(render_command_data& cmd, bool enabled);
         void render_command__set_constant_depth_bias(render_command_data& cmd, float bias);
         void render_command__set_slope_scaled_depth_bias(render_command_data& cmd, float bias);
         void render_command__set_wireframe(render_command_data& cmd, const bool& enabled);

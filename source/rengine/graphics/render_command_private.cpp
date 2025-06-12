@@ -56,7 +56,7 @@ namespace rengine {
 			pipeline_create.blend_mode = data.blend_mode;
 			pipeline_create.color_write = data.color_write;
 			pipeline_create.alpha_to_coverage = data.alpha_to_coverage;
-			pipeline_create.scissors = data.scissors;
+			pipeline_create.scissors = data.num_scissors > 0;
 			pipeline_create.constant_depth_bias = data.constant_depth_bias;
 			pipeline_create.slope_scaled_depth_bias = data.slope_scaled_depth_bias;
 			pipeline_create.wireframe = data.wireframe;
@@ -127,10 +127,10 @@ namespace rengine {
 			auto& hashes = data.hashes;
 			render_command__build_vbuffer_hash(data);
 			render_command__build_ibuffer_hash(data);
-                       render_command__build_rts_hash(data);
-                       render_command__build_viewport_hash(data);
-                       render_command__build_scissor_hash(data);
-                       render_command__build_texture_hash(data);
+			render_command__build_rts_hash(data);
+			render_command__build_viewport_hash(data);
+			render_command__build_scissor_hash(data);
+			render_command__build_texture_hash(data);
 			// calculate graphics state hashes
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.topology);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.cull);
@@ -141,16 +141,16 @@ namespace rengine {
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.blend_mode);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.color_write);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.alpha_to_coverage);
-			hashes.graphics_state = core::hash_combine(hashes.graphics_state, (u32)data.scissors);
+			hashes.graphics_state = core::hash_combine(hashes.graphics_state, data.num_scissors > 0 ? 1 : 0);
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(data.constant_depth_bias));
 			hashes.graphics_state = core::hash_combine(hashes.graphics_state, core::hash(data.slope_scaled_depth_bias));
 
 			data.id = core::hash_combine(hashes.render_targets, hashes.vertex_buffers);
 			data.id = core::hash_combine(data.id, hashes.vertex_buffer_offsets);
 			data.id = core::hash_combine(data.id, hashes.index_buffer);
-                       data.id = core::hash_combine(data.id, hashes.viewport);
-                       data.id = core::hash_combine(data.id, hashes.scissors);
-                       data.id = core::hash_combine(data.id, hashes.graphics_state);
+			data.id = core::hash_combine(data.id, hashes.viewport);
+			data.id = core::hash_combine(data.id, hashes.scissors);
+			data.id = core::hash_combine(data.id, hashes.graphics_state);
 		}
 
 		void render_command__build_vbuffer_hash(render_command_data& cmd)
@@ -189,18 +189,18 @@ namespace rengine {
 			cmd.hashes.render_targets = core::hash_combine(hash, cmd.depth_stencil);
 		}
 
-                void render_command__build_viewport_hash(render_command_data& cmd)
-                {
-                        cmd.hashes.viewport = cmd.viewport.to_hash();
-                }
+		void render_command__build_viewport_hash(render_command_data& cmd)
+		{
+			cmd.hashes.viewport = cmd.viewport.to_hash();
+		}
 
-                void render_command__build_scissor_hash(render_command_data& cmd)
-                {
-                        core::hash_t hash = cmd.num_scissors;
-                        for (u8 i = 0; i < cmd.num_scissors; ++i)
-                                hash = core::hash_combine(hash, cmd.scissor_rects[i].to_hash());
-                        cmd.hashes.scissors = hash;
-                }
+		void render_command__build_scissor_hash(render_command_data& cmd)
+		{
+			core::hash_t hash = cmd.num_scissors;
+			for (u8 i = 0; i < cmd.num_scissors; ++i)
+				hash = core::hash_combine(hash, cmd.scissor_rects[i].to_hash());
+			cmd.hashes.scissors = hash;
+		}
 
 		void render_command__build_texture_hash(render_command_data& cmd)
 		{
@@ -393,35 +393,39 @@ namespace rengine {
 			cmd.hashes.depth_desc = hash;
 		}
 
-                void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)
-                {
-                        auto& state = g_render_command_state;
+		void render_command__set_viewport(render_command_data& cmd, const math::urect& rect)
+		{
+			auto& state = g_render_command_state;
 
-                        cmd.viewport = rect;
-                }
+			cmd.viewport = rect;
+		}
 
-                void render_command__set_scissor_rects(render_command_data& cmd, const math::rect* rects, u8 num_rects)
-                {
-                        auto& state = g_render_command_state;
-                        auto log = state.log;
+		void render_command__set_scissor_rects(render_command_data& cmd, const math::rect* rects, u8 num_rects)
+		{
+			auto& state = g_render_command_state;
+			auto log = state.log;
 
-                        if (num_rects > GRAPHICS_MAX_SCISSORS) {
-                                num_rects = GRAPHICS_MAX_SCISSORS;
-                                log->warn(fmt::format(strings::logs::g_render_isnt_allowed_to_set_scissor_grt_than_max,
-                                        num_rects,
-                                        GRAPHICS_MAX_SCISSORS).c_str());
-                        }
+			if (num_rects > GRAPHICS_MAX_SCISSORS) {
+				num_rects = GRAPHICS_MAX_SCISSORS;
+				log->warn(fmt::format(strings::logs::g_render_isnt_allowed_to_set_scissor_grt_than_max,
+					num_rects,
+					GRAPHICS_MAX_SCISSORS).c_str());
+			}
 
-                        for (u8 i = 0; i < num_rects; ++i)
-                                cmd.scissor_rects[i] = rects[i];
+			memcpy(cmd.scissor_rects.data(), rects, sizeof(math::rect) * num_rects);
 
-                        cmd.num_scissors = num_rects;
-                }
+			cmd.num_scissors = num_rects;
+		}
 
-                void render_command__set_scissor_rect(render_command_data& cmd, const math::rect& rect)
-                {
-                        render_command__set_scissor_rects(cmd, &rect, 1);
-                }
+		void render_command__set_scissor_rect(render_command_data& cmd, const math::rect& rect)
+		{
+			render_command__set_scissor_rects(cmd, &rect, 1);
+		}
+
+		void render_command__disable_scissors(render_command_data& cmd)
+		{
+			cmd.num_scissors = 0;
+		}
 
 		void render_command__set_topology(render_command_data& cmd, const primitive_topology& topology)
 		{
@@ -458,13 +462,6 @@ namespace rengine {
 			if (cmd.alpha_to_coverage != enabled)
 				cmd.pipeline_state = no_pipeline_state;
 			cmd.alpha_to_coverage = enabled;
-		}
-
-		void render_command__set_scissors(render_command_data& cmd, bool enabled)
-		{
-			if (cmd.scissors != enabled)
-				cmd.pipeline_state = no_pipeline_state;
-			cmd.scissors = enabled;
 		}
 
 		void render_command__set_constant_depth_bias(render_command_data& cmd, float bias)

@@ -30,8 +30,8 @@ namespace rengine {
 			auto viewport_size = g_graphics_state.viewport_size;
 			cmd.name = strings::graphics::g_default_cmd_name;
 			cmd.id = 0;
-                        cmd.hashes = {};
-                        cmd.viewport = { {0, 0}, viewport_size };
+            cmd.hashes = {};
+            cmd.viewport = { {0, 0}, viewport_size };
             cmd.scissor_rects.fill({});
             cmd.num_scissors = 0;
             cmd.topology = primitive_topology::triangle_list;
@@ -39,7 +39,6 @@ namespace rengine {
             cmd.blend_mode = blend_mode::replace;
             cmd.color_write = true;
             cmd.alpha_to_coverage = false;
-            cmd.scissors = false;
             cmd.constant_depth_bias = 0.0f;
             cmd.slope_scaled_depth_bias = 0.0f;
             cmd.wireframe = false;

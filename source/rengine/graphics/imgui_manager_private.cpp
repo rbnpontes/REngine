@@ -318,12 +318,12 @@ namespace rengine {
 			renderer_set_cull_mode(cull_mode::none);
 			renderer_set_topology(primitive_topology::triangle_list);
 			renderer_set_wireframe(false);
-			renderer_set_depth({ 
-				.depth_enabled = true, 
+			renderer_set_depth({
+				.depth_enabled = true,
 				.depth_write = false,
 				.stencil_test = false,
 				.depth_cmp_func = comparison_function::always,
-			});
+				});
 			renderer_set_blend_mode(blend_mode::alpha);
 			renderer_set_color_write(true);
 		}
@@ -354,12 +354,11 @@ namespace rengine {
 					if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 						continue;
 
-                                        math::rect scissor_rect{};
-                                        scissor_rect.position = { clip_min.x, clip_min.y };
-                                        scissor_rect.size = { clip_max.x - clip_min.x, clip_max.y - clip_min.y };
-                                        renderer_set_scissor_rect(scissor_rect);
-                                        renderer_set_scissors(true);
-                                        const auto tex = cmd->GetTexID();
+					math::rect scissor_rect{};
+					scissor_rect.position = { clip_min.x, clip_min.y };
+					scissor_rect.size = { clip_max.x - clip_min.x, clip_max.y - clip_min.y };
+					renderer_set_scissor_rect(scissor_rect);
+					const auto tex = cmd->GetTexID();
 					renderer_set_texture_2d("g_texture", tex);
 
 					draw_indexed_desc draw_desc = {};

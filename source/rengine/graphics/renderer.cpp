@@ -90,11 +90,11 @@ namespace rengine {
 			if (cmd.hashes.index_buffer != state.context_state.prev_ibuffer_hash)
 				state.dirty_flags |= (u32)renderer_dirty_flags::index_buffer;
 
-                        if (cmd.hashes.viewport != state.context_state.prev_viewport_hash)
-                                state.dirty_flags |= (u32)renderer_dirty_flags::viewport;
+			if (cmd.hashes.viewport != state.context_state.prev_viewport_hash)
+				state.dirty_flags |= (u32)renderer_dirty_flags::viewport;
 
-                        if (cmd.hashes.scissors != state.context_state.prev_scissor_hash)
-                                state.dirty_flags |= (u32)renderer_dirty_flags::scissors;
+			if (cmd.hashes.scissors != state.context_state.prev_scissor_hash)
+				state.dirty_flags |= (u32)renderer_dirty_flags::scissors;
 
 			if (cmd.pipeline_state != state.context_state.prev_pipeline_id)
 				state.dirty_flags |= (u32)renderer_dirty_flags::pipeline;
@@ -186,23 +186,29 @@ namespace rengine {
 			render_command__set_texarray(cmd, slot, tex_id);
 		}
 
-                void renderer_set_viewport(const math::urect& rect)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_viewport(cmd, rect);
-                }
+		void renderer_set_viewport(const math::urect& rect)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_viewport(cmd, rect);
+		}
 
-                void renderer_set_scissor_rect(const math::rect& rect)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_scissor_rect(cmd, rect);
-                }
+		void renderer_set_scissor_rect(const math::rect& rect)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_scissor_rect(cmd, rect);
+		}
 
-                void renderer_set_scissor_rects(const math::rect* rects, u8 num_rects)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_scissor_rects(cmd, rects, num_rects);
-                }
+		void renderer_set_scissor_rects(const math::rect* rects, u8 num_rects)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_scissor_rects(cmd, rects, num_rects);
+		}
+
+		void renderer_disable_scissors()
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__disable_scissors(cmd);
+		}
 
 		void renderer_set_topology(const primitive_topology& topology)
 		{
@@ -216,53 +222,47 @@ namespace rengine {
 			render_command__set_cull(cmd, cull);
 		}
 
-                void renderer_set_program(const shader_program_t& program_id)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_program(cmd, program_id);
-                }
+		void renderer_set_program(const shader_program_t& program_id)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_program(cmd, program_id);
+		}
 
-                void renderer_set_depth(const depth_desc& desc)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_depth(cmd, desc);
-                }
+		void renderer_set_depth(const depth_desc& desc)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_depth(cmd, desc);
+		}
 
-                void renderer_set_blend_mode(const blend_mode& mode)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_blend_mode(cmd, mode);
-                }
+		void renderer_set_blend_mode(const blend_mode& mode)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_blend_mode(cmd, mode);
+		}
 
-                void renderer_set_color_write(const bool enabled)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_color_write(cmd, enabled);
-                }
+		void renderer_set_color_write(const bool enabled)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_color_write(cmd, enabled);
+		}
 
-                void renderer_set_alpha_to_coverage(const bool enabled)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_alpha_to_coverage(cmd, enabled);
-                }
+		void renderer_set_alpha_to_coverage(const bool enabled)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_alpha_to_coverage(cmd, enabled);
+		}
 
-                void renderer_set_scissors(const bool enabled)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_scissors(cmd, enabled);
-                }
+		void renderer_set_constant_depth_bias(float bias)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_constant_depth_bias(cmd, bias);
+		}
 
-                void renderer_set_constant_depth_bias(float bias)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_constant_depth_bias(cmd, bias);
-                }
-
-                void renderer_set_slope_scaled_depth_bias(float bias)
-                {
-                        auto& cmd = g_renderer_state.default_cmd;
-                        render_command__set_slope_scaled_depth_bias(cmd, bias);
-                }
+		void renderer_set_slope_scaled_depth_bias(float bias)
+		{
+			auto& cmd = g_renderer_state.default_cmd;
+			render_command__set_slope_scaled_depth_bias(cmd, bias);
+		}
 
 		void renderer_set_wireframe(const bool enabled)
 		{
