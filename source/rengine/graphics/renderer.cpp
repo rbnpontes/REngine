@@ -90,8 +90,11 @@ namespace rengine {
 			if (cmd.hashes.index_buffer != state.context_state.prev_ibuffer_hash)
 				state.dirty_flags |= (u32)renderer_dirty_flags::index_buffer;
 
-			if (cmd.hashes.viewport != state.context_state.prev_viewport_hash)
-				state.dirty_flags |= (u32)renderer_dirty_flags::viewport;
+                        if (cmd.hashes.viewport != state.context_state.prev_viewport_hash)
+                                state.dirty_flags |= (u32)renderer_dirty_flags::viewport;
+
+                        if (cmd.hashes.scissors != state.context_state.prev_scissor_hash)
+                                state.dirty_flags |= (u32)renderer_dirty_flags::scissors;
 
 			if (cmd.pipeline_state != state.context_state.prev_pipeline_id)
 				state.dirty_flags |= (u32)renderer_dirty_flags::pipeline;
@@ -183,11 +186,23 @@ namespace rengine {
 			render_command__set_texarray(cmd, slot, tex_id);
 		}
 
-		void renderer_set_viewport(const math::urect& rect)
-		{
-			auto& cmd = g_renderer_state.default_cmd;
-			render_command__set_viewport(cmd, rect);
-		}
+                void renderer_set_viewport(const math::urect& rect)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_viewport(cmd, rect);
+                }
+
+                void renderer_set_scissor_rect(const math::rect& rect)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_scissor_rect(cmd, rect);
+                }
+
+                void renderer_set_scissor_rects(const math::rect* rects, u8 num_rects)
+                {
+                        auto& cmd = g_renderer_state.default_cmd;
+                        render_command__set_scissor_rects(cmd, rects, num_rects);
+                }
 
 		void renderer_set_topology(const primitive_topology& topology)
 		{

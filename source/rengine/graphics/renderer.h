@@ -50,8 +50,10 @@ namespace rengine {
         R_EXPORT void renderer_set_texture_cube(core::hash_t slot, const texture_cube_t& tex_id);
         R_EXPORT void renderer_set_texture_array(core::hash_t slot, const texture_array_t& tex_id);
 
-		R_EXPORT void renderer_set_viewport(const math::urect& rect);
-		R_EXPORT void renderer_set_topology(const primitive_topology& topology);
+                R_EXPORT void renderer_set_viewport(const math::urect& rect);
+                R_EXPORT void renderer_set_scissor_rect(const math::rect& rect);
+                R_EXPORT void renderer_set_scissor_rects(const math::rect* rects, u8 num_rects);
+                R_EXPORT void renderer_set_topology(const primitive_topology& topology);
                 R_EXPORT void renderer_set_cull_mode(const cull_mode& cull);
                 R_EXPORT void renderer_set_program(const shader_program_t& program_id);
                 R_EXPORT void renderer_set_depth(const depth_desc& desc);

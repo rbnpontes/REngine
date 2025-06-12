@@ -18,6 +18,7 @@ namespace rengine {
             index_buffer    = 1 << 2,
             viewport        = 1 << 3,
             pipeline        = 1 << 4,
+            scissors        = 1 << 5,
         };
 
         struct render_context_state {
@@ -26,6 +27,7 @@ namespace rengine {
             core::hash_t prev_vbuffer_offsets_hash{ 0 };
             core::hash_t prev_ibuffer_hash{ 0 };
             core::hash_t prev_viewport_hash{ 0 };
+            core::hash_t prev_scissor_hash{ 0 };
             pipeline_state_t prev_pipeline_id { no_pipeline_state };
             srb_t prev_srb{ no_srb };
         };
@@ -45,6 +47,7 @@ namespace rengine {
         void renderer__set_vbuffers();
         void renderer__set_ibuffer();
         void renderer__set_viewport();
+        void renderer__set_scissor_rects();
         void renderer__set_pipeline();
         void renderer__set_srb();
         void renderer__submit_render_state();

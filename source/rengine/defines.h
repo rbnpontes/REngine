@@ -11,6 +11,9 @@
 
 #define IO_MAX_LOG_OBJECTS 0xFF
 
+// Max number of scissors allowed per render command
+#define GRAPHICS_MAX_SCISSORS 4
+
 #define GRAPHICS_MAX_RENDER_TARGETS 4
 #define GRAPHICS_MAX_VBUFFERS 2
 #define GRAPHICS_MAX_RENDER_COMMANDS 0xFF

@@ -25,8 +25,10 @@ namespace rengine {
 		void render_command_set_texcube(core::hash_t slot, const texture_cube_t& tex_id);
 		void render_command_set_texarray(core::hash_t slot, const texture_array_t& tex_id);
 		void render_command_unset_tex(core::hash_t slot);
-		void render_command_set_viewport(const math::urect& rect);
-		void render_command_set_topology(const primitive_topology& topology);
+                void render_command_set_viewport(const math::urect& rect);
+                void render_command_set_scissor_rect(const math::rect& rect);
+                void render_command_set_scissor_rects(const math::rect* rects, u8 num_rects);
+                void render_command_set_topology(const primitive_topology& topology);
 		void render_command_set_cull_mode(const cull_mode& cull);
 		void render_command_set_program(const shader_program_t& program_id);
 		void render_command_set_depth(const depth_desc& desc);

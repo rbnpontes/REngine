@@ -165,12 +165,26 @@ namespace rengine {
 			render_command__unset_tex(cmd, slot);
 		}
 
-		void render_command_set_viewport(const math::urect& rect)
-		{
-			ASSERT_RENDER_COMMAND_UPDATE();
-			auto& cmd = *g_render_command_state.curr_cmd;
-			render_command__set_viewport(cmd, rect);
-		}
+                void render_command_set_viewport(const math::urect& rect)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_viewport(cmd, rect);
+                }
+
+                void render_command_set_scissor_rect(const math::rect& rect)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_scissor_rect(cmd, rect);
+                }
+
+                void render_command_set_scissor_rects(const math::rect* rects, u8 num_rects)
+                {
+                        ASSERT_RENDER_COMMAND_UPDATE();
+                        auto& cmd = *g_render_command_state.curr_cmd;
+                        render_command__set_scissor_rects(cmd, rects, num_rects);
+                }
 
 		void render_command_set_topology(const primitive_topology& topology)
 		{

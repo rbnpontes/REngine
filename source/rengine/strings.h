@@ -187,8 +187,9 @@ namespace rengine {
             constexpr static c_str g_buffer_mgr_update_data_size_is_greater_than_buffer = "Upload data size ({0}) is greater than Buffer '{2}' size ({3}). "
                 "Engine will copy partial data to GPU, next time try to increate buffer size! "
                 "Upload Size = {0}, Buffer Id = {1} Buffer Name = {2}, Buffer Size = {3}, Buffer Type = {4}";
-            constexpr static c_str g_buffer_mgr_free_invalid_buffer = "Can´t free an invalid buffer. Buffer Id = {0}";
-			constexpr static c_str g_buffer_mgr_cant_unmap = "Can´t unmap buffer. Buffer is not mapped. Buffer Id = {0}, Buffer Type = {1}";
+            constexpr static c_str g_render_isnt_allowed_to_set_scissor_grt_than_max = "Number of scissors ({0}) is greater than max allowed ({1})";
+            constexpr static c_str g_buffer_mgr_free_invalid_buffer = "CanÂ´t free an invalid buffer. Buffer Id = {0}";
+			constexpr static c_str g_buffer_mgr_cant_unmap = "CanÂ´t unmap buffer. Buffer is not mapped. Buffer Id = {0}, Buffer Type = {1}";
             constexpr static c_str g_buffer_mgr_realloc_internal_dyn_buffer = "You are trying to realloc an internal dynamic buffer. Please, use '{0}({1} /*buffer id*/, {2}/*new buffer size*/)' method instead. "
                 "Engine will fix this problem for you by updating internal state. "
                 "To avoid any kind of side-effects, always call the required method!";
@@ -255,7 +256,7 @@ namespace rengine {
 
             constexpr static c_str g_renderer_rt_idx_grt_than_max = "Render Target Index is greater than the max supported render targets {0}";
             constexpr static c_str g_renderer_rt_idx_grt_than_set = "Render Target Index ({0}) is greater than set render targets ({1})";
-            constexpr static c_str g_renderer_clear_depth_without_set = "Can´t clear Depth Stencil. You must assign depth stencil first";
+            constexpr static c_str g_renderer_clear_depth_without_set = "CanÂ´t clear Depth Stencil. You must assign depth stencil first";
         
             constexpr static c_str g_drawing_failed_to_alloc_vbuffer = "Failed to allocate vertex buffer with size {0}";
             constexpr static c_str g_drawing_failed_to_alloc_ibuffer = "Failed to allocate index buffer with size {0}";

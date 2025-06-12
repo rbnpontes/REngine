@@ -30,8 +30,10 @@ namespace rengine {
 			auto viewport_size = g_graphics_state.viewport_size;
 			cmd.name = strings::graphics::g_default_cmd_name;
 			cmd.id = 0;
-			cmd.hashes = {};
-			cmd.viewport = { {0, 0}, viewport_size };
+                        cmd.hashes = {};
+                        cmd.viewport = { {0, 0}, viewport_size };
+            cmd.scissor_rects.fill({});
+            cmd.num_scissors = 0;
             cmd.topology = primitive_topology::triangle_list;
 			cmd.depth_desc = {};
             cmd.blend_mode = blend_mode::replace;
@@ -142,12 +144,12 @@ namespace rengine {
 			ctx_state.prev_ibuffer_hash = cmd.hashes.index_buffer;
 		}
 
-		void renderer__set_viewport()
-		{
-			const auto& cmd = g_renderer_state.default_cmd;
-			const auto ctx = g_graphics_state.contexts[0];
-			const auto& viewport = cmd.viewport;
-			auto& ctx_state = g_renderer_state.context_state;
+                void renderer__set_viewport()
+                {
+                        const auto& cmd = g_renderer_state.default_cmd;
+                        const auto ctx = g_graphics_state.contexts[0];
+                        const auto& viewport = cmd.viewport;
+                        auto& ctx_state = g_renderer_state.context_state;
 
 			if (ctx_state.prev_viewport_hash == cmd.hashes.viewport)
 				return;
@@ -164,9 +166,35 @@ namespace rengine {
 			view.Height = viewport.size.y;
 			view.MinDepth = 0;
 			view.MaxDepth = 1;
-			ctx->SetViewports(1, &view, rt_size.x, rt_size.y);
-			ctx_state.prev_viewport_hash = cmd.hashes.viewport;
-		}
+                        ctx->SetViewports(1, &view, rt_size.x, rt_size.y);
+                        ctx_state.prev_viewport_hash = cmd.hashes.viewport;
+                }
+
+                void renderer__set_scissor_rects()
+                {
+                        const auto& cmd = g_renderer_state.default_cmd;
+                        const auto ctx = g_graphics_state.contexts[0];
+                        auto& ctx_state = g_renderer_state.context_state;
+
+                        if (ctx_state.prev_scissor_hash == cmd.hashes.scissors)
+                                return;
+
+                        Diligent::Rect rects[GRAPHICS_MAX_SCISSORS] = {};
+                        for (u8 i = 0; i < cmd.num_scissors; ++i) {
+                                const auto& r = cmd.scissor_rects[i];
+                                rects[i].left = (int)r.position.x;
+                                rects[i].top = (int)r.position.y;
+                                rects[i].right = (int)(r.position.x + r.size.x);
+                                rects[i].bottom = (int)(r.position.y + r.size.y);
+                        }
+
+                        auto rt_size = cmd.viewport.size;
+                        if (cmd.num_render_targets > 0)
+                                render_target_mgr__get_size(cmd.render_targets[0], &rt_size);
+
+                        ctx->SetScissorRects(cmd.num_scissors, rects, rt_size.x, rt_size.y);
+                        ctx_state.prev_scissor_hash = cmd.hashes.scissors;
+                }
 
 		void renderer__set_pipeline()
 		{
@@ -203,11 +231,12 @@ namespace rengine {
 		void renderer__submit_render_state()
 		{
 			renderer__set_render_targets();
-			renderer__set_vbuffers();
-			renderer__set_ibuffer();
-			renderer__set_viewport();
-			renderer__set_pipeline();
-			renderer__set_srb();
-		}
+                        renderer__set_vbuffers();
+                        renderer__set_ibuffer();
+                        renderer__set_viewport();
+                        renderer__set_scissor_rects();
+                        renderer__set_pipeline();
+                        renderer__set_srb();
+                }
 	}
 }

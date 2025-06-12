@@ -354,8 +354,12 @@ namespace rengine {
 					if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 						continue;
 
-					// TODO: implement scissors
-					const auto tex = cmd->GetTexID();
+                                        math::rect scissor_rect{};
+                                        scissor_rect.position = { clip_min.x, clip_min.y };
+                                        scissor_rect.size = { clip_max.x - clip_min.x, clip_max.y - clip_min.y };
+                                        renderer_set_scissor_rect(scissor_rect);
+                                        renderer_set_scissors(true);
+                                        const auto tex = cmd->GetTexID();
 					renderer_set_texture_2d("g_texture", tex);
 
 					draw_indexed_desc draw_desc = {};
