@@ -1,5 +1,7 @@
 #pragma once
 #include "./image.h"
+#include "../io/logger.h"
+#include "../strings.h"
 
 namespace rengine {
 	namespace resources {
@@ -10,10 +12,13 @@ namespace rengine {
 			u8 components{ 4 };
 		};
 
-		struct image_state {
-			u32 num_images{ 0 };
-			image_t* root{ null };
-		};
+               struct image_state {
+                       u32 num_images{ 0 };
+                       image_t* root{ null };
+                        io::ILog* log{ null };
+               };
+
+               void image__validate_pos(const image_t* img, math::uvec2& pos);
 
 		extern image_state g_image_state;
 

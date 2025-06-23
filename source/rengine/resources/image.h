@@ -48,7 +48,7 @@ namespace rengine {
 		R_EXPORT void image_resize(image_t* image, const math::uvec2& size);
 
 		R_EXPORT void image_set_pixel(image_t* image, const image_pixel_set_desc& desc);
-		R_EXPORT void image_get_pixel(const image_t* image, const math::uvec2& pos, image_pixel_color& color);
+                R_EXPORT void image_get_pixel(const image_t* image, const math::uvec2& pos, math::color& color);
 
 		R_EXPORT graphics::texture_2d_t image_create_texture(const image_texture_create_desc& desc);
 	}

@@ -171,6 +171,10 @@ namespace rengine {
             constexpr static c_str g_drawing_cmd_tag = "drawing";
             constexpr static c_str g_srb_mgr_tag = "srb";
             constexpr static c_str g_tex_mgr_tag = "texture_mgr";
+            constexpr static c_str g_image_tag = "image";
+
+            constexpr static c_str g_image_pos_exceeds_bounds =
+                "Position exceeds Image Bounds. pos.x = {0}, pos.y = {1}, width = {2}, height = {3}";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -267,6 +271,9 @@ namespace rengine {
             constexpr static c_str g_render_cmd_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
         
             constexpr static c_str g_srb_invalid_pipeline = "Failed to create Shader Resource Binding. Pipeline State Id is invalid. Pipeline State = {0}";
+            constexpr static c_str g_image_create_texture_source_null = "image_create_texture: source is null";
+            constexpr static c_str g_image_invalid_format = "image_create_texture: invalid format for image components";
+            constexpr static c_str g_image_invalid_compressed_format = "Image doesn't supports compressed formats";
         }
     }
 }
