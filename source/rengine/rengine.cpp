@@ -6,6 +6,7 @@
 #include "./core/profiler_private.h"
 #include "./graphics/graphics_private.h"
 #include "./io/logger_private.h"
+#include "./resources/resources_private.h"
 
 namespace rengine {
 	void init() {
@@ -18,12 +19,13 @@ namespace rengine {
 		if (desc.window_id != core::no_window)
 			use_window(desc.window_id);
 
-		action_t actions[] = {
-			core::string_pool__init,
-			io::logger__init,
-			core::window__init,
-			core::profiler__init,
-		};
+                action_t actions[] = {
+                        core::string_pool__init,
+                        io::logger__init,
+                        core::window__init,
+                        core::profiler__init,
+                        resources::resources__init,
+                };
 
 		for(u32 i = 0; i < _countof(actions); ++i)
 			actions[i]();
@@ -38,13 +40,14 @@ namespace rengine {
 	void destroy() {
 		EVENT_EMIT(engine, destroy)();
 
-		action_t actions[] = {
-			graphics::deinit,
-			core::window__deinit,
-			io::logger__deinit,
-			core::profiler__deinit,
-			core::string_pool__deinit,
-		};
+                action_t actions[] = {
+                        graphics::deinit,
+                        core::window__deinit,
+                        io::logger__deinit,
+                        core::profiler__deinit,
+                        resources::resources__deinit,
+                        core::string_pool__deinit,
+                };
 
 		for (u32 i = 0; i < _countof(actions); ++i)
 			actions[i]();
