@@ -148,6 +148,7 @@ namespace rengine {
 			data.id = core::hash_combine(hashes.render_targets, hashes.vertex_buffers);
 			data.id = core::hash_combine(data.id, hashes.vertex_buffer_offsets);
 			data.id = core::hash_combine(data.id, hashes.index_buffer);
+			data.id = core::hash_combine(data.id, hashes.textures);
 			data.id = core::hash_combine(data.id, hashes.viewport);
 			data.id = core::hash_combine(data.id, hashes.scissors);
 			data.id = core::hash_combine(data.id, hashes.graphics_state);
@@ -212,6 +213,7 @@ namespace rengine {
 			for (const auto& it : cmd.resources) {
 				const auto& res = it.second;
 				hash = core::hash_combine(hash, res.resource.id);
+				hash = core::hash_combine(hash, res.tex_id);
 				hash = core::hash_combine(hash, (u32)res.type);
 			}
 
