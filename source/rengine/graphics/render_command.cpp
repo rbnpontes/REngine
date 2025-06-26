@@ -98,7 +98,7 @@ namespace rengine {
 			render_command__set_rts(cmd, render_targets, num_rts, depth_id);
 		}
 
-		void render_command_set_tex2d(c_str slot_name, const texture_2d_t& tex_id)
+		void render_command_set_tex2d(c_str slot_name, const texture2d_t& tex_id)
 		{
 			ASSERT_RENDER_COMMAND_UPDATE();
 			core::hash_t slot_hash{};
@@ -130,7 +130,7 @@ namespace rengine {
 			render_command_set_texarray(slot_hash, tex_id);
 		}
 
-		void render_command_set_tex2d(core::hash_t slot, const texture_2d_t& tex_id)
+		void render_command_set_tex2d(core::hash_t slot, const texture2d_t& tex_id)
 		{
 			ASSERT_RENDER_COMMAND_UPDATE();
 			auto& cmd = *g_render_command_state.curr_cmd;

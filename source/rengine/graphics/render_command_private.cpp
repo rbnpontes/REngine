@@ -317,7 +317,7 @@ namespace rengine {
 			cmd.depth_stencil = depth_id;
 		}
 
-		void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id)
+		void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture2d_t& id)
 		{
 			if (no_texture_2d == id)
 				return;

@@ -210,6 +210,9 @@ namespace rengine {
             constexpr static c_str g_draw_require_x_vertices = "You must push {0} vertices first to do this operation. Vertices Count = {1}";
         
             constexpr static c_str g_srb_mgr_invalid_id = "Invalid Shader Resource Binding Id {0}";
+
+            constexpr static c_str g_image_failed_2_load = "Failed to load image.";
+			constexpr static c_str g_image_cant_flip_channels = "Failed to flip channels. Image components must be 4.";
         }
 
         namespace exceptions {
@@ -252,6 +255,9 @@ namespace rengine {
                 "Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
 
             constexpr static c_str g_texture_mgr_failed_to_create_tex = "Failed to create texture. Texture Name = {0}";
+            constexpr static c_str g_texture_mgr_fmt_unknown = "You must select an texture format first. Texture format is Unknown";
+            constexpr static c_str g_texture_mgr_fmt_invalid = "Invalid texture format";
+			constexpr static c_str g_texture_mgr_invalid_usage_mip = "Can't generate mipmap on texture with usage immutable, switching to default usage!";
 
 			constexpr static c_str g_rt_mgr_reach_limit = "Failed to create render target. Reached limit of {0} render targets";
             constexpr static c_str g_rt_mgr_failed_to_create = "Failed to create render target";

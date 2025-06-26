@@ -27,7 +27,7 @@ namespace rengine {
 		void texture_mgr__init_dummy_white_tex2d()
 		{
 			auto& state = g_texture_mgr_state;
-			byte white_dummy_data[] = {255, 255, 255, 255}; // RGBA white pixel
+			byte white_dummy_data[] = { 255, 255, 255, 255 }; // RGBA white pixel
 
 			texture_create_desc<texture_2d_size> desc;
 			desc.name = strings::graphics::g_texture_mgr_white_dummy_tex2d;
@@ -46,6 +46,11 @@ namespace rengine {
 
 		void texture_mgr__fill_tex2d_desc(const texture_create_desc<texture_2d_size>& desc, Diligent::TextureDesc& out_desc)
 		{
+			if(desc.format == texture_format::unknown)
+				throw graphics_exception(strings::exceptions::g_texture_mgr_fmt_unknown);
+			else if (desc.format >= texture_format::max)
+				throw graphics_exception(strings::exceptions::g_texture_mgr_fmt_invalid);
+
 			out_desc.Name = desc.name;
 			out_desc.ArraySize = 1;
 			out_desc.BindFlags = Diligent::BIND_SHADER_RESOURCE;
@@ -57,9 +62,10 @@ namespace rengine {
 			out_desc.Height = desc.size.height;
 			out_desc.ImmediateContextMask = 1;
 			out_desc.CPUAccessFlags = Diligent::CPU_ACCESS_NONE;
+			out_desc.MiscFlags = Diligent::MISC_TEXTURE_FLAG_NONE;
 
-			if(desc.generate_mips)
-				out_desc.BindFlags |= Diligent::BIND_RENDER_TARGET;
+			if (desc.generate_mips)
+				out_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
 
 			if (desc.readable)
 				out_desc.CPUAccessFlags |= Diligent::CPU_ACCESS_READ;
@@ -71,6 +77,13 @@ namespace rengine {
 			{
 				out_desc.Usage = Diligent::USAGE_IMMUTABLE;
 				out_desc.CPUAccessFlags = Diligent::CPU_ACCESS_NONE;
+
+				if (desc.generate_mips) {
+					out_desc.Usage = Diligent::USAGE_DEFAULT;
+					g_texture_mgr_state.log->warn(
+						strings::exceptions::g_texture_mgr_invalid_usage_mip
+					);
+				}
 			}
 			break;
 			case resource_usage::normal:
@@ -94,8 +107,8 @@ namespace rengine {
 			}
 		}
 
-                Diligent::ITexture* texture_mgr__create(Diligent::TextureDesc& desc, Diligent::TextureData& data, bool gen_mipmap)
-                {
+		Diligent::ITexture* texture_mgr__create(Diligent::TextureDesc& desc, Diligent::TextureData& data, bool gen_mipmap)
+		{
 			auto device = g_graphics_state.device;
 			auto ctx = g_graphics_state.contexts[0];
 			Diligent::ITexture* texture = nullptr;
@@ -106,41 +119,41 @@ namespace rengine {
 					fmt::format(strings::exceptions::g_texture_mgr_failed_to_create_tex, desc.Name).c_str()
 				);
 
-                        if(gen_mipmap)
-                                ctx->GenerateMips(texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE));
-                        return texture;
-                }
+			if (gen_mipmap)
+				ctx->GenerateMips(texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE));
+			return texture;
+		}
 
-                void texture_mgr__get_internal_handle(texture_type type, u16 id, Diligent::ITexture** output)
-                {
-                        if (!output)
-                                return;
+		void texture_mgr__get_internal_handle(texture_type type, u16 id, Diligent::ITexture** output)
+		{
+			if (!output)
+				return;
 
-                        *output = null;
+			*output = null;
 
-                        auto& state = g_texture_mgr_state;
+			auto& state = g_texture_mgr_state;
 
-                        switch (type)
-                        {
-                        case texture_type::tex2d:
-                                if (id != no_texture_2d)
-                                        *output = state.textures_2d[id].value.handler;
-                                break;
-                        case texture_type::tex3d:
-                                if (id != no_texture_3d)
-                                        *output = state.textures_3d[id].value.handler;
-                                break;
-                        case texture_type::texcube:
-                                if (id != no_texture_cube)
-                                        *output = state.textures_cube[id].value.handler;
-                                break;
-                        case texture_type::texarray:
-                                if (id != no_texture_array)
-                                        *output = state.textures_array[id].value.handler;
-                                break;
-                        default:
-                                break;
-                        }
-                }
-        }
+			switch (type)
+			{
+			case texture_type::tex2d:
+				if (id != no_texture_2d)
+					*output = state.textures_2d[id].value.handler;
+				break;
+			case texture_type::tex3d:
+				if (id != no_texture_3d)
+					*output = state.textures_3d[id].value.handler;
+				break;
+			case texture_type::texcube:
+				if (id != no_texture_cube)
+					*output = state.textures_cube[id].value.handler;
+				break;
+			case texture_type::texarray:
+				if (id != no_texture_array)
+					*output = state.textures_array[id].value.handler;
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
