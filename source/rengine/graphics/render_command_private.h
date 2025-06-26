@@ -96,7 +96,7 @@ namespace rengine {
 		void render_command__set_vbuffers(render_command_data& cmd, const vertex_buffer_t* buffers, u8 num_buffers, const u64* offsets);
 		void render_command__set_ibuffer(render_command_data& cmd, const index_buffer_t& buffer, const u64& offset);
 		void render_command__set_rts(render_command_data& cmd, const render_target_t* rts, u8 num_rts, const render_target_t& depth_id);
-		void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture_2d_t& id);
+		void render_command__set_tex2d(render_command_data& cmd, const core::hash_t& slot, const texture2d_t& id);
 		void render_command__set_tex3d(render_command_data& cmd, const core::hash_t& slot, const texture_3d_t& id);
 		void render_command__set_texcube(render_command_data& cmd, const core::hash_t& slot, const texture_cube_t& id);
 		void render_command__set_texarray(render_command_data& cmd, const core::hash_t& slot, const texture_array_t& id);

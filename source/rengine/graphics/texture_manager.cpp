@@ -5,19 +5,19 @@
 
 namespace rengine {
 	namespace graphics {
-		texture_2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc)
+		texture2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc)
 		{
 			texture_data_desc data_desc{};
 			return texture_mgr_create_tex2d(desc, data_desc);
 		}
-		texture_2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc, const texture_resource_data& data)
+		texture2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc, const texture_resource_data& data)
 		{
 			texture_data_desc data_desc;
 			data_desc.num_resources = 1;
 			data_desc.resources = const_cast<texture_resource_data*>(&data);
 			return texture_mgr_create_tex2d(desc, data_desc);
 		}
-		texture_2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc, const texture_data_desc& data)
+		texture2d_t texture_mgr_create_tex2d(const texture_create_desc<texture_2d_size>& desc, const texture_data_desc& data)
 		{
 			auto& state = g_texture_mgr_state;
 			auto device = g_graphics_state.device;
@@ -90,7 +90,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_destroy_tex2d(texture_2d_t id)
+		void texture_mgr_destroy_tex2d(texture2d_t id)
 		{
 			auto& state = g_texture_mgr_state;
 			auto& entry = state.textures_2d[id];
@@ -110,7 +110,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_resize(texture_2d_t id, const math::vec2& size)
+		void texture_mgr_resize(texture2d_t id, const math::vec2& size)
 		{
 			throw not_implemented_exception();
 		}
@@ -119,7 +119,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_get_desc(texture_2d_t id, texture_create_desc<texture_2d_size>* desc)
+		void texture_mgr_get_desc(texture2d_t id, texture_create_desc<texture_2d_size>* desc)
 		{
 			throw not_implemented_exception();
 		}
@@ -136,7 +136,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_tex2d_update(texture_2d_t id, const texture2d_update_desc& desc)
+		void texture_mgr_tex2d_update(texture2d_t id, const texture2d_update_desc& desc)
 		{
 			throw not_implemented_exception();
 		}
@@ -153,7 +153,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		ptr texture_mgr_tex2d_map(texture_2d_t id, u32 mip_level)
+		ptr texture_mgr_tex2d_map(texture2d_t id, u32 mip_level)
 		{
 			throw not_implemented_exception();
 		}
@@ -170,11 +170,11 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_tex2d_unmap(texture_2d_t id)
+		void texture_mgr_tex2d_unmap(texture2d_t id)
 		{
 			throw not_implemented_exception();
 		}
-		void texture_mgr_tex3d_unmap(texture_2d_t id)
+		void texture_mgr_tex3d_unmap(texture2d_t id)
 		{
 			throw not_implemented_exception();
 		}
@@ -204,7 +204,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_tex2d_gen_mipmap(texture_2d_t id)
+		void texture_mgr_tex2d_gen_mipmap(texture2d_t id)
 		{
 			auto& state = g_texture_mgr_state;
 			auto& entry = state.textures_2d[id];
@@ -226,7 +226,7 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 		
-		texture_2d_t texture_mgr_get_white_dummy_tex2d()
+		texture2d_t texture_mgr_get_white_dummy_tex2d()
 		{
 			return g_texture_mgr_state.white_dummy_tex2d;
 		}

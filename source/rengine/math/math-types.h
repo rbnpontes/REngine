@@ -82,9 +82,23 @@ namespace rengine {
             constexpr byte_color(): r(0), g(0), b(0), a(255){}
             constexpr byte_color(u8 r_, u8 g_, u8 b_, u8 a_ = 255): r(r_), g(g_), b(b_), a(a_){}
             constexpr byte_color(u32 color): r((color >> 16) & 0xFF), g((color >> 8) & 0xFF), b((color >> 0) & 0xFF), a((color >> 24) & 0xFF){}
+            constexpr byte_color(u8* data, u8 num_components): byte_color() {
+                u8* dst = (u8*)this;
+                for (u8 i = 0; i < num_components; ++i) {
+					*dst = data[i];
+                    ++dst;
+                }
+            }
 
             constexpr u32 to_uint() {
                 return (a << 24u) | (r << 16u) | (g << 8u) | b;
+            }
+			constexpr color to_color() const {
+				return color(r / 255.f, g / 255.f, b / 255.f, a / 255.f);
+			}
+
+            static byte_color from(color col) {
+				return byte_color(col.r * 255.f, col.g * 255.f, col.b * 255.f, col.a * 255.f);
             }
 
             static const byte_color black;

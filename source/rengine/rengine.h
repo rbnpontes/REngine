@@ -6,6 +6,7 @@
 #include <rengine/math/math.h>
 #include <rengine/io/io.h>
 #include <rengine/events/events.h>
+#include <rengine/resources/resources.h>
 
 namespace rengine {
 	typedef void (*__engine_update_call)();

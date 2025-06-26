@@ -46,7 +46,7 @@ namespace rengine {
         typedef u16 constant_buffer_t;
         typedef u16 instancing_buffer_t;
         // texture objects
-        typedef u16 texture_2d_t;
+        typedef u16 texture2d_t;
         typedef u16 texture_3d_t;
         typedef u16 texture_cube_t;
         typedef u16 texture_array_t;
@@ -183,6 +183,7 @@ namespace rengine {
             bc5,
             bc6h,
             bc7,
+            max
         };
 
         // TODO: add more types

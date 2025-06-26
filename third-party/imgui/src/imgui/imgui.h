@@ -312,6 +312,17 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 #ifndef ImTextureID
 typedef ImU64 ImTextureID;          // Default: store a pointer or an integer fitting in a pointer (most renderer backends are ok with that)
 #endif
+union ImTextureData {
+    struct {
+        ImU32 id;
+        ImU8 type;
+    };
+    ImTextureID value;
+};
+#define ImTex2D(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex2d }.value
+#define ImTex3D(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex3d }.value
+#define ImTexArray(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::texarray }.value
+#define ImTexCube(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::texcube }.value
 
 //-----------------------------------------------------------------------------
 // [SECTION] Dear ImGui end-user API functions

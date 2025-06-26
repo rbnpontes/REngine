@@ -44,6 +44,7 @@ namespace rengine {
             constexpr static c_str g_frame_buffer_name = "rengine::graphics::frame::cbuffer";
 
 			constexpr static c_str g_imgui_mgr_name = "rengine::imgui::manager::font_texture";
+            constexpr static c_str g_imgui_mgr_tex_slot = "g_texture";
 
             namespace shaders {
                 constexpr static c_str g_frame_buffer_key = "frame_constants";
@@ -171,6 +172,10 @@ namespace rengine {
             constexpr static c_str g_drawing_cmd_tag = "drawing";
             constexpr static c_str g_srb_mgr_tag = "srb";
             constexpr static c_str g_tex_mgr_tag = "texture_mgr";
+            constexpr static c_str g_image_tag = "image";
+
+            constexpr static c_str g_image_pos_exceeds_bounds =
+                "Position exceeds Image Bounds. pos.x = {0}, pos.y = {1}, width = {2}, height = {3}";
 
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
@@ -206,6 +211,9 @@ namespace rengine {
             constexpr static c_str g_draw_require_x_vertices = "You must push {0} vertices first to do this operation. Vertices Count = {1}";
         
             constexpr static c_str g_srb_mgr_invalid_id = "Invalid Shader Resource Binding Id {0}";
+
+            constexpr static c_str g_image_failed_2_load = "Failed to load image.";
+			constexpr static c_str g_image_cant_flip_channels = "Failed to flip channels. Image components must be 4.";
         }
 
         namespace exceptions {
@@ -248,6 +256,9 @@ namespace rengine {
                 "Buffer Id = {0}, Buffer Name = {1}, Buffer Type = {2}";
 
             constexpr static c_str g_texture_mgr_failed_to_create_tex = "Failed to create texture. Texture Name = {0}";
+            constexpr static c_str g_texture_mgr_fmt_unknown = "You must select an texture format first. Texture format is Unknown";
+            constexpr static c_str g_texture_mgr_fmt_invalid = "Invalid texture format";
+			constexpr static c_str g_texture_mgr_invalid_usage_mip = "Can't generate mipmap on texture with usage immutable, switching to default usage!";
 
 			constexpr static c_str g_rt_mgr_reach_limit = "Failed to create render target. Reached limit of {0} render targets";
             constexpr static c_str g_rt_mgr_failed_to_create = "Failed to create render target";
@@ -267,6 +278,9 @@ namespace rengine {
             constexpr static c_str g_render_cmd_cant_build_render_cmd = "Failed to create render command. Reached limit of {0} render commands";
         
             constexpr static c_str g_srb_invalid_pipeline = "Failed to create Shader Resource Binding. Pipeline State Id is invalid. Pipeline State = {0}";
+            constexpr static c_str g_image_create_texture_source_null = "image_create_texture: source is null";
+            constexpr static c_str g_image_invalid_format = "image_create_texture: invalid format for image components";
+            constexpr static c_str g_image_invalid_compressed_format = "Image doesn't supports compressed formats";
         }
     }
 }

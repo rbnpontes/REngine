@@ -18,7 +18,7 @@ namespace rengine {
 			core::array_pool<texture_entry, GRAPHICS_MAX_ALLOC_TEXCUBE> textures_cube{};
 			core::array_pool<texture_entry, GRAPHICS_MAX_ALLOC_TEXARRAY> textures_array{};
 
-			texture_2d_t white_dummy_tex2d{ no_texture_2d };
+			texture2d_t white_dummy_tex2d{ no_texture_2d };
 			io::ILog* log{ null };
 		};
 

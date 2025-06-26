@@ -105,7 +105,7 @@ namespace rengine {
 
 			state.font_tex = texture_mgr_create_tex2d(desc, data);
 
-			io.Fonts->SetTexID(state.font_tex);
+			io.Fonts->SetTexID(ImTex2D(state.font_tex));
 		}
 
 		void imgui_manager__init_shaders()
@@ -328,6 +328,29 @@ namespace rengine {
 			renderer_set_color_write(true);
 		}
 
+		void imgui_manager__set_texture(const ImTextureID& tex_id)
+		{
+			ImTextureData data;
+			data.value = tex_id;
+			auto tex_slot = strings::graphics::g_imgui_mgr_tex_slot;
+
+			switch (data.type)
+			{
+			case (u8)texture_type::tex2d:
+				renderer_set_texture_2d(tex_slot, data.id);
+				break;
+			case (u8)texture_type::tex3d:
+				renderer_set_texture_3d(tex_slot, data.id);
+				break;
+			case (u8)texture_type::texcube:
+				renderer_set_texture_cube(tex_slot, data.id);
+				break;
+			case (u8)texture_type::texarray:
+				renderer_set_texture_array(tex_slot, data.id);
+				break;
+			}
+		}
+
 		void imgui_manager__render_commands(ImDrawData* draw_data)
 		{
 			u32 global_idx_offset = 0;
@@ -359,7 +382,7 @@ namespace rengine {
 					scissor_rect.size = { clip_max.x - clip_min.x, clip_max.y - clip_min.y };
 					renderer_set_scissor_rect(scissor_rect);
 					const auto tex = cmd->GetTexID();
-					renderer_set_texture_2d("g_texture", tex);
+					imgui_manager__set_texture(tex);
 
 					draw_indexed_desc draw_desc = {};
 					draw_desc.num_indices = cmd->ElemCount;
