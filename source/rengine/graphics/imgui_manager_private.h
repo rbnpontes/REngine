@@ -15,9 +15,9 @@ namespace rengine {
 			SDL_Cursor* last_cursor{ null };
 
 			texture2d_t font_tex{ UINT16_MAX };
-                        shader_t vertex_shader{ no_shader };
-                        shader_t pixel_shader{ no_shader };
-                        shader_program_t program{ no_shader_program };
+			shader_t vertex_shader{ no_shader };
+			shader_t pixel_shader{ no_shader };
+			shader_program_t program{ no_shader_program };
 
 			vertex_buffer_t vertex_buffer{ no_vertex_buffer };
 			index_buffer_t index_buffer{ no_index_buffer };
@@ -32,7 +32,7 @@ namespace rengine {
 
 		void imgui_manager__init();
 		void imgui_manager__deinit();
-		
+
 		void imgui_manager__init_font_tex();
 		void imgui_manager__init_shaders();
 
@@ -49,6 +49,7 @@ namespace rengine {
 		void imgui_manager__render();
 		void imgui_manager__copy_buffers(ImDrawData* draw_data);
 		void imgui_manager__setup_render_state();
+		void imgui_manager__set_texture(const ImTextureID& tex_id);
 		void imgui_manager__render_commands(ImDrawData* draw_data);
 	}
 }

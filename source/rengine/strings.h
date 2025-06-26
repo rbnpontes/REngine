@@ -44,6 +44,7 @@ namespace rengine {
             constexpr static c_str g_frame_buffer_name = "rengine::graphics::frame::cbuffer";
 
 			constexpr static c_str g_imgui_mgr_name = "rengine::imgui::manager::font_texture";
+            constexpr static c_str g_imgui_mgr_tex_slot = "g_texture";
 
             namespace shaders {
                 constexpr static c_str g_frame_buffer_key = "frame_constants";

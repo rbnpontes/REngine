@@ -49,7 +49,7 @@ void game_loop() {
 
 	if (ImGui::Begin("Test Window")) {
 		ImGui::Text("Hello, world from REngine!");
-		ImGui::Image(g_test_texture, ImVec2(200, 200));
+		ImGui::Image(ImTex2D(g_test_texture), ImVec2(200, 200));
 		ImGui::End();
 	}
 
