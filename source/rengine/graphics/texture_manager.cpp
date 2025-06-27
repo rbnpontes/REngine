@@ -136,9 +136,30 @@ namespace rengine {
 			throw not_implemented_exception();
 		}
 
-		void texture_mgr_tex2d_update(texture2d_t id, const texture2d_update_desc& desc)
+		void texture_mgr_tex2d_update(const texture2d_update_desc& desc)
 		{
-			throw not_implemented_exception();
+			auto& state = g_texture_mgr_state;
+			auto& entry = state.textures_2d[desc.id];
+			auto ctx = g_graphics_state.contexts[0];
+			Diligent::Box box;
+			box.MinX = desc.box.position.x;
+			box.MinY = desc.box.position.y;
+			box.MinZ = 0;
+
+			box.MaxX = desc.box.position.x + desc.box.size.x;
+			box.MaxY = desc.box.position.y + desc.box.size.y;
+			box.MaxZ = 1;
+
+			Diligent::TextureSubResData data = {};
+			data.pData = desc.data;
+			data.Stride = desc.stride;
+			ctx->UpdateTexture(
+				entry.value.handler, 
+				desc.mip_level, 
+				desc.slice, box, 
+				data, 
+				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, 
+				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 		}
 		void texture_mgr_tex3d_update(texture_3d_t id, const texture3d_update_desc& desc)
 		{

@@ -14,7 +14,6 @@ namespace rengine {
 			SDL_Cursor* cursors[(u8)ImGuiMouseCursor_COUNT]{};
 			SDL_Cursor* last_cursor{ null };
 
-			texture2d_t font_tex{ UINT16_MAX };
 			shader_t vertex_shader{ no_shader };
 			shader_t pixel_shader{ no_shader };
 			shader_program_t program{ no_shader_program };
@@ -33,7 +32,6 @@ namespace rengine {
 		void imgui_manager__init();
 		void imgui_manager__deinit();
 
-		void imgui_manager__init_font_tex();
 		void imgui_manager__init_shaders();
 
 		c_str imgui_manager__get_clipboard_text(ImGuiContext* ctx);
@@ -47,6 +45,8 @@ namespace rengine {
 		void imgui_manager__update_mouse_cursor();
 
 		void imgui_manager__render();
+		void imgui_manager__update_textures(ImDrawData* draw_data);
+		void imgui_manager__handle_texture(ImTextureData* tex_data);
 		void imgui_manager__copy_buffers(ImDrawData* draw_data);
 		void imgui_manager__setup_render_state();
 		void imgui_manager__set_texture(const ImTextureID& tex_id);

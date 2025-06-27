@@ -66,7 +66,10 @@ namespace rengine {
 
 		struct texture2d_update_desc {
 			texture2d_t id{ 0 };
+			math::urect box{};
 			u32 mip_level{ 0 };
+			u32 slice{ 0 };
+			u32 stride{ 0 };
 			ptr data{ null };
 		};
 		struct texture3d_update_desc {
@@ -145,7 +148,7 @@ namespace rengine {
 		R_EXPORT void texture_mgr_get_desc(texture_cube_t id, texture_create_desc<texture_cube_size>* desc);
 		R_EXPORT void texture_mgr_get_desc(texture_array_t id, texture_create_desc<texture_array_size>* desc);
 
-		R_EXPORT void texture_mgr_tex2d_update(texture2d_t id, const texture2d_update_desc& desc);
+		R_EXPORT void texture_mgr_tex2d_update(const texture2d_update_desc& desc);
 		R_EXPORT void texture_mgr_tex3d_update(texture_3d_t id, const texture3d_update_desc& desc);
 		R_EXPORT void texture_mgr_texcube_update(texture_cube_t id, const texturecube_update_desc& desc);
 		R_EXPORT void texture_mgr_texarray_update(texture_array_t id, const texturearray_update_desc& desc);

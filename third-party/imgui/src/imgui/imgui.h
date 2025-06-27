@@ -332,18 +332,13 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 typedef ImU64 ImTextureID;      // Default: store up to 64-bits (any pointer or integer). A majority of backends are ok with that.
 #endif
 
-union ImTextureData {
+union ImEngineTextureData {
     struct {
         ImU32 id;
         ImU8 type;
     };
     ImTextureID value;
 };
-#define ImTex2D(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex2d }.value
-#define ImTex3D(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex3d }.value
-#define ImTexArray(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::texarray }.value
-#define ImTexCube(id) ImTextureData { id, (rengine::u8)rengine::graphics::texture_type::texcube }.value
-
 
 // Define this if you need 0 to be a valid ImTextureID for your backend.
 #ifndef ImTextureID_Invalid
@@ -380,6 +375,12 @@ struct ImTextureRef
     ImTextureID         _TexID;             // _OR_ Low-level backend texture identifier, if already uploaded or created by user/app. Generally provided to e.g. ImGui::Image() calls.
 };
 IM_MSVC_RUNTIME_CHECKS_RESTORE
+
+
+#define ImTex2D(id) ImTextureRef(ImEngineTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex2d }.value)
+#define ImTex3D(id) ImTextureRef(ImEngineTextureData { id, (rengine::u8)rengine::graphics::texture_type::tex3d }.value)
+#define ImTexArray(id) ImTextureRef(ImEngineTextureData { id, (rengine::u8)rengine::graphics::texture_type::texarray }.value)
+#define ImTexCube(id) ImTextureRef(ImEngineTextureData { id, (rengine::u8)rengine::graphics::texture_type::texcube }.value)
 
 //-----------------------------------------------------------------------------
 // [SECTION] Dear ImGui end-user API functions
@@ -3125,11 +3126,13 @@ struct ImDrawCmd
 
 // Vertex layout
 #ifndef IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT
+//[rengine]: adapted struct to match vertex struct data
 struct ImDrawVert
 {
     ImVec2  pos;
-    ImVec2  uv;
+    float padding;
     ImU32   col;
+    ImVec2  uv;
 };
 #else
 // You can override the vertex format layout by defining IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT in imconfig.h

@@ -60,7 +60,10 @@ void draw_imgui() {
 	if (ImGui::Begin("Test Window")) {
 		ImGui::Text("Hello, world from REngine!");
 		// ImTex2D is a macro to help-us convert a texture2d_t to ImTextureID
-		ImGui::Image(ImTex2D(g_test_texture), ImVec2(200, 200));
+		//ImGui::Image(ImTex2D(g_test_texture), ImVec2(200, 200));
+		ImVec2 size = ImGui::GetContentRegionAvail();
+
+		ImGui::Image(ImGui::GetIO().Fonts->TexRef, ImVec2(size.x, 500));
 		ImGui::End();
 	}
 

@@ -44,7 +44,10 @@ namespace rengine {
 			io.BackendPlatformName = state.backend_name.c_str();
 			io.BackendRendererName = strings::g_renderer_name;
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_NavEnableKeyboard;
-			io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos;
+			io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors 
+				| ImGuiBackendFlags_HasSetMousePos
+				| ImGuiBackendFlags_RendererHasTextures
+				| ImGuiBackendFlags_RendererHasVtxOffset;
 
 			auto& platform_io = ImGui::GetPlatformIO();
 			platform_io.Platform_GetClipboardTextFn = imgui_manager__get_clipboard_text;
@@ -68,7 +71,6 @@ namespace rengine {
 			ImGui::StyleColorsDark();
 
 			io.Fonts->AddFontDefault();
-			imgui_manager__init_font_tex();
 			imgui_manager__init_shaders();
 			events::window_subscribe_event(imgui_manager__on_sdl_event);
 		}
@@ -80,32 +82,6 @@ namespace rengine {
 			auto& state = g_imgui_manager_state;
 			ImGui::DestroyContext(state.ctx);
 			state.ctx = null;
-		}
-
-		void imgui_manager__init_font_tex()
-		{
-			auto& state = g_imgui_manager_state;
-			auto& io = ImGui::GetIO();
-			byte* font_data = null;
-			int font_width = 0, font_height = 0, font_bpp = 0;
-
-			io.Fonts->GetTexDataAsRGBA32(&font_data, &font_width, &font_height, &font_bpp);
-
-			texture_create_desc<texture_2d_size> desc;
-			desc.name = strings::graphics::g_imgui_mgr_name;
-			desc.format = texture_format::rgba8;
-			desc.size = { (u32)font_width, (u32)font_height };
-			desc.usage = resource_usage::immutable;
-			desc.mip_levels = 1;
-			desc.generate_mips = desc.readable = false;
-
-			texture_resource_data data{};
-			data.data = font_data;
-			data.stride = font_width * font_bpp;
-
-			state.font_tex = texture_mgr_create_tex2d(desc, data);
-
-			io.Fonts->SetTexID(ImTex2D(state.font_tex));
 		}
 
 		void imgui_manager__init_shaders()
@@ -286,6 +262,7 @@ namespace rengine {
 				return;
 
 			imgui_manager__copy_buffers(draw_data);
+			imgui_manager__update_textures(draw_data);
 			imgui_manager__setup_render_state();
 			imgui_manager__render_commands(draw_data);
 		}
@@ -309,6 +286,77 @@ namespace rengine {
 			buffer_mgr_ibuffer_unmap(state.index_buffer);
 		}
 
+		void imgui_manager__update_textures(ImDrawData* draw_data)
+		{
+			for (ImTextureData* tex : *draw_data->Textures) {
+				if (tex->Status == ImTextureStatus_OK)
+					continue;
+				imgui_manager__handle_texture(tex);
+			}
+		}
+
+		void imgui_manager__handle_texture(ImTextureData* tex_data) {
+			auto& state = g_imgui_manager_state;
+			auto& io = ImGui::GetIO();
+
+			switch (tex_data->Status)
+			{
+			case ImTextureStatus_WantCreate:
+			{
+				byte* tex_pixels = (byte*)tex_data->GetPixels();
+
+				texture_create_desc<texture_2d_size> desc;
+				desc.name = strings::graphics::g_imgui_mgr_name;
+				desc.format = texture_format::rgba8;
+				desc.size = { (u32)tex_data->Width, (u32)tex_data->Height };
+				desc.usage = resource_usage::normal;
+				desc.mip_levels = 1;
+				desc.generate_mips = desc.readable = false;
+
+				texture_resource_data data{};
+				data.data = tex_pixels;
+				data.stride = tex_data->GetPitch();
+
+				auto tex = texture_mgr_create_tex2d(desc, data);
+				tex_data->SetTexID(ImTex2D(tex).GetTexID());
+				tex_data->SetStatus(ImTextureStatus_OK);
+			}
+				break;
+			case ImTextureStatus_WantDestroy: {
+				if (tex_data->UnusedFrames == 0)
+					return;
+				ImEngineTextureData data;
+				data.value = tex_data->GetTexID();
+				
+				texture_mgr_destroy_tex2d(data.id);
+				tex_data->SetStatus(ImTextureStatus_Destroyed);
+				tex_data->BackendUserData = null;
+				tex_data->SetTexID(ImTextureID_Invalid);
+			}
+				break;
+			case ImTextureStatus_WantUpdates: {
+				texture2d_update_desc update_desc = {};
+				ImEngineTextureData data;
+				data.value = tex_data->GetTexID();
+
+				update_desc.stride = tex_data->GetPitch();
+				for (auto& r : tex_data->Updates) {
+					update_desc.id = data.id;
+					update_desc.box = {
+						{ r.x, r.y },
+						{ r.w, r.h }
+					};
+					update_desc.data = tex_data->GetPixelsAt(r.x, r.y);
+
+					texture_mgr_tex2d_update(update_desc);
+				}
+
+				tex_data->SetStatus(ImTextureStatus_OK);
+			}
+				break;
+			}
+		}
+
 		void imgui_manager__setup_render_state()
 		{
 			const auto& state = g_imgui_manager_state;
@@ -328,9 +376,10 @@ namespace rengine {
 			renderer_set_color_write(true);
 		}
 
+
 		void imgui_manager__set_texture(const ImTextureID& tex_id)
 		{
-			ImTextureData data;
+			ImEngineTextureData data;
 			data.value = tex_id;
 			auto tex_slot = strings::graphics::g_imgui_mgr_tex_slot;
 
