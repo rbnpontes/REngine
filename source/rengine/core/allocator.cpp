@@ -140,6 +140,13 @@ namespace rengine{
             return g_data.scratch_usage;
         }
 
+        size_t alloc_get_pointer_size(ptr _ptr)
+        {
+            byte* data = (byte*)_ptr;
+            data -= sizeof(size_t);
+            return *(size_t*)data;
+        }
+
         void alloc_set_malloc_callback(const alloc_malloc_callback callback) {
             g_data.malloc = callback;
         }

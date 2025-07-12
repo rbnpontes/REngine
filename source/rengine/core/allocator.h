@@ -22,6 +22,7 @@ namespace rengine {
         R_EXPORT size_t alloc_get_limit();
         R_EXPORT size_t alloc_get_usage();
 		R_EXPORT size_t alloc_get_scratch_usage();
+        R_EXPORT size_t alloc_get_pointer_size(ptr _ptr);
         R_EXPORT void alloc_set_malloc_callback(const alloc_malloc_callback callback);
         R_EXPORT void alloc_set_free_callback(const alloc_free_callback callback);
         R_EXPORT void alloc_set_realloc_callback(const alloc_realloc_callback callback);
