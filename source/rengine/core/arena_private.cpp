@@ -1,5 +1,4 @@
 #include "./arena_private.h"
-#include "./allocator.h"
 #include "./hash.h"
 
 namespace rengine {
@@ -8,7 +7,8 @@ namespace rengine {
 
 		void arena__init() {
 			g_arena_state.log = io::logger_use(strings::logs::g_arena_tag);
-			g_arena_state.default_arena = arena_create_normal();
+			g_arena_state.default_arena = arena_create_default();
+			g_arena_state.scratch_arena = arena_create_scratch(CORE_REQUIRED_SIZE_SCRATCH_BUFFER());
 		}
 
 		void arena__deinit() {

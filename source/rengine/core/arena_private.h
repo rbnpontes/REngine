@@ -1,6 +1,7 @@
 #pragma once
 #include "../base_private.h"
 #include "./arena.h"
+#include "./allocator.h"
 
 #include "../io/logger.h"
 
@@ -28,6 +29,7 @@ namespace rengine {
 		struct arena_state {
 			arena_link_t* root { null };
 			IArena* default_arena{ null };
+			IScratchArena* scratch_arena{ null };
 			size_t count{ 0 };
 			io::ILog* log{ null };
 		};
@@ -47,13 +49,13 @@ namespace rengine {
 
 		template <class T>
 		inline T* arena__alloc(arena_kind kind) {
-			byte* data = core::alloc(arena_size + sizeof(arena_header_t));
+			byte* data = (byte*)core::alloc(sizeof(T) + sizeof(arena_header_t));
 			arena_header_t* header = (arena_header_t*)data;
 			*header = arena_header_t{};
 			header->curr_link.kind = kind;
 			header->hash = arena__hash_header(header);
 			
-			T* arena = data + sizeof(arena_header_t);
+			T* arena = (T*)(data + sizeof(arena_header_t));
 			return new(arena) T();
 		}
 

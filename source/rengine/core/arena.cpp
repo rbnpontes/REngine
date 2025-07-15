@@ -36,11 +36,12 @@ namespace rengine {
 				return core::alloc_free(mem);
 			}
 
-			size_t usage() override { return usage_; }
-			size_t size() override { return usage_; }
+			size_t usage() const override { return usage_; }
+			size_t size() const override { return usage_; }
 		private:
 			size_t usage_{ 0 };
 		};
+		
 		class FrameArena : public IFrameArena {
 		public:
 			struct untrack_mem_link_t {
@@ -78,6 +79,7 @@ namespace rengine {
 				else
 					links_->next = link;
 
+				++num_blocks_;
 				return untrack_mem + sizeof(untrack_mem_link_t);
 			}
 
@@ -102,6 +104,7 @@ namespace rengine {
 					return;
 				auto* curr_link = links_;
 				links_ = curr_link->prev;
+				--num_blocks_;
 
 				core::alloc_free(curr_link);
 			}
@@ -111,12 +114,14 @@ namespace rengine {
 					destroy_block();
 			}
 
-			size_t usage() override { return usage_; }
-			size_t size() override { return usage_; }
+			size_t usage() const override { return usage_; }
+			size_t size() const override { return usage_; }
+			size_t get_blocks_count() const override { return num_blocks_; }
 		protected:
 			byte* bucket_mem_{null};
 			size_t bucket_mem_size_{ 0 };
 			size_t curr_bucket_mem_size_{ 0 };
+			size_t num_blocks_{ 0 };
 			size_t usage_{ 0 };
 
 			untrack_mem_link_t* links_{ null };
@@ -143,7 +148,7 @@ namespace rengine {
 		class ScratchArena : public IScratchArena {
 		public:
 			ScratchArena() : IScratchArena() {}
-			void resize(size_t scratch_size) {
+			void resize(size_t scratch_size) override {
 				if (buffer_)
 					core::alloc_free(buffer_);
 				buffer_ = (byte*)core::alloc(scratch_size);
@@ -175,6 +180,15 @@ namespace rengine {
 				if (!mem)
 					return;
 				usage_ -= alloc_get_pointer_size(mem);
+			}
+		
+
+			size_t usage() const override {
+				return usage_;
+			}
+
+			size_t size() const override {
+				return size_;
 			}
 		private:
 			byte* buffer_{ null };
@@ -216,6 +230,16 @@ namespace rengine {
 		void arena_destroy(IArena* arena)
 		{
 			arena__destroy(arena);
+		}
+
+		IArena* arena_get_default()
+		{
+			return g_arena_state.default_arena;
+		}
+
+		IScratchArena* arena_get_scratch()
+		{
+			return g_arena_state.scratch_arena;
 		}
 
 	}

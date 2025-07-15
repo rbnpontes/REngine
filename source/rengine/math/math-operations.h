@@ -3,6 +3,8 @@
 #include <rengine/types.h>
 #include <math.h>
 
+#undef min
+#undef max
 namespace rengine {
 	namespace math {
 		template <typename T>
@@ -88,14 +90,5 @@ namespace rengine {
 		template<> inline bool is_power_two(u64 x) { return x != 0 && (x & (x - 1)) == 0; }
 		template<> inline bool is_power_two(float x) { return is_power_two((long)x); }
 		template<> inline bool is_power_two(double x) { return is_power_two((long)x); }
-
-		template<typename T>
-		inline T min(T a, T b) { return a < b ? a : b; }
-		template<typename T>
-		inline T max(T a, T b) { return a > b ? a : b; }
-		template<typename T>
-		inline T clamp(T value, T min_, T max_) {
-			return max(min_, min(value, max_));
-		}
 	}
 }
