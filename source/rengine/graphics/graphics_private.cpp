@@ -178,6 +178,7 @@ namespace rengine {
 
 			action_t deinit_calls[] = {
 				imgui_manager__deinit,
+				drawing__deinit,
 				renderer__deinit,
 				render_target_mgr__deinit,
 				buffer_mgr__deinit,
@@ -186,8 +187,9 @@ namespace rengine {
 				pipeline_state_mgr__deinit,
 			};
 
-			for (u32 i = 0; i < g_graphics_state.num_contexts; ++i)
-				g_graphics_state.contexts[i]->Release();
+			for (auto i = 0; i < _countof(deinit_calls); ++i)
+				deinit_calls[i]();
+
 			g_graphics_state.device->Release();
 			g_graphics_state.factory->Release();
 

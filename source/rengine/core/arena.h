@@ -6,6 +6,7 @@ namespace rengine {
 	namespace core {
 		class IArena {
 		public:
+			virtual ~IArena() {}
 			virtual ptr alloc(size_t size) = 0;
 			virtual ptr realloc(ptr mem, size_t new_size) = 0;
 			virtual void free(ptr mem) = 0;

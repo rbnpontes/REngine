@@ -33,7 +33,8 @@ namespace rengine {
 
 			auto* link = &header->curr_link;
 			link->prev = curr;
-			curr->next = link;
+			if (null != curr)
+				curr->next = link;
 			g_arena_state.root = link;
 		}
 
@@ -60,10 +61,7 @@ namespace rengine {
 
 		core::hash_t arena__hash_header(arena_header_t* header)
 		{
-			return core::hash_combine(
-				core::hash((ptr)header),
-				arena__hash_link(header->curr_link)
-			);
+			return core::hash((ptr)header);
 		}
 
 		core::hash_t arena__hash_link(const arena_link_t& link)
@@ -90,6 +88,7 @@ namespace rengine {
 				next->prev = prev;
 
 			link.prev = link.next = null;
+			arena->~IArena();
 			core::alloc_free(header);
 		}
 	}

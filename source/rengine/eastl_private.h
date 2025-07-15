@@ -19,8 +19,8 @@ namespace rengine {
 	using array = eastl::array<T, N>;
 	using string = eastl::string;
 	using string_view = eastl::string_view;
-	template<typename T>
-	using vector = eastl::vector<T>;
+	template<typename T, typename Allocator = EASTLAllocatorType>
+	using vector = eastl::vector<T, Allocator>;
 	template<typename T, size_t N = 1>
 	using fixed_vector = eastl::fixed_vector<T, N>;
 	template<typename T>

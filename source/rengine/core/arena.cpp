@@ -10,6 +10,7 @@ namespace rengine {
 		class DefaultArena : public IArena {
 		public:
 			DefaultArena(): IArena() {}
+			~DefaultArena() override {}
 
 			ptr alloc(size_t size) override {
 				if (!size)
@@ -50,6 +51,11 @@ namespace rengine {
 			};
 
 			FrameArena() {}
+			~FrameArena() override {
+				destroy_all_blocks();
+				core::alloc_free(bucket_mem_);
+			}
+
 			void init_bucket_mem(size_t size) {
 				bucket_mem_ = (byte*)core::alloc(size);
 				bucket_mem_size_ = size;
@@ -74,10 +80,9 @@ namespace rengine {
 				untrack_mem_link_t* link = (untrack_mem_link_t*)untrack_mem;
 				link->prev = links_;
 				link->next = null;
-				if (!links_)
-					links_ = link;
-				else
+				if (links_)
 					links_->next = link;
+				links_ = link;
 
 				++num_blocks_;
 				return untrack_mem + sizeof(untrack_mem_link_t);
@@ -95,7 +100,7 @@ namespace rengine {
 
 				if (bucket_mem_)
 					core::alloc_free(bucket_mem_);
-				init_bucket_mem(bucket_mem_size_);
+				init_bucket_mem(usage_);
 				usage_ = 0;
 			}
 
@@ -104,8 +109,14 @@ namespace rengine {
 					return;
 				auto* curr_link = links_;
 				links_ = curr_link->prev;
-				--num_blocks_;
 
+				if (links_)
+					links_->next = null;
+
+				if (links_ == curr_link)
+					links_ = null;
+
+				--num_blocks_;
 				core::alloc_free(curr_link);
 			}
 
@@ -148,6 +159,10 @@ namespace rengine {
 		class ScratchArena : public IScratchArena {
 		public:
 			ScratchArena() : IScratchArena() {}
+			~ScratchArena() override {
+				core::alloc_free(buffer_);
+			}
+
 			void resize(size_t scratch_size) override {
 				if (buffer_)
 					core::alloc_free(buffer_);

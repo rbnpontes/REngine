@@ -45,7 +45,6 @@ namespace rengine {
 		IArena* arena__get_arena_from_link(arena_link_t* link);
 
 		core::hash_t arena__hash_header(arena_header_t* header);
-		core::hash_t arena__hash_link(const arena_link_t& link);
 
 		template <class T>
 		inline T* arena__alloc(arena_kind kind) {
