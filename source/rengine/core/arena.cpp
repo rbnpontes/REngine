@@ -95,8 +95,10 @@ namespace rengine {
 			void free(ptr mem) override {}
 
 			void reset() override {
-				if (usage_ <= bucket_mem_size_)
+				if (usage_ <= bucket_mem_size_) {
+					usage_ = curr_bucket_mem_size_ = 0;
 					return;
+				}
 
 				if (bucket_mem_)
 					core::alloc_free(bucket_mem_);
