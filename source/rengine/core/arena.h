@@ -7,8 +7,8 @@ namespace rengine {
 		class IArena {
 		public:
 			virtual ~IArena() {}
-			virtual ptr alloc(size_t size) = 0;
-			virtual ptr realloc(ptr mem, size_t new_size) = 0;
+			virtual ptr alloc(const size_t size) = 0;
+			virtual ptr realloc(ptr mem, const size_t new_size) = 0;
 			virtual void free(ptr mem) = 0;
 			virtual size_t usage() const = 0;
 			virtual size_t size() const = 0;
@@ -24,13 +24,13 @@ namespace rengine {
 
 		class IScratchArena : public IArena {
 		public:
-			virtual void resize(size_t scratch_size) = 0;
+			virtual void resize(const size_t scratch_size) = 0;
 		};
 
 		R_EXPORT IArena* arena_create_default();
-		R_EXPORT IFrameArena* arena_create_frame(size_t initial_size);
-		R_EXPORT IFrameArena* arena_create_fixed(size_t max_size);
-		R_EXPORT IScratchArena* arena_create_scratch(size_t scratch_size);
+		R_EXPORT IFrameArena* arena_create_frame(const size_t initial_size);
+		R_EXPORT IFrameArena* arena_create_fixed(const size_t max_size);
+		R_EXPORT IScratchArena* arena_create_scratch(const size_t scratch_size);
 		/*
 		* Destroy an Arena allocated by the Engine
 		* Don't use this method to destroy your own

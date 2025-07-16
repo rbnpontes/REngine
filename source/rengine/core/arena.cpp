@@ -2,7 +2,6 @@
 #include "allocator.h"
 #include "./arena_private.h"
 
-#include "../math/math-operations.h"
 #include "../exceptions.h"
 
 namespace rengine {
@@ -12,7 +11,7 @@ namespace rengine {
 			DefaultArena(): IArena() {}
 			~DefaultArena() override {}
 
-			ptr alloc(size_t size) override {
+			ptr alloc(const size_t size) override {
 				if (!size)
 					return null;
 
@@ -20,7 +19,7 @@ namespace rengine {
 				return core::alloc(size);
 			}
 
-			ptr realloc(ptr mem, size_t new_size) override {
+			ptr realloc(ptr mem, const size_t new_size) override {
 				if (!mem)
 					return null;
 
@@ -56,13 +55,13 @@ namespace rengine {
 				core::alloc_free(bucket_mem_);
 			}
 
-			void init_bucket_mem(size_t size) {
+			void init_bucket_mem(const size_t size) {
 				bucket_mem_ = (byte*)core::alloc(size);
 				bucket_mem_size_ = size;
 				curr_bucket_mem_size_ = 0;
 			}
 
-			ptr alloc(size_t size) override {
+			ptr alloc(const size_t size) override {
 				ptr result = null;
 				const auto available_bucket_size = bucket_mem_size_ - curr_bucket_mem_size_;
 
@@ -88,7 +87,7 @@ namespace rengine {
 				return untrack_mem + sizeof(untrack_mem_link_t);
 			}
 
-			ptr realloc(ptr mem, size_t new_size) override {
+			ptr realloc(ptr mem, const size_t new_size) override {
 				return alloc(new_size);
 			}
 
@@ -143,12 +142,12 @@ namespace rengine {
 		class FixedArena : public FrameArena {
 		public:
 			FixedArena() : FrameArena() {}
-			void set_capacity(size_t capacity) {
+			void set_capacity(const size_t capacity) {
 				capacity_ = capacity;
 			}
 
-			ptr alloc(size_t size) override {
-				auto available_space = capacity_ - usage_;
+			ptr alloc(const size_t size) override {
+				const auto available_space = capacity_ - usage_;
 				if (size > available_space)
 					throw out_of_memory_exception();
 
@@ -165,7 +164,7 @@ namespace rengine {
 				core::alloc_free(buffer_);
 			}
 
-			void resize(size_t scratch_size) override {
+			void resize(const size_t scratch_size) override {
 				if (buffer_)
 					core::alloc_free(buffer_);
 				buffer_ = (byte*)core::alloc(scratch_size);
@@ -173,7 +172,7 @@ namespace rengine {
 				usage_ = 0;
 			}
 
-			ptr alloc(size_t size) override {
+			ptr alloc(const size_t size) override {
 				if (0 == size)
 					return null;
 
@@ -186,7 +185,7 @@ namespace rengine {
 				return result;
 			}
 
-			ptr realloc(ptr mem, size_t new_size) override {
+			ptr realloc(ptr mem, const size_t new_size) override {
 				if (!mem)
 					return null;
 				usage_ -= alloc_get_pointer_size(mem);
@@ -220,7 +219,7 @@ namespace rengine {
 			return arena;
 		}
 
-		IFrameArena* arena_create_frame(size_t initial_size)
+		IFrameArena* arena_create_frame(const size_t initial_size)
 		{
 			auto arena = arena__alloc<FrameArena>(arena_kind::frame);
 			arena->init_bucket_mem(initial_size);
@@ -228,7 +227,7 @@ namespace rengine {
 			return arena;
 		}
 
-		IFrameArena* arena_create_fixed(size_t max_size)
+		IFrameArena* arena_create_fixed(const size_t max_size)
 		{
 			auto arena = arena__alloc<FixedArena>(arena_kind::fixed);
 			arena->init_bucket_mem(max_size);
@@ -237,7 +236,7 @@ namespace rengine {
 			return arena;
 		}
 
-		IScratchArena* arena_create_scratch(size_t scratch_size)
+		IScratchArena* arena_create_scratch(const size_t scratch_size)
 		{ 
 			auto arena = arena__alloc<ScratchArena>(arena_kind::scratch);
 			arena->resize(scratch_size);
