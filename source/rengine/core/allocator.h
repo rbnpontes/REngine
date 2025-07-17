@@ -15,8 +15,6 @@ namespace rengine {
 
         R_EXPORT ptr alloc(size_t size);
         R_EXPORT void alloc_free(ptr _ptr);
-        R_EXPORT ptr alloc_scratch(size_t size);
-		R_EXPORT void alloc_scratch_pop(size_t size);
         R_EXPORT ptr alloc_realloc(ptr _ptr, size_t size);
         R_EXPORT void alloc_set_limit(size_t limit);
         R_EXPORT size_t alloc_get_limit();

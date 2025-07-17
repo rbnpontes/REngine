@@ -2,6 +2,7 @@
 #include "./events/engine_events.h"
 #include "./core/profiler_private.h"
 #include "./core/window.h"
+#include "./core/arena.h"
 #include "./graphics/graphics_private.h"
 
 #include "./graphics/drawing.h"
@@ -21,6 +22,7 @@ namespace rengine {
 
 		g_engine_state.begin = true;
 
+		core::arena_get_scratch()->reset();
 		core::profiler__begin_frame();
 		core::window_poll_events();
 

@@ -2,6 +2,8 @@
 #include "../base_private.h"
 #include "./pipeline_state_manager.h"
 
+#include "../core/arena.h"
+
 #include <GraphicsTypes.h>
 #include <PipelineState.h>
 
@@ -126,12 +128,14 @@ namespace rengine {
 		};
 
 		struct pipeline_state_mgr_state {
+			core::IScratchArena* arena;
 			hash_map<pipeline_state_t, Diligent::IPipelineState*> pipelines;
 			u32 pipeline_count;
 		};
 
 		extern pipeline_state_mgr_state g_pipeline_state_mgr_state;
 
+		void pipeline_state_mgr__init();
 		void pipeline_state_mgr__deinit();
 
 		Diligent::IPipelineState* pipeline_state_mgr__create_graphics(const graphics_pipeline_state_create& create_info);

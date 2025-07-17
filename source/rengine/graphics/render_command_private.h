@@ -1,13 +1,12 @@
 #pragma once
 #include "../base_private.h"
 #include "./render_command.h"
-#include "./texture_manager.h"
 #include "./shader_manager.h"
-#include "./srb_manager.h"
 #include "./pipeline_state_manager.h"
 
 #include "../math/math-types.h"
 #include "../io/logger.h"
+#include "../core/arena.h"
 
 namespace rengine {
 	namespace graphics {
@@ -66,6 +65,8 @@ namespace rengine {
 
 		struct render_command_state {
 			io::ILog* log{ null };
+			core::IScratchArena* arena { null };
+
 			command_list commands;
 			u32 num_commands{ 0 };
 			render_command_data* curr_cmd{ null };

@@ -151,6 +151,7 @@ namespace rengine {
 			};
 			action_t init_calls[] = {
 				calculate_msaa_levels,
+				pipeline_state_mgr__init,
 				buffer_mgr__init,
 				render_target_mgr__init,
 				texture_mgr__init,

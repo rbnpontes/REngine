@@ -58,7 +58,10 @@ namespace rengine {
 		inline T max(T value, T max) { return value > max ? max : value; }
 
 		template <typename T>
-		inline T clamp(T value, T min_, T max_) { return math::min(math::max(min_, value), max_); }
+		inline T clamp(T value, T min_, T max_) {
+			//return (value < min_) ? min_ : (value > max_) ? max_ : value;
+			return math::min(min_, math::max(max_, value));
+		}
 
 		template <typename T, typename Time>
 		inline T lerp(T from, T to, Time t);

@@ -29,6 +29,7 @@ namespace rengine {
 		class IScratchArena : public IArena {
 		public:
 			virtual void free(const size_t memory_amount) = 0;
+			virtual void reset() = 0;
 			virtual void resize(const size_t scratch_size) = 0;
 		};
 

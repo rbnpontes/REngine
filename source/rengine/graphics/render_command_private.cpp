@@ -18,7 +18,9 @@ namespace rengine {
 
 		void render_command__init()
 		{
-			g_render_command_state.log = io::logger_use(strings::logs::g_render_cmd_tag);
+			auto& state = g_render_command_state;
+			state.log = io::logger_use(strings::logs::g_render_cmd_tag);
+			state.arena = core::arena_get_scratch();
 		}
 
 		void render_command__assert_update()
@@ -45,7 +47,8 @@ namespace rengine {
 
 		void render_command__build_pipeline(render_command_data& data)
 		{
-			auto immutable_samplers = (immutable_sampler_desc*)core::alloc_scratch(
+			const auto arena = g_render_command_state.arena;
+			auto immutable_samplers = (immutable_sampler_desc*)arena->alloc(
 				sizeof(immutable_sampler_desc) * GRAPHICS_MAX_BOUND_TEXTURES
 			);
 			const auto name = fmt::format("{0}::gpipeline", data.name);
@@ -80,11 +83,10 @@ namespace rengine {
 
 			pipeline_create.immutable_samplers = immutable_samplers;
 			pipeline_create.num_immutable_samplers = 0;
-			u32 num_immutable_samplers = 0;
 			for (auto& res_it : data.resources) {
 				auto& res = res_it.second;
 				// TODO: implement sampler desc from texture desc
-				auto& immutable_sampler = pipeline_create.immutable_samplers[num_immutable_samplers];
+				auto& immutable_sampler = pipeline_create.immutable_samplers[pipeline_create.num_immutable_samplers];
 				immutable_sampler = {
 					.name = res.resource.name,
 					.shader_type_flags = res.resource.shader_flags,
@@ -94,18 +96,19 @@ namespace rengine {
 
 			data.pipeline_state = pipeline_state_mgr_create_graphics(pipeline_create);
 
-			core::alloc_scratch_pop(
+			arena->free(
 				sizeof(immutable_sampler_desc) * GRAPHICS_MAX_BOUND_TEXTURES
 			);
 		}
 
 		void render_command__build_srb(render_command_data& data)
 		{
+			const auto arena = g_render_command_state.arena;
 			// TODO: recycle SRB instead of create new ones
 			srb_mgr_create_desc srb_desc;
 			srb_desc.pipeline = data.pipeline_state;
 			srb_desc.num_resources = 0;
-			srb_desc.resources = (srb_mgr_resource_desc*)core::alloc_scratch(
+			srb_desc.resources = (srb_mgr_resource_desc*)arena->alloc(
 				sizeof(srb_mgr_resource_desc) * data.resources.size()
 			);
 
@@ -119,7 +122,9 @@ namespace rengine {
 			}
 			data.srb = srb_mgr_create(srb_desc);
 
-			core::alloc_scratch_pop(sizeof(srb_mgr_resource_desc) * data.resources.size());
+			arena->free(
+				sizeof(srb_mgr_resource_desc) * data.resources.size()
+			);
 		}
 
 		void render_command__build_hash(render_command_data& data)

@@ -186,16 +186,23 @@ namespace rengine {
 			}
 
 			ptr realloc(ptr mem, const size_t new_size) override {
-				if (!mem)
-					return null;
-				usage_ -= alloc_get_pointer_size(mem);
 				return alloc(new_size);
 			}
 
-			void free(const size_t memory_amount) {
-				usage_ -= math::min(memory_amount, size_);
+			void free(const size_t memory_amount) override {
+				const auto free_size = math::clamp(memory_amount, (size_t)0u, size_);
+				if (0 == memory_amount)
+					return;
+
+				if (usage_ > free_size)
+					usage_ -= free_size;
+				else
+					usage_ = 0;
 			}
-		
+
+			void reset() override {
+				usage_ = 0;
+			}
 
 			size_t usage() const override {
 				return usage_;
