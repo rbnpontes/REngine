@@ -9,9 +9,13 @@ namespace rengine {
 			virtual ~IArena() {}
 			virtual ptr alloc(const size_t size) = 0;
 			virtual ptr realloc(ptr mem, const size_t new_size) = 0;
-			virtual void free(ptr mem) = 0;
 			virtual size_t usage() const = 0;
 			virtual size_t size() const = 0;
+		};
+
+		class IDefaultArena: public IArena {
+			public:
+				virtual void free(ptr mem) = 0;
 		};
 
 		class IFrameArena : public IArena {
@@ -24,10 +28,11 @@ namespace rengine {
 
 		class IScratchArena : public IArena {
 		public:
+			virtual void free(const size_t memory_amount) = 0;
 			virtual void resize(const size_t scratch_size) = 0;
 		};
 
-		R_EXPORT IArena* arena_create_default();
+		R_EXPORT IDefaultArena* arena_create_default();
 		R_EXPORT IFrameArena* arena_create_frame(const size_t initial_size);
 		R_EXPORT IFrameArena* arena_create_fixed(const size_t max_size);
 		R_EXPORT IScratchArena* arena_create_scratch(const size_t scratch_size);

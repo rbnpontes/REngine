@@ -3,12 +3,13 @@
 #include "./arena_private.h"
 
 #include "../exceptions.h"
+#include "rengine/math/math-operations.h"
 
 namespace rengine {
 	namespace core {
-		class DefaultArena : public IArena {
+		class DefaultArena final : public IDefaultArena {
 		public:
-			DefaultArena(): IArena() {}
+			DefaultArena(): IDefaultArena() {}
 			~DefaultArena() override {}
 
 			ptr alloc(const size_t size) override {
@@ -91,8 +92,6 @@ namespace rengine {
 				return alloc(new_size);
 			}
 
-			void free(ptr mem) override {}
-
 			void reset() override {
 				if (usage_ <= bucket_mem_size_) {
 					usage_ = curr_bucket_mem_size_ = 0;
@@ -139,9 +138,9 @@ namespace rengine {
 			untrack_mem_link_t* links_{ null };
 		};
 
-		class FixedArena : public FrameArena {
+		class FixedArena final : public FrameArena {
 		public:
-			FixedArena() : FrameArena() {}
+			FixedArena() {}
 			void set_capacity(const size_t capacity) {
 				capacity_ = capacity;
 			}
@@ -180,7 +179,8 @@ namespace rengine {
 				if (size > available_space)
 					throw out_of_memory_exception();
 
-				ptr result = buffer_ + usage_;
+				byte* result = buffer_ + usage_;
+				*(size_t*)result = size;
 				usage_ += size;
 				return result;
 			}
@@ -192,10 +192,8 @@ namespace rengine {
 				return alloc(new_size);
 			}
 
-			void free(ptr mem) {
-				if (!mem)
-					return;
-				usage_ -= alloc_get_pointer_size(mem);
+			void free(const size_t memory_amount) {
+				usage_ -= math::min(memory_amount, size_);
 			}
 		
 
@@ -212,9 +210,9 @@ namespace rengine {
 			size_t size_{ 0 };
 		};
 
-		IArena* arena_create_default()
+		IDefaultArena* arena_create_default()
 		{
-			auto arena = arena__alloc<DefaultArena>(arena_kind::normal);
+			const auto arena = arena__alloc<DefaultArena>(arena_kind::normal);
 			arena__push(arena);
 			return arena;
 		}
