@@ -15,6 +15,11 @@ namespace rengine {
 		not_implemented_exception() : std::exception("Not implemented"){}
 	};
 
+	class R_EXPORT out_of_memory_exception : public std::exception {
+	public:
+		out_of_memory_exception() : std::exception("You're reached max of memory available"){}
+	};
+
 	ENGINE_DEFINE_EXCEPTION(null_exception);
 	ENGINE_DEFINE_EXCEPTION(engine_exception);
 	namespace core {

@@ -28,6 +28,11 @@ namespace rengine {
 		void imgui_manager__init()
 		{
 			auto& state = g_imgui_manager_state;
+			ImGui::SetAllocatorFunctions(
+				imgui_manager__malloc,
+				imgui_manager__free
+			);
+
 			state.ctx = ImGui::CreateContext();
 			state.backend_name = fmt::format(
 				strings::g_imgui_backend_name,

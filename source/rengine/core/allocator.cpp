@@ -57,23 +57,6 @@ namespace rengine{
             return (char*)ptr + sizeof(size_t);
         }
 
-        ptr alloc_scratch(size_t size)
-        {
-            if(!g_scratch_buffer)
-				g_scratch_buffer = (byte*)alloc(max_size_scratch);
-            
-            auto result = g_scratch_buffer + g_data.scratch_usage;
-			auto new_size = g_data.scratch_usage + size;
-            if (new_size > max_size_scratch)
-                throw alloc_exception(
-					fmt::format(strings::exceptions::g_core_alloc_scratch_memory_exceeded,
-						g_data.scratch_usage, new_size).c_str()
-                );
-
-			g_data.scratch_usage = new_size;
-            return result;
-        }
-
         void alloc_free(ptr _ptr) {
             if(!_ptr)
                 return;
@@ -89,18 +72,6 @@ namespace rengine{
             g_data.free(_ptr);
             ++g_data.num_free;
         }
-
-		void alloc_scratch_pop(size_t size) {
-			if (!g_scratch_buffer)
-				return;
-
-			size_t new_size = g_data.scratch_usage - size;
-            // if new_size is greater than the actual size its means
-			// that we overflow the unsigned int, in this case we put it to 0
-            if (new_size > g_data.scratch_usage)
-                new_size = 0;
-            g_data.scratch_usage = new_size;
-		}
 
         ptr alloc_realloc(ptr _ptr, size_t size) {
             alloc__assert_limit(size);
@@ -138,6 +109,13 @@ namespace rengine{
         size_t alloc_get_scratch_usage()
         {
             return g_data.scratch_usage;
+        }
+
+        size_t alloc_get_pointer_size(ptr _ptr)
+        {
+            byte* data = (byte*)_ptr;
+            data -= sizeof(size_t);
+            return *(size_t*)data;
         }
 
         void alloc_set_malloc_callback(const alloc_malloc_callback callback) {

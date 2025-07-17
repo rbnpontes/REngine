@@ -17,13 +17,28 @@ namespace rengine {
 	namespace graphics {
 		drawing_state g_drawing_state = {};
 
+		ptr DrawingAllocator::allocate(size_t size, int flags) {
+			auto arena = g_drawing_state.arena;
+			return arena->alloc(size);
+		}
+
+		ptr DrawingAllocator::allocate(size_t size, size_t alignment, size_t offset, int flags) {
+			auto arena = g_drawing_state.arena;
+			return arena->alloc(size);
+		}
+
+		void DrawingAllocator::deallocate(ptr p, size_t size) {
+		}
+
 		void drawing__init()
 		{
-			g_drawing_state.log = io::logger_use(strings::logs::g_drawing_cmd_tag);
-
 			size_t size = DRAWING_DEFAULT_TRIANGLE_COUNT * sizeof(triangle_data);
 			size += DRAWING_DEFAULT_LINES_COUNT * sizeof(line_data);
 			size += DRAWING_DEFAULT_POINTS_COUNT * sizeof(vertex_data);
+
+			g_drawing_state.log = io::logger_use(strings::logs::g_drawing_cmd_tag);
+			g_drawing_state.arena = core::arena_create_frame(size);
+
 			drawing__require_vbuffer_size(size);
 			drawing__compile_shaders();
 			drawing__prewarm_pipelines();
@@ -36,6 +51,12 @@ namespace rengine {
 
 			state.vertex_buffer = no_vertex_buffer;
 			state.constant_buffer = no_constant_buffer;
+
+			state.triangles.clear();
+			state.lines.clear();
+			state.points.clear();
+
+			state.arena = null;
 		}
 
 		bool drawing__assert_vert_count(u32 count)
@@ -206,8 +227,8 @@ namespace rengine {
 			ctx->BeginDebugGroup("drawing::triangles");
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(g_drawing_state.vertex_buffer, 0);
-                        renderer_set_topology(primitive_topology::triangle_list);
-                        renderer_set_depth({ .depth_enabled = true });
+            renderer_set_topology(primitive_topology::triangle_list);
+            renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[1]);
@@ -221,8 +242,8 @@ namespace rengine {
 
 			const auto& state = g_drawing_state;
 			renderer_set_vbuffer(state.vertex_buffer, state.triangles.size() * sizeof(triangle_data));
-                        renderer_set_topology(primitive_topology::line_strip);
-                        renderer_set_depth({ .depth_enabled = true });
+            renderer_set_topology(primitive_topology::line_strip);
+            renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[0]);
@@ -238,8 +259,8 @@ namespace rengine {
 			offset += state.lines.size() * sizeof(line_data);
 
 			renderer_set_vbuffer(state.vertex_buffer, offset);
-                        renderer_set_topology(primitive_topology::point_list);
-                        renderer_set_depth({ .depth_enabled = true });
+	        renderer_set_topology(primitive_topology::point_list);
+	        renderer_set_depth({ .depth_enabled = true });
 			renderer_set_wireframe(false);
 			renderer_set_cull_mode(cull_mode::clock_wise);
 			renderer_set_program(g_drawing_state.program[0]);
@@ -264,9 +285,21 @@ namespace rengine {
 
 			auto& state = g_drawing_state;
 			state.vertex_queue.clear();
-			state.triangles.reset();
-			state.lines.reset();
-			state.points.reset();
+			state.arena->reset();
+			state.arena->destroy_block();
+
+			auto prev_capacity = state.triangles.capacity();
+			state.triangles.reset_lose_memory();
+			state.triangles.reserve(prev_capacity);
+
+			prev_capacity = state.lines.capacity();
+			state.lines.reset_lose_memory();
+			state.lines.reserve(prev_capacity);
+
+			prev_capacity = state.points.capacity();
+			state.points.reset_lose_memory();
+			state.points.reserve(prev_capacity);
+
 			state.current_color = math::byte_color::white;
 			state.current_transform = {};
 		}

@@ -15,7 +15,8 @@ namespace rengine {
 		hash_t hash(const ptr _ptr) {
 			if (!_ptr)
 				return 0x0;
-			return XXH32(_ptr, sizeof(ptr), CORE_DEFAULT_HASH_SEED);
+			const uintptr_t ptr_data = reinterpret_cast<uintptr_t>(_ptr);
+			return XXH32(&ptr_data, sizeof(uintptr_t), CORE_DEFAULT_HASH_SEED);
 		}
 
 		hash_t hash(u32 value)

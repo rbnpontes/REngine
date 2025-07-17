@@ -4,13 +4,18 @@
 #include "./buffer_manager_private.h"
 #include "./render_target_manager.h"
 
-#include "../core/allocator.h"
+#include "../core/arena.h"
 
 #include "../exceptions.h"
 
 namespace rengine {
 	namespace graphics {
 		pipeline_state_mgr_state g_pipeline_state_mgr_state = {};
+
+		void pipeline_state_mgr__init() {
+			g_pipeline_state_mgr_state.arena = core::arena_get_scratch();
+		}
+
 
 		void pipeline_state_mgr__deinit()
 		{
@@ -19,6 +24,8 @@ namespace rengine {
 
 		Diligent::IPipelineState* pipeline_state_mgr__create_graphics(const graphics_pipeline_state_create& create_info)
 		{
+			const auto arena = g_pipeline_state_mgr_state.arena;
+
 			using namespace Diligent;
 			const auto device = g_graphics_state.device;
 			u32 vertex_elements = (u32)vertex_elements::none;
@@ -52,11 +59,12 @@ namespace rengine {
 			device->CreateGraphicsPipelineState(ci, &pipeline);
 
 			// free scratch memory
-			core::alloc_scratch_pop(
-				sizeof(Diligent::LayoutElement) * VERTEX_ELEMENT_COUNT +
-				sizeof(Diligent::ImmutableSamplerDesc) * GRAPHICS_MAX_BOUND_TEXTURES +
-				sizeof(Diligent::ShaderResourceVariableDesc) * GRAPHICS_MAX_BOUND_CBUFFERS
-			);
+			if (ci.GraphicsPipeline.InputLayout.NumElements > 0)
+				arena->free(sizeof(Diligent::LayoutElement) * VERTEX_ELEMENT_COUNT);
+			if (ci.PSODesc.ResourceLayout.NumVariables > 0)
+				arena->free(sizeof(Diligent::ShaderResourceVariableDesc) * GRAPHICS_MAX_BOUND_CBUFFERS);
+			if (ci.PSODesc.ResourceLayout.NumImmutableSamplers > 0)
+				arena->free(sizeof(Diligent::ImmutableSamplerDesc) * GRAPHICS_MAX_BOUND_TEXTURES);
 
 			if (!pipeline)
 				return null;
@@ -161,7 +169,8 @@ namespace rengine {
 		Diligent::LayoutElement* pipeline_state_mgr__build_input_layout(u32 flags, u32* count)
 		{
 			using namespace Diligent;
-			auto layout_elements = (Diligent::LayoutElement*)core::alloc_scratch(
+			const auto arena = g_pipeline_state_mgr_state.arena;
+			auto layout_elements = (Diligent::LayoutElement*)arena->alloc(
 				sizeof(Diligent::LayoutElement) * VERTEX_ELEMENT_COUNT
 			);
 
@@ -242,10 +251,11 @@ namespace rengine {
 		Diligent::ImmutableSamplerDesc* pipeline_state_mgr__build_immutable_samplers(const graphics_pipeline_state_create& create_info)
 		{
 			using namespace Diligent;
+			const auto arena = g_pipeline_state_mgr_state.arena;
 			if (create_info.num_immutable_samplers == 0)
 				return null;
 
-			auto immutable_samplers = (Diligent::ImmutableSamplerDesc*)core::alloc_scratch(
+			auto immutable_samplers = (Diligent::ImmutableSamplerDesc*)arena->alloc(
 				sizeof(Diligent::ImmutableSamplerDesc) * create_info.num_immutable_samplers
 			);
 			for (auto i = 0; i < create_info.num_immutable_samplers; ++i) {
@@ -274,7 +284,8 @@ namespace rengine {
 
 		Diligent::ShaderResourceVariableDesc* pipeline_state_mgr__build_srv(u32* count)
 		{
-			auto srv_list = (Diligent::ShaderResourceVariableDesc*)core::alloc_scratch(
+			const auto arena = g_pipeline_state_mgr_state.arena;
+			auto srv_list = (Diligent::ShaderResourceVariableDesc*)arena->alloc(
 				sizeof(Diligent::ShaderResourceVariableDesc) * GRAPHICS_MAX_BOUND_CBUFFERS
 			);
 			c_str cbuffer_keys[] = {

@@ -164,6 +164,7 @@ namespace rengine {
 
         namespace logs {
             constexpr static c_str g_engine_tag = "rengine";
+            constexpr static c_str g_arena_tag = "core::arena";
             constexpr static c_str g_graphics_tag = "graphics";
             constexpr static c_str g_diligent_tag = "diligent";
             constexpr static c_str g_buffer_mgr_tag = "buffer_mgr";
@@ -180,6 +181,8 @@ namespace rengine {
             constexpr static c_str g_logger_fmt = "[{0}/{1}/{2} {3}:{4}:{5}][{6}][{7}]: {8}";
 
             constexpr static c_str g_engine_already_stopped = "Engine is already stopped";
+
+            constexpr static c_str g_arena_free_invalid = "Invalid Arena. Can't free an Arena that has not been created by the Engine";
 
             constexpr static c_str g_graphics_invalid_adapter_id = "Invalid adapter id {0}. Engine will try to select a best match device";
             constexpr static c_str g_graphics_no_suitable_device_found = "No suitable device found, using first available.";

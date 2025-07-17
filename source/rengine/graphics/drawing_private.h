@@ -3,6 +3,7 @@
 #include "./drawing.h"
 
 #include "../core/pool.h"
+#include "../core/arena.h"
 #include "../io/logger.h"
 
 #include <GraphicsTypes.h>
@@ -39,14 +40,34 @@ namespace rengine {
 			bool dirty{ false };
 		};
 
+		class DrawingAllocator {
+		public:
+			explicit DrawingAllocator(c_str name = nameof(DrawingAllocator)) : name_(name) {}
+			DrawingAllocator(const DrawingAllocator& allocator) { name_ = allocator.name_; }
+			DrawingAllocator(const DrawingAllocator& allocator, c_str name): name_(allocator.name_) { }
+
+			DrawingAllocator& operator=(const DrawingAllocator& allocator) { name_ = allocator.name_; return *this; }
+
+			ptr allocate(size_t size, int flags = 0);
+			ptr allocate(size_t size, size_t alignment, size_t offset, int flags = 0);
+			void deallocate(ptr p, size_t size = 0);
+
+			c_str get_name() const { return name_; }
+			void set_name(c_str name) { name_ = name; }
+		private:
+			c_str name_;
+		};
+
 		struct drawing_state
 		{
 			io::ILog* log;
+			core::IFrameArena* arena;
+
 			core::fixed_queue<vertex_uv_data, 3, u8> vertex_queue;
 
-			vector<vertex_data> points;
-			vector<triangle_data> triangles;
-			vector<line_data> lines;
+			vector<vertex_data, DrawingAllocator> points;
+			vector<triangle_data, DrawingAllocator> triangles;
+			vector<line_data, DrawingAllocator> lines;
 
 			math::byte_color current_color{ math::byte_color::white };
 			math::vec2 current_uv{ 0, 0 };
@@ -63,6 +84,7 @@ namespace rengine {
 
 		void drawing__init();
 		void drawing__deinit();
+
 		bool drawing__assert_vert_count(u32 count);
 		void drawing__require_vbuffer_size(u32 buffer_size);
 		void drawing__compile_shaders();
