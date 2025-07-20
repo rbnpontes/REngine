@@ -91,6 +91,7 @@ namespace rengine {
 			buffer_entry entry;
 			buffer_mgr__get_entry(type, buffer_id, &entry);
 			buffer_mgr__free_buffer(entry);
+			buffer_mgr__remove_entry(type, buffer_id);
 		}
 
 		u16 buffer_mgr__realloc(const buffer_type& type, u16 buffer_id, u32 new_size)
@@ -428,6 +429,32 @@ namespace rengine {
 				{
 					if(id != no_constant_buffer)
 						*output = g_buffer_mgr_state.constant_buffers[id].value;
+				}
+					break;
+			}
+		}
+
+		void buffer_mgr__remove_entry(const buffer_type& type, u16 id)
+		{
+			auto& state = g_buffer_mgr_state;
+			switch (type)
+			{
+				case buffer_type::vertex_buffer:
+				{
+					if(id != no_vertex_buffer)
+						state.vertex_buffers.erase(id);
+				}
+					break;
+				case buffer_type::index_buffer:
+				{
+					if(id != no_index_buffer)
+						state.index_buffers.erase(id);
+				}
+					break;
+				case buffer_type::constant_buffer:
+				{
+					if(id != no_constant_buffer)
+						state.constant_buffers.erase(id);
 				}
 					break;
 			}
