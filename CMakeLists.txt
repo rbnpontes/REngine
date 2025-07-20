@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 4.1)
+
 project(REngine C CXX)
 
 set (ENGINE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})

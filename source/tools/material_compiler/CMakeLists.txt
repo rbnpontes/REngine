@@ -6,7 +6,7 @@ add_executable(material_compiler ${SOURCES})
 target_link_libraries(material_compiler
     PRIVATE
         rengine
-        slang::slang
+        slang
 )
 
 target_compile_options(material_compiler PUBLIC
