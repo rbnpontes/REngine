@@ -46,11 +46,11 @@
 #define define_vs_get_uv(accessor, idx) \
     define_vec2_fn(getUV##idx, accessor)
 
-#define to_rgba(uint_color) float4( \
-    (float)((color >> 0) & 0xFF), \
-    (float)((color >> 8) & 0xFF), \
-    (float)((color >> 16) & 0xFF), \
-    (float)((color >> 24) & 0xFF) \
+#define to_rgba(uint_color) float4(         \
+    (float)((color >> 0) & 0xFF) / 255.0f,  \
+    (float)((color >> 8) & 0xFF) / 255.0f,  \
+    (float)((color >> 16) & 0xFF) / 255.0f, \
+    (float)((color >> 24) & 0xFF) / 255.0f  \
 );
 
 

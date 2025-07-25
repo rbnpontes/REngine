@@ -11,7 +11,7 @@ struct FrameData: IVertexConstantData {
 ParameterBlock<FrameData> g_frame;
 
 [shader("vertex")]
-StageOutput main(in UnlitVertexInput input) {
+StageOutput main(in UnlitTextureVertexInput input) {
     var processor = VertexProcessor(input, g_frame);
     return processor.getOutput();
 }
