@@ -1,0 +1,14 @@
+﻿material:
+    name: ImGui
+    author: rbnpontes
+    version: 0.1
+    definitions:
+    entrypoint: main
+    passes:
+        - imgui:
+            entrypoint: main
+            definitions:
+            program:
+                vertex: @assets/shaders/imgui_vs.slang
+                pixel: @assets/shaders/imgui_ps.slang
+
