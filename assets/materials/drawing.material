@@ -1,0 +1,14 @@
+﻿material:
+    name: Drawing
+    author: rbnpontes
+    version: 0.1
+    definitions:
+    entrypoint: main
+    passes:
+        - drawing:
+            entrypoint: main
+            definitions:
+            program:
+                vertex: @assets/shaders/drawing_vs.slang
+                pixel: @assets/shaders/drawing_ps.slang
+

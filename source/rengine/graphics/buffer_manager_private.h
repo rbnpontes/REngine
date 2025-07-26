@@ -60,5 +60,6 @@ namespace rengine {
 		void buffer_mgr__get_available_buffers(const buffer_type& type, u32* count, u16* buffers);
 
         void buffer_mgr__get_entry(const buffer_type& type, u16 id, buffer_entry* output);
+    	void buffer_mgr__remove_entry(const buffer_type& type, u16 id);
     }
 }
