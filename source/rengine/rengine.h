@@ -1,5 +1,6 @@
 #pragma once
 #include <rengine/strings.h>
+#include <rengine/eastl.h>
 #include <rengine/exceptions.h>
 #include <rengine/core/core.h>
 #include <rengine/graphics/graphics.h>

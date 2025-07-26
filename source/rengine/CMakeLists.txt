@@ -25,7 +25,12 @@ assign_source_groups(${SOURCE_FILES})
 assign_source_groups(${PUBLIC_HEADER_FILES})
 assign_source_groups(${PRIVATE_HEADER_FILES})
 
-add_library(rengine SHARED ${SOURCE_FILES} ${PUBLIC_HEADER_FILES} ${PRIVATE_HEADER_FILES})
+add_library(rengine SHARED ${SOURCE_FILES} ${PUBLIC_HEADER_FILES} ${PRIVATE_HEADER_FILES}
+        io/path.h
+        io/path.cpp
+        eastl.h
+        eastl_allocator.cpp
+        eastl_allocator.h)
 
 set (PRIVATE_LIBS
     Diligent-BuildSettings
@@ -33,14 +38,14 @@ set (PRIVATE_LIBS
     Diligent-GraphicsEngineOpenGL-static
     Diligent-GraphicsEngineVk-static
     SDL3::SDL3-static
-    EASTL
-    EABase
     xxHash
     stb
     Tracy::TracyClient
 )
 set (PUBLIC_LIBS
     fmt::fmt
+    EASTL
+    EABase
     imgui)
 
 set (PRIVATE_DEFINITIONS 
