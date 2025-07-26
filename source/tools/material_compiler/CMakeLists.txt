@@ -7,6 +7,7 @@ target_link_libraries(material_compiler
     PRIVATE
         rengine
         slang
+        ryml::ryml
 )
 
 target_compile_options(material_compiler PUBLIC

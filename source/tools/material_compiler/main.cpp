@@ -7,6 +7,8 @@
 #include <slang/slang.h>
 
 #include <rengine/rengine.h>
+#include <ryml.hpp>
+#include <ryml_std.hpp>
 
 using namespace slang;
 
@@ -48,6 +50,12 @@ int main(int argc, char** argv)
     // std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     rengine::init();
+
+    char yml_buf[] = "{foo: 1, bar: [2, 3]}";
+    ryml::Tree tree = ryml::parse_in_place(ryml::substr(yml_buf));
+    int foo = 0;
+    tree["foo"] >> foo;
+    std::cout << "Parsed foo=" << foo << std::endl;
 
     SlangSession* session = spCreateSession(nullptr);
     // SlangCompileRequest* request = spCreateCompileRequest(session);
