@@ -12,6 +12,71 @@
 
 using namespace slang;
 
+class material_compiler: public std::exception {
+public:
+    material_compiler(rengine::c_str message) : std::exception(message) {};
+};
+
+static rengine::string g_param_input = "-i";
+static rengine::string g_param_output = "-o";
+static rengine::string g_param_help = "-h";
+static rengine::string g_program_params[] = {
+    g_param_input, g_param_output
+};
+
+static rengine::hash_map<rengine::string, rengine::string> g_program_args;
+
+void program_collect_args(rengine::u32 argc, char** argv) {
+    rengine::string arg;
+    rengine::string path;
+
+    for (rengine::u32 i = 0; i < argc; ++i) {
+        arg = argv[i];
+        auto match_key = false;
+
+        if (g_param_help == arg) {
+            g_program_args[arg] = "help";
+            break;
+        }
+
+        for (rengine::u32 j = 0; j < _countof(g_program_params); ++j) {
+            if (arg != g_program_params[j])
+                continue;
+            match_key = true;
+            break;
+        }
+
+        if (!match_key)
+            continue;
+
+        if (i == argc - 1)
+            continue;
+
+        path = argv[i + 1];
+        rengine::io::path_normalize(&path);
+        g_program_args[arg] = path;
+    }
+}
+void program_validate_params() {
+    if (g_program_args.find(g_param_input) == g_program_args.end())
+        throw material_compiler("Required -i argument");
+    if (g_program_args.find(g_param_output) == g_program_args.end())
+        throw material_compiler("Required -o argument");
+}
+void program_print_help() {
+    std::cout << "*============================================================*" << std::endl;
+    std::cout << "| REngine - Material Compiler                                |" << std::endl;
+    std::cout << "|------------------------------------------------------------|" << std::endl;
+    std::cout << "| Command Example:                                           |" << std::endl;
+    std::cout << "| ./material_compiler -i unlit.material -o ./assets/material |" << std::endl;
+    std::cout << "|------------------------------------------------------------|" << std::endl;
+    std::cout << "| Param | Description                                        |" << std::endl;
+    std::cout << "| -i    | Material Description Input Path                    |" << std::endl;
+    std::cout << "| -o    | Material Output Path. (Directory where material    |" << std::endl;
+    std::cout << "|       | will be saved).                                    |" << std::endl;
+    std::cout << "*============================================================*" << std::endl;
+}
+
 namespace
 {
 SlangStage guessStage(const std::string& path)
@@ -32,6 +97,11 @@ SlangStage guessStage(const std::string& path)
 
 int main(int argc, char** argv)
 {
+    program_collect_args(argc, argv);
+    if (g_program_args.find(g_param_help) != g_program_args.end()) {
+        program_print_help();
+        return 0;
+    }
     // if (argc < 2)
     // {
     //     std::cerr << "Usage: material_compiler <shader file> <shader stage: vertex | pixel>" << std::endl;
