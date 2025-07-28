@@ -77,6 +77,21 @@ void program_print_help() {
     std::cout << "*============================================================*" << std::endl;
 }
 
+rengine::string program_get_material_input() {
+    const auto it = g_program_args.find_as(g_param_input);
+    if (it == g_program_args.end())
+        return rengine::string();
+    return it->second;
+}
+
+void material_read(rengine::c_str path, ryml::Tree* output_tree) {
+    const auto material_yml = rengine::io::file_read_text(path);
+    ryml::substr data(
+        const_cast<char*>(material_yml.c_str())
+    );
+
+    *output_tree = ryml::parse_in_place(data);
+}
 namespace
 {
 SlangStage guessStage(const std::string& path)
@@ -102,30 +117,8 @@ int main(int argc, char** argv)
         program_print_help();
         return 0;
     }
-    // if (argc < 2)
-    // {
-    //     std::cerr << "Usage: material_compiler <shader file> <shader stage: vertex | pixel>" << std::endl;
-    //     return 1;
-    // }
-    //
-    // const std::string shaderPath = argv[1];
-    //
-    // std::ifstream file(shaderPath, std::ios::binary);
-    // if (!file)
-    // {
-    //     std::cerr << "Failed to open file: " << shaderPath << std::endl;
-    //     return 1;
-    // }
-    //
-    // std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-    rengine::init();
-
-    char yml_buf[] = "{foo: 1, bar: [2, 3]}";
-    ryml::Tree tree = ryml::parse_in_place(ryml::substr(yml_buf));
-    int foo = 0;
-    tree["foo"] >> foo;
-    std::cout << "Parsed foo=" << foo << std::endl;
+    ryml::Tree tree;
+    material_read(program_get_material_input().c_str(), &tree);
 
     SlangSession* session = spCreateSession(nullptr);
     // SlangCompileRequest* request = spCreateCompileRequest(session);
@@ -190,7 +183,6 @@ int main(int argc, char** argv)
 
     // spDestroyCompileRequest(request);
     spDestroySession(session);
-    rengine::destroy();
     return 0;
 }
 

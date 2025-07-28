@@ -236,6 +236,10 @@ namespace rengine {
 
             constexpr static c_str g_profiler_reached_entries = "Reached max of profiler entries. Increase the current capacity to continue";
 
+            constexpr static c_str g_file_not_found = "File not found";
+            constexpr static c_str g_file_failed_2_open = "Failed to open file";
+            constexpr static c_str g_file_failed_2_read = "Failed to read file";
+
             constexpr static c_str g_graphics_unsupported_backend = "Unsupported graphics backend {0} on this platform";
             constexpr static c_str g_graphics_not_initialized = "Graphics is not initialized";
             constexpr static c_str g_graphics_not_suitable_device = "Not found a suitable graphics card device";
