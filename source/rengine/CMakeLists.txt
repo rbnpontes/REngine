@@ -32,7 +32,8 @@ add_library(rengine SHARED ${SOURCE_FILES} ${PUBLIC_HEADER_FILES} ${PRIVATE_HEAD
         eastl_allocator.cpp
         eastl_allocator.h
         io/file.h
-        io/file.cpp)
+        io/file.cpp
+        io/file_private.h)
 
 set (PRIVATE_LIBS
     Diligent-BuildSettings

@@ -4,5 +4,6 @@
 #include "./types.h"
 #include "./strings.h"
 #include "./eastl.h"
+#include "./exceptions.h"
 
 PRIVATE_HEADER

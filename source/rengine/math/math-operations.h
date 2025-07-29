@@ -53,14 +53,18 @@ namespace rengine {
 		inline bool equals_ptr(const ptr a, const ptr b) { return a == b; }
 
 		template <typename T>
-		inline T min(T value, T min) { return value < min ? min : value; }
+		inline T min(T value, T min) {
+			return value > min ? min : value;
+		}
 		template <typename T>
-		inline T max(T value, T max) { return value > max ? max : value; }
+		inline T max(T value, T max) {
+			return value > max ? value : max;
+		}
 
 		template <typename T>
 		inline T clamp(T value, T min_, T max_) {
 			//return (value < min_) ? min_ : (value > max_) ? max_ : value;
-			return math::min(min_, math::max(max_, value));
+			return math::min(math::max(min_, value), max_);
 		}
 
 		template <typename T, typename Time>
