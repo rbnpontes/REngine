@@ -12,9 +12,18 @@
 
 using namespace slang;
 
-class material_compiler: public std::exception {
+class material_compiler_exception: public std::exception {
 public:
-    material_compiler(rengine::c_str message) : std::exception(message) {};
+    material_compiler_exception(rengine::c_str message) : std::exception(message) {};
+};
+class invalid_material_exception: public material_compiler_exception {
+    public:
+        invalid_material_exception(rengine::c_str message) : material_compiler_exception(message) {}
+};
+
+struct program_state {
+    rengine::string material_data;
+    ryml::Tree tree;
 };
 
 static rengine::string g_param_input = "-i";
@@ -25,6 +34,7 @@ static rengine::string g_program_params[] = {
 };
 
 static rengine::hash_map<rengine::string, rengine::string> g_program_args;
+static program_state g_program_state = {};
 
 void program_collect_args(rengine::u32 argc, char** argv) {
     rengine::string arg;
@@ -59,9 +69,9 @@ void program_collect_args(rengine::u32 argc, char** argv) {
 }
 void program_validate_params() {
     if (g_program_args.find(g_param_input) == g_program_args.end())
-        throw material_compiler("Required -i argument");
+        throw material_compiler_exception("Required -i argument");
     if (g_program_args.find(g_param_output) == g_program_args.end())
-        throw material_compiler("Required -o argument");
+        throw material_compiler_exception("Required -o argument");
 }
 void program_print_help() {
     std::cout << "*============================================================*" << std::endl;
@@ -84,14 +94,38 @@ rengine::string program_get_material_input() {
     return it->second;
 }
 
-void material_read(rengine::c_str path, ryml::Tree* output_tree) {
+void material_read(rengine::c_str path) {
     const auto material_yml = rengine::io::file_read_text(path);
-    ryml::substr data(
-        const_cast<char*>(material_yml.c_str())
+    g_program_state.material_data = material_yml;
+    auto data = ryml::substr(
+        const_cast<char*>(g_program_state.material_data.c_str())
     );
-
-    *output_tree = ryml::parse_in_place(data);
+    g_program_state.tree = ryml::parse_in_place(data);
 }
+
+void material_validate() {
+    auto& root = g_program_state.tree;
+    if (!root.find_child(root.root_id(), "material"))
+        throw material_compiler_exception("Required 'material' property");
+
+    const auto material_node = root["material"];
+    if (material_node.find_child("name").invalid())
+        throw material_compiler_exception("Required 'material.name' property");
+    if (material_node.find_child("author").invalid())
+        throw material_compiler_exception("Required 'material.author' property");
+    if (material_node.find_child("version").invalid())
+        throw material_compiler_exception("Required 'material.version' property");
+    if (material_node.find_child("entrypoint").invalid())
+        throw material_compiler_exception("Required 'material.entrypoint' property");
+    const auto passes_node = material_node.find_child("passes");
+    if (passes_node.invalid())
+        throw material_compiler_exception("Required 'material.passes' property");
+
+    if (passes_node.num_children() == 0)
+        throw material_compiler_exception("Required at least one pass definition");
+}
+
+
 namespace
 {
 SlangStage guessStage(const std::string& path)
@@ -118,7 +152,8 @@ int main(int argc, char** argv)
         return 0;
     }
     ryml::Tree tree;
-    material_read(program_get_material_input().c_str(), &tree);
+    material_read(program_get_material_input().c_str());
+    material_validate();
 
     SlangSession* session = spCreateSession(nullptr);
     // SlangCompileRequest* request = spCreateCompileRequest(session);
