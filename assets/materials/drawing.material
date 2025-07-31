@@ -4,8 +4,11 @@
     version: 0.1
     definitions:
     entrypoint: main
+    program:
+        vertex: @assets/shaders/drawing_vs.slang
+        pixel: @assets/shaders/drawing_ps.slang
     passes:
-        - drawing:
+        drawing:
             entrypoint: main
             definitions:
             program:

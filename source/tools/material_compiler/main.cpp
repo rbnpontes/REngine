@@ -21,6 +21,26 @@ class invalid_material_exception: public material_compiler_exception {
         invalid_material_exception(rengine::c_str message) : material_compiler_exception(message) {}
 };
 
+struct material_program_data {
+    rengine::string vertex;
+    rengine::string pixel;
+};
+
+struct material_pass_data {
+    rengine::string entrypoint;
+    rengine::unordered_map<rengine::string, rengine::string> definitions;
+    material_program_data program;
+};
+
+struct material_data {
+    rengine::string name;
+    rengine::string author;
+    rengine::string version;
+    rengine::unordered_map<rengine::string, rengine::string> definitions;
+    rengine::string entrypoint;
+    material_program_data program;
+};
+
 struct program_state {
     rengine::string material_data;
     ryml::Tree tree;
@@ -103,7 +123,12 @@ void material_read(rengine::c_str path) {
     g_program_state.tree = ryml::parse_in_place(data);
 }
 
+bool material_validate_program(ryml::ConstNodeRef& program_node) {
+
+}
+
 void material_validate() {
+    bool has_root_program = false;
     auto& root = g_program_state.tree;
     if (!root.find_child(root.root_id(), "material"))
         throw material_compiler_exception("Required 'material' property");
@@ -117,12 +142,28 @@ void material_validate() {
         throw material_compiler_exception("Required 'material.version' property");
     if (material_node.find_child("entrypoint").invalid())
         throw material_compiler_exception("Required 'material.entrypoint' property");
+    if (material_node.find_child("program").valid()) {
+        const auto program_node = material_node["program"];
+        if (material_validate_program(program_node))
+    }
+
     const auto passes_node = material_node.find_child("passes");
     if (passes_node.invalid())
         throw material_compiler_exception("Required 'material.passes' property");
 
     if (passes_node.num_children() == 0)
         throw material_compiler_exception("Required at least one pass definition");
+
+    for (const auto& pass_node : passes_node.children()) {
+        const auto type = pass_node.type();
+        if (!type.has_all(ryml::KEYMAP))
+            throw material_compiler_exception("Required 'material.passes' property");
+        rengine::string pass_prop(pass_node.key().data());
+        pass_prop += ".";
+
+        if (pass_node.find_child("program").invalid())
+            throw material_compiler_exception(("Required '"+ pass_prop+"' property").c_str());
+    }
 }
 
 

@@ -5,7 +5,7 @@
     definitions:
     entrypoint: main
     passes:
-        - imgui:
+        imgui:
             entrypoint: main
             definitions:
             program:
